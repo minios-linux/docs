@@ -1,0 +1,46 @@
+baseURL = 'http://minios.dev/docs'
+title = 'MiniOS Docs'
+theme = 'hugo-book'
+
+[languages]
+[languages.en]
+  languageName = 'English'
+  contentDir = 'content.en'
+  weight = 1
+
+[languages.ru]
+  languageName = 'Русский'
+  contentDir = 'content.ru'
+  weight = 2
+
+[menu]
+# [[menu.before]]
+[[menu.after]]
+  name = "Github"
+  url = "https://github.com/minios-linux/minios-live"
+  weight = 10
+
+[[menu.after]]
+  name = "MiniOS"
+  url = "https://minios.dev"
+  weight = 20
+
+# Required to get well formatted code blocks
+pygmentsUseClasses = true
+pygmentsCodeFences = true
+disablePathToLower = true
+enableGitInfo = true
+
+# Required if you want to render robots.txt template
+enableRobotsTXT = true
+
+[markup]
+  [markup.goldmark.renderer]
+    # Needed for mermaid shortcode
+    unsafe = true
+  [markup.tableOfContents]
+    startLevel = 1
+    endLevel = 9
+
+[taxonomies]
+  tag = "tags"
