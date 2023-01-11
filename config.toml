@@ -49,4 +49,4 @@ enableRobotsTXT = true
 
 [params]
   BookTheme = 'auto'
-  BookLogo = 'logo.png'
+#  BookLogo = 'logo.png'
