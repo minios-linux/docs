@@ -1,7 +1,7 @@
 ---
-title: Установка
+title: Configuration
 type: docs
-weight: 1
+weight: 2
 bookCollapseSection: true
 ---
 

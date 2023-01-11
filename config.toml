@@ -2,6 +2,8 @@ baseURL = 'http://minios.dev/docs'
 title = 'MiniOS Docs'
 theme = 'hugo-book'
 
+googleAnalytics = 'G-DW6V3D3DVZ'
+
 [languages]
 [languages.en]
   languageName = 'English'

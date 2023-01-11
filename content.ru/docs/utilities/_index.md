@@ -1,7 +1,7 @@
 ---
-title: Установка
+title: Утилиты
 type: docs
-weight: 1
+weight: 3
 bookCollapseSection: true
 ---
 

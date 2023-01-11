@@ -1,5 +1,5 @@
 ---
-title: Установка на USB-Flash
+title: Установка на жёсткий диск или флешку
 type: docs
 weight: 1
 ---
