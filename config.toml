@@ -46,3 +46,7 @@ enableRobotsTXT = true
 
 [taxonomies]
   tag = "tags"
+
+[params]
+  BookTheme = 'auto'
+  BookLogo = 'logo.png'
