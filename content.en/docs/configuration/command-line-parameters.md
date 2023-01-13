@@ -3,6 +3,9 @@ title: Command line parameters
 type: docs
 weight: 2
 ---
+
+# Command line parameters
+
 Boot parameters (also known as cheatcodes) are used to affect the boot process of MiniOS. Some of them are common for all Linuxes, others are specific for MiniOS only. You can use them to disable desired kind of hardware detection, to start MiniOS from hard drive, etc.
 
 <!--more-->
