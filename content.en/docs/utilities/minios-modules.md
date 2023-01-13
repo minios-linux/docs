@@ -4,6 +4,8 @@ type: docs
 weight: 1
 ---
 
+# minios-modules
+
 The minios-modules application is intended for batch creation of modules. The principle of operation is similar to the assembly of modules when installing the system in minios-live.
 <!--more-->
 ## Create a simple module
