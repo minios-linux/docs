@@ -3,6 +3,7 @@ title: Install on hard disk or USB flash drive
 type: docs
 weight: 1
 ---
+# Install on hard disk or USB flash drive
 
 In order to run MiniOS from hard drive or from an USB device, you need to copy the contents of the ISO file directly to your disk's root.
 

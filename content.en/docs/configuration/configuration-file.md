@@ -3,6 +3,8 @@ title: Configuration file
 type: docs
 weight: 1
 ---
+# Configuration file
+
 MiniOS differs from most classic flash distributions in that some parameters can be set before boot in a fairly simple configuration file `minios/minios.conf`, which minimizes the amount of work required when creating your own modules to create embedded systems. Optionally, some of the parameters can be set in the boot parameters.
 
 <!--more-->
@@ -29,7 +31,7 @@ BEXT="sb"
 
 Some of these options can only be set once, before the first load, if you are using persistent mode. In persistent mode, only the following parameters can always be changed:
 
-```
+```t
 USER_PASSWORD
 ROOT_PASSWORD
 ENABLE_SERVICES
