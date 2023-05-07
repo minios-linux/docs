@@ -38,7 +38,7 @@ This command will give you a module named **10-gparted-amd64-zstd.sb**. Similarl
 
 The <strong>is\_dkms\_build</strong>. An empty file with this name must be created if you use the **build** script to compile kernel modules (*yes, I know they may not be related to dkms, but historically this name has been used*), then only contents of /usr/lib/modules.
 
-Sample scripts for building a module using **build** with <strong>patches</strong> folder: https://github.com/minios-linux/minios-live/tree/master/linux-live/scripts/04 -slax-desktop
+Sample scripts for building a module using **build** with <strong>patches</strong> folder: https://github.com/minios-linux/minios-live/tree/master/linux-live/scripts/04-flux-desktop
 
 Example scripts for building a module using **build** and <strong>is\_dkms\_build</strong>: https://github.com/minios-linux/minios-live/tree/master/linux-live/ scripts/10-virtualbox-6.1
 

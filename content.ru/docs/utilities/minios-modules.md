@@ -34,7 +34,7 @@ apt install -y gparted
 
 Отдельно стоит отметить файл <strong>is\_dkms\_build</strong>. Пустой файл с этим именем необходимо создать, если вы используете скрипт **build** для компиляции модулей ядра (*да, я знаю, что они могут не иметь отношения к dkms, но исторически сложилось такое наименование*), тогда в модуль попадёт только содержимое /usr/lib/modules.
 
-Пример скриптов для сборки модуля с использованием **build** с папкой <strong>patches</strong>: https://github.com/minios-linux/minios-live/tree/master/linux-live/scripts/04-slax-desktop
+Пример скриптов для сборки модуля с использованием **build** с папкой <strong>patches</strong>: https://github.com/minios-linux/minios-live/tree/master/linux-live/scripts/04-flux-desktop
 
 Пример скриптов для сборки модуля с использованием **build** и <strong>is\_dkms\_build</strong>: https://github.com/minios-linux/minios-live/tree/master/linux-live/scripts/10-virtualbox-6.1
 
