@@ -40,7 +40,7 @@ The <strong>is\_dkms\_build</strong>. An empty file with this name must be creat
 
 Sample scripts for building a module using **build** with <strong>patches</strong> folder: https://github.com/minios-linux/minios-live/tree/master/linux-live/scripts/04-flux-desktop
 
-Example scripts for building a module using **build** and <strong>is\_dkms\_build</strong>: https://github.com/minios-linux/minios-live/tree/master/linux-live/ scripts/10-virtualbox-6.1
+Example scripts for building a module using **build** and <strong>is\_dkms\_build</strong>: https://github.com/minios-linux/minios-live/tree/master/linux-live/scripts/10-virtualbox-6.1
 
 Due to the fact that the name of the main user in MiniOS is dynamic and can be anything (see ...), when building a module that adds a group to the system, which will then need to be assigned to the main user (for example,
 vboxusers for the virtualbox module) in order for it to run the program without root rights, you need to create a systemd service. This service will add the main user to the required group, if it was not added earlier, at system startup. For example:
