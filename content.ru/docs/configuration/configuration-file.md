@@ -21,6 +21,7 @@ CLOUD="false"
 SCRIPTS="true"
 HIDE_CREDENTIALS="false"
 AUTOLOGIN="true"
+SYSTEM_TYPE="puzzle"
 CORE_BUNDLE_PREFIX="00-core"
 BEXT="sb"
 ```
@@ -52,6 +53,7 @@ AUTOLOGIN
 | SCRIPTS | Запуск скриптов shell из папки minios/scripts, по умолчанию включён. Скрипты запускаются автоматически на tty2 после достижения multi-user.target (init 3). | SCRIPTS=true | <ul><li>MiniOS Live Kit</li></ul><ul><li>Slax Live Kit</li></ul><ul><li>UIRD</li></ul> |
 | HIDE\_CREDENTIALS | Скрыть учетные данные, отображаемые в виде подсказки в tty. По умолчанию отключено. | HIDE\_CREDENTIALS=false | <ul><li>MiniOS Live Kit</li></ul><ul><li>Slax Live Kit</li></ul><ul><li>UIRD</li></ul> |
 | AUTOLOGIN | Включить/отключить автоматический вход в систему. По умолчанию включено. | AUTOLOGIN=true | <ul><li>MiniOS Live Kit</li></ul><ul><li>Slax Live Kit</li></ul><ul><li>UIRD</li></ul> |
+| SYSTEM\_TYPE | Выбрать режим работы системы. Если вы планируете устанавливать ПО исключительно модулями, необходимо использовать "puzzle", если вы хотите устанавливать ПО с помощью apt, то "classic". По умолчанию установлено значение "puzzle". | SYSTEM\_TYPE=puzzle<br>SYSTEM\_TYPE=classic | <ul><li>MiniOS Live Kit</li></ul><ul><li>Slax Live Kit</li></ul><ul><li>UIRD</li></ul> |
 | CORE\_BUNDLE\_PREFIX | Служебный параметр, указывающий утилитам в системе наименование модуля с базовой системой. | CORE\_BUNDLE\_PREFIX=00-core | <ul><li>MiniOS Live Kit</li></ul><ul><li>Slax Live Kit</li></ul><ul><li>UIRD</li></ul> |
 | BEXT | Служебный параметр, указывающий утилитам в системе расшрение в имени файлов модулей. | BEXT=sb | <ul><li>MiniOS Live Kit</li></ul><ul><li>Slax Live Kit</li></ul><ul><li>UIRD</li></ul> |
 ***

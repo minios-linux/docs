@@ -25,13 +25,14 @@ CLOUD="false"
 SCRIPTS="true"
 HIDE_CREDENTIALS="false"
 AUTOLOGIN="true"
+SYSTEM_TYPE="puzzle"
 CORE_BUNDLE_PREFIX="00-core"
 BEXT="sb"
 ```
 
 Some of these options can only be set once, before the first load, if you are using persistent mode. In persistent mode, only the following parameters can always be changed:
 
-```t
+```
 USER_PASSWORD
 ROOT_PASSWORD
 ENABLE_SERVICES
@@ -57,6 +58,7 @@ AUTOLOGIN
 | SCRIPTS | Running shell scripts from the minios/scripts folder, enabled by default. Scripts run automatically on tty2 after reaching multi-user.target (init 3). | SCRIPTS=true | <ul><li>MiniOS Live Kit</li></ul><ul><li>Slax Live Kit</li></ul><ul><li>UIRD</li></ul> |
 | HIDE\_CREDENTIALS | Hide credentials displayed as tooltip in tty. Disabled by default. | HIDE\_CREDENTIALS=false | <ul><li>MiniOS Live Kit</li></ul><ul><li>Slax Live Kit</li></ul><ul><li>UIRD</li></ul> |
 | AUTOLOGIN | Enable/disable automatic login. Enabled by default. | AUTOLOGIN=true | <ul><li>MiniOS Live Kit</li></ul><ul><li>Slax Live Kit</li></ul><ul><li>UIRD</li></ul> |
+| SYSTEM\_TYPE | Select the operating mode of the system. If you plan to install software exclusively by modules, you must use "puzzle", if you want to install software using apt, then "classic". The default setting is "puzzle". | SYSTEM\_TYPE=puzzle<br>SYSTEM\_TYPE=classic | <ul><li>MiniOS Live Kit</li></ul><ul><li>Slax Live Kit</li></ul><ul><li>UIRD</li></ul> |
 | CORE\_BUNDLE\_PREFIX | A service parameter that tells utilities in the system the name of the module with the base system. | CORE\_BUNDLE\_PREFIX=00-core | <ul><li>MiniOS Live Kit</li></ul><ul><li>Slax Live Kit</li></ul><ul><li>UIRD</li></ul> |
 | BEXT | A service parameter that indicates to utilities in the system the extension in the module file name. | BEXT=sb | <ul><li>MiniOS Live Kit</li></ul><ul><li>Slax Live Kit</li></ul><ul><li>UIRD</li></ul> |
 
