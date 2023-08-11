@@ -15,6 +15,11 @@ googleAnalytics = 'G-DW6V3D3DVZ'
   contentDir = 'content.ru'
   weight = 2
 
+[languages.es]
+  languageName = 'Español'
+  contentDir = 'content.es'
+  weight = 3
+
 [menu]
 # [[menu.before]]
 [[menu.after]]
