@@ -26,6 +26,7 @@ SCRIPTS="true"
 HIDE_CREDENTIALS="false"
 AUTOLOGIN="true"
 SYSTEM_TYPE="puzzle"
+EXPORT_LOGS="false"
 CORE_BUNDLE_PREFIX="00-core"
 BEXT="sb"
 ```

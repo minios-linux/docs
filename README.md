@@ -1,2 +1,1 @@
-# docs
-MiniOS Docs
+# MiniOS Docs
