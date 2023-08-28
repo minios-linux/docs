@@ -1,9 +1,12 @@
 ---
-title: minios-modules
+title: Пакетное создание модулей
 type: docs
-weight: 1
+weight: 4
 ---
 
+# Пакетное создание модулей
+
+<div style="text-align: justify">
 Приложение minios-modules предназначено для пакетного создания модулей. Принцип действия аналогичен сборке модулей при установке системы в minios-live.
 <!--more-->
 ## Создание простого модуля
@@ -68,3 +71,4 @@ EOF
 systemctl enable $APP-allowuser.service
 ```
 Полный вариант скрипта: https://github.com/minios-linux/minios-live/blob/master/linux-live/scripts/10-virtualbox-6.1/install
+</div>

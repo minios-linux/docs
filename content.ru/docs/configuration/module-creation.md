@@ -6,6 +6,7 @@ weight: 3
 
 # Создание модулей
 
+<div style="text-align: justify">
 Для создания модулей в MiniOS предназначено достаточно большое количество утилит. Все они рассчитаны на использование терминала.
 
 <!--more-->
@@ -31,22 +32,16 @@ weight: 3
 #!/bin/bash
 # Установка ключей для доступа к репозиторию Debian и дополнения apt для доступа к репозиторию через https
 apt install -y debian-keyring debian-archive-keyring apt-transport-https
-
 # Добавление ключа GPG для репозитория Caddy
 curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
-
 # Добавление репозитория Caddy в список источников пакетов
 curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list
-
 # Обновление списка пакетов
 apt update
-
 # Установка Caddy
 apt install caddy
-
 # Удаление ключей для доступа к репозиторию Debian
 apt remove -y debian-keyring debian-archive-keyring apt-transport-https
-
 # Удаление файла списка источников и ключа GPG для репозитория Caddy
 rm /etc/apt/sources.list.d/caddy-stable.list /usr/share/keyrings/caddy-stable-archive-keyring.gpg
 ```
@@ -65,3 +60,4 @@ scr2sb -s ./caddy.sh -l 1 -f 01-caddy.sb -d /home/user/mymodule
 
 ## **upg2sb**
 Утилита upg2sb служит для загрузки обновлений системы и упаковки их в модуль. Как и в apt2sb и scr2sb вы можете использовать опции `-l`/`--level` и `-f`/`--file` для указания уровня фильтра модулей и имени модуля  (более подробно назначение опции фильтра модулей описано в описании apt2sb). По умолчанию, если не указаны опции, создаётся модуль с именем 10-upgrade-230819.sb, где 230819 - текущая дата в формате ГГММДД. Если указана опция `-l`/`--level`, то номер уровня фильтра будет использован в имени модуля, например, при запуске команды `upg2sb -l 4` будет создан модуль с именем 04-upgrade-230819.sb.
+</div>
