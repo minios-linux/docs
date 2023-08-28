@@ -31,16 +31,22 @@ weight: 3
 #!/bin/bash
 # Установка ключей для доступа к репозиторию Debian и дополнения apt для доступа к репозиторию через https
 apt install -y debian-keyring debian-archive-keyring apt-transport-https
+
 # Добавление ключа GPG для репозитория Caddy
 curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+
 # Добавление репозитория Caddy в список источников пакетов
 curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list
+
 # Обновление списка пакетов
 apt update
+
 # Установка Caddy
 apt install caddy
+
 # Удаление ключей для доступа к репозиторию Debian
 apt remove -y debian-keyring debian-archive-keyring apt-transport-https
+
 # Удаление файла списка источников и ключа GPG для репозитория Caddy
 rm /etc/apt/sources.list.d/caddy-stable.list /usr/share/keyrings/caddy-stable-archive-keyring.gpg
 ```
