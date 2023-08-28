@@ -59,7 +59,7 @@ minios-geniso -e 06 -f my-incredibly-cool-operating-system.iso 04-chromium.sb
 
 ### Итог
 
-На скриншотах вы можете видеть как изменилась система.
+На скриншотах вы можете видеть как изменилась система.<br>
 Меню загрузки с единственным пунктом
 ![](images/b15d2a28cdf9cfbc5ca10.png)
 
