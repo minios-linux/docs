@@ -6,7 +6,7 @@ weight: 5
 
 # Пересборка ISO
 
-## **minios-geniso**
+## minios-geniso
 
 <div style="text-align: justify">
 Для пересборки ISO в MiniOS предусмотрена утилита `minios-geniso`. Фактически, это модифицированный под нужды MiniOS скрипт `genslaxiso` из дистрибутива [Slax](https://www.slax.org/), в котором скрыто чуть больше возможностей.
@@ -68,7 +68,7 @@ minios-geniso -e 06 -f my-incredibly-cool-operating-system.iso 04-chromium.sb
 
 ![](https://telegra.ph/file/cf25404b4c36e121c0277.png#center)
 
-## **Итог**
+## Итог
 
 На скриншотах вы можете видеть как изменилась система.
 
