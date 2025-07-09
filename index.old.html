@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">Markdown Renderer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/4.0.0/github-markdown.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/showdown@latest/dist/showdown.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/showdown-toc@latest/dist/index.umd.min.js"></script>
+
+    <style>
+        .markdown-body {
+            box-sizing: border-box;
+            min-width: 200px;
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 45px;
+            position: relative;
+        }
+
+        .toc-container {
+            margin: 20px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+
+        .toc-container ol {
+            list-style: none;
+            padding-left: 20px;
+        }
+
+        .toc-container ol li {
+            margin: 5px 0;
+        }
+
+        .toc-container ol li a {
+            text-decoration: none;
+            color: #0366d6;
+        }
+
+        .toc-container ol li a:hover {
+            text-decoration: underline;
+        }
+
+        .button-38 {
+            background-color: #FFFFFF;
+            border: 0;
+            border-radius: .5rem;
+            box-sizing: border-box;
+            color: #111827;
+            font-family: "Inter var", ui-sans-serif, system-ui, -apple-system, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+            font-size: .875rem;
+            font-weight: 600;
+            line-height: 1.25rem;
+            padding: .75rem 1rem;
+            text-align: center;
+            text-decoration: none #D1D5DB solid;
+            text-decoration-thickness: auto;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            cursor: pointer;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        .button-38:hover {
+            background-color: rgb(249, 250, 251);
+        }
+
+        .button-38:focus {
+            outline: 2px solid transparent;
+            outline-offset: 2px;
+        }
+
+        .button-38:focus-visible {
+            box-shadow: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="markdown-body">
+        <button id="home-button" class="button-38">Back to home page</button>
+        <div id="content"></div>
+    </div>
+
+    <script>
+        // Create a converter object with table and TOC support enabled
+        var toc = [];
+        var converter = new showdown.Converter({
+            tables: true,
+            extensions: [showdownToc({ toc })]
+        });
+
+        // Function to load and convert the Markdown file
+        function loadMarkdown(file) {
+            toc.length = 0; // Clear the TOC array before rendering new content
+
+            // Append .md to the filename for the actual file request
+            var mdFile = file.endsWith('.md') ? file : file + '.md';
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', mdFile, true);
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    var markdown = xhr.responseText;
+                    var html = converter.makeHtml(markdown);
+                    document.getElementById('content').innerHTML = html;
+                    updateLinks();
+
+                    // Extract the first heading and set it as the document title
+                    var firstHeading = markdown.match(/^#\s(.+)$/m);
+                    if (firstHeading) {
+                        document.title = firstHeading[1];
+                    }
+
+                    // Show or hide the return button based on the loaded file
+                    if (file !== 'Home') {
+                        document.getElementById('home-button').style.display = 'block';
+                    } else {
+                        document.getElementById('home-button').style.display = 'none';
+                    }
+
+                    // Update the URL without the .md extension
+                    history.pushState(null, '', `?page=${file}`);
+
+                    // Render TOC if available
+                    renderTOC();
+                }
+            };
+            xhr.send();
+        }
+
+        // Update links inside the converted HTML
+        function updateLinks() {
+            var links = document.querySelectorAll('#content a');
+            links.forEach(function (link) {
+                link.addEventListener('click', function (event) {
+                    var url = link.getAttribute('href');
+                    if (url.startsWith('#')) {
+                        event.preventDefault();
+                        var targetId = url.substring(1);
+                        var targetElement = document.getElementById(targetId);
+                        if (targetElement) {
+                            targetElement.scrollIntoView({ behavior: 'smooth' });
+                        }
+                    } else {
+                        // Remove .md extension if present
+                        var cleanUrl = url.replace(/\.md$/, '');
+                        event.preventDefault();
+                        loadMarkdown(cleanUrl);
+                    }
+                });
+            });
+        }
+
+        // Render the Table of Contents
+        function renderTOC() {
+            if (toc.length > 0) {
+                var firstHeading = document.querySelector('.markdown-body h1');
+                if (!firstHeading) return;
+
+                var tocContainer = document.createElement('div');
+                tocContainer.className = 'toc-container';
+                var tocList = document.createElement('ol');
+                toc.forEach(function (item) {
+                    var tocItem = document.createElement('li');
+                    tocItem.style.marginLeft = `${(item.level - 1) * 20}px`;
+                    var tocLink = document.createElement('a');
+                    tocLink.href = `#${item.anchor}`;
+                    tocLink.textContent = item.text;
+                    tocItem.appendChild(tocLink);
+                    tocList.appendChild(tocItem);
+                });
+                tocContainer.appendChild(tocList);
+
+                firstHeading.insertAdjacentElement('afterend', tocContainer);
+            }
+        }
+
+        // Add event listener for the return button
+        document.getElementById('home-button').addEventListener('click', function () {
+            loadMarkdown('Home');
+        });
+
+        // Load your initial Markdown file
+        function loadInitialMarkdown() {
+            var params = new URLSearchParams(window.location.search);
+            var file = params.get('page') || 'Home';
+            loadMarkdown(file);
+        }
+
+        loadInitialMarkdown();
+    </script>
+
+</body>
+
+</html>
