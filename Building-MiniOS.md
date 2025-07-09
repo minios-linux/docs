@@ -2,20 +2,6 @@
 
 This guide covers the complete process for building MiniOS, including system builds, module development, and advanced configuration options.
 
-## Table of Contents
-
-1. [Overview](#overview)
-2. [Getting Started](#getting-started)
-3. [Build Tools](#build-tools)
-4. [Project Structure](#project-structure)
-5. [Build Process](#build-process)
-6. [Configuration System](#configuration-system)
-7. [Module System](#module-system)
-8. [Package Management with Condinaut](#package-management-with-condinaut)
-9. [Building Your First ISO](#building-your-first-iso)
-10. [Advanced Customization](#advanced-customization)
-11. [Troubleshooting](#troubleshooting)
-
 ## Overview
 
 MiniOS uses a modular build system where the operating system is constructed from individual modules in SquashFS format. Each module contains specific software packages or components, and they are loaded in a sequential order to form the complete system.
