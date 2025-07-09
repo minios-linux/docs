@@ -409,7 +409,7 @@ fi
 
 ### Advanced Condinaut Syntax
 
-As documented in `linux-live/condinaut.list.md`, condinaut supports:
+As documented in [linux-live/condinaut.list.md](https://github.com/minios-linux/minios-live/blob/master/linux-live/condinaut.list.md), condinaut supports:
 
 - **Basic packages**: `package-name`
 - **Version specifications**: 
