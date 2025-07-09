@@ -72,4 +72,4 @@ The table below lists the boot parameters available in MiniOS, their functions, 
 
 Separate commands with spaces. See the `man bootparam` reference pages for additional kernel parameters common to all Linux distributions.
 
-For detailed information about live-config parameters, see [live-config.md](./live-config.md).
+For detailed information about live-config parameters, see [live-config](./live-config.md).

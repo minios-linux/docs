@@ -206,10 +206,10 @@ Restart your computer and boot from the MiniOS USB drive.
 
 ## 📋 Summary of Files and Locations
 
-| File                         | Source Location (after script) | Destination Location (booting from USB)              | Destination Location (USB connected to another system) |
-| ---------------------------- | ------------------------------- | ------------------------------------------------------ | ---------------------------------------------------------- |
-| `01-kernel-<kernel-version>.sb` | Current working directory        | `/run/initramfs/memory/data/minios/`                   | `<mount_point>/minios/`                                      |
-| `vmlinuz-<kernel-version>`      | Current working directory        | `/run/initramfs/memory/data/minios/boot/`              | `<mount_point>/minios/boot/`                                 |
-| `initrfs-<kernel-version>.img`  | Current working directory        | `/run/initramfs/memory/data/minios/boot/`              | `<mount_point>/minios/boot/`                                 |
-| `syslinux.cfg`               |                                  | `/run/initramfs/memory/data/minios/boot/syslinux.cfg`  | `<mount_point>/minios/boot/syslinux.cfg`                     |
-| `grub.cfg`                   |                                  | `/run/initramfs/memory/data/minios/boot/grub/grub.cfg` | `<mount_point>/minios/boot/grub/grub.cfg`                    |
+| File                            | Source Location (after script) | Destination Location (booting from USB)                | Destination Location (USB connected to another system) |
+| ------------------------------- | ------------------------------ | ------------------------------------------------------ | ------------------------------------------------------ |
+| `01-kernel-<kernel-version>.sb` | Current working directory      | `/run/initramfs/memory/data/minios/`                   | `<mount_point>/minios/`                                |
+| `vmlinuz-<kernel-version>`      | Current working directory      | `/run/initramfs/memory/data/minios/boot/`              | `<mount_point>/minios/boot/`                           |
+| `initrfs-<kernel-version>.img`  | Current working directory      | `/run/initramfs/memory/data/minios/boot/`              | `<mount_point>/minios/boot/`                           |
+| `syslinux.cfg`                  |                                | `/run/initramfs/memory/data/minios/boot/syslinux.cfg`  | `<mount_point>/minios/boot/syslinux.cfg`               |
+| `grub.cfg`                      |                                | `/run/initramfs/memory/data/minios/boot/grub/grub.cfg` | `<mount_point>/minios/boot/grub/grub.cfg`              |

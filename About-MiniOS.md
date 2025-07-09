@@ -29,7 +29,7 @@ MiniOS Toolbox is designed for professionals and power users who need a robust s
 ### ⚡ **Ultra**: The All-in-One Powerhouse
 MiniOS Ultra is the most comprehensive version of MiniOS, combining all features and tools from the Standard and Toolbox editions, plus additional software for development, multimedia, and advanced networking. Ideal for users who want a complete portable workstation with everything ready out of the box.
 
-For a detailed list of packages included in each edition, see: [Package List](Packages)
+For a detailed list of packages included in each edition, see: [Package List](Packages.md)
 
 ## Why Choose MiniOS? 💡
 

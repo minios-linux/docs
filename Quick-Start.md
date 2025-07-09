@@ -30,32 +30,32 @@ The most comprehensive version of MiniOS, combining all features and tools from 
 - **Official Website**: [minios.dev](https://minios.dev) - Complete edition overview and direct downloads
 - **GitHub Releases**: [Latest releases](https://github.com/minios-linux/minios-live/releases) - All versions and release notes
 
-For a detailed breakdown of packages included in each edition, see the [Package List](https://github.com/minios-linux/minios-live/wiki/Packages).
+For a detailed breakdown of packages included in each edition, see the [Package List](Packages.md).
 
 ## Step 2: Create a Bootable USB Drive 🔌
 
 Choose from several reliable methods to create your bootable MiniOS USB drive:
 
 ### 🖥️ **Windows Methods**
-- **[Rufus](https://github.com/minios-linux/minios-live/wiki/Rufus)** - Simple utility for bootable USB creation ⭐ **Recommended**
-- **[Balena Etcher](https://github.com/minios-linux/minios-live/wiki/Balena-Etcher)** - Cross-platform, user-friendly ⭐ **Recommended**
-- **[UNetbootin](https://github.com/minios-linux/minios-live/wiki/UNetbootin)** - Cross-platform bootable USB creator
-- **[Ventoy](https://github.com/minios-linux/minios-live/wiki/Ventoy)** - Multi-boot USB solution ⭐ **Recommended**
+- **[Rufus](Rufus.md)** - Simple utility for bootable USB creation ⭐ **Recommended**
+- **[Balena Etcher](Balena-Etcher.md)** - Cross-platform, user-friendly ⭐ **Recommended**
+- **[UNetbootin](UNetbootin.md)** - Cross-platform bootable USB creator
+- **[Ventoy](Ventoy.md)** - Multi-boot USB solution ⭐ **Recommended**
 
 ### 🐧 **Linux Methods**
-- **[dd command](https://github.com/minios-linux/minios-live/wiki/dd)** - Command-line utility ⭐ **Recommended**
-- **[Balena Etcher](https://github.com/minios-linux/minios-live/wiki/Balena-Etcher)** - GUI application ⭐ **Recommended**
-- **[Ventoy](https://github.com/minios-linux/minios-live/wiki/Ventoy)** - Multi-boot support ⭐ **Recommended**
+- **[dd command](dd.md)** - Command-line utility ⭐ **Recommended**
+- **[Balena Etcher](Balena-Etcher.md)** - GUI application ⭐ **Recommended**
+- **[Ventoy](Ventoy.md)** - Multi-boot support ⭐ **Recommended**
 - **UNetbootin** - Available in most distributions
 - **MintStick** - Simple USB writer (included in Toolbox edition)
 
 ### 🍎 **macOS Methods**
-- **[dd command](https://github.com/minios-linux/minios-live/wiki/dd)** - Built-in command-line tool ⭐ **Recommended**
-- **[Balena Etcher](https://github.com/minios-linux/minios-live/wiki/Balena-Etcher)** - User-friendly GUI ⭐ **Recommended**
-- **[UNetbootin](https://github.com/minios-linux/minios-live/wiki/UNetbootin)** - Cross-platform solution
+- **[dd command](dd.md)** - Built-in command-line tool ⭐ **Recommended**
+- **[Balena Etcher](Balena-Etcher.md)** - User-friendly GUI ⭐ **Recommended**
+- **[UNetbootin](UNetbootin.md)** - Cross-platform solution
 
 ### 🔧 **Advanced Method**
-- **[Original Method](https://github.com/minios-linux/minios-live/wiki/Original-Method)** - Manual installation using bootinst scripts
+- **[Original Method](Original-Method.md)** - Manual installation using bootinst scripts
   
 ### 🏠 **Built-in MiniOS Methods**
 - **MiniOS Installer** - Built-in graphical installer included in all editions
@@ -406,9 +406,9 @@ module-mode=merged               # Set module integration mode
 
 ### 📚 **Official Documentation**
 - **MiniOS Wiki**: [Complete guides and tutorials](https://github.com/minios-linux/minios-live/wiki)
-- **Building Guide**: [Custom MiniOS creation](https://github.com/minios-linux/minios-live/wiki/Building-MiniOS)
-- **Configuration Reference**: [Boot parameters and config files](https://github.com/minios-linux/minios-live/wiki/Configuration-File)
-- **Package Lists**: [Software included in each edition](https://github.com/minios-linux/minios-live/wiki/Packages)
+- **Building Guide**: [Custom MiniOS creation](Building-MiniOS)
+- **Configuration Reference**: [Boot parameters and config files](Configuration-File)
+- **Package Lists**: [Software included in each edition](Packages)
 
 ### 🐛 **Bug Reports & Issues**
 - **GitHub Issues**: [Report bugs and request features](https://github.com/minios-linux/minios-live/issues)

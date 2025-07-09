@@ -65,7 +65,7 @@ minios-cmd -d bookworm -a amd64 -de xfce -pv standard
 minios-cmd -d bookworm -a amd64 -de xfce -pv toolbox -c zstd -l en_US -tz "Europe/Prague"
 ```
 
-For detailed usage information, see the [minios-cmd documentation](docs/minios-cmd.md).
+For detailed usage information, see the [minios-cmd documentation](https://github.com/minios-linux/minios-live/blob/master/docs/minios-cmd.md).
 
 ### minios-live (Advanced)
 
@@ -88,7 +88,7 @@ The core build script that orchestrates the step-by-step build process:
 ./minios-live build-chroot - build-live
 ```
 
-For detailed usage information, see the [minios-live documentation](docs/minios-live.md).
+For detailed usage information, see the [minios-live documentation](https://github.com/minios-linux/minios-live/blob/master/docs/minios-live.md).
 
 ## Project Structure
 
