@@ -281,7 +281,7 @@ LIVE_ROOT_PASSWORD_CRYPTED='$y$j9T$your_encrypted_password...'
 ```
 
 **Option 3: Boot Parameters (First boot only)**
-Add parameters during boot (press **Tab** in SYSLINUX or **E** in GRUB):
+Add parameters during boot (press <kbd>Tab</kbd> in SYSLINUX or <kbd>E</kbd> in GRUB):
 ```bash
 username=yourusername                # Set username (live-config parameter)
 user-password=yourpassword           # Set user password in plain text
