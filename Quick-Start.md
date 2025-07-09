@@ -2,17 +2,6 @@
 
 Welcome to MiniOS, where Linux flexibility and portability meet convenience and ease of use. If you're new to MiniOS, this comprehensive guide will help you get started and make the most of your operating system.
 
-## Table of Contents
-1. [Choose the Right MiniOS Edition](#step-1-choose-the-right-minios-edition-)
-2. [Create a Bootable USB Drive](#step-2-create-a-bootable-usb-drive-)
-3. [Boot and Explore](#step-3-boot-and-explore-️)
-4. [Package Management & Software Installation](#step-4-package-management--software-installation-)
-5. [Understanding Data Persistence](#step-5-understanding-data-persistence-)
-6. [Default User Accounts & Security](#step-6-default-user-accounts--security-)
-7. [Customize and Explore](#step-7-customize-and-explore-️)
-8. [Advanced Tips & Boot Parameters](#advanced-tips--boot-parameters-)
-9. [Getting Help & Community Resources](#getting-help--community-resources-)
-
 ## Step 1: Choose the Right MiniOS Edition 📦
 
 MiniOS offers three main editions, each tailored for specific use cases:
