@@ -7,13 +7,13 @@
 [**📖 User Guide**]()
 
 - [Installing MiniOS on a USB Flash Drive](Installing-MiniOS-on-a-USB-Flash-Drive.md)
-- [Boot parameters](Boot-parameters.md)
-- [Configuration file](Configuration-file.md)
+- [Boot parameters](Boot-Parameters.md)
+- [Configuration file](Configuration-File.md)
 
 [**🛠️ Development**]()
 
 - [Building MiniOS](Building-MiniOS.md)
-- [Creating modules](Creating-modules.md)
+- [Creating modules](Creating-Modules.md)
 - [Guide to Replacing the Kernel in MiniOS](Kernel-Replacement.md)
 
 [gimmick:theme (inverse: false)](spacelab)
