@@ -120,7 +120,7 @@ flowchart TD
     
     C1[build-bootstrap<br/>📦 Create Base System<br/>• Run debootstrap<br/>• Install core packages<br/>• Setup chroot environment]
     
-    C1 --> C2[build-chroot<br/>🔧 Configure System<br/>• Install base modules<br/>• Configure locale & timezone<br/>• Setup users & permissions]
+    C1 --> C2[build-chroot<br/>🔧 Configure System<br/>• Install base packages<br/>• Configure settings]
     
     C2 --> C3[build-live<br/>🗜️ Create Core SquashFS<br/>• Compress base system<br/>• Create 00-core.sb module<br/>• Prepare live environment]
     
@@ -128,9 +128,9 @@ flowchart TD
     
     C4 --> C5[build-boot<br/>🥾 Prepare Boot System<br/>• Setup GRUB & ISOLINUX<br/>• Create initramfs<br/>• Configure boot parameters]
     
-    C5 --> C6[build-config<br/>⚙️ Generate Boot Configs<br/>• Create menu entries<br/>• Setup persistence<br/>• Configure live options]
+    C5 --> C6[build-config<br/>⚙️ Generate Boot Configs<br/>• Create menu entries<br/>• Configure live options]
     
-    C6 --> C7[build-iso<br/>💿 Create Final ISO<br/>• Combine all components<br/>• Generate bootable image<br/>• Create checksums]
+    C6 --> C7[build-iso<br/>💿 Create Final ISO<br/>• Combine all components<br/>• Generate bootable image]
     
     C7 --> Success([✅ Final ISO Ready<br/>📁 build/iso/])
     
