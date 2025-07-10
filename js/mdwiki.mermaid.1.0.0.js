@@ -5,7 +5,7 @@
 
     var mermaidGimmick = {
         name: 'mermaid',
-        version: '1.0.0-final',
+        version: '1.0.0',
 
         load: function () {
             // Subscribe to the 'gimmick' stage.
@@ -21,7 +21,7 @@
                     return;
                 }
                 
-                console.log('Mermaid Gimmick: Found blocks to process: ' + mermaidBlocks.length);
+                //console.log('Mermaid Gimmick: Found blocks to process: ' + mermaidBlocks.length);
 
                 mermaidBlocks.each(function () {
                     var $code = $(this);
