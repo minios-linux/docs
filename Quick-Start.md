@@ -395,9 +395,9 @@ module-mode=merged               # Set module integration mode
 
 ### 📚 **Official Documentation**
 - **MiniOS Wiki**: [Complete guides and tutorials](https://github.com/minios-linux/minios-live/wiki)
-- **Building Guide**: [Custom MiniOS creation](Building-MiniOS)
-- **Configuration Reference**: [Boot parameters and config files](Configuration-File)
-- **Package Lists**: [Software included in each edition](Packages)
+- **Building Guide**: [Custom MiniOS creation](Building-MiniOS.md)
+- **Configuration Reference**: [Boot parameters and config files](Configuration-File.md)
+- **Package Lists**: [Software included in each edition](Packages.md)
 
 ### 🐛 **Bug Reports & Issues**
 - **GitHub Issues**: [Report bugs and request features](https://github.com/minios-linux/minios-live/issues)
