@@ -17,7 +17,7 @@ MiniOS uses a modular build system where the operating system is constructed fro
 
 ### Installing Prerequisites
 
-The `prerequisites.list` file uses condinaut format with conditional markers. Install the required packages manually:
+The `prerequisites.list` file uses condinapt format with conditional markers. Install the required packages manually:
 
 ```bash
 sudo apt-get update
@@ -25,7 +25,7 @@ sudo apt-get install sudo binutils debootstrap squashfs-tools xz-utils lz4 zstd 
 sudo apt-get install grub-efi-amd64-bin grub-pc-bin
 ```
 
-Alternatively, you can use condinaut to process the prerequisites list if available on your system.
+Alternatively, you can use condinapt to process the prerequisites list if available on your system.
 
 ## Build Tools
 
@@ -89,7 +89,7 @@ minios-live/
 │   ├── scripts/                # Module scripts and templates
 │   ├── build-initramfs         # Script for separate initramfs build
 │   ├── build.conf              # Main build configuration file
-│   ├── condinaut               # Script/tool for working with package lists
+│   ├── condinapt               # Script/tool for working with package lists
 │   ├── install-chroot          # Script for installing into the chroot environment
 │   ├── minioslib               # Core Bash function library
 │   └── prerequisites.list      # List of required packages for installation on the host for building
@@ -271,7 +271,7 @@ Each module directory contains:
 The **`10-example/`** module serves as a template for creating new modules. It contains:
 
 - A complete `packages.list` with conditional markers examples
-- A basic `install` script showing proper condinaut usage
+- A basic `install` script showing proper condinapt usage
 - Example `rootcopy-install/` and `rootcopy-postinstall/` directories
 - Documentation comments explaining each component
 
@@ -360,9 +360,9 @@ done
 # ...
 ```
 
-## Package Management with Condinaut
+## Package Management with CondinAPT
 
-Condinaut is MiniOS's package list management system that handles conditional package installation based on build parameters.
+CondinAPT is MiniOS's package list management system that handles conditional package installation based on build parameters.
 
 ### Package List Syntax
 
@@ -388,28 +388,28 @@ preferred-package || alternative-package
 package1 && package2 && package3
 ```
 
-### Using Condinaut in Module Scripts
+### Using CondinAPT in Module Scripts
 
-Within module install scripts, condinaut is called to process the `packages.list`:
+Within module install scripts, condinapt is called to process the `packages.list`:
 
 ```bash
 # Example from 10-example/install
-/condinaut -l "${SCRIPT_DIR}/packages.list" -c "${SCRIPT_DIR}/minios_build.conf" -m "${SCRIPT_DIR}/condinaut.conf"
+/condinapt -l "${SCRIPT_DIR}/packages.list" -c "${SCRIPT_DIR}/minios_build.conf" -m "${SCRIPT_DIR}/condinapt.conf"
 if [ $? -ne 0 ]; then
     echo "Failed to install packages."
     exit 1
 fi
 ```
 
-### Condinaut Configuration Files
+### CondinAPT Configuration Files
 
 - **`packages.list`**: Contains package names with conditional markers
 - **`minios_build.conf`**: Build configuration (automatically generated and copied to chroot)
-- **`condinaut.conf`**: Additional condinaut-specific settings (optional)
+- **`condinapt.conf`**: Additional condinapt-specific settings (optional)
 
-### Advanced Condinaut Syntax
+### Advanced CondinAPT Syntax
 
-As documented in [linux-live/condinaut.list.md](https://github.com/minios-linux/minios-live/blob/master/linux-live/condinaut.list.md), condinaut supports:
+As documented in [linux-live/condinapt.list.md](https://github.com/minios-linux/minios-live/blob/master/linux-live/condinapt.list.md), condinapt supports:
 
 - **Basic packages**: `package-name`
 - **Version specifications**: 
@@ -540,8 +540,8 @@ set -u
 
 SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
 
-# Install packages using condinaut
-/condinaut -l "${SCRIPT_DIR}/packages.list" -c "${SCRIPT_DIR}/minios_build.conf" -m "${SCRIPT_DIR}/condinaut.conf"
+# Install packages using condinapt
+/condinapt -l "${SCRIPT_DIR}/packages.list" -c "${SCRIPT_DIR}/minios_build.conf" -m "${SCRIPT_DIR}/condinapt.conf"
 if [ $? -ne 0 ]; then
     echo "Failed to install packages."
     exit 1
@@ -585,8 +585,8 @@ set -u
 
 SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
 
-# Install packages using condinaut
-/condinaut -l "${SCRIPT_DIR}/packages.list" -c "${SCRIPT_DIR}/minios_build.conf" -m "${SCRIPT_DIR}/condinaut.conf"
+# Install packages using condinapt
+/condinapt -l "${SCRIPT_DIR}/packages.list" -c "${SCRIPT_DIR}/minios_build.conf" -m "${SCRIPT_DIR}/condinapt.conf"
 if [ $? -ne 0 ]; then
     echo "Failed to install packages."
     exit 1
@@ -706,7 +706,7 @@ ln -s ../../scripts/06-custom-module linux-live/environments/xfce/06-custom-modu
    - Review install script for errors
 
 4. **Missing packages:**
-   - Check condinaut conditions
+   - Check condinapt conditions
    - Verify package names for target distribution
    - Review package variant settings
 

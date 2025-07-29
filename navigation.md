@@ -6,7 +6,7 @@
 
 [**📖 User Guide**]()
 
-- [Installing MiniOS on a USB Flash Drive](Installing-MiniOS-on-a-USB-Flash-Drive.md)
+- [Installing MiniOS](Installing-MiniOS.md)
 - [Boot parameters](Boot-Parameters.md)
 - [Configuration file](Configuration-File.md)
 

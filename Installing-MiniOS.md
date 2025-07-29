@@ -1,12 +1,12 @@
-# Installing MiniOS on a USB Flash Drive
+# Installing MiniOS
 
-This guide describes various ways to install MiniOS on a USB flash drive.
+This guide describes various ways to install MiniOS on storage devices.
 
 ## 1. Download the MiniOS ISO File
 
 - Download the MiniOS ISO file from the official website.
 
-## 2. Create a Bootable USB Drive
+## 2. Create a Bootable Drive
 
 Choose one of the following methods:
 
@@ -16,11 +16,13 @@ Choose one of the following methods:
 - [Using Ventoy](Ventoy.md) (Windows/Linux) (Recommended)
 - [Using Balena Etcher](Balena-Etcher.md) (Windows/Linux/MacOS) (Recommended)
 - [Using `dd`](dd.md) (Linux/MacOS) (Recommended)
+- [Using Drive Utility](Drive-Utility.md) (Linux) (Recommended)
+- [Using MiniOS Installer](MiniOS-Installer.md) (Recommended, MiniOS only)
 
-## 3. Booting from the USB Drive
+## 3. Booting from the Drive
 
 1.  Reboot your computer.
-2.  Select the USB drive in your computer's boot menu to boot from it.
+2.  Select the bootable drive in your computer's boot menu to boot from it.
 
 ## 4. Notes
 
@@ -30,4 +32,4 @@ Choose one of the following methods:
 
 ---
 
-**Reminder:** The original installation method is no longer the main recommendation as it can be difficult for novice users. When using Balena Etcher or `dd`, the partition for saving changes will be created automatically.
+**Reminder:** The original installation method is no longer the main recommendation as it can be difficult for novice users. When using Balena Etcher, `dd`, or Drive Utility, the partition for saving changes will be created automatically.

@@ -10,7 +10,7 @@
   - Learn how to choose the right edition, create bootable USB drives, and secure your system
 
 ## 📖 User Guide
-  - **[Installing MiniOS on a USB Flash Drive](Installing-MiniOS-on-a-USB-Flash-Drive.md)** - Step-by-step installation instructions
+  - **[Installing MiniOS](Installing-MiniOS.md)** - Step-by-step installation instructions
   - **[Boot parameters](Boot-Parameters.md)** - Configure system behavior at startup
   - **[Configuration file](Configuration-File.md)** - Persistent system configuration options
 
