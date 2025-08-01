@@ -2,6 +2,8 @@
 
 Modules in MiniOS are self-contained packages of files and configurations that extend the functionality of the base system. They are similar to packages in other Linux distributions, but they are designed to be layered on top of each other, allowing for a flexible and customizable system. This layered approach enables easy customization, rollback of changes, and sharing of configurations.
 
+For the complete MiniOS build process and system architecture context, see the [Building MiniOS guide](Building-MiniOS.md). For information about the CondinAPT package management system used in modules, see [CondinAPT Documentation](CondinAPT.md).
+
 There are quite a lot of utilities for creating modules in MiniOS. All of them are designed to use the terminal and require root privileges.
 
 **Module Creation Utilities:**

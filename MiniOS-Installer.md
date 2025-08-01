@@ -5,20 +5,12 @@ MiniOS Installer is a graphical tool for installing MiniOS to hard drives or USB
 
 ## Important
 
-⚠️ **Warning:** Incorrect device selection will result in data loss!
-
-Before starting:
-1. Double-check the selected installation device
-2. Backup important data from the target device
-3. Ensure the system is booted from LiveUSB/LiveCD
+⚠️ **Warning:** Incorrect device selection will result in data loss! Always double-check the selected device and backup important data.
 
 ## Drive Requirements
 
 ### Drive Size
-- **Standard (787 MB)**: minimum 2 GB
-- **Toolbox (1.2 GB)**: minimum 4 GB  
-- **Ultra (1.7 GB)**: minimum 4 GB
-- **Recommended size**: 8 GB or larger for comfortable operation
+See [Hardware Compatibility Guide](Hardware-Compatibility.md#system-requirements) for detailed system requirements and drive sizes.
 
 ### Supported Filesystems
 - **ext4** (recommended for Linux)

@@ -362,93 +362,45 @@ done
 
 ## Package Management with CondinAPT
 
-CondinAPT is MiniOS's package list management system that handles conditional package installation based on build parameters.
+CondinAPT is MiniOS's conditional package installation system that handles package selection based on build parameters like desktop environment, distribution, and package variant.
 
-### Package List Syntax
+### Basic Usage
 
-The `packages.list` files support various conditional markers:
+Each module contains a `packages.list` file with conditional package specifications:
 
 ```bash
-# Package variants
-package-name +pv=minimum +pv=standard
-another-package +pv=toolbox +pv=ultra
-
-# Distribution-specific
-ubuntu-specific-package +d=jammy +d=noble
-debian-package +d=bookworm +d=trixie
-
-# Desktop environment
-xfce-package +de=xfce
-lxqt-package +de=lxqt
-
-# Alternative packages (OR condition)
-preferred-package || alternative-package
-
-# Multiple packages with AND condition
-package1 && package2 && package3
+# Basic syntax examples
+package-name                    # Always install
+package-name +pv=toolbox       # Install only for toolbox variant
+package-name +de=xfce          # Install only for XFCE desktop
+package-name -pv=minimum       # Install except for minimum variant
+preferred-pkg || fallback-pkg  # Try first, use second if unavailable
 ```
 
 ### Using CondinAPT in Module Scripts
 
-Within module install scripts, condinapt is called to process the `packages.list`:
+Standard usage in module install scripts:
 
 ```bash
-# Example from 10-example/install
-/condinapt -l "${SCRIPT_DIR}/packages.list" -c "${SCRIPT_DIR}/minios_build.conf" -m "${SCRIPT_DIR}/condinapt.conf"
-if [ $? -ne 0 ]; then
-    echo "Failed to install packages."
-    exit 1
-fi
+# Load MiniOS library and install packages
+. /minioslib || exit 1
+/linux-live/condinapt \
+    -l "$CWD/packages.list" \
+    -c /linux-live/build.conf \
+    -m /linux-live/condinapt.map
 ```
 
-### CondinAPT Configuration Files
+### Complete Documentation
 
-- **`packages.list`**: Contains package names with conditional markers
-- **`minios_build.conf`**: Build configuration (automatically generated and copied to chroot)
-- **`condinapt.conf`**: Additional condinapt-specific settings (optional)
+For comprehensive CondinAPT documentation including advanced syntax, filters, priority queues, debugging modes, and real-world examples, see: **[CondinAPT.md](CondinAPT.md)**
 
-### Advanced CondinAPT Syntax
-
-As documented in [linux-live/condinapt.list.md](https://github.com/minios-linux/minios-live/blob/master/linux-live/condinapt.list.md), condinapt supports:
-
-- **Basic packages**: `package-name`
-- **Version specifications**: 
-  - `package=version` (flexible version requirement)
-  - `package==version` (strict version requirement)
-- **Target release**: `package@release` (e.g., `telegram@bookworm-backports`)
-- **Conditional installation**: `package +condition=value`
-- **Negative conditions**: `package -condition=value`
-- **Alternative packages**: `package1 || package2`
-- **Package groups**: `package1 && package2`
-- **Mandatory packages**: `!package` (build fails if unavailable)
-- **Comments**: Lines starting with `#`
-
-#### Complex Examples
-
-```bash
-# Install different file managers based on desktop environment
-nautilus +de=gnome || thunar +de=xfce || pcmanfm +de=lxqt
-
-# Install network managers with exclusions
-network-manager -de=flux || connman +de=flux
-
-# Install packages for specific distributions and variants
-netplan.io +d=jammy +d=noble +pv=standard +pv=toolbox
-
-# Group conditions with OR logic
-firefox +{de=gnome|de=xfce|de=lxqt} +pv=standard
-
-# Mandatory package with strict version and conditions
-!curl==7.68.0 +da=amd64 -de=flux
-```
-
-### Supported Conditions
+### Common Condition Filters
 
 - `+pv=variant` - Package variant (minimum, standard, toolbox, ultra)
-- `+d=distribution` - Distribution (buster, bookworm, trixie, jammy, noble)
+- `+d=distribution` - Distribution (bookworm, trixie, jammy, noble)
 - `+de=desktop` - Desktop environment (core, flux, xfce, lxqt)
 - `+da=architecture` - Architecture (amd64, i386)
-- `+arch=architecture` - Alternative architecture syntax
+- `+dt=type` - Distribution type (debian, ubuntu)
 
 ## Building Your First ISO
 

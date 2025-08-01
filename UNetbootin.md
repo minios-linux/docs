@@ -5,21 +5,13 @@ UNetbootin is a cross-platform open-source utility that allows you to create boo
 
 ## Important
 
-⚠️ **Warning:** Incorrect device selection will result in data loss!
-
-Before starting:
-1. Double-check the selected USB drive
-2. Save important data from the drive
-3. Do not disconnect the drive until writing is complete
+⚠️ **Warning:** Incorrect device selection will result in data loss! Always double-check the selected drive and backup important data.
 
 
 ## Drive Requirements
 
 ### Drive Size
-- **Standard (787 MB)**: minimum 2 GB
-- **Toolbox (1.2 GB)**: minimum 4 GB  
-- **Ultra (1.7 GB)**: minimum 4 GB
-- **Recommended size**: 8 GB or larger for comfortable operation with change persistence
+See [Hardware Compatibility Guide](Hardware-Compatibility.md#system-requirements) for detailed system requirements and drive sizes.
 
 ## Installing UNetbootin
 

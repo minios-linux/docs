@@ -1,18 +1,8 @@
----
-date: 2025-06-08
-section: 7
-title: LIVE-CONFIG
----
-
-# NAME
+# LIVE-CONFIG
 
 **live-config** - System Configuration Components
 
-# DESCRIPTION
-
 **live-config** contains the components that configure a live system during the boot process (late userspace).
-
-# CONFIGURATION
 
 **live-config** can be configured through boot parameters or configuration files. If both mechanisms are used for a certain option, the boot parameters take precedence over the configuration files. When using persistency, **live-config** components are only run once.
 
@@ -32,10 +22,10 @@ If *live-build*(7) is used to build the live system, the live-config parameters 
 Some individual components can change their behaviour upon a boot parameter.
 
 - **live-config.debconf-preseed=filesystem|medium|URL1|URL2|...|URLn | debconf-preseed=medium|filesystem|URL1|URL2|...|URLn**: Allows one to fetch and apply one or more debconf preseed files to be applied to the debconf database. Note that the URLs must be fetchable by wget (http, ftp, or file://). If the file is placed on the live medium, it can be fetched with `file:///run/initramfs/memory/data/FILE`, or with `file:///FILE` if it is in the root filesystem of the live system itself. All preseed files in `/usr/lib/live/config-preseed/` in the root filesystem of the live system can be automatically enabled with the keyword `filesystem`. All preseed files in `/minios/config-preseed/` of the live medium can be automatically enabled with the keyword `medium`. If several mechanisms are combined, then filesystem preseed files are applied first, then medium preseed files, and last the network preseed files.
-- **live-config.hostname=HOSTNAME | hostname=HOSTNAME**: Allows one to set the hostname of the system. The default is `debian`.
-- **live-config.username=USERNAME | username=USERNAME**: Allows one to set the username that gets created for autologin. The default is `user`.
+- **live-config.hostname=HOSTNAME | hostname=HOSTNAME**: Allows one to set the hostname of the system. The default is `minios`.
+- **live-config.username=USERNAME | username=USERNAME**: Allows one to set the username that gets created for autologin. The default is `live`.
 - **live-config.user-default-groups=GROUP1,GROUP2,...GROUPn | user-default-groups=GROUP1,GROUP2,...GROUPn**: Allows one to set the default groups of the users that gets created for autologin. The default is `audio cdrom dip floppy video plugdev netdev powerdev scanner bluetooth`.
-- **live-config.user-fullname="USER FULLNAME" | user-fullname="USER FULLNAME"**: Allows one to set the fullname of the users that gets created for autologin. On Debian, the default is `Debian Live user`.
+- **live-config.user-fullname="USER FULLNAME" | user-fullname="USER FULLNAME"**: Allows one to set the fullname of the users that gets created for autologin. On MiniOS, the default is `MiniOS Live user`.
 - **live-config.root-password=PASSWORD | root-password=PASSWORD**: Allows setting the root password in plain text.
 - **live-config.root-password-crypted=PASSWORD | root-password-crypted=PASSWORD**: Allows setting the root password in crypted form.
 - **live-config.user-password=PASSWORD | user-password=PASSWORD**: Allows setting the user password in plain text.
@@ -86,8 +76,8 @@ The actual content of the configuration files consists of one or more of the fol
 - **LIVE_CONFIG_COMPONENTS=COMPONENT1,COMPONENT2,...COMPONENTn**: This variable corresponds to the `**live-config.components**=*COMPONENT1*,*COMPONENT2*,...*COMPONENTn*` parameter.
 - **LIVE_CONFIG_NOCOMPONENTS=COMPONENT1,COMPONENT2,...COMPONENTn**: This variable corresponds to the `**live-config.nocomponents**=*COMPONENT1*,*COMPONENT2*,...*COMPONENTn*` parameter.
 - **LIVE_DEBCONF_PRESEED=filesystem|medium|URL1|URL2|...|URLn**: This variable corresponds to the `**live-config.debconf-preseed**=filesystem|medium|*URL1*\|*URL2*\|...|*URLn*` parameter.
-- **LIVE_HOSTNAME=HOSTNAME**: This variable corresponds to the `**live-config.hostname**=*HOSTNAME*` parameter.
-- **LIVE_USERNAME=USERNAME**: This variable corresponds to the `**live-config.username**=*USERNAME*` parameter.
+- **LIVE_HOSTNAME=HOSTNAME**: This variable corresponds to the `**live-config.hostname**=*HOSTNAME*` parameter. Default is `minios`.
+- **LIVE_USERNAME=USERNAME**: This variable corresponds to the `**live-config.username**=*USERNAME*` parameter. Default is `live`.
 - **LIVE_USER_DEFAULT_GROUPS=GROUP1,GROUP2,...GROUPn**: This variable corresponds to the `**live-config.user-default-groups**="*GROUP1*,*GROUP2*...*GROUPn*"` parameter.
 - **LIVE_USER_FULLNAME="USER FULLNAME"**: This variable corresponds to the `**live-config.user-fullname**="*USER FULLNAME*"` parameter.
 - **LIVE_ROOT_PASSWORD=PASSWORD**: This variable corresponds to the `**live-config.root-password**=*PASSWORD*` parameter. It specifies the root password in plain text.
@@ -142,7 +132,7 @@ The configuration files for the live system itself are best put into an own debi
 - **root-setup**: sets or updates the root password and configures the root user environment.
 - **sudo**: grants sudo privileges to the live user.
 - **user-media**: configures mounting of media and linking or binding of user directories for persistent data.
-- **user-ssh**: synchronizes SSH authorized_keys between the live media and the user's home directory.
+- **user-ssh-keys**: synchronizes SSH keys from user-specific `authorized_keys.<username>` files on the live media to individual user home directories. Supports multiple users simultaneously (e.g., `authorized_keys.root`, `authorized_keys.live`, `authorized_keys.admin`).
 - **locales**: configures locales.
 - **tzdata**: configures /etc/timezone.
 - **xorg-service**: configures username in xorg.service.
@@ -173,7 +163,7 @@ The configuration files for the live system itself are best put into an own debi
 - **broadcom-sta**: configures broadcom-sta WLAN drivers.
 - **xserver-xorg**: configures xserver-xorg.
 - **openssh-server**: recreates openssh-server host keys.
-- **xhyper-v**: configures X11 settings to improve compatibility on Microsoft Hyper-V platforms.
+- **hyperv**: configures X11 settings to improve compatibility on Microsoft Hyper-V platforms.
 - **ntfs3**: manages udev rules for NTFS3 support.
 - **config-module-mode**: configures system module mode and updates caches, user settings, and dpkg.
 - **hooks**: allows one to run arbitrary commands from a file placed on the live media or an http/ftp server.
@@ -182,16 +172,16 @@ The configuration files for the live system itself are best put into an own debi
 
 - `/etc/live/config.conf`
 - `/etc/live/config.conf.d/*.conf`
-- `live/config.conf`
-- `live/config.conf.d/*.conf`
+- `minios/config.conf`
+- `minios/config.conf.d/*.conf`
 - `/lib/live/config.sh`
 - `/lib/live/config/`
 - `/var/lib/live/config/`
 - `/var/log/live/config.log`
-- `/live/config-hooks/*`
-- `live/config-hooks/*`
-- `/live/config-preseed/*`
-- `live/config-preseed/*`
+- `/minios/config-hooks/*`
+- `minios/config-hooks/*`
+- `/minios/config-preseed/*`
+- `minios/config-preseed/*`
 
 # SEE ALSO
 
@@ -201,12 +191,12 @@ The configuration files for the live system itself are best put into an own debi
 
 # HOMEPAGE
 
-More information about **live-config** and the Debian Live project can be found on the homepage at [Debian Live Wiki](https://wiki.debian.org/DebianLive) and in the manual at [Live Manual](https://live-team.pages.debian.net/live-manual/).
+More information about **minios-live-config** and the MiniOS project can be found at [minios.dev](https://minios.dev) and [GitHub repository](https://github.com/minios-linux/minios-live).
 
 # BUGS
 
-Bugs can be reported by submitting a bug report for the **live-config** package in the Bug Tracking System at [Debian Bugs](http://bugs.debian.org/) or by writing a mail to the Debian Live mailing list at [debian-live@lists.debian.org](mailto:debian-live@lists.debian.org).
+Bugs can be reported by submitting an issue in the GitHub repository at [MiniOS Issues](https://github.com/minios-linux/minios-live/issues).
 
 # AUTHOR
 
-**live-config** was originally written by Daniel Baumann ([mail@daniel-baumann.ch](mailto:mail@daniel-baumann.ch)). Since 2016, development has been continued by the Debian Live team. Since 2025, development of the modified version has been continued by the MiniOS Live team.
+**live-config** was originally written by Daniel Baumann ([mail@daniel-baumann.ch](mailto:mail@daniel-baumann.ch)). Since 2016, development has been continued by the Debian Live team. Since 2025, development of the modified **minios-live-config** version has been continued by the MiniOS Live team.

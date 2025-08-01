@@ -6,11 +6,19 @@
   - [Quick Start Guide](Quick-Start.md)
 
 **📖 User Guide**
+  - [Hardware Compatibility](Hardware-Compatibility.md)
   - [Installing MiniOS](Installing-MiniOS.md)
-  - [Boot parameters](Boot-Parameters.md)
-  - [Configuration file](Configuration-File.md)
+  - [Configuration File](Configuration-File.md)
+  - [Boot Parameters](Boot-Parameters.md)
+  - [live-config Parameters](live-config.md)
+  - [Security Hardening](Security-Hardening.md)
+  - [Performance Optimization](Performance-Optimization.md)
+  - [Virtualization](Virtualization.md)
+  - [System Architecture](System-Architecture.md)
+  - [Package List](Packages.md)
 
 **🛠️ Development**
   - [Building MiniOS](Building-MiniOS.md)
-  - [Creating modules](Creating-Modules.md)
-  - [Guide to Replacing the Kernel in MiniOS](Kernel-Replacement.md)
+  - [Creating Modules](Creating-Modules.md)
+  - [CondinAPT](CondinAPT.md)
+  - [Kernel Replacement](Kernel-Replacement.md)

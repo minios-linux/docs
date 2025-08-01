@@ -10,16 +10,24 @@
   - Learn how to choose the right edition, create bootable USB drives, and secure your system
 
 ## 📖 User Guide
+  - **[Hardware Compatibility](Hardware-Compatibility.md)** - System requirements and compatibility
   - **[Installing MiniOS](Installing-MiniOS.md)** - Step-by-step installation instructions
-  - **[Boot parameters](Boot-Parameters.md)** - Configure system behavior at startup
-  - **[Configuration file](Configuration-File.md)** - Persistent system configuration options
+  - **[Configuration File](Configuration-File.md)** - Persistent system configuration options
+  - **[Boot Parameters](Boot-Parameters.md)** - Configure system behavior at startup
+  - **[live-config Parameters](live-config.md)** - Live system configuration options
+  - **[Security Hardening](Security-Hardening.md)** - Enhance system security
+  - **[Performance Optimization](Performance-Optimization.md)** - Improve system performance
+  - **[Virtualization](Virtualization.md)** - Run MiniOS in virtual machines
+  - **[System Architecture](System-Architecture.md)** - Technical overview of MiniOS architecture
+  - **[Package List](Packages.md)** - Software included in each edition
 
 ## 🛠️ Development & Customization
   - **[Building MiniOS](Building-MiniOS.md)** - Build custom MiniOS images from source
-  - **[Creating modules](Creating-Modules.md)** - Develop your own SquashFS modules
-  - **[Guide to Replacing the Kernel in MiniOS](Kernel-Replacement.md)** - Advanced kernel customization
+  - **[Creating Modules](Creating-Modules.md)** - Develop your own SquashFS modules
+  - **[CondinAPT](CondinAPT.md)** - Conditional package management system
+  - **[Kernel Replacement](Kernel-Replacement.md)** - Advanced kernel customization
 
 ## 🌐 Additional Resources
 - **Official Website**: [minios.dev](https://minios.dev)
-- **GitHub Repository**: [minios-linux/minios-live](https://github.com/minios-linux/minios-live)
+- **Source Code**: [GitHub Repository](https://github.com/minios-linux/minios-live)
 - **Download Latest Release**: [GitHub Releases](https://github.com/minios-linux/minios-live/releases)
