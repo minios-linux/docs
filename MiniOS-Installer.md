@@ -32,26 +32,59 @@ sudo minios-installer
 
 ### Installation Process
 
-1. **Select target device:**
+1. **Configure system settings (Optional but Recommended):**
+   - Click **"Configure MiniOS before installation"** button
+   - Set up your preferences:
+     - System language and locale
+     - Timezone and keyboard layout  
+     - User accounts and passwords
+     - Hostname and system services
+   - Save and close configurator
+   
+2. **Select target device:**
    - Choose a hard drive or USB drive from the list
    - Verify device size and model
    
-2. **Select filesystem:**
+3. **Select filesystem:**
    - **ext4**: recommended for most cases
    - **Btrfs**: for advanced users
    - **FAT32**: for maximum compatibility
    
-3. **Confirm disk wipe:**
+4. **Confirm disk wipe:**
    - All data on the selected device will be deleted
    - Ensure correct device selection
    
-4. **Start installation:**
+5. **Start installation:**
    - Click "Install" button
    - Wait for process completion
    
-5. **Completion:**
+6. **Completion:**
    - Restart the system
    - Remove LiveUSB/LiveCD
+   - **Result:** System boots with your pre-configured settings
+
+## Pre-Installation Configuration
+
+### Benefits of Using MiniOS Configurator Before Installation
+
+**Recommended workflow for new users:**
+
+1. **One-time setup**: Configure all system preferences once before installation
+2. **Ready to use**: Installed system boots with correct language, keyboard, and user settings
+3. **No post-installation work**: Skip manual configuration after first boot
+4. **Consistent experience**: Same settings across all installations
+
+**Configuration options available:**
+- **🌍 Localization**: System language, locale, and timezone
+- **⌨️ Input**: Keyboard layouts and switching options  
+- **👤 Accounts**: Username, full name, passwords, and user groups
+- **🖥️ System**: Hostname, enabled/disabled services
+- **🔒 Security**: Secure password setup before going online
+
+**Simple workflow:**
+- Configure your preferences once before installation
+- Install MiniOS with your custom settings
+- Boot into a fully configured system
 
 ## Automatic Change Persistence
 

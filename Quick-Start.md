@@ -64,7 +64,60 @@ After booting from USB, explore the MiniOS desktop environment:
 
 The default desktop environment is XFCE, providing a balance of features and performance.
 
-## Step 4: Software Installation 🔄
+## Step 4: System Configuration 🌐
+
+**Configure your system language, keyboard, timezone, and other preferences:**
+
+### 🔧 **Using MiniOS Configurator** (Recommended)
+
+**Access:** Applications Menu → System → Configure MiniOS
+
+**Key settings you can configure:**
+- **🌍 Language & Locale**: Set system language (e.g., `en_US.UTF-8`, `ru_RU.UTF-8`, `pt_BR.UTF-8`)
+- **⏰ Timezone**: Configure your time zone (e.g., `Europe/Berlin`, `America/New_York`, `Asia/Tokyo`)
+- **⌨️ Keyboard**: Set layouts and switching options (e.g., `us,ru` with `Alt+Shift` toggle)
+- **👤 User Settings**: Change username, full name, and user groups
+- **🔐 Passwords**: Set secure passwords for user and root accounts
+- **🖥️ System**: Configure hostname, enable/disable services
+- **🔧 Advanced**: Boot options and system behavior
+
+**How to use:**
+1. Open MiniOS Configurator from the system menu
+2. Navigate through tabs to configure different aspects
+3. Make your changes and save
+4. **Reboot to apply changes** - settings take effect after restart and persist across reboots
+
+**Technical note:** MiniOS Configurator modifies `/etc/live/config.conf`, which is MiniOS's main configuration file that controls system behavior at boot time. For detailed information on configuration parameters and their behavior, see the [Configuration File](Configuration-File.md) guide.
+
+### 💻 **Alternative: Command Line Configuration**
+
+**Immediate changes (applied right away):**
+```bash
+# Set system locale for current session
+sudo localectl set-locale LANG=en_US.UTF-8
+
+# Set keyboard layout with switching
+sudo localectl set-x11-keymap us,ru pc105 ,dvorak grp:alt_shift_toggle
+
+# Set timezone
+sudo timedatectl set-timezone Europe/Berlin
+
+# Change user password
+passwd live
+```
+
+**For persistent changes across reboots:** Use MiniOS Configurator or edit `/etc/live/config.conf` directly.
+
+### 📋 **Additional Configuration Options**
+
+- **Direct file editing**: Edit `/etc/live/config.conf` manually for advanced users
+- **Boot-time setup**: Use [Boot Parameters](Boot-Parameters.md) to configure system before it starts  
+- **Configuration file guide**: See [Configuration File](Configuration-File.md) for detailed config.conf reference
+- **Pre-installation**: Configure before installing with [MiniOS Installer](MiniOS-Installer.md)
+
+**Important:** Changes to `/etc/live/config.conf` (via MiniOS Configurator or manual editing) require a reboot to take effect. Command-line tools like `localectl` and `timedatectl` apply changes immediately but may not persist across reboots without proper configuration.
+
+## Step 5: Software Installation 🔄
 
 MiniOS provides multiple ways to install software:
 
@@ -76,7 +129,7 @@ Advanced SquashFS modules for persistent software - see [Creating Modules](Creat
 
 **Key difference:** APT installations require persistence to survive reboots, while modules are automatically persistent.
 
-## Step 5: Data Persistence 💾
+## Step 6: Data Persistence 💾
 
 **Good news:** MiniOS automatically sets up data persistence during installation! Your files, settings, and software installations are automatically saved.
 
@@ -88,7 +141,7 @@ Advanced SquashFS modules for persistent software - see [Creating Modules](Creat
 ### Advanced Configuration
 For custom persistence setup, see detailed [Configuration File](Configuration-File.md) guide and [Boot Parameters](Boot-Parameters.md) reference.
 
-## Step 6: Security Setup 🔐
+## Step 7: Security Setup 🔐
 
 ### 👤 **Default Accounts**
 - **User**: `live` / `evil`  
@@ -98,14 +151,14 @@ For custom persistence setup, see detailed [Configuration File](Configuration-Fi
 1. **Change passwords immediately** - Default credentials are publicly known
 2. **Use strong, unique passwords** for all accounts
 
-### Configuration Methods
-- **Quick change**: `passwd live` and `sudo passwd root`
-- **Advanced setup**: See [Security Hardening](Security-Hardening.md) guide
-- **Pre-boot configuration**: Edit `config.conf` or use boot parameters
+### Password Configuration Methods
+- **🔧 Recommended**: Use **MiniOS Configurator** (Applications Menu → System → Configure MiniOS → User tab)
+- **💻 Command Line**: `passwd live` and `sudo passwd root`
+- **📋 Advanced**: See [Security Hardening](Security-Hardening.md) guide for detailed security setup
 
 ⚠️ **Never use default credentials on networked systems!**
 
-## Step 7: Customization & Advanced Topics 🛠️
+## Step 8: Customization & Advanced Topics 🛠️
 
 ### 🎨 **Basic Customization**
 - Desktop themes and wallpapers via Settings
