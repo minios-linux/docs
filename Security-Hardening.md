@@ -26,7 +26,7 @@ mkpasswd -m yescrypt
 
 You can set passwords in two ways: **it is strongly recommended** to use encrypted passwords.
 
-**Important:** Setting passwords through boot parameters and configuration files only takes effect on the first system boot. After that, passwords can only be changed using standard Linux methods (`passwd`, `sudo passwd`).
+**Important:** Setting passwords and user account parameters through boot parameters and configuration files only takes effect on the first system boot. After that, passwords can only be changed using standard Linux methods (`passwd`, `sudo passwd`).
 
 #### Via Boot Parameters
 
