@@ -15,6 +15,8 @@
   - **[Configuration File](Configuration-File.md)** - Persistent system configuration options
   - **[Boot Parameters](Boot-Parameters.md)** - Configure system behavior at startup
   - **[live-config Parameters](live-config.md)** - Live system configuration options
+  - **[Session Management](Session-Management.md)** - Manage persistent changes and sessions
+  - **[Kernel Management](Kernel-Management.md)** - Manage and replace system kernels
   - **[Security Hardening](Security-Hardening.md)** - Enhance system security
   - **[Performance Optimization](Performance-Optimization.md)** - Improve system performance
   - **[Virtualization](Virtualization.md)** - Run MiniOS in virtual machines
@@ -25,7 +27,6 @@
   - **[Building MiniOS](Building-MiniOS.md)** - Build custom MiniOS images from source
   - **[Creating Modules](Creating-Modules.md)** - Develop your own SquashFS modules
   - **[CondinAPT](CondinAPT.md)** - Conditional package management system
-  - **[Kernel Replacement](Kernel-Replacement.md)** - Advanced kernel customization
 
 ## 🌐 Additional Resources
   - **Official Website**: [minios.dev](https://minios.dev)

@@ -11,6 +11,8 @@
   - [Configuration File](Configuration-File.md)
   - [Boot Parameters](Boot-Parameters.md)
   - [live-config Parameters](live-config.md)
+  - [Session Management](Session-Management.md)
+  - [Kernel Management](Kernel-Management.md)
   - [Security Hardening](Security-Hardening.md)
   - [Performance Optimization](Performance-Optimization.md)
   - [Virtualization](Virtualization.md)
@@ -21,4 +23,3 @@
   - [Building MiniOS](Building-MiniOS.md)
   - [Creating Modules](Creating-Modules.md)
   - [CondinAPT](CondinAPT.md)
-  - [Kernel Replacement](Kernel-Replacement.md)
