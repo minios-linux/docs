@@ -270,15 +270,20 @@ The MiniOS Kernel Manager automatically manages these files:
 ### **Kernel Repository Structure:**
 ```
 /minios/
-├── kernels/
-│   └── 01-kernel-<version>.sb     # SquashFS kernel modules
+├── 01-kernel.sb                   # Active kernel module (standard location)
+├── kernels/                       # Repository of inactive/alternative kernels
+│   ├── 01-kernel-<version>.sb     # SquashFS kernel modules
+│   ├── vmlinuz-<version>          # Kernel binaries
+│   └── initrfs-<version>.img      # Initial RAM filesystems
 ├── boot/
-│   ├── vmlinuz-<version>          # Kernel binary
-│   ├── initrfs-<version>.img      # Initial RAM filesystem
+│   ├── vmlinuz-<version>          # Active kernel binary
+│   ├── initrfs-<version>.img      # Active initial RAM filesystem
 │   ├── syslinux.cfg               # SYSLINUX bootloader config
 │   └── grub/
 │       └── grub.cfg               # GRUB bootloader config
 ```
+
+**Note:** The standard `01-kernel.sb` module that comes with MiniOS contains additional drivers beyond those included in the original repository kernel packages. These additional drivers provide enhanced hardware compatibility for wireless adapters and storage devices.
 
 ### **Status Indicators:**
 - **ACTIVE:** Kernel configured in bootloader (will boot on next restart)
