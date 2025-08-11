@@ -218,6 +218,28 @@ minios-kernel package --help
   - Check if the new kernel supports your hardware
   - Consider using a different kernel variant
 
+#### **🚨 Kernel Recovery from Original MiniOS Image**
+If you need to recover from a corrupted or incompatible kernel, you can boot from the original MiniOS ISO/USB:
+
+```bash
+# Boot from original MiniOS image with from= parameter
+# At boot prompt, specify your installed MiniOS device
+from=/dev/sda1  # Replace with your actual MiniOS device
+```
+
+**Recovery Process:**
+When you boot from the original MiniOS ISO/USB image and specify in the `from=` parameter the device where MiniOS is installed, the init system detects this and allows you to access your installed MiniOS system. The recovery method depends on whether the original kernel files are still present:
+
+1. **If the original kernel still exists:** 
+   - Boot happens seamlessly with the original kernel from the ISO/USB
+   - Manually activate the original kernel: `minios-kernel activate <original-kernel-version>`
+
+2. **If the original kernel was deleted:** 
+   - Manually copy kernel files from the original MiniOS image and restore them to the appropriate locations on your MiniOS installation
+   - Manually activate the restored kernel: `minios-kernel activate <original-kernel-version>`
+
+In both cases, kernel activation requires manual intervention after the recovery process.
+
 ### 🔍 **Diagnostic Commands:**
 
 **Check Current System Status:**
@@ -256,7 +278,6 @@ The MiniOS Kernel Manager automatically manages these files:
 │   ├── syslinux.cfg               # SYSLINUX bootloader config
 │   └── grub/
 │       └── grub.cfg               # GRUB bootloader config
-└── active                         # Symlink to active kernel
 ```
 
 ### **Status Indicators:**
@@ -295,25 +316,3 @@ The MiniOS Kernel Manager automatically manages these files:
 - Always maintain a working kernel backup
 - Know how to boot from rescue media if needed
 - Document which kernels work with your hardware configuration
-
-### **Kernel Recovery from Original MiniOS Image:**
-If you need to recover from a corrupted or incompatible kernel, you can boot from the original MiniOS ISO/USB and automatically restore the working kernel:
-
-```bash
-# Boot from original MiniOS image with from= parameter
-# At boot prompt, specify your installed MiniOS device
-from=/dev/sda1  # Replace with your actual MiniOS device
-```
-
-**Kernel Recovery Process:**
-When you boot from the original MiniOS ISO/USB image and specify in the `from=` parameter the device where MiniOS is installed, the init system detects this and allows you to access your installed MiniOS system. The recovery method depends on whether the original kernel files are still present:
-
-1. **If the original kernel still exists:** 
-   - Boot happens seamlessly with the original kernel from the ISO/USB
-   - Manually activate the original kernel: `minios-kernel activate <original-kernel-version>`
-
-2. **If the original kernel was deleted:** 
-   - Manually copy kernel files from the original MiniOS image and restore them to the appropriate locations on your MiniOS installation
-   - Manually activate the restored kernel: `minios-kernel activate <original-kernel-version>`
-
-In both cases, kernel activation requires manual intervention after the recovery process.
