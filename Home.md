@@ -12,6 +12,7 @@
 ## 📖 User Guide
   - **[Hardware Compatibility](Hardware-Compatibility.md)** - System requirements and compatibility
   - **[Installing MiniOS](Installing-MiniOS.md)** - Step-by-step installation instructions
+  - **[Boot Menus](Boot-Menus.md)** - Navigate and customize boot menu options
   - **[Configuration File](Configuration-File.md)** - Persistent system configuration options
   - **[Boot Parameters](Boot-Parameters.md)** - Configure system behavior at startup
   - **[live-config Parameters](live-config.md)** - Live system configuration options

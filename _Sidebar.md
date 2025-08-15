@@ -8,6 +8,7 @@
 **📖 User Guide**
   - [Hardware Compatibility](Hardware-Compatibility.md)
   - [Installing MiniOS](Installing-MiniOS.md)
+  - [Boot Menus](Boot-Menus.md)
   - [Configuration File](Configuration-File.md)
   - [Boot Parameters](Boot-Parameters.md)
   - [live-config Parameters](live-config.md)
