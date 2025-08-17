@@ -278,7 +278,8 @@ The MiniOS Kernel Manager automatically manages these files:
 ├── boot/
 │   ├── vmlinuz-<version>          # Active kernel binary
 │   ├── initrfs-<version>.img      # Active initial RAM filesystem
-│   ├── syslinux.cfg               # SYSLINUX bootloader config
+│   ├── syslinux/
+│   │   └── syslinux.cfg           # SYSLINUX bootloader config
 │   └── grub/
 │       └── grub.cfg               # GRUB bootloader config
 ```

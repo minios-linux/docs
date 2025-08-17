@@ -120,7 +120,7 @@ For a complete list of available boot parameters, see **[Boot Parameters](Boot-P
 
 ### On Your MiniOS USB Drive
 - **GRUB configuration:** `/minios/boot/grub/grub.cfg`
-- **SYSLINUX configuration:** `/minios/boot/syslinux.cfg` (if present)
+- **SYSLINUX configuration:** `/minios/boot/syslinux/syslinux.cfg`
 - **Boot images:** `/minios/boot/bootlogo.png`
 - **Language files:** `/minios/boot/grub/locale/`
 
