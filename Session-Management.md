@@ -116,24 +116,76 @@ minios-session-manager
 
 ### **Using minios-session (CLI)**
 
+⚠️ **Administrative Privileges Required:**
+
+The CLI tool requires root privileges and will automatically check for them. Run commands with `sudo` or through `pkexec`:
+
+```bash
+sudo minios-session list
+# or
+pkexec minios-session activate 3
+```
+
+#### **Basic Commands:**
+
 ```bash
 # List all sessions
-minios-session list
+sudo minios-session list
 
-# Create new session
-minios-session create --mode native
-minios-session create --mode dynfilefs --size 4000
-minios-session create --mode raw --size 2000
+# Show currently active session (will boot next)
+sudo minios-session active
+
+# Show currently running session (current boot)
+sudo minios-session running
+
+# Check filesystem compatibility and session directory status
+sudo minios-session info
+sudo minios-session status
+
+# Create new sessions (using positional arguments)
+sudo minios-session create native
+sudo minios-session create dynfilefs 4000
+sudo minios-session create raw 2000
 
 # Activate specific session
-minios-session activate 3
+sudo minios-session activate 3
 
-# Check session status
-minios-session status
+# Delete session
+sudo minios-session delete 2
+
+# Resize session (dynfilefs/raw modes only)
+sudo minios-session resize 1 8000
 
 # Cleanup old sessions (older than 30 days)
-minios-session cleanup --days 30
+sudo minios-session cleanup --days 30
 ```
+
+#### **Advanced Options:**
+
+```bash
+# JSON output for automation (available for all commands)
+sudo minios-session --json list
+sudo minios-session --json info
+sudo minios-session --json active
+sudo minios-session --json running
+sudo minios-session --json status
+sudo minios-session --json create native
+sudo minios-session --json activate 2
+sudo minios-session --json delete 3
+sudo minios-session --json cleanup --days 30
+sudo minios-session --json resize 1 8000
+
+# Custom sessions directory
+sudo minios-session --sessions-dir /custom/path list
+sudo minios-session --sessions-dir /mnt/usb/sessions create native
+```
+
+#### **Key Command Differences:**
+
+- `active` - Shows session that will be used on next boot  
+- `running` - Shows session currently in use (if any)
+- `resize` - Change session size (only for dynfilefs/raw modes)
+- `info` - Check filesystem compatibility and recommendations
 
 ---
 
@@ -320,30 +372,39 @@ mount | grep changes
 ```bash
 # Native mode falls back to dynfilefs automatically
 # Check system logs for details
-minios-session status
+sudo minios-session status
+sudo minios-session info  # Show filesystem compatibility
 ```
 
 ### **Session Recovery**
 
 ```bash
 # List all sessions and their status
-minios-session list
+sudo minios-session list
 
-# Check session integrity
-minios-session status
+# Check session integrity and filesystem info
+sudo minios-session status
+sudo minios-session info
+
+# Show active vs running session status
+sudo minios-session active
+sudo minios-session running
 
 # Create new session if corrupted
-minios-session create --mode native
+sudo minios-session create native
 ```
 
 ### **Cleaning Up Sessions**
 
 ```bash
 # Remove sessions older than 30 days
-minios-session cleanup --days 30
+sudo minios-session cleanup --days 30
 
-# Manual session removal
-rm -rf /minios/changes/session_number/
+# Delete specific session (safe method)
+sudo minios-session delete 3
+
+# Manual session removal (advanced users only)
+sudo rm -rf /minios/changes/session_number/
 ```
 
 ---
@@ -376,46 +437,3 @@ rm -rf /minios/changes/session_number/
 - Consider SSD storage for frequently used sessions
 
 ---
-
-## 🔍 Session Directory Locations
-
-### **Standard Locations**
-
-```bash
-# Primary session storage (when booted from MiniOS)
-/run/initramfs/memory/data/minios/changes/
-```
-
-### **Auto-detection Priority**
-
-1. `/run/initramfs/memory/data/minios/changes` - Live system (primary)
-
-### **Custom Locations**
-
-Sessions can be stored on any writable partition:
-- USB drives with persistence partitions
-- External hard drives
-- Network storage (if mounted)
-- Cloud storage mounts
-
----
-
-## 🎪 Integration with MiniOS Tools
-
-### **Live System Integration**
-
-Sessions integrate seamlessly with:
-- **MiniOS Session Manager** - GUI management
-- **Boot parameter processing** - Automatic session handling
-- **Union filesystem** - Transparent file layering
-- **Compatibility checking** - Version/edition validation
-
-### **Development Integration**
-
-For developers and system integrators:
-- Session APIs available through CLI tools
-- JSON metadata for automation
-- Hook system for custom session handling
-- Integration with package management systems
-
-This comprehensive session management system enables MiniOS to provide persistent, reliable storage while maintaining the flexibility and safety of a live system.
