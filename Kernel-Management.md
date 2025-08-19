@@ -117,11 +117,21 @@ Or search for "MiniOS Kernel Manager" in your application menu.
 
 The command-line tool provides scriptable kernel management capabilities.
 
+### ⚠️ **Administrative Privileges Required:**
+
+The CLI tool requires root privileges and will automatically check for them. Run commands with `sudo` or through `pkexec`:
+
+```bash
+sudo minios-kernel list
+# or
+pkexec minios-kernel activate 6.12.38+deb13-amd64
+```
+
 ### 📝 **Basic Commands:**
 
 #### 1. 📋 **List Available Kernels**
 ```bash
-minios-kernel list
+sudo minios-kernel list
 ```
 
 Shows all packaged kernels with their status.
@@ -130,49 +140,74 @@ Shows all packaged kernels with their status.
 
 **From Repository:**
 ```bash
-minios-kernel package --repo linux-image-6.12.38+deb13-amd64 -o /tmp/kernel-output
+sudo minios-kernel package --repo linux-image-6.12.38+deb13-amd64 -o /tmp/kernel-output
 ```
 
 **From Local .deb File:**
 ```bash
-minios-kernel package --deb /path/to/kernel.deb -o /tmp/kernel-output
+sudo minios-kernel package --deb /path/to/kernel.deb -o /tmp/kernel-output
 ```
 
 **With Custom Compression:**
 ```bash
-minios-kernel package --repo linux-image-6.12.38+deb13-rt-amd64 --sqfs-comp lz4 -o /tmp/kernel-output
+sudo minios-kernel package --repo linux-image-6.12.38+deb13-rt-amd64 --sqfs-comp lz4 -o /tmp/kernel-output
 ```
 
 #### 3. 🔄 **Activate a Kernel**
 ```bash
-minios-kernel activate 6.12.38+deb13-amd64
+sudo minios-kernel activate 6.12.38+deb13-amd64
 ```
 
 #### 4. 🗑️ **Delete a Kernel**
 ```bash
-minios-kernel delete 6.12.38+deb13-amd64
+sudo minios-kernel delete 6.12.38+deb13-amd64
 ```
 
 #### 5. 📊 **Check Status**
 ```bash
-minios-kernel status
+sudo minios-kernel status
 ```
 
 Shows MiniOS directory status and current kernel information.
+
+#### 6. ℹ️ **Show Kernel Information**
+```bash
+sudo minios-kernel info                           # Information about current active kernel
+sudo minios-kernel info 6.12.38+deb13-amd64     # Information about specific kernel
+```
+
+Shows detailed information about a specific kernel including its status and availability.
 
 ### 🔧 **Advanced CLI Options:**
 
 #### **JSON Output (for scripting):**
 ```bash
-minios-kernel --json list
-minios-kernel --json status
-minios-kernel --json package --repo linux-image-6.12.38+deb13-amd64 -o /tmp/output
+sudo minios-kernel --json list
+sudo minios-kernel --json status
+sudo minios-kernel --json info
+sudo minios-kernel --json package --repo linux-image-6.12.38+deb13-amd64 -o /tmp/output
+sudo minios-kernel --json activate 6.12.38+deb13-amd64
+sudo minios-kernel --json delete 6.12.38+deb13-amd64
+```
+
+#### **Advanced Package Options:**
+```bash
+# Use custom temporary directory (requires at least 1024MB free space)
+sudo minios-kernel package --repo linux-image-6.12.38+deb13-rt-amd64 -o /tmp/output --temp-dir /custom/temp
+
+# Force package lists update if outdated
+sudo minios-kernel package --repo linux-image-6.12.38+deb13-rt-amd64 -o /tmp/output --force-update
 ```
 
 #### **Help and Usage:**
 ```bash
-minios-kernel --help
-minios-kernel package --help
+minios-kernel --help                    # General help (doesn't require root)
+sudo minios-kernel package --help       # Package command help
+sudo minios-kernel list --help          # List command help
+sudo minios-kernel activate --help      # Activate command help
+sudo minios-kernel info --help          # Info command help
+sudo minios-kernel status --help        # Status command help
+sudo minios-kernel delete --help        # Delete command help
 ```
 
 ---
@@ -184,7 +219,7 @@ minios-kernel package --help
 #### **🚫 MiniOS Directory Not Found**
 - **Cause:** Tools cannot locate the MiniOS directory
 - **Solution:** Ensure you're running from a MiniOS system or the USB drive is properly mounted
-- **Check:** Run `minios-kernel status` to verify directory detection
+- **Check:** Run `sudo minios-kernel status` to verify directory detection
 
 #### **🔒 Permission Denied**
 - **Cause:** MiniOS directory is read-only or insufficient permissions
@@ -202,13 +237,13 @@ minios-kernel package --help
 - **Cause:** Incompatible kernel or missing drivers
 - **Solution:** 
   - Boot from rescue mode or older kernel
-  - Use minios-kernel to activate a known working kernel
+  - Use `sudo minios-kernel activate <working-version>` to activate a known working kernel
   - Check kernel compatibility with your hardware
 
 #### **🔄 System Boots Old Kernel**
 - **Cause:** Bootloader configuration not updated properly
 - **Solution:** 
-  - Re-run kernel activation: `minios-kernel activate <version>`
+  - Re-run kernel activation: `sudo minios-kernel activate <version>`
   - Check that the kernel was properly packaged and installed
 
 #### **⚠️ Hardware Not Working After Kernel Change**
@@ -232,11 +267,11 @@ When you boot from the original MiniOS ISO/USB image and specify in the `from=` 
 
 1. **If the original kernel still exists:** 
    - Boot happens seamlessly with the original kernel from the ISO/USB
-   - Manually activate the original kernel: `minios-kernel activate <original-kernel-version>`
+   - Manually activate the original kernel: `sudo minios-kernel activate <original-kernel-version>`
 
 2. **If the original kernel was deleted:** 
    - Manually copy kernel files from the original MiniOS image and restore them to the appropriate locations on your MiniOS installation
-   - Manually activate the restored kernel: `minios-kernel activate <original-kernel-version>`
+   - Manually activate the restored kernel: `sudo minios-kernel activate <original-kernel-version>`
 
 In both cases, kernel activation requires manual intervention after the recovery process.
 
@@ -244,7 +279,8 @@ In both cases, kernel activation requires manual intervention after the recovery
 
 **Check Current System Status:**
 ```bash
-minios-kernel status
+sudo minios-kernel status
+sudo minios-kernel info     # Current active kernel info
 uname -r                    # Current running kernel
 cat /proc/version           # Kernel version details
 lsmod                       # Loaded kernel modules
