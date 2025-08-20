@@ -7,6 +7,8 @@ Ventoy is a popular tool for creating bootable USB drives that allows you to sto
 
 ⚠️ **Warning:** Incorrect device selection will result in data loss! Always double-check the selected drive and backup important data.
 
+⚠️ **Boot Mode Requirement:** For MiniOS to work properly with Ventoy, you MUST select **GRUB2 mode** when booting, or rename your ISO file with `VTGRUB2` suffix (e.g., `minios-standard-amd64_VTGRUB2.iso`) to force GRUB2 mode automatically.
+
 
 ## Drive Requirements
 
@@ -74,4 +76,14 @@ After installing Ventoy and copying the MiniOS ISO file to the drive:
 
 1. **Boot from the USB drive** - select it in BIOS/UEFI
 2. **Select MiniOS** from the list of available ISO files in the Ventoy menu
-3. **Wait for loading** - the system will automatically configure for operation
+3. **⚠️ IMPORTANT: Select GRUB2 mode** when prompted by Ventoy
+4. **Wait for loading** - the system will automatically configure for operation
+
+### **Ventoy Boot Mode Requirements**
+
+**For MiniOS to work properly:**
+- **GRUB2 mode** - Required for correct MiniOS operation
+
+**Alternative Solution:**
+- Add suffix `VTGRUB2` to the ISO filename (e.g., `minios-5.0.0-standard-amd64_VTGRUB2.iso`)
+- This forces Ventoy to automatically use GRUB2 mode without prompting
