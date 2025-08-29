@@ -17,20 +17,21 @@ Boot parameters, also known as kernel parameters, are commands that you can ente
 The table below lists the boot parameters available in MiniOS, their functions, and examples of how to use them.
 
 **Legend:**
-- 🔒 **One-time only** - Applied only on first boot, cannot be changed on subsequent boots  
+- 🔒 **One-time only** - Applied only on first boot, cannot be changed on subsequent boots
 - 🔄 **Reconfigurable** - Can be changed on every boot and reapplied
 
 
 | Parameter | Reconfigurable | Description | Example Usage |
 |---|---|---|---|
 | `from` | 🔄 | Loads MiniOS data from a specified directory, device, or ISO file. | `from=/minios/`<br>`from=/Downloads/minios.iso`<br>`from=http://domain.com/minios.iso`<br>`from=/dev/sr0/minios`<br>`from=/dev/disk/by-label/MyFlash/minios`<br>`from=askdisk`<br>`from=askdisk/customdir` |
-| `load` | 🔄 | Enables loading of specified `.sb` modules using a regular expression. Works in conjunction with the `toram=trim` command, allowing only selected modules to be loaded into RAM.| `load=00-core`<br>`load=core,minios,kernel,firmware`<br>`load=00,01,02`<br>`load=00-03` |
+| `load` | 🔄 | Enables loading of specified `.sb` modules using a regular expression. Works in conjunction with the `toram=trim` command, allowing only selected modules to be loaded into RAM.| `load=00-core`<br>`load=core,kernel,firmware`<br>`load=00,01,02`<br>`load=00-03` |
 | `noload` | 🔄 | Disables loading of specified `.sb` modules using a regular expression. Works together with `toram=trim` command allowing to exclude selected modules from loading into RAM. | `noload=05-xfce-apps`<br>`noload=xfce-apps,firefox`<br>`noload=05,06`<br>`noload=04-06` |
 | `perchdir` | 🔄 | Selects a profile or performs an action with a profile. Accepts the profile number or the keywords `resume` (resume previous session), `new` (start a new session), or `ask` (select session at startup). If omitted, MiniOS starts in "clean" mode. | `perchdir=1`<br>`perchdir=resume`<br>`perchdir=new`<br>`perchdir=ask`<br>`perchdir=/dev/sda1/changes`<br>`perchdir=/dev/disk/by-label/MyFlash/changes`<br>`perchdir=askdisk`<br>`perchdir=askdisk/customdir` |
 | `perchsize` | 🔄 | Sets the size of the DynFileFS virtual file system (in MB), used for storing data on non-Linux file systems (e.g., FAT32, NTFS). Defaults to 16GB. Use this option if your target disk is smaller. | `perchsize=4000`<br>`perchsize=32000` |
 | `perchmode` | 🔄 | Save mode for persistent changes.<br>`native` (default) - storing data as is on POSIX-compatible file systems;<br>`dynfilefs` - storing data in dynamically expandable image files;<br>`raw` - storing data in a fixed-size image file.| `perchmode=native`<br>`perchmode=dynfilefs`<br>`perchmode=raw` |
 | `toram` | 🔄 | Copies the system to RAM. Can take `trim` and `full` values. If specified without parameters, it defaults to `full`.<br>`trim` - only necessary data is copied, considering `load` and `noload` filters. If `perch` parameters are specified, changes are also loaded.<br>`full` - the entire minios folder is loaded, excluding changes unless `perch` is specified. | `toram`<br>`toram=trim`<br>`toram=full` |
 | `text` | 🔄 | Disables the X server and starts in text console mode. | `text` |
+| `automount` | 🔄 | Enables automatic mounting of storage devices. | `automount` |
 | `debug` | 🔄 | Enables debugging output during startup. | `debug` |
 | `nozram` | 🔄 | Disables zram swap. | `nozram` |
 | `zramsize` | 🔄 | Sets the zram swap size (in MB). | `zramsize=512`<br>`zramsize=2048` |
