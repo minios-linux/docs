@@ -52,11 +52,10 @@ XX-module-name/
 d=DISTRIBUTION
 da=DISTRIBUTION_ARCH
 dt=DISTRIBUTION_TYPE
-dp=DISTRIBUTION_PHASE
 de=DESKTOP_ENVIRONMENT
 pv=PACKAGE_VARIANT
-kt=KERNEL_TYPE
-kb=KERNEL_BPO
+ik=INSTALL_KERNEL
+kf=KERNEL_FLAVOUR
 ka=KERNEL_AUFS
 kbd=KERNEL_BUILD_DKMS
 lo=LOCALE
@@ -71,8 +70,8 @@ kl=KEEP_LOCALES
 - `DISTRIBUTION_ARCH` - architecture (amd64, i386, i386-pae)
 - `DESKTOP_ENVIRONMENT` - desktop environment (core, flux, xfce, lxqt)
 - `PACKAGE_VARIANT` - package variant (minimum, standard, toolbox, ultra)
-- `KERNEL_TYPE` - kernel type (none, default, rt, cloud)
-- `KERNEL_BPO` - use backports kernel (true/false)
+- `INSTALL_KERNEL` - install kernel package (true/false)
+- `KERNEL_FLAVOUR` - kernel flavour (none, rt, cloud)
 - `KERNEL_AUFS` - AUFS support (true/false)
 - `KERNEL_BUILD_DKMS` - build DKMS modules (true/false)
 - `LOCALE` - system locale (C, en_US, ru_RU, es_ES, pt_BR)
@@ -81,7 +80,6 @@ kl=KEEP_LOCALES
 
 **Automatically calculated variables (from `minioslib`):**
 - `DISTRIBUTION_TYPE` - distribution type (debian, ubuntu) - automatically determined based on `DISTRIBUTION`
-- `DISTRIBUTION_PHASE` - distribution phase - automatically determined:
   - `legacy`: stretch, buster, orel, bionic
   - `current`: bullseye, bookworm, focal, jammy, noble  
   - `future`: trixie, kali-rolling, sid
@@ -162,12 +160,12 @@ language-pack-fr +lo=fr_FR
 **`packages.list`:**
 ```text
 # DKMS modules with kernel and distribution conditions
-ntfs3-dkms -ka=true -dp=legacy -d=trixie -d=sid
-zfs-dkms +{pv=toolbox|pv=ultra} +da=amd64 +kbd=true -kt=none
+ntfs3-dkms -ka=true -d=buster -d=trixie -d=sid
+zfs-dkms +{pv=toolbox|pv=ultra} +da=amd64 +kbd=true -kf=none
 
 # Drivers for old systems
 broadcom-sta-dkms -d=jammy -ka=true -da=i386
-aufs-dkms +dt=debian +dp=legacy
+aufs-dkms +dt=debian +d=buster
 
 # Exclusion for new distributions
 realtek-rtl8821cu-dkms -d=trixie -d=sid
