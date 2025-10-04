@@ -21,7 +21,7 @@ The `prerequisites.list` file uses condinapt format with conditional markers. In
 
 ```bash
 sudo apt-get update
-sudo apt-get install sudo binutils debootstrap squashfs-tools xz-utils lz4 zstd xorriso mtools rsync
+sudo apt-get install sudo binutils debootstrap squashfs-tools xz-utils lz4 zstd xorriso mtools rsync curl
 sudo apt-get install grub-efi-amd64-bin grub-pc-bin
 ```
 
