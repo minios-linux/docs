@@ -27,6 +27,7 @@
 ## 🛠️ Development & Customization
   - **[Building MiniOS](Building-MiniOS.md)** - Build custom MiniOS images from source
   - **[Creating Modules](Creating-Modules.md)** - Develop your own SquashFS modules
+  - **[Rebuilding ISO](Rebuilding-ISO.md)** - Repack your live system into a bootable ISO
   - **[CondinAPT](CondinAPT.md)** - Conditional package management system
 
 ## 🌐 Additional Resources

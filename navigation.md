@@ -24,6 +24,7 @@
 
 - [Building MiniOS](Building-MiniOS.md)
 - [Creating Modules](Creating-Modules.md)
+- [Rebuilding ISO](Rebuilding-ISO.md)
 - [CondinAPT](CondinAPT.md)
 
 [gimmick:theme (inverse: false)](spacelab)

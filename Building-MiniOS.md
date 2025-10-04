@@ -709,3 +709,9 @@ Build logs are stored in:
 - Check the [official wiki](https://github.com/minios-linux/minios-live/wiki)
 - Review existing issues on GitHub
 - Join the community forums at [minios.dev](https://minios.dev)
+
+## Related Documentation
+
+- **[Creating Modules](Creating-Modules.md)** - Learn how to create custom SquashFS modules with additional software
+- **[Rebuilding ISO](Rebuilding-ISO.md)** - Repack your running live system into a bootable ISO using `sb2iso`
+- **[CondinAPT](CondinAPT.md)** - Understand the conditional package management system used in builds

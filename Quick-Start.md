@@ -170,9 +170,10 @@ For custom persistence setup, see detailed [Configuration File](Configuration-Fi
 - **Performance**: [Optimization guide](Performance-Optimization.md) for better speed
 - **Hardware**: [Compatibility guide](Hardware-Compatibility.md) for device support
 
-### 🔧 **Power User Features**  
+### 🔧 **Power User Features**
 - **Custom Builds**: [Building MiniOS](Building-MiniOS.md) from source
 - **Module Creation**: [Advanced modules](Creating-Modules.md) development
+- **ISO Rebuilding**: [Repack live system](Rebuilding-ISO.md) into bootable ISO
 - **Kernel Updates**: [Kernel replacement](Kernel-Replacement.md) guide
 
 ## Getting Help & Community Resources 💬

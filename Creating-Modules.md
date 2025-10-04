@@ -242,3 +242,8 @@ The `sb` utility provides a comprehensive interface for managing MiniOS bundles,
 - Convert directory to module: `sb conv mymodule/`
 
 **Note:** The `activate`, `deactivate`, and `list` commands require AUFS kernel support and root privileges. The `conv`, `rm`, and `rmdir` commands work without AUFS but still require root privileges.
+
+## Related Documentation
+
+- **[Rebuilding ISO](Rebuilding-ISO.md)** - Learn how to package your custom modules into bootable ISO images using `sb2iso`
+- **[Building MiniOS](Building-MiniOS.md)** - Complete guide to building MiniOS from source with custom configurations
