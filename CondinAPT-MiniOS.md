@@ -58,6 +58,7 @@ ik=INSTALL_KERNEL
 kf=KERNEL_FLAVOUR
 ka=KERNEL_AUFS
 kbd=KERNEL_BUILD_DKMS
+ib=INITRAMFS_BUILDER
 lo=LOCALE
 ml=MULTILINGUAL
 kl=KEEP_LOCALES
@@ -74,6 +75,7 @@ kl=KEEP_LOCALES
 - `KERNEL_FLAVOUR` - kernel flavour (none, rt, cloud)
 - `KERNEL_AUFS` - AUFS support (true/false)
 - `KERNEL_BUILD_DKMS` - build DKMS modules (true/false)
+- `INITRAMFS_BUILDER` - initramfs builder (livekit, dracut)
 - `LOCALE` - system locale (C, en_US, ru_RU, es_ES, pt_BR)
 - `MULTILINGUAL` - multilingual support (true/false)
 - `KEEP_LOCALES` - keep locales (true/false)

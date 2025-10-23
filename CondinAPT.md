@@ -129,12 +129,12 @@ bash
 | `-l`         | `--package-list`               | `PATH`   | **(Required)** Path to the package list file.       |
 | `-c`         | `--config`                     | `PATH`   | **(Required)** Path to the main configuration file. |
 | `-m`         | `--filter-mapping`             | `PATH`   | (Optional) Path to the filter mapping file.         |
-| `-P`         | `--priority-list`              | `PATH`   | (Optional) Path to the priority package list file.  |
+| `-P`         | `--priority-list`              | `PATH`   | (Optional) Path to a priority filter file. File contains regex patterns to match packages. Matched packages are moved to priority queue (preserving filters). |
 | `-s`         | `--simulation`                 |          | Simulation mode. Packages will not be installed.    |
-| `-C`         | `--check-only`                 |          | Only check if packages are already installed.       |
+| `-C`         | `--check-only`                 |          | Only check if packages are already installed. Returns exit code 1 if there are uninstalled packages. At the end, outputs a command to install missing packages. |
 | `-v` / `-vv` | `--verbose` / `--very-verbose` |          | Verbose / very verbose output.                      |
 | `-x`         | `--xtrace`                     |          | Enable `set -x` command tracing.                    |
-| `-f`         | `--force`                      |          | Force apt cache update (apt update).                |
+| `-f`         | `--force`                      |          | Force package lists update before installation. By default, update is skipped if `/var/cache/apt/pkgcache.bin` exists. |
 | `-h`         | `--help`                       |          | Show help.                                          |
 
 ## Package List File Syntax
@@ -362,8 +362,8 @@ firefox-esr +d=trixie || firefox +d=bookworm || w3m
 *   **`priority.list`:**
 
     ```text
-dkms
-build-essential
+^dkms$
+^build-essential$
 ```
 
 *   **`packages.list`:**
@@ -375,14 +375,14 @@ vim
 
 **Analysis:**
 
-1.  `dkms` and `build-essential` are loaded into the priority queue.
-2.  The line `!dkms +pv=standard` is removed from `packages.list` during scanning, as `dkms` is in priority.
+1.  CondinAPT reads priority patterns `^dkms$` and `^build-essential$`.
+2.  The line `!dkms +pv=standard` matches the pattern `^dkms$` and is moved to the priority queue **with all its properties**: the mandatory flag (`!`) and the filter (`+pv=standard`).
 3.  **Execution Plan:**
 
-    *   **Priority Queue:** Install `dkms` and `build-essential`.
-    *   **Normal Queue:** (Continue processing remaining packages from `packages.list`).
+    *   **Priority Queue:** Install `!dkms +pv=standard` (mandatory flag and filter are preserved).
+    *   **Normal Queue:** `vim`.
 
-**Result:** `dkms` will be installed unconditionally at the very beginning. The `!` modifier and `+pv=standard` filter from the main list will have no effect.
+**Result:** `dkms` will be installed first, but the `+pv=standard` filter will still be evaluated. If the filter condition is not met, installation will fail because of the `!` (mandatory) flag.
 
 ## Installation Queues
 
@@ -421,12 +421,14 @@ nvidia-driver @bookworm-backports
 
 ## Priority Queue
 
-This mechanism is for unconditional installation of critical packages.
+This mechanism is for prioritized installation of critical packages while preserving their filters and conditions.
 
-*   **Principle:** Packages listed in the file specified by the `-P` flag (one package per line, no filters) form a special "Queue #1", which is executed first.
-*   **Override:** Any package from the priority list is automatically removed from all regular queues and all target queues (with `@release`). This ensures it will be installed unconditionally, even if `packages.list` has prohibitive filters or a specific release specified for it.
+*   **Principle:** The file specified by the `-P` flag contains regex patterns (one pattern per line, no filters). CondinAPT scans all queues, finds packages matching these patterns, and moves them (with all their filters and conditions) to a special "Priority Queue", which is executed first.
+*   **Pattern Matching:** Uses bash regex matching (`=~` operator). Patterns can be simple package names or complex regex expressions.
+*   **Preserving Context:** Unlike simple priority lists, this mechanism preserves all package conditions, filters, and release specifications from the original package list.
+*   **Override:** Matched packages are automatically removed from their original queues (both regular and target queues with `@release`) and moved to priority queues. Target releases are preserved in separate priority target queues.
 
-**Example:**
+**Example 1: Simple package name matching**
 
 *   **`packages.list`:**
 
@@ -441,18 +443,47 @@ vim +env=development  # Only for development environment
 *   **`priority.list`:**
 
     ```text
-gpg
-git
+^gpg$
+^git$
 ```
 
 *   **Analysis:**
 
-    1.  CondinAPT reads `priority.list` and knows that `gpg` and `git` must be installed first.
-    2.  It scans `packages.list` and finds the line `git +st=full-server`. Since `git` is in priority, this line is completely ignored.
+    1.  CondinAPT reads `priority.list` and knows that packages matching `^gpg$` and `^git$` patterns must be installed first.
+    2.  It scans `packages.list` and finds the line `git +st=full-server`. Since `git` matches the pattern, this entire line (with its `+st=full-server` filter) is moved to the priority queue.
+    3.  Similarly, `gpg -st=minimal` is moved to the priority queue with its `-st=minimal` filter preserved.
+    4.  **Final Plan:**
+
+        *   **Priority Queue:** Install `git +st=full-server` and `gpg -st=minimal` (filters are preserved and evaluated).
+        *   **Normal Queue:** `curl`, `wget +d=trixie`, `vim +env=development`.
+
+**Example 2: Regex pattern matching**
+
+*   **`packages.list`:**
+
+    ```text
+linux-image-6.1.0-amd64 +arch=amd64
+linux-headers-6.1.0-amd64 +arch=amd64
+firmware-linux
+build-essential
+nginx +st=server
+```
+
+*   **`priority.list`:**
+
+    ```text
+^linux-.*
+^firmware-.*
+```
+
+*   **Analysis:**
+
+    1.  Pattern `^linux-.*` matches both `linux-image-6.1.0-amd64` and `linux-headers-6.1.0-amd64`.
+    2.  Pattern `^firmware-.*` matches `firmware-linux`.
     3.  **Final Plan:**
 
-        *   **Priority Queue:** Install `gpg` and `git`.
-        *   **Normal Queue:** (Continue processing remaining packages from `packages.list`).
+        *   **Priority Queue:** `linux-image-6.1.0-amd64 +arch=amd64`, `linux-headers-6.1.0-amd64 +arch=amd64`, `firmware-linux`.
+        *   **Normal Queue:** `build-essential`, `nginx +st=server`.
 
 ## Operating Modes and Debugging
 
