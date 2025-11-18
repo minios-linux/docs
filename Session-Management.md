@@ -24,9 +24,9 @@ Sessions use **Union Filesystem** technology (AUFS or OverlayFS) to layer change
 
 ### **Storage Modes**
 
-- **`native`** - Direct filesystem storage (POSIX filesystems)
-- **`dynfilefs`** - Expandable container files (FAT32/NTFS)
-- **`raw`** - Fixed-size image files (any filesystem)
+- **`native`** - Direct filesystem storage (requires POSIX filesystem: ext4, btrfs, xfs)
+- **`dynfilefs`** - Expandable container files (works on any filesystem, recommended for FAT32/NTFS/exFAT)
+- **`raw`** - Fixed-size image files (works on any filesystem)
 
 ---
 
@@ -144,7 +144,7 @@ sudo minios-session status
 
 # Create new sessions (using positional arguments)
 sudo minios-session create native
-sudo minios-session create dynfilefs 4000
+sudo minios-session create dynfilefs 2000
 sudo minios-session create raw 2000
 
 # Activate specific session
@@ -155,6 +155,18 @@ sudo minios-session delete 2
 
 # Resize session (dynfilefs/raw modes only)
 sudo minios-session resize 1 8000
+
+# Export session to archive
+sudo minios-session export 1 /path/to/backup.tar.zst
+
+# Import session from archive
+sudo minios-session import /path/to/backup.tar.zst
+sudo minios-session import /path/to/backup.tar.zst dynfilefs  # with mode conversion
+
+# Copy session with optional mode conversion
+sudo minios-session copy 1 2              # copy keeping same mode
+sudo minios-session copy 1 3 raw          # copy and convert to raw mode
+sudo minios-session copy 1 4 native 3000  # copy, convert to native, set size
 
 # Cleanup old sessions (older than 30 days)
 sudo minios-session cleanup --days 30
@@ -174,6 +186,9 @@ sudo minios-session --json activate 2
 sudo minios-session --json delete 3
 sudo minios-session --json cleanup --days 30
 sudo minios-session --json resize 1 8000
+sudo minios-session --json export 1 backup.tar.zst
+sudo minios-session --json import backup.tar.zst
+sudo minios-session --json copy 1 2 native
 
 # Custom sessions directory
 sudo minios-session --sessions-dir /custom/path list
@@ -182,10 +197,88 @@ sudo minios-session --sessions-dir /mnt/usb/sessions create native
 
 #### **Key Command Differences:**
 
-- `active` - Shows session that will be used on next boot  
+- `active` - Shows session that will be used on next boot
 - `running` - Shows session currently in use (if any)
 - `resize` - Change session size (only for dynfilefs/raw modes)
+- `export` - Export session to .tar.zst archive for backup
+- `import` - Import session from archive with optional mode conversion
+- `copy` - Copy session with optional mode conversion
 - `info` - Check filesystem compatibility and recommendations
+
+---
+
+## 📦 Session Backup and Migration
+
+### **Export Sessions**
+
+Export sessions to compressed archives for backup or transfer:
+
+```bash
+# Export session to archive
+sudo minios-session export 1 /backup/session1.tar.zst
+
+# Export with JSON output
+sudo minios-session --json export 2 /backup/session2.tar.zst
+```
+
+**Features:**
+- Creates compressed .tar.zst archive
+- Preserves all session data and metadata
+- Can be imported on any MiniOS system
+- Automatic compression for space efficiency
+
+### **Import Sessions**
+
+Import sessions from archives with optional mode conversion:
+
+```bash
+# Import session keeping original mode
+sudo minios-session import /backup/session1.tar.zst
+
+# Import and convert to different mode
+sudo minios-session import /backup/session1.tar.zst dynfilefs
+sudo minios-session import /backup/session2.tar.zst raw
+sudo minios-session import /backup/session3.tar.zst native
+
+# Import with JSON output
+sudo minios-session --json import /backup/session.tar.zst
+```
+
+**Features:**
+- Restores session data from archive
+- Automatically converts between storage modes if specified
+- Skips existing files to prevent data loss
+- Creates new session number automatically
+
+### **Copy and Convert Sessions**
+
+Copy sessions between different storage modes:
+
+```bash
+# Copy session keeping same mode
+sudo minios-session copy 1 2
+
+# Copy and convert to different mode
+sudo minios-session copy 1 3 raw           # convert to raw mode
+sudo minios-session copy 1 4 dynfilefs     # convert to dynfilefs
+sudo minios-session copy 1 5 native        # convert to native
+
+# Copy with custom size (for raw/dynfilefs)
+sudo minios-session copy 1 6 raw 4000      # 4GB raw image
+sudo minios-session copy 2 7 dynfilefs 2000 # 2GB dynfilefs
+```
+
+**Supported Conversions:**
+- native ⇄ dynfilefs ⇄ raw
+- All mode combinations supported
+- Automatic size handling
+- Preserves session data during conversion
+
+**Use Cases:**
+- Migrate from FAT32 to ext4 filesystem (dynfilefs → native)
+- Create portable sessions (native → dynfilefs/raw)
+- Optimize for different filesystems
+- Create session backups with different modes
 
 ---
 
@@ -193,7 +286,7 @@ sudo minios-session --sessions-dir /mnt/usb/sessions create native
 
 ### **Native Mode**
 
-**Best for:** POSIX filesystems (ext4, btrfs, xfs)
+**Best for:** Systems on POSIX filesystems (ext4, btrfs, xfs)
 
 ```bash
 # Enable native mode
@@ -201,43 +294,45 @@ perchmode=native
 ```
 
 **Characteristics:**
-- Direct filesystem access
-- Full POSIX compliance
-- Supports hard links, permissions, extended attributes
-- Best performance
-- **Requirements:** POSIX-compatible filesystem
+- Direct filesystem access without container
+- Full POSIX compliance (hard links, permissions, extended attributes)
+- Best performance among all modes
+- **Requirements:** POSIX-compatible filesystem (ext4, btrfs, xfs)
+- **Not compatible:** FAT32, NTFS, exFAT
 
 ### **DynFileFS Mode**
 
-**Best for:** FAT32, NTFS, exFAT filesystems
+**Best for:** Non-POSIX filesystems (FAT32, NTFS, exFAT)
 
 ```bash
-# Enable dynfilefs mode with 4GB initial size
-perchmode=dynfilefs perchsize=4000
+# Enable dynfilefs mode with initial size
+perchmode=dynfilefs perchsize=2000
 ```
 
 **Characteristics:**
-- Expandable container files
-- Automatically grows as needed
-- Works on any filesystem
-- Slight performance overhead
-- **Default size:** 4000MB, expands to available space
+- Expandable container with ext4 filesystem inside
+- Automatically grows as needed up to available space
+- Works on any filesystem type
+- Slight performance overhead compared to native
+- **Default size:** 1000MB, expands dynamically
+- **Recommended for:** FAT32, NTFS, exFAT filesystems
 
 ### **Raw Mode**
 
-**Best for:** Fixed-size requirements or any filesystem
+**Best for:** Fixed-size requirements on any filesystem
 
 ```bash
-# Enable raw mode with 2GB fixed size  
+# Enable raw mode with fixed size
 perchmode=raw perchsize=2000
 ```
 
 **Characteristics:**
-- Fixed-size image files
-- Predictable disk usage
-- Works on any filesystem
-- Must specify size upfront
-- **Default size:** 4000MB if not specified
+- Fixed-size image with ext4 filesystem inside
+- Predictable and constant disk usage
+- Works on any filesystem type
+- Size must be specified at creation
+- **Default size:** 1000MB if not specified
+- **Use cases:** Portable sessions, storage quotas, predictable space allocation
 
 ---
 
@@ -325,7 +420,7 @@ perchmode=dynfilefs perchsize=0
 perchsize=8000  # 8GB
 
 # Size limits per filesystem:
-# - FAT32: Maximum 4000MB (4GB limit)
+# - FAT32: Maximum 4095MB (4GB limit)
 # - Others: Limited by available space
 ```
 
@@ -413,9 +508,9 @@ sudo rm -rf /minios/changes/session_number/
 
 ### **Choosing Storage Modes**
 
-- **Native mode:** Use for ext4, btrfs, xfs filesystems
-- **DynFileFS mode:** Use for FAT32, NTFS, exFAT filesystems  
-- **Raw mode:** Use when you need predictable disk usage
+- **Native mode:** Use when MiniOS is on POSIX filesystem (ext4, btrfs, xfs) - best performance
+- **DynFileFS mode:** Use for FAT32, NTFS, exFAT filesystems - automatic space management
+- **Raw mode:** Use when you need fixed size on any filesystem - predictable disk usage
 
 ### **Size Planning**
 
