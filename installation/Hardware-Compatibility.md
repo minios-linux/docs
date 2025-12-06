@@ -53,4 +53,4 @@ MiniOS is fully optimized for use as a guest operating system in all major virtu
 - **Broad Compatibility:** The system can also boot from emulated **IDE** and **SATA** controllers, ensuring compatibility with any hypervisor configuration.
 - **Guest Tools:** For enhanced integration (such as seamless mouse, clipboard sharing, and dynamic resolution), the `toolbox` and `ultra` variants include `open-vm-tools` (for VMware) and `hyperv-daemons` (for Hyper-V).
 
-For detailed setup instructions and platform-specific configurations, see the [Virtualization Guide](Virtualization.md).
+For detailed setup instructions and platform-specific configurations, see the [Virtualization Guide](/administration/Virtualization.md).

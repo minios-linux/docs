@@ -103,4 +103,4 @@ For precise persistence configuration, boot parameters can be used:
 - `perchmode=raw` - Fixed-size file
 - `perchsize=8000` - Storage space size for data in MB
 
-Details in [boot parameters](Boot-Parameters.md).
+Details in [boot parameters](/configuration/Boot-Parameters.md).

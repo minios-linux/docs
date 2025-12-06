@@ -337,7 +337,7 @@ Before rebuilding ISO, you may want to create custom modules:
 - **chroot2sb** - Create modules interactively
 - **savechanges** - Save current system modifications
 
-See the [Creating Modules](Creating-Modules.md) guide for detailed instructions.
+See the [Creating Modules](/development/Creating-Modules.md) guide for detailed instructions.
 
 ### Building from Source
 
@@ -346,7 +346,7 @@ For complete customization, consider building from source:
 - **minios-live** - Build complete systems from scratch
 - **minios-cmd** - Simplified build interface
 
-See the [Building MiniOS](Building-MiniOS.md) guide for source builds.
+See the [Building MiniOS](/development/Building-MiniOS.md) guide for source builds.
 
 ## Conclusion
 

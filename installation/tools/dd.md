@@ -11,7 +11,7 @@
 ## Drive Requirements
 
 ### Drive Size
-See [Hardware Compatibility Guide](Hardware-Compatibility.md#system-requirements) for detailed system requirements and drive sizes.
+See [Hardware Compatibility Guide](/installation/Hardware-Compatibility.md#system-requirements) for detailed system requirements and drive sizes.
 
 ## Preparation
 
@@ -53,4 +53,4 @@ For precise persistence configuration, boot parameters can be used:
 - `perchmode=raw` - Fixed-size file
 - `perchsize=8000` - Storage space size for data in MB for image files
 
-Details in [boot parameters](Boot-Parameters.md).
+Details in [boot parameters](/configuration/Boot-Parameters.md).

@@ -67,7 +67,7 @@ EXPORT_LOGS="false"
 
 
 **For more details on most parameters, see:**  
-- `man 7 live-config` ([live-config](live-config.md))
+- `man 7 live-config` ([live-config](/configuration/live-config.md))
 - For systemd targets: `man systemd.special`
 
 ## Important!

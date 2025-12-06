@@ -13,7 +13,7 @@ Ventoy is a popular tool for creating bootable USB drives that allows you to sto
 ## Drive Requirements
 
 ### Drive Size
-See [Hardware Compatibility Guide](Hardware-Compatibility.md#system-requirements) for detailed system requirements and drive sizes.
+See [Hardware Compatibility Guide](/installation/Hardware-Compatibility.md#system-requirements) for detailed system requirements and drive sizes.
 
 ## Installing Ventoy
 
@@ -65,7 +65,7 @@ When precise configuration is needed, boot parameters can be used:
 **Common parameters for files:**
 - `perchsize=8000` - Data storage space size in MB
 
-More details in [boot parameters](Boot-Parameters.md).
+More details in [boot parameters](/configuration/Boot-Parameters.md).
 
 
 ## Using MiniOS with Ventoy

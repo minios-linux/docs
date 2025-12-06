@@ -10,35 +10,35 @@ MiniOS offers three main editions, each tailored for specific use cases:
 - **🧰 Toolbox** - Power user's toolkit with advanced system utilities
 - **⚡ Ultra** - All-in-one powerhouse with complete feature set
 
-For detailed descriptions of each edition's features and included software, see [About MiniOS](About-MiniOS.md).
+For detailed descriptions of each edition's features and included software, see [About MiniOS](/about/About-MiniOS.md).
 
 **Download Options:**
 - **Official Website**: [minios.dev](https://minios.dev) - Complete edition overview and direct downloads
 - **GitHub Releases**: [Latest releases](https://github.com/minios-linux/minios-live/releases) - All versions and release notes
 
-For a detailed breakdown of packages included in each edition, see the [Package List](Packages.md).
+For a detailed breakdown of packages included in each edition, see the [Package List](/administration/Packages.md).
 
 ## Step 2: Create a Bootable USB Drive 🔌
 
 **Recommended Installation Methods:**
 
 ### 🖥️ **Windows**
-- **[Rufus](Rufus.md)** ⭐ - Simple and reliable
-- **[Balena Etcher](Balena-Etcher.md)** ⭐ - Cross-platform GUI
-- **[Ventoy](Ventoy.md)** ⭐ - Multi-boot support
+- **[Rufus](/installation/tools/Rufus.md)** ⭐ - Simple and reliable
+- **[Balena Etcher](/installation/tools/Balena-Etcher.md)** ⭐ - Cross-platform GUI
+- **[Ventoy](/installation/tools/Ventoy.md)** ⭐ - Multi-boot support
 
 ### 🐧 **Linux**
-- **[dd command](dd.md)** ⭐ - Fast command-line tool
-- **[Balena Etcher](Balena-Etcher.md)** ⭐ - User-friendly GUI
+- **[dd command](/installation/tools/dd.md)** ⭐ - Fast command-line tool
+- **[Balena Etcher](/installation/tools/Balena-Etcher.md)** ⭐ - User-friendly GUI
 
 ### 🍎 **macOS**
-- **[Balena Etcher](Balena-Etcher.md)** ⭐ - Easy-to-use GUI
-- **[dd command](dd.md)** ⭐ - Built-in terminal tool
+- **[Balena Etcher](/installation/tools/Balena-Etcher.md)** ⭐ - Easy-to-use GUI
+- **[dd command](/installation/tools/dd.md)** ⭐ - Built-in terminal tool
 
 ### 🏠 **From MiniOS**
-- **[MiniOS Installer](MiniOS-Installer.md)** - Built-in graphical tool
+- **[MiniOS Installer](/installation/MiniOS-Installer.md)** - Built-in graphical tool
 
-**Additional methods:** [UNetbootin](UNetbootin.md), [Drive Utility](Drive-Utility.md), [Original Method](Original-Method.md)
+**Additional methods:** [UNetbootin](/installation/tools/UNetbootin.md), [Drive Utility](/installation/tools/Drive-Utility.md), [Original Method](/installation/tools/Original-Method.md)
 
 ### Drive Size Requirements
 - **Standard (787 MB)**: minimum 2 GB
@@ -87,7 +87,7 @@ The default desktop environment is XFCE, providing a balance of features and per
 3. Make your changes and save
 4. **Reboot to apply changes** - settings take effect after restart and persist across reboots
 
-**Technical note:** MiniOS Configurator modifies `/etc/live/config.conf`, which is MiniOS's main configuration file that controls system behavior at boot time. For detailed information on configuration parameters and their behavior, see the [Configuration File](Configuration-File.md) guide.
+**Technical note:** MiniOS Configurator modifies `/etc/live/config.conf`, which is MiniOS's main configuration file that controls system behavior at boot time. For detailed information on configuration parameters and their behavior, see the [Configuration File](/configuration/Configuration-File.md) guide.
 
 ### 💻 **Alternative: Command Line Configuration**
 
@@ -111,9 +111,9 @@ passwd live
 ### 📋 **Additional Configuration Options**
 
 - **Direct file editing**: Edit `/etc/live/config.conf` manually for advanced users
-- **Boot-time setup**: Use [Boot Parameters](Boot-Parameters.md) to configure system before it starts
-- **Configuration file guide**: See [Configuration File](Configuration-File.md) for detailed config.conf reference
-- **Pre-installation**: Configure before installing with [MiniOS Installer](MiniOS-Installer.md)
+- **Boot-time setup**: Use [Boot Parameters](/configuration/Boot-Parameters.md) to configure system before it starts
+- **Configuration file guide**: See [Configuration File](/configuration/Configuration-File.md) for detailed config.conf reference
+- **Pre-installation**: Configure before installing with [MiniOS Installer](/installation/MiniOS-Installer.md)
 
 **Important:** Changes to `/etc/live/config.conf` (via MiniOS Configurator or manual editing) require a reboot to take effect. Command-line tools like `localectl` and `timedatectl` apply changes immediately but may not persist across reboots without proper configuration.
 
@@ -125,7 +125,7 @@ MiniOS provides multiple ways to install software:
 Basic Debian package management - use `man apt` for detailed command reference.
 
 ### 🔄 **Module System**
-Advanced SquashFS modules for persistent software - see [Creating Modules](Creating-Modules.md) guide.
+Advanced SquashFS modules for persistent software - see [Creating Modules](/development/Creating-Modules.md) guide.
 
 **Key difference:** APT installations require persistence to survive reboots, while modules are automatically persistent.
 
@@ -139,7 +139,7 @@ Advanced SquashFS modules for persistent software - see [Creating Modules](Creat
 - **Portable**: Your data travels with you on the USB drive
 
 ### Advanced Configuration
-For custom persistence setup, see detailed [Configuration File](Configuration-File.md) guide and [Boot Parameters](Boot-Parameters.md) reference.
+For custom persistence setup, see detailed [Configuration File](/configuration/Configuration-File.md) guide and [Boot Parameters](/configuration/Boot-Parameters.md) reference.
 
 ## Step 7: Security Setup 🔐
 
@@ -154,7 +154,7 @@ For custom persistence setup, see detailed [Configuration File](Configuration-Fi
 ### Password Configuration Methods
 - **🔧 Recommended**: Use **MiniOS Configurator** (Applications Menu → System → Configure MiniOS → User tab)
 - **💻 Command Line**: `passwd live` and `sudo passwd root`
-- **📋 Advanced**: See [Security Hardening](Security-Hardening.md) guide for detailed security setup
+- **📋 Advanced**: See [Security Hardening](/administration/Security-Hardening.md) guide for detailed security setup
 
 ⚠️ **Never use default credentials on networked systems!**
 
@@ -166,15 +166,15 @@ For custom persistence setup, see detailed [Configuration File](Configuration-Fi
 - Keyboard shortcuts and system settings
 
 ### 🚀 **Advanced Configuration**
-- **Boot Parameters**: [Complete reference](Boot-Parameters.md) for system tuning
-- **Performance**: [Optimization guide](Performance-Optimization.md) for better speed
-- **Hardware**: [Compatibility guide](Hardware-Compatibility.md) for device support
+- **Boot Parameters**: [Complete reference](/configuration/Boot-Parameters.md) for system tuning
+- **Performance**: [Optimization guide](/administration/Performance-Optimization.md) for better speed
+- **Hardware**: [Compatibility guide](/installation/Hardware-Compatibility.md) for device support
 
 ### 🔧 **Power User Features**
-- **Custom Builds**: [Building MiniOS](Building-MiniOS.md) from source
-- **Module Creation**: [Advanced modules](Creating-Modules.md) development
-- **ISO Rebuilding**: [Repack live system](Rebuilding-ISO.md) into bootable ISO
-- **Kernel Updates**: [Kernel management](Kernel-Management.md) guide
+- **Custom Builds**: [Building MiniOS](/development/Building-MiniOS.md) from source
+- **Module Creation**: [Advanced modules](/development/Creating-Modules.md) development
+- **ISO Rebuilding**: [Repack live system](/development/Rebuilding-ISO.md) into bootable ISO
+- **Kernel Updates**: [Kernel management](/administration/Kernel-Management.md) guide
 
 ## Getting Help & Community Resources 💬
 

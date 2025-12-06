@@ -11,7 +11,7 @@ UNetbootin is a cross-platform open-source utility that allows you to create boo
 ## Drive Requirements
 
 ### Drive Size
-See [Hardware Compatibility Guide](Hardware-Compatibility.md#system-requirements) for detailed system requirements and drive sizes.
+See [Hardware Compatibility Guide](/installation/Hardware-Compatibility.md#system-requirements) for detailed system requirements and drive sizes.
 
 ## Installing UNetbootin
 
@@ -45,4 +45,4 @@ When precise configuration is needed, boot parameters can be used:
 - `perchmode=raw` - Fixed-size file
 - `perchsize=8000` - Data storage space size in MB
 
-Details in [boot parameters](Boot-Parameters.md).
+Details in [boot parameters](/configuration/Boot-Parameters.md).

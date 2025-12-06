@@ -8,10 +8,10 @@ hero:
   actions:
     - theme: brand
       text: Quick Start
-      link: /Quick-Start
+      link: /installation/Quick-Start
     - theme: alt
       text: About MiniOS
-      link: /About-MiniOS
+      link: /about/About-MiniOS
 
 features:
   - title: Portable
@@ -21,4 +21,5 @@ features:
   - title: Debian-based
     details: Stable and compatible foundation.
 ---
+
 

@@ -4,7 +4,7 @@ This guide provides techniques to optimize MiniOS performance, focusing on its u
 
 ## Boot Parameters for Performance
 
-The most effective way to boost performance, especially when running from a slow USB drive, is by using boot parameters to control how the system loads into memory. For complete list of available parameters, see [Boot Parameters](Boot-Parameters.md).
+The most effective way to boost performance, especially when running from a slow USB drive, is by using boot parameters to control how the system loads into memory. For complete list of available parameters, see [Boot Parameters](/configuration/Boot-Parameters.md).
 
 ### Loading the System into RAM (`toram`)
 

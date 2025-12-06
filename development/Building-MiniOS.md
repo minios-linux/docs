@@ -392,7 +392,7 @@ Standard usage in module install scripts:
 
 ### Complete Documentation
 
-For comprehensive CondinAPT documentation including advanced syntax, filters, priority queues, debugging modes, and real-world examples, see: **[CondinAPT.md](CondinAPT.md)**
+For comprehensive CondinAPT documentation including advanced syntax, filters, priority queues, debugging modes, and real-world examples, see: **[CondinAPT.md](/development/CondinAPT.md)**
 
 ### Common Condition Filters
 
@@ -712,6 +712,6 @@ Build logs are stored in:
 
 ## Related Documentation
 
-- **[Creating Modules](Creating-Modules.md)** - Learn how to create custom SquashFS modules with additional software
-- **[Rebuilding ISO](Rebuilding-ISO.md)** - Repack your running live system into a bootable ISO using `sb2iso`
-- **[CondinAPT](CondinAPT.md)** - Understand the conditional package management system used in builds
+- **[Creating Modules](/development/Creating-Modules.md)** - Learn how to create custom SquashFS modules with additional software
+- **[Rebuilding ISO](/development/Rebuilding-ISO.md)** - Repack your running live system into a bootable ISO using `sb2iso`
+- **[CondinAPT](/development/CondinAPT.md)** - Understand the conditional package management system used in builds

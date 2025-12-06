@@ -13,7 +13,7 @@ Drive Utility is a graphical tool for writing MiniOS ISO images to USB drives.
 ## Drive Requirements
 
 ### Drive Size (for MiniOS writing)
-See [Hardware Compatibility Guide](Hardware-Compatibility.md#system-requirements) for detailed system requirements and drive sizes.
+See [Hardware Compatibility Guide](/installation/Hardware-Compatibility.md#system-requirements) for detailed system requirements and drive sizes.
 
 ### Supported Filesystems
 - **FAT32**: maximum compatibility
@@ -57,4 +57,4 @@ For precise persistence configuration, boot parameters can be used:
 - `perchmode=raw` - Fixed-size file
 - `perchsize=8000` - Storage space size for data in MB
 
-Details in [boot parameters](Boot-Parameters.md).
+Details in [boot parameters](/configuration/Boot-Parameters.md).

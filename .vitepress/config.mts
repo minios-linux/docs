@@ -38,69 +38,115 @@ export default withMermaid(defineConfig({
     logo: '/favicon.svg',
     nav: [
       { text: 'Home', link: '/' },
-      { text: 'About MiniOS', link: '/About-MiniOS' },
-      { text: 'Getting Started', link: '/Quick-Start' },
+      { text: 'About', link: '/about/About-MiniOS' },
+      { text: 'Quick Start', link: '/installation/Quick-Start' },
       {
-        text: 'User Guide',
+        text: 'Install',
         items: [
-          { text: 'Hardware Compatibility', link: '/Hardware-Compatibility' },
-          { text: 'Installing MiniOS', link: '/Installing-MiniOS' },
-          { text: 'Boot Menus', link: '/Boot-Menus' },
-          { text: 'Configuration File', link: '/Configuration-File' },
-          { text: 'Boot Parameters', link: '/Boot-Parameters' },
-          { text: 'live-config Parameters', link: '/live-config' },
-          { text: 'Session Management', link: '/Session-Management' },
-          { text: 'Kernel Management', link: '/Kernel-Management' },
-          { text: 'Security Hardening', link: '/Security-Hardening' },
-          { text: 'Performance Optimization', link: '/Performance-Optimization' },
-          { text: 'Virtualization', link: '/Virtualization' },
-          { text: 'System Architecture', link: '/System-Architecture' },
-          { text: 'Package List', link: '/Packages' }
+          { text: 'Hardware Compatibility', link: '/installation/Hardware-Compatibility' },
+          { text: 'Installing to Disk', link: '/installation/Installing-MiniOS' },
+          {
+            text: 'USB Creation Tools',
+            link: '/installation/tools/USB-Creation-Tools',
+            items: [
+              { text: 'Rufus', link: '/installation/tools/Rufus' },
+              { text: 'Ventoy', link: '/installation/tools/Ventoy' },
+              { text: 'Balena Etcher', link: '/installation/tools/Balena-Etcher' },
+              { text: 'Original Method', link: '/installation/tools/Original-Method' }
+            ]
+          }
         ]
       },
       {
-        text: 'Development',
+        text: 'Configure',
         items: [
-          { text: 'Building MiniOS', link: '/Building-MiniOS' },
-          { text: 'Creating Modules', link: '/Creating-Modules' },
-          { text: 'Rebuilding ISO', link: '/Rebuilding-ISO' },
-          { text: 'CondinAPT', link: '/CondinAPT' }
+          { text: 'Boot Menus', link: '/configuration/Boot-Menus' },
+          { text: 'Boot Parameters', link: '/configuration/Boot-Parameters' },
+          { text: 'Configuration File', link: '/configuration/Configuration-File' },
+          { text: 'live-config Parameters', link: '/configuration/live-config' },
+          { text: 'Session Management', link: '/configuration/Session-Management' }
+        ]
+      },
+      {
+        text: 'Manage',
+        items: [
+          { text: 'Packages', link: '/administration/Packages' },
+          { text: 'Kernel Management', link: '/administration/Kernel-Management' },
+          { text: 'Security Hardening', link: '/administration/Security-Hardening' },
+          { text: 'Performance', link: '/administration/Performance-Optimization' },
+          { text: 'Virtualization', link: '/administration/Virtualization' }
+        ]
+      },
+      {
+        text: 'Develop',
+        items: [
+          { text: 'Building MiniOS', link: '/development/Building-MiniOS' },
+          { text: 'Creating Modules', link: '/development/Creating-Modules' },
+          { text: 'Rebuilding ISO', link: '/development/Rebuilding-ISO' },
+          { text: 'CondinAPT', link: '/development/CondinAPT' },
+          { text: 'CondinAPT in MiniOS', link: '/development/CondinAPT-MiniOS' }
         ]
       }
     ],
     sidebar: [
       {
-        text: 'Getting Started',
+        text: 'About MiniOS',
         items: [
-          { text: 'Quick Start Guide', link: '/Quick-Start' },
-          { text: 'About MiniOS', link: '/About-MiniOS' }
+          { text: 'Overview', link: '/about/About-MiniOS' },
+          { text: 'System Architecture', link: '/about/System-Architecture' }
         ]
       },
       {
-        text: 'User Guide',
+        text: 'Installation',
         items: [
-          { text: 'Hardware Compatibility', link: '/Hardware-Compatibility' },
-          { text: 'Installing MiniOS', link: '/Installing-MiniOS' },
-          { text: 'Boot Menus', link: '/Boot-Menus' },
-          { text: 'Configuration File', link: '/Configuration-File' },
-          { text: 'Boot Parameters', link: '/Boot-Parameters' },
-          { text: 'live-config Parameters', link: '/live-config' },
-          { text: 'Session Management', link: '/Session-Management' },
-          { text: 'Kernel Management', link: '/Kernel-Management' },
-          { text: 'Security Hardening', link: '/Security-Hardening' },
-          { text: 'Performance Optimization', link: '/Performance-Optimization' },
-          { text: 'Virtualization', link: '/Virtualization' },
-          { text: 'System Architecture', link: '/System-Architecture' },
-          { text: 'Package List', link: '/Packages' }
+          { text: 'Quick Start Guide', link: '/installation/Quick-Start' },
+          { text: 'Hardware Compatibility', link: '/installation/Hardware-Compatibility' },
+          { text: 'Installing MiniOS', link: '/installation/Installing-MiniOS' },
+          { text: 'MiniOS Installer', link: '/installation/MiniOS-Installer' },
+          {
+            text: 'USB Creation Tools',
+            link: '/installation/tools/USB-Creation-Tools',
+            collapsed: true,
+            items: [
+              { text: 'Rufus', link: '/installation/tools/Rufus' },
+              { text: 'Ventoy', link: '/installation/tools/Ventoy' },
+              { text: 'Balena Etcher', link: '/installation/tools/Balena-Etcher' },
+              { text: 'UNetbootin', link: '/installation/tools/UNetbootin' },
+              { text: 'dd command', link: '/installation/tools/dd' },
+              { text: 'Drive Utility', link: '/installation/tools/Drive-Utility' },
+              { text: 'Original Method', link: '/installation/tools/Original-Method' }
+            ]
+          }
+        ]
+      },
+      {
+        text: 'Configuration',
+        items: [
+          { text: 'Boot Menus', link: '/configuration/Boot-Menus' },
+          { text: 'Boot Parameters', link: '/configuration/Boot-Parameters' },
+          { text: 'Configuration File', link: '/configuration/Configuration-File' },
+          { text: 'live-config Parameters', link: '/configuration/live-config' },
+          { text: 'Session Management', link: '/configuration/Session-Management' }
+        ]
+      },
+      {
+        text: 'Administration',
+        items: [
+          { text: 'Package List', link: '/administration/Packages' },
+          { text: 'Kernel Management', link: '/administration/Kernel-Management' },
+          { text: 'Security Hardening', link: '/administration/Security-Hardening' },
+          { text: 'Performance Optimization', link: '/administration/Performance-Optimization' },
+          { text: 'Virtualization', link: '/administration/Virtualization' }
         ]
       },
       {
         text: 'Development',
         items: [
-          { text: 'Building MiniOS', link: '/Building-MiniOS' },
-          { text: 'Creating Modules', link: '/Creating-Modules' },
-          { text: 'Rebuilding ISO', link: '/Rebuilding-ISO' },
-          { text: 'CondinAPT', link: '/CondinAPT' }
+          { text: 'Building MiniOS', link: '/development/Building-MiniOS' },
+          { text: 'Creating Modules', link: '/development/Creating-Modules' },
+          { text: 'Rebuilding ISO', link: '/development/Rebuilding-ISO' },
+          { text: 'CondinAPT', link: '/development/CondinAPT' },
+          { text: 'CondinAPT in MiniOS', link: '/development/CondinAPT-MiniOS' }
         ]
       }
     ],
@@ -111,7 +157,7 @@ export default withMermaid(defineConfig({
       provider: 'local'
     },
     footer: {
-      message: 'Released under the GPL-3.0 License.',
+      message: 'Released under the GPL-3.0 License. <br/> <a href="https://minios.dev">Official Website</a> | <a href="https://github.com/minios-linux/minios-live">Source Code</a> | <a href="https://github.com/minios-linux/minios-live/releases">Download</a>',
       copyright: 'Copyright © 2025 MiniOS Team'
     }
   }

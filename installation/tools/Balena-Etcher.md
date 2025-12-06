@@ -11,7 +11,7 @@ Balena Etcher is a convenient cross-platform program for writing ISO images to U
 ## Drive Requirements
 
 ### Drive Size
-See [Hardware Compatibility Guide](Hardware-Compatibility.md#system-requirements) for detailed system requirements and drive sizes.
+See [Hardware Compatibility Guide](/installation/Hardware-Compatibility.md#system-requirements) for detailed system requirements and drive sizes.
 
 ## Preparation
 
@@ -48,4 +48,4 @@ When precise persistence configuration is needed, boot parameters can be used:
 - `perchmode=raw` - Fixed-size file
 - `perchsize=8000` - Data storage space size in MB for image files
 
-Details in [boot parameters](Boot-Parameters.md).
+Details in [boot parameters](/configuration/Boot-Parameters.md).

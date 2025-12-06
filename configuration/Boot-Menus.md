@@ -71,7 +71,7 @@ MiniOS uses GRUB as the primary bootloader, providing a graphical interface with
   - Fastest response times for all operations
 - **Requirements:** Sufficient RAM to hold the entire system
 
-For advanced `toram` options and memory optimization techniques, see **[Performance Optimization](Performance-Optimization.md)**.
+For advanced `toram` options and memory optimization techniques, see **[Performance Optimization](/administration/Performance-Optimization.md)**.
 
 ## How to Use the Boot Menu
 
@@ -88,7 +88,7 @@ If your MiniOS USB drive supports multiple languages:
 3. The boot menu will appear in the selected language
 4. All subsequent system messages will use this language
 
-⚠️ **Important:** The multilingual menu overrides any locale settings specified in `config.conf`. The language selected in the boot menu takes precedence over pre-configured locale settings. See **[Configuration File](Configuration-File.md)** and **[live-config](live-config.md)** for details about system configuration files.
+⚠️ **Important:** The multilingual menu overrides any locale settings specified in `config.conf`. The language selected in the boot menu takes precedence over pre-configured locale settings. See **[Configuration File](/configuration/Configuration-File.md)** and **[live-config](/configuration/live-config.md)** for details about system configuration files.
 
 ## Customizing Boot Options
 
@@ -114,7 +114,7 @@ You can modify boot options for a single boot session:
 - `perchsize=2000` - Set session storage size to 2GB (adjust as needed)
 - `locale=ru_RU.UTF-8` - Force specific language/locale
 
-For a complete list of available boot parameters, see **[Boot Parameters](Boot-Parameters.md)**.
+For a complete list of available boot parameters, see **[Boot Parameters](/configuration/Boot-Parameters.md)**.
 
 ## Configuration File Locations
 

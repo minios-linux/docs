@@ -10,14 +10,14 @@ This guide describes various ways to install MiniOS on storage devices.
 
 Choose one of the following methods:
 
-- [Original Method](Original-Method.md)
-- [Using Rufus](Rufus.md) (Windows) (Recommended)
-- [Using UNetbootin](UNetbootin.md) (Windows/Linux/MacOS)
-- [Using Ventoy](Ventoy.md) (Windows/Linux) (Recommended)
-- [Using Balena Etcher](Balena-Etcher.md) (Windows/Linux/MacOS) (Recommended)
-- [Using `dd`](dd.md) (Linux/MacOS) (Recommended)
-- [Using Drive Utility](Drive-Utility.md) (Linux) (Recommended)
-- [Using MiniOS Installer](MiniOS-Installer.md) (Recommended, MiniOS only)
+- [Original Method](/installation/tools/Original-Method.md)
+- [Using Rufus](/installation/tools/Rufus.md) (Windows) (Recommended)
+- [Using UNetbootin](/installation/tools/UNetbootin.md) (Windows/Linux/MacOS)
+- [Using Ventoy](/installation/tools/Ventoy.md) (Windows/Linux) (Recommended)
+- [Using Balena Etcher](/installation/tools/Balena-Etcher.md) (Windows/Linux/MacOS) (Recommended)
+- [Using `dd`](/installation/tools/dd.md) (Linux/MacOS) (Recommended)
+- [Using Drive Utility](/installation/tools/Drive-Utility.md) (Linux) (Recommended)
+- [Using MiniOS Installer](/installation/MiniOS-Installer.md) (Recommended, MiniOS only)
 
 ## 3. Booting from the Drive
 
