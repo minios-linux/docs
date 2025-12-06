@@ -7,7 +7,7 @@ Welcome to MiniOS, where Linux flexibility and portability meet convenience and 
 MiniOS offers three main editions, each tailored for specific use cases:
 
 - **🚀 Standard** - The reliable workhorse for daily computing tasks
-- **🧰 Toolbox** - Power user's toolkit with advanced system utilities  
+- **🧰 Toolbox** - Power user's toolkit with advanced system utilities
 - **⚡ Ultra** - All-in-one powerhouse with complete feature set
 
 For detailed descriptions of each edition's features and included software, see [About MiniOS](About-MiniOS.md).
@@ -27,7 +27,7 @@ For a detailed breakdown of packages included in each edition, see the [Package 
 - **[Balena Etcher](Balena-Etcher.md)** ⭐ - Cross-platform GUI
 - **[Ventoy](Ventoy.md)** ⭐ - Multi-boot support
 
-### 🐧 **Linux** 
+### 🐧 **Linux**
 - **[dd command](dd.md)** ⭐ - Fast command-line tool
 - **[Balena Etcher](Balena-Etcher.md)** ⭐ - User-friendly GUI
 
@@ -42,13 +42,13 @@ For a detailed breakdown of packages included in each edition, see the [Package 
 
 ### Drive Size Requirements
 - **Standard (787 MB)**: minimum 2 GB
-- **Toolbox (1.2 GB)**: minimum 4 GB  
+- **Toolbox (1.2 GB)**: minimum 4 GB
 - **Ultra (1.7 GB)**: minimum 4 GB
 - **Recommended size**: 8 GB or larger for comfortable operation with change persistence
 
 **Important Notes:**
 - Each link above provides detailed step-by-step instructions
-- Recommended methods (⭐) are tested for reliability and ease of use  
+- Recommended methods (⭐) are tested for reliability and ease of use
 - Choose the method that best fits your operating system and experience level
 
 ## Step 3: Boot and Explore 🖥️
@@ -111,7 +111,7 @@ passwd live
 ### 📋 **Additional Configuration Options**
 
 - **Direct file editing**: Edit `/etc/live/config.conf` manually for advanced users
-- **Boot-time setup**: Use [Boot Parameters](Boot-Parameters.md) to configure system before it starts  
+- **Boot-time setup**: Use [Boot Parameters](Boot-Parameters.md) to configure system before it starts
 - **Configuration file guide**: See [Configuration File](Configuration-File.md) for detailed config.conf reference
 - **Pre-installation**: Configure before installing with [MiniOS Installer](MiniOS-Installer.md)
 
@@ -121,7 +121,7 @@ passwd live
 
 MiniOS provides multiple ways to install software:
 
-### 📦 **APT Package Manager** 
+### 📦 **APT Package Manager**
 Basic Debian package management - use `man apt` for detailed command reference.
 
 ### 🔄 **Module System**
@@ -144,7 +144,7 @@ For custom persistence setup, see detailed [Configuration File](Configuration-Fi
 ## Step 7: Security Setup 🔐
 
 ### 👤 **Default Accounts**
-- **User**: `live` / `evil`  
+- **User**: `live` / `evil`
 - **Root**: `root` / `toor`
 
 ### 🔒 **Important Security Steps**
@@ -162,7 +162,7 @@ For custom persistence setup, see detailed [Configuration File](Configuration-Fi
 
 ### 🎨 **Basic Customization**
 - Desktop themes and wallpapers via Settings
-- Panel layout and application preferences  
+- Panel layout and application preferences
 - Keyboard shortcuts and system settings
 
 ### 🚀 **Advanced Configuration**
@@ -174,7 +174,7 @@ For custom persistence setup, see detailed [Configuration File](Configuration-Fi
 - **Custom Builds**: [Building MiniOS](Building-MiniOS.md) from source
 - **Module Creation**: [Advanced modules](Creating-Modules.md) development
 - **ISO Rebuilding**: [Repack live system](Rebuilding-ISO.md) into bootable ISO
-- **Kernel Updates**: [Kernel replacement](Kernel-Replacement.md) guide
+- **Kernel Updates**: [Kernel management](Kernel-Management.md) guide
 
 ## Getting Help & Community Resources 💬
 
