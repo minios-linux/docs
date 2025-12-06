@@ -3,6 +3,7 @@ import { withMermaid } from 'vitepress-plugin-mermaid'
 
 export default withMermaid(defineConfig({
   base: '/docs/',
+  cleanUrls: true,
   title: "MiniOS Wiki",
   description: "Reliable and user-friendly portable Linux distribution",
   mermaid: {
