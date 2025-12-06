@@ -105,59 +105,59 @@ The build process follows a structured sequence of stages:
 ```mermaid
 flowchart TD
     Start([Start Build]) --> Choice{Choose Tool}
-    
+
     Choice -->|Easy Setup| A([minios-cmd<br/>Configure Parameters])
     Choice -->|Advanced Control| B([minios-live<br/>Direct Execution])
-    
+
     A --> A1[Generate build.conf]
     A1 --> B
-    
+
     B --> PreCheck{🌐 Internet Check<br/>Network Required}
     PreCheck -->|❌ No Internet| NetworkFail[❌ Build Cannot Start<br/>• Check network connection<br/>• Verify DNS resolution<br/>• Configure proxy if needed]
     PreCheck -->|✅ Connected| C1
-    
+
     NetworkFail --> PreCheck
-    
+
     C1[build-bootstrap<br/>📦 Create Base System<br/>• Run debootstrap<br/>• Install core packages<br/>• Setup chroot environment]
-    
-    C1 --> C2[build-chroot<br/>🔧 Configure System<br/>• Install base packages<br/>• Configure settings]
-    
+
+    C1 --> C2[build-chroot<br/>🔧 Configure System<br/>• Install base packages<br/>• Configure settings<br/><br/>]
+
     C2 --> C3[build-live<br/>🗜️ Create Core SquashFS<br/>• Compress base system<br/>• Create 00-core.sb module<br/>• Prepare live environment]
-    
+
     C3 --> C4[build-modules<br/>📚 Build Environment Modules<br/>• Process linked modules<br/>• Create SquashFS files<br/>• Apply conditional packages]
-    
+
     C4 --> C5[build-boot<br/>🥾 Prepare Boot System<br/>• Setup GRUB & ISOLINUX<br/>• Create initramfs<br/>• Configure boot parameters]
-    
-    C5 --> C6[build-config<br/>⚙️ Generate Boot Configs<br/>• Create menu entries<br/>• Configure live options]
-    
-    C6 --> C7[build-iso<br/>💿 Create Final ISO<br/>• Combine all components<br/>• Generate bootable image]
-    
+
+    C5 --> C6[build-config<br/>⚙️ Generate Boot Configs<br/>• Create menu entries<br/>• Configure live options<br/><br/>]
+
+    C6 --> C7[build-iso<br/>💿 Create Final ISO<br/>• Combine all components<br/>• Generate bootable image<br/><br/>]
+
     C7 --> Success([✅ Final ISO Ready<br/>📁 build/iso/])
-    
+
     %% Alternative paths
     C1 -.->|Skip to specific stage| C4
     C3 -.->|Rebuild modules only| C4
     C4 -.->|Update boot only| C5
     C6 -.->|Repack ISO only| C7
-    
+
     %% Error handling
     C1 --> Error1{Bootstrap Failed?}
-    Error1 -->|Yes| Fix1[Check network<br/>Verify repositories<br/>Install prerequisites]
+    Error1 -->|Yes| Fix1[Check network<br/>Verify repositories<br/>Install prerequisites<br/><br/>]
     Error1 -->|No| C2
     Fix1 --> C1
-    
+
     C4 --> Error2{Module Build Failed?}
-    Error2 -->|Yes| Fix2[Check package availability<br/>Verify conditions<br/>Review install scripts]
+    Error2 -->|Yes| Fix2[Check package availability<br/>Verify conditions<br/>Review install scripts<br/><br/>]
     Error2 -->|No| C5
     Fix2 --> C4
-    
+
     %% Styling
     classDef processBox fill:#e1f5fe,stroke:#0277bd,stroke-width:2px
     classDef choiceBox fill:#fff3e0,stroke:#f57c00,stroke-width:2px
     classDef errorBox fill:#ffebee,stroke:#d32f2f,stroke-width:2px
     classDef successBox fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
     classDef criticalBox fill:#fce4ec,stroke:#c2185b,stroke-width:3px
-    
+
     class C1,C2,C3,C4,C5,C6,C7 processBox
     class Choice,PreCheck,Error1,Error2 choiceBox
     class Fix1,Fix2 errorBox
@@ -291,7 +291,7 @@ The module system works through environment configurations in `linux-live/enviro
 ```bash
 linux-live/environments/
 ├── core/          # Core system (no desktop)
-├── flux/          # Flux desktop environment  
+├── flux/          # Flux desktop environment
 ├── lxqt/          # LXQt desktop environment
 ├── xfce/          # XFCE desktop environment
 └── xfce-debug/    # XFCE with debug modules
@@ -303,7 +303,7 @@ Each environment directory contains symbolic links to module directories in `lin
 # Example: XFCE environment
 linux-live/environments/xfce/
 ├── 01-kernel -> ../../scripts/01-kernel
-├── 02-firmware -> ../../scripts/02-firmware  
+├── 02-firmware -> ../../scripts/02-firmware
 ├── 03-gui-base -> ../../scripts/03-gui-base
 ├── 04-xfce-desktop -> ../../scripts/04-xfce-desktop
 ├── 05-apps -> ../../scripts/05-apps
@@ -484,7 +484,7 @@ EOF
 cat > linux-live/scripts/04-gnome-desktop/install << 'EOF'
 #!/bin/bash
 set -e
-set -o pipefail  
+set -o pipefail
 set -u
 
 . /minioslib
@@ -529,7 +529,7 @@ EOF
 cat > linux-live/scripts/05-gnome-apps/install << 'EOF'
 #!/bin/bash
 set -e
-set -o pipefail  
+set -o pipefail
 set -u
 
 . /minioslib
@@ -677,7 +677,7 @@ Enable debug output by setting the verbosity level in your build configuration:
 VERBOSITY_LEVEL=2   # Very verbose output with detailed tracing
 # or
 VERBOSITY_LEVEL=1   # Verbose output (default)
-# or 
+# or
 VERBOSITY_LEVEL=0   # Minimal output
 ```
 
