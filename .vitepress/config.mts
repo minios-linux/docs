@@ -2,13 +2,14 @@ import { defineConfig } from 'vitepress'
 import { withMermaid } from 'vitepress-plugin-mermaid'
 
 export default withMermaid(defineConfig({
+  base: '/docs/',
   title: "MiniOS Wiki",
   description: "Reliable and user-friendly portable Linux distribution",
   mermaid: {
     // refer to mermaid documentation for options
   },
   head: [
-    ['link', { rel: 'icon', href: '/favicon.svg' }],
+    ['link', { rel: 'icon', href: '/docs/favicon.svg' }],
     // Yandex.Metrika
     ['script', {}, `
       (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
