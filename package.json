@@ -10,7 +10,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "GPL-3.0-only",
   "devDependencies": {
     "mermaid": "^11.12.2",
     "vitepress": "^1.6.4",
