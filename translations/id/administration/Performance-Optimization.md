@@ -49,16 +49,16 @@ Secara default, MiniOS berjalan dalam mode "live" di mana semua perubahan akan d
 
 ## Konfigurasi ZRAM
 
-MiniOS secara default menggunakan `zram` untuk membuat swap space terkompresi di RAM Anda. Ini meningkatkan performa pada sistem dengan memori fisik terbatas dengan menghindari penggunaan swap file di disk yang jauh lebih lambat.
+MiniOS secara default menggunakan `zram` untuk membuat ruang swap terkompresi di dalam RAM Anda. Ini meningkatkan performa pada sistem dengan memori fisik terbatas dengan menghindari penggunaan swap file di disk yang jauh lebih lambat.
 
-**Pengaturan otomatis:**
+**Pengaturan ukuran otomatis:**
 - **≥4GB RAM:** 2GB ZRAM
-- **1-4GB RAM:** 50% dari total RAM  
+- **1-4GB RAM:** Setengah dari total RAM
 - **<1GB RAM:** 512MB ZRAM
 
 **Parameter boot:**
-- **`zramsize=1024`:** Mengatur ukuran perangkat zram (misal, `zramsize=1024` untuk 1GB). Secara default, dikonfigurasi otomatis berdasarkan total RAM Anda.
-- **`zramcomp=lz4`:** Mengatur algoritma kompresi (`lzo`, `lzo-rle`, `lz4`, `lz4hc`, `zstd`). `lz4` umumnya seimbang antara kecepatan dan rasio kompresi.
+- **`zramsize=1024`:** Mengatur ukuran perangkat zram (misal, `zramsize=1024` untuk 1GB). Secara default, ini dikonfigurasi otomatis berdasarkan total RAM Anda.
+- **`zramcomp=lz4`:** Mengatur algoritma kompresi (`lzo`, `lzo-rle`, `lz4`, `lz4hc`, `zstd`). `lz4` umumnya memberikan keseimbangan yang baik antara kecepatan dan rasio kompresi.
 - **`nozram`:** Menonaktifkan ZRAM sepenuhnya.
 
 Untuk sebagian besar pengguna, pengaturan default `zram` sudah optimal. Penyesuaian hanya disarankan jika Anda memiliki kebutuhan khusus dan memahami konsekuensinya.

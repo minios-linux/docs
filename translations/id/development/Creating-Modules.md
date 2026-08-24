@@ -1,249 +1,215 @@
-# Membuat Modul
+# Membuat modul
 
-Modul di MiniOS adalah paket file dan konfigurasi yang berdiri sendiri untuk memperluas fungsionalitas sistem dasar. Modul ini mirip dengan paket pada distribusi Linux lain, namun dirancang agar bisa ditumpuk satu sama lain, sehingga sistem menjadi fleksibel dan mudah dikustomisasi. Pendekatan bertingkat ini memungkinkan kustomisasi yang mudah, pembatalan perubahan (rollback), dan berbagi konfigurasi.
+Modul MiniOS adalah image filesystem SquashFS hanya-baca, yang secara konvensional dinamai dengan ekstensi `.sb`. Saat boot, MiniOS mengurutkan modul-modul terpilih ke dalam root filesystem berlapis. File pada lapisan prioritas lebih tinggi dapat melengkapi atau menyembunyikan file dari lapisan yang lebih rendah.
 
-Untuk proses build MiniOS secara lengkap dan konteks arsitektur sistem, lihat [Panduan Membangun MiniOS](/development/Building-MiniOS.md). Untuk informasi tentang sistem manajemen paket CondinAPT yang digunakan pada modul, lihat [Dokumentasi CondinAPT](/development/CondinAPT.md).
+Panduan ini mendokumentasikan alur kerja MiniOS Tools berbasis command-line saat ini. Untuk aplikasi grafis, lihat [MiniOS Module Manager](/administration/Module-Manager.md). Untuk proses build image lengkap dan arsitektur sistem, lihat [Building MiniOS](/development/Building-MiniOS.md). Daftar paket yang digunakan saat membangun MiniOS dijelaskan dalam dokumentasi [CondinAPT](/development/CondinAPT.md).
 
-Terdapat cukup banyak utilitas untuk membuat modul di MiniOS. Semua utilitas ini dirancang untuk digunakan di terminal dan membutuhkan hak akses root.
+## Batasan keamanan dan hak istimewa
 
-**Utilitas Pembuatan Modul:**
+Tidak semua operasi modul memerlukan akses root:
 
-**apt2sb** - menginstal paket dari repository dan mengemasnya menjadi modul.<br>
-**script2sb** - menjalankan aksi sesuai skrip dan mengemas hasilnya ke dalam modul.<br>
-**chroot2sb** - membuka chroot, memungkinkan Anda melakukan berbagai aksi di dalamnya, setelah keluar hasilnya disimpan dalam modul.<br>
+| Operasi | Hak Istimewa |
+|---|---|
+| Daftar Running Now atau Next Boot dengan `sb` | Tanpa Root |
+| Inspeksi modul dengan `sb inspect` | Tanpa Root |
+| Konversi biasa `dir2sb` dan `sb2dir` | Tanpa Root |
+| Pertahankan kepemilikan atau izinkan file khusus saat konversi | Root |
+| Build dengan `apt2sb`, `script2sb`, atau `chroot2sb` | Root |
+| Tangkap sesi dengan `savechanges` | Root |
+| Aktifkan, nonaktifkan, tambahkan ke Next Boot, atau hapus dari Next Boot | Root |
 
-**Utilitas Manajemen Modul Tambahan:**
+Builder menggunakan union terisolasi dan tidak menginstal paket atau perubahan skrip ke root yang sedang berjalan. Proses pembuatan juga tidak mengaktifkan hasilnya atau memilihnya untuk boot berikutnya.
 
-**dir2sb** - mengonversi direktori yang sudah ada menjadi modul terkompresi.<br>
-**sb2dir** - mengonversi modul terkompresi menjadi direktori untuk pemeriksaan.<br>
-**rmsbdir** - menghapus direktori modul yang dibuat oleh sb2dir.<br>
-**savechanges** - menyimpan semua file yang berubah di sistem ke dalam bundle filesystem terkompresi.<br>
-**sb2iso** - menghasilkan image ISO MiniOS, dengan opsi menambah atau mengecualikan modul.<br>
-**sb** - antarmuka lengkap untuk mengelola bundle MiniOS (aktivasi, nonaktifkan, daftar, konversi).<br>
+Konverter dan builder saat ini menggunakan publikasi tanpa-replace. Target yang sudah ada, termasuk symbolic link, tidak akan ditimpa. Pilih jalur output baru atau tinjau dan hapus output lama secara manual.
 
-**Fitur umum utilitas pembuatan modul:**
-- Mendukung berbagai tipe kompresi: zstd (default), gzip, lzo, xz
-- Ekstensi file modul dapat dikustomisasi (default: sb)
-- Penyaringan berbasis level untuk mengontrol modul mana yang dijadikan dependensi
-- Penamaan output modul yang dapat disesuaikan
-- Semua utilitas harus dijalankan sebagai root
+Gunakan output `--help` dari setiap perintah sebagai referensi versi terinstal. Pilihan kompresi builder standar adalah `zstd` (default), `gzip`, `lzo`, dan `xz`; `dir2sb` juga mendukung `lz4`.
 
-## apt2sb
+## Nama modul dan tingkat filter
 
-Untuk membuat modul menggunakan apt2sb, cukup daftarkan paket yang ingin Anda kemas dalam modul, misal `apt2sb install chromium chromium-sandbox`. Menjalankan perintah ini di folder tempat perintah dijalankan akan menghasilkan modul chromium.sb yang berisi browser Chromium. Modul ini akan dibuat berdasarkan semua modul yang sudah dimuat ke sistem, artinya modul ini membutuhkan semua modul tersebut untuk berjalan, karena library yang dibutuhkan program mungkin sudah terinstal di sistem dan bisa saja ada di modul level bawah.
+Nama biasanya diawali dengan angka seperti `06-browser.sb` karena urutan lapisan memengaruhi penyelesaian konflik. Sebuah modul sebaiknya berisi path relatif terhadap root sistem, seperti `usr/bin/example`, bukan direktori tambahan yang memuat pohon tersebut.
 
-Dengan opsi `-l`/`--level`, kita bisa menentukan pada modul level atas mana modul kita akan dibangun. Misalnya, perintah `apt2sb install -l 4 chromium chromium-sandbox` akan menyaring semua modul bernomor 04 ke atas saat proses build, jadi modul akan dibangun berdasarkan modul bernomor 00-03. Setelah menjalankan perintah ini, kita akan mendapatkan modul 04-chromium.sb di folder tempat perintah dijalankan. Modul ini akan berukuran lebih besar dibandingkan paket pada contoh sebelumnya karena akan menyertakan semua library yang diperlukan untuk menjalankan program, yang mungkin ada di modul bernomor 04 ke atas, namun modul ini tetap bisa berjalan baik dengan modul 04-xx maupun tanpa modul tersebut.
+Opsi `--level LEVEL` pada `apt2sb`, `script2sb`, dan `chroot2sb` membatasi lapisan dasar yang digunakan untuk membangun union build. Dengan `--level 3`, lapisan bernomor hingga `03` digunakan dan lapisan bernomor lebih tinggi akan difilter. Ini dapat membuat modul menjadi kurang bergantung pada lapisan opsional yang lebih tinggi, dengan konsekuensi menambah lebih banyak dependensi pada hasilnya.
 
-Nama modul dibuat otomatis berdasarkan nama paket pertama yang disebutkan (dalam contoh ini, chromium) dan, jika opsi --level digunakan, nomor levelnya. Jika Anda ingin menentukan nama modul sendiri, gunakan opsi `-n`/`--name`, misal `apt2sb install -l 4 chromium chromium-sandbox -n 10-browser.sb`.
+## Membuat modul dari paket
 
-**Opsi tambahan yang tersedia di apt2sb:**
+`apt2sb` menginstal paket repository atau file `.deb` lokal yang dapat dibaca ke dalam union build privat dan menangkap hasilnya. Fitur ini memerlukan sesi live MiniOS yang didukung dan akses root.
 
-- `-c`/`--comp` - Jenis kompresi (zstd, gzip, lzo, xz). Default: zstd
-- `-b`/`--bext` - Ekstensi bundle. Default: sb
-- `-y`/`--yes` - Otomatis menjawab ya pada prompt
-- `--allow-downgrades` - Izinkan downgrade paket
-- `--install-recommends` - Anggap paket yang direkomendasikan sebagai dependensi untuk instalasi
-- `--install-suggests` - Anggap paket yang disarankan sebagai dependensi untuk instalasi
-- `--no-install-recommends` - Jangan anggap paket yang direkomendasikan sebagai dependensi
-- `--no-install-suggests` - Jangan anggap paket yang disarankan sebagai dependensi
-- `-t`/`--target-release` - Rilis default untuk instalasi paket
-
-apt2sb juga memiliki perintah `upgrade` untuk memperbarui paket yang sudah terinstal. Perintah upgrade menggunakan opsi yang sama dengan install.
-
-## script2sb
-
-Untuk membuat modul menggunakan script2sb, Anda perlu menulis skrip bash yang mendeskripsikan langkah-langkah yang diperlukan untuk membangun modul Anda. Ini berguna jika Anda perlu melakukan aksi tertentu pada sistem file, mengimpor key, menambah repository, dll sebelum atau sesudah instalasi. Berikut contoh skripnya:
 ```bash
-#!/bin/bash
-# Install the keys to access the Debian repository and the apt add-on to access the repository via https
-apt install -y debian-keyring debian-archive-keyring apt-transport-https
-# Adding a GPG key for the Caddy repository
-curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
-# Add the Caddy repository to the package source list
-curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list
-# Updating the list of packages
-apt update
-# Installing Caddy
-apt install caddy
-# Remove keys to access the Debian repository
-apt remove -y debian-keyring debian-archive-keyring apt-transport-https
-# Deleting the source list file and GPG key for the Caddy repository
-rm /etc/apt/sources.list.d/caddy-stable.list /usr/share/keyrings/caddy-stable-archive-keyring.gpg
-```
-Untuk menjalankan build pada skrip ini (misal kita beri nama caddy.sh), jalankan perintah `script2sb -s ./caddy.sh`.
-
-**Opsi yang tersedia untuk script2sb:**
-
-- `-s`/`--script` - Gunakan FILE sebagai skrip instalasi (wajib)
-- `-l`/`--level` - Gunakan LEVEL sebagai filter level
-- `-n`/`--name` - Gunakan NAME sebagai nama file modul
-- `-c`/`--comp` - Jenis kompresi (zstd, gzip, lzo, xz). Default: zstd
-- `-b`/`--bext` - Ekstensi bundle. Default: sb
-- `-d`/`--directory` - Salin isi DIR ke root modul
-
-Jika nama modul tidak ditentukan, nama akan dibuat berdasarkan nomor level (jika ada) dan nama skrip. Contoh menjalankan perintah dengan opsi ini: `script2sb -s ./caddy.sh -l 1 -n 01-caddy.sb`.
-
-Selain opsi di atas, Anda bisa menggunakan opsi `-d`/`--directory`. Jika opsi ini digunakan, isi folder yang ditunjuk oleh argumen opsi akan disalin ke root modul sebelum skrip dijalankan. File dalam folder tersebut harus disusun seperti pada root sistem. Misal Anda ingin menambahkan shortcut program ke menu, buat folder mymodule dan buat struktur di dalamnya sesuai root sistem:
-```
-mkdir -p /home/user/mymodule/usr/share/applications
-```
-Di folder mymodule/usr/share/applications Anda bisa meletakkan file desktop yang akan dikemas ke dalam modul setelah proses build selesai, lalu jalankan perintah build:
-```
-script2sb -s ./caddy.sh -l 1 -n 01-caddy.sb -d /home/user/mymodule
+sudo apt2sb install chromium chromium-sandbox
+sudo apt2sb install -y --level 3 -n 06-browser.sb chromium chromium-sandbox
+sudo apt2sb install -y --no-install-recommends ./example_amd64.deb -n 06-example.sb
 ```
 
-## chroot2sb
+Tanpa `--name`, nama output diambil dari paket pertama. Opsi APT yang berguna antara lain `--install-recommends`, `--no-install-recommends`, `--install-suggests`, `--no-install-suggests`, `--allow-downgrades`, dan `--target-release RELEASE`. Opsi target-release hanya berlaku untuk `install`.
 
-Utilitas `chroot2sb` digunakan untuk membuat lingkungan chroot interaktif. Ini memungkinkan Anda melakukan *berbagai* aksi secara manual untuk membangun modul Anda (menginstal paket, mengedit file, menjalankan perintah, dll). Setelah Anda keluar dari lingkungan chroot, perubahan yang Anda lakukan akan dikemas menjadi modul.
+Untuk menangkap upgrade pada paket yang sudah terinstal:
 
-**Opsi yang tersedia untuk chroot2sb:**
+```bash
+sudo apt2sb upgrade -y -n upgrades.sb
+```
 
-- `-l`/`--level` - Gunakan LEVEL sebagai filter level  
-- `-n`/`--name` - Gunakan NAME sebagai nama file modul
-- `-c`/`--comp` - Jenis kompresi (zstd, gzip, lzo, xz). Default: zstd
-- `-b`/`--bext` - Ekstensi bundle. Default: sb
-- `-d`/`--directory` - Salin isi DIR ke root modul
+## Membuat modul dari skrip
 
-Jika nama modul tidak ditentukan, nama akan dibuat berdasarkan nomor level (jika ada) dan tanggal serta waktu saat ini dengan format YYYYMMDD-HHMM.
+`script2sb` menyalin skrip instalasi ke dalam chroot privat, menjadikannya executable, menjalankannya sebagai root tanpa terminal interaktif, menghapusnya, lalu menangkap perubahan filesystem yang dihasilkan. Jika skrip gagal, modul tidak akan dibuat.
 
-Anda juga dapat menggunakan opsi `-d`/`--directory`, mirip dengan `script2sb`. Jika opsi ini digunakan, isi folder yang ditentukan akan disalin ke root modul *sebelum* Anda masuk ke lingkungan chroot. Ini memberikan titik awal untuk kustomisasi Anda.
+```bash
+sudo script2sb --script ./install-example.sh -n 06-example.sb
+sudo script2sb --script ./install-example.sh --directory ./seed-root --level 3 -n 06-example.sb
+```
 
-**Contoh Penggunaan:**
+Opsi `--directory DIR` yang opsional akan menyalin seluruh isi sumber, termasuk dotfiles, ke root modul sebelum skrip dijalankan. Atur direktori seed sebagai struktur pohon filesystem:
 
-- Chroot dasar, nama modul otomatis: `chroot2sb`
-- Tentukan level dan kompresi: `chroot2sb -l 3 -c gzip`
-- Tentukan level, nama, dan kompresi: `chroot2sb -l 3 -n 04-my-module.sb -c xz`
-- Salin file dari direktori sebelum masuk chroot: `chroot2sb -d /path/to/my/files`
+```text
+seed-root/
+`-- usr/
+    `-- share/
+        `-- applications/
+            `-- example.desktop
+```
 
-Setelah menjalankan perintah `chroot2sb`, Anda akan masuk ke lingkungan chroot. Anda dapat melakukan aksi apa pun yang diperlukan. Setelah selesai, ketik `exit` untuk keluar dari lingkungan chroot. `chroot2sb` kemudian akan mengemas perubahan ke dalam modul. Perintah yang dijalankan di dalam chroot *tidak* disimpan sebagai bagian dari proses instalasi modul akhir. Ini adalah snapshot dari keadaan akhir filesystem. Riwayat bash akan otomatis dihapus dari modul.
+Tinjau skrip sebelum menjalankannya. Skrip dijalankan dengan hak administrator dan dapat menjalankan perintah apa pun. Gunakan `chroot2sb` jika proses instalasi memerlukan prompt atau pekerjaan manual.
 
-## Utilitas Manajemen Modul Tambahan
+## Membuat modul secara interaktif
 
-Selain utilitas pembuatan modul, MiniOS menyediakan beberapa utilitas untuk mengelola dan bekerja dengan modul yang sudah ada:
+`chroot2sb` membuat union build privat dan membuka shell root di dalamnya. Instal paket atau edit file, lalu keluar dari shell untuk menangkap perubahan:
 
-### dir2sb
+```bash
+sudo chroot2sb --level 3 -n 06-custom.sb
+sudo chroot2sb --directory ./seed-root -c xz -n 06-custom.sb
+```
 
-Utilitas `dir2sb` digunakan untuk mengonversi direktori yang sudah ada menjadi modul terkompresi. Ini berguna jika Anda sudah menyiapkan struktur direktori beserta semua file yang diperlukan dan ingin mengemasnya menjadi modul tanpa menjalankan proses instalasi apa pun.
+Perintah yang dimasukkan di shell tidak akan dijalankan ulang saat modul dimuat; modul adalah snapshot dari keadaan filesystem yang dihasilkan. Riwayat shell dihapus dari hasil. Jika tidak ada nama yang diberikan, nama yang dihasilkan menggunakan tanggal dan waktu saat ini.
 
-**Opsi yang tersedia untuk dir2sb:**
+Siklus hidup terpisah `prepare`, `shell`, `finish`, dan `cancel` tersedia untuk frontend grafis yang dilindungi. Untuk penggunaan terminal biasa, gunakan perintah interaktif tunggal seperti di atas.
 
-- `-c`/`--comp` - Jenis kompresi (zstd, gzip, lzo, xz). Default: zstd
-- `-b`/`--bext` - Ekstensi bundle. Default: sb
+## Membuat modul dari direktori
 
-**Penggunaan:**
+`dir2sb` mengemas isi direktori yang sudah disiapkan ke dalam modul baru. Kedua operand wajib diisi:
 
-`dir2sb [OPTIONS] SOURCE_DIRECTORY [TARGET_FILE]`
+```bash
+dir2sb my-app-root 06-my-app.sb
+dir2sb --comp xz my-app-root 06-my-app-xz.sb
+```
 
-**Perilaku:**
+Konversi biasa tidak memerlukan root. Sumber tidak diubah, kepemilikan di dalam modul dinormalisasi ke root, node device, socket, dan FIFO ditolak, serta target tidak pernah ditimpa. Gunakan `--keep-ownership` atau `--allow-special` hanya jika memang membutuhkan semantik khusus tersebut.
 
-- Jika `SOURCE_DIRECTORY` tidak memiliki ekstensi .sb dan namanya bukan 'squashfs-root', maka direktori tersebut akan disertakan dalam modul, dan `TARGET_FILE` wajib diisi.
-- Jika `TARGET_FILE` tidak ditentukan, `SOURCE_DIRECTORY` akan digantikan oleh file modul baru.
+## Menangkap perubahan sesi saat ini
 
-**Contoh:**
+`savechanges` membaca layer writable otoritatif dari sesi MiniOS yang sedang berjalan. Fitur ini memerlukan root karena layer tersebut dapat berisi file khusus root. Lokasi perubahan default dideteksi secara otomatis:
 
-- Konversi direktori yang sudah disiapkan menjadi modul: `dir2sb /path/to/my/prepared/files my-module.sb`
-- Konversi direktori squashfs-root (mengganti yang asli): `dir2sb squashfs-root`
-- Gunakan kompresi berbeda: `dir2sb -c xz /path/to/files custom-module.sb`
+```bash
+sudo savechanges session-changes.sb
+sudo savechanges --comp xz session-changes-xz.sb
+```
 
-Utilitas ini sangat berguna jika Anda ingin:
-- Mengemas file dan direktori yang sudah dikonfigurasi
-- Mengonversi isi modul yang diekstrak kembali menjadi modul
-- Membuat modul dari struktur direktori yang disiapkan secara manual
+Tanpa `--profile`, kebijakan historis MiniOS menghilangkan direktori kosong, cache, log, data boot, path runtime, pseudo-filesystem, serta file sesi dan sistem tertentu. Ini memudahkan pembuatan modul tradisional, namun bukan jaminan privasi eksplisit.
 
-### sb2dir
+Profil eksplisit meliputi:
 
-Utilitas `sb2dir` mengonversi modul terkompresi (.sb file) menjadi direktori dengan nama yang sama. Ini berguna untuk mengekstrak dan memeriksa isi modul.
+- `exact` mempertahankan perubahan yang dapat direpresentasikan, termasuk data pengguna, log, cache, file identitas, kredensial, dan metadata penghapusan yang didukung. File sistem yang tidak didukung akan ditolak, bukan diabaikan diam-diam.
+- `clean` menggunakan allowlist path yang sempit berorientasi perangkat lunak. Ini mengecualikan data home dan root, log, cache, identitas, konfigurasi jaringan, kredensial, konfigurasi sistem sembarang, dan `/usr/local`. Profil ini mengurangi risiko privasi, tetapi tidak dapat menjamin bahwa file perangkat lunak yang diperbolehkan benar-benar bebas dari rahasia.
+- `selected` hanya menyertakan path relatif yang telah ditinjau dari file inventaris dan seleksi. Eksklusi eksplisit akan menang. Profil ini cocok jika modul harus berisi subset perubahan sesi yang terkontrol.
 
-**Penggunaan:**
+Contoh:
 
-`sb2dir [source_file.sb] [optional_output_directory]`
+```bash
+sudo savechanges --profile exact exact-session.sb
+sudo savechanges --profile clean --comp xz software-session.sb
+sudo savechanges --inventory-json session-inventory.json
+sudo savechanges --profile selected --selection selection.json selected-session.sb
+```
 
-**Perilaku:**
+File seleksi memiliki struktur JSON yang ketat seperti berikut:
 
-- Jika output directory ditentukan, direktori tersebut harus sudah ada
-- Jika output directory tidak ditentukan, nama source_file.sb digunakan dan direktori tersebut di-mount sementara dengan tmpfs
+```json
+{
+  "product_kind": "minios-session-selection",
+  "schema_version": 1,
+  "include_paths": ["etc/default", "opt/my-app"],
+  "exclude_paths": ["opt/my-app/private"]
+}
+```
 
-**Contoh:**
+Path dinormalisasi, tidak kosong, dan relatif terhadap root perubahan. Buat dan tinjau inventaris terlebih dahulu; setiap include harus cocok dengan data inventaris. Inventaris mencatat metadata seperti path, tipe, kategori, sensitivitas, dan ukuran, tetapi tidak membaca atau mengeluarkan isi file, target symbolic-link, atau nilai rahasia. Output profil eksplisit dan inventaris menggunakan mode `0600`; modul kebijakan lama menggunakan mode `0644`.
 
-- Ekstrak modul untuk memeriksa isinya: `sb2dir mymodule.sb`
-- Ekstrak ke direktori tertentu: `sb2dir mymodule.sb /tmp/extracted`
+Penangkapan sesi dapat mempertahankan penghapusan file dan opasitas direktori yang didukung untuk backend AUFS atau OverlayFS aktif. Runtime mount, filesystem bersarang, pembukuan union, dan output itu sendiri dikecualikan. Target yang sudah ada tidak pernah diganti.
 
-### rmsbdir
+## Inspeksi dan ekstraksi modul
 
-Utilitas `rmsbdir` menghapus direktori modul yang dibuat oleh `sb2dir`. Ini akan membersihkan mount tmpfs dengan benar jika digunakan.
+Inspeksi modul tanpa perlu mounting atau ekstraksi:
 
-**Penggunaan:**
+```bash
+sb inspect 06-example.sb
+sb inspect 06-example.sb --json
+```
 
-`rmsbdir [source_directory.sb]`
+Inspeksi tidak memerlukan root dan juga dapat dilakukan di luar sesi MiniOS yang sedang berjalan.
 
-**Contoh:**
+Ekstrak modul ke direktori baru:
 
-- Hapus direktori modul hasil ekstrak: `rmsbdir mymodule.sb`
+```bash
+sb2dir 06-example.sb example-root
+```
 
-### savechanges
+Ekstraksi biasa tidak memerlukan root dan tidak mengubah sumber. Direktori target tidak boleh sudah ada. File khusus akan ditolak kecuali `--allow-special` diminta dengan hak istimewa yang cukup.
 
-Utilitas `savechanges` menyimpan semua file yang berubah di sistem ke dalam bundle filesystem terkompresi. Ini berguna untuk membuat modul dari perubahan yang terjadi saat runtime.
+Direktori yang dihasilkan oleh `sb2dir` saat ini adalah direktori biasa. `rmsbdir`, `sb rm`, dan `sb rmdir` adalah perintah kompatibilitas lama yang selalu menolak penghapusan; mereka tidak melakukan unmount atau menghapus secara rekursif. Tinjau path hasil ekstraksi dan isinya sebelum menghapusnya dengan alat filesystem standar.
 
-**Opsi yang tersedia:**
+## Mengelola modul yang berjalan dan next-boot
 
-- `-c`/`--comp` - Jenis kompresi (zstd, gzip, lzo, xz). Default: zstd
-- `-b`/`--bext` - Ekstensi bundle. Default: sb
+Running Now dan Next Boot adalah komposisi yang terpisah.
 
-**Penggunaan:**
+Daftar modul yang benar-benar membentuk root AUFS atau OverlayFS saat ini, dari prioritas terendah ke tertinggi:
 
-`savechanges [OPTIONS] target_file.sb [changes_directory]`
+```bash
+sb list
+sb list --json
+```
 
-Jika changes_directory tidak ditentukan, `/run/initramfs/memory/changes` akan digunakan.
+Daftar modul yang dipilih oleh aturan boot saat ini, termasuk `bext`, `load`, dan `noload`:
 
-**Contoh:**
+```bash
+sb next-boot
+sb next-boot --json
+```
 
-- Simpan semua perubahan saat ini: `savechanges my-changes.sb`
-- Simpan dengan kompresi berbeda: `savechanges -c xz my-changes.sb`
+Kueri ini tidak memerlukan root. Modul next-boot dapat berasal dari pohon data dasar, direktori `modules/`-nya, atau penyimpanan modul persisten terpisah. Sumber yang muncul belakangan dengan basename yang sama akan menggantikan pilihan sebelumnya.
 
-### sb2iso
+Untuk membuat modul user tersedia pada boot berikutnya:
 
-Utilitas `sb2iso` menghasilkan image ISO MiniOS, dengan opsi menambahkan modul tertentu atau mengecualikan modul yang sudah ada.
+```bash
+sudo sb next-boot add 50-extra.sb
+```
 
-**Opsi yang tersedia:**
+MiniOS akan menggunakan media penyimpanan writable yang sesuai, menyiapkan dan memvalidasi salinan, lalu mempublikasikannya secara atomik tanpa mengganti modul yang sudah ada. Nama file harus memenuhi filter boot saat ini. Hapus modul user yang dipilih dengan basename persisnya:
 
-- `-e`/`--exclude` - Kecualikan path atau file yang cocok dengan REGEX
-- `-n`/`--name` - Tentukan nama file ISO output (default: minios-YYYYMMDD_HHMM.iso)
+```bash
+sudo sb next-boot remove 50-extra.sb
+```
 
-**Penggunaan:**
+Penghapusan akan ditolak untuk modul dasar dan modul pada sumber yang hanya-baca atau volatile.
 
-`sb2iso [OPTIONS]... [MODULE.SB]...`
+Aktivasi runtime adalah operasi terpisah, hanya untuk sesi saat ini:
 
-**Contoh:**
+```bash
+sudo sb activate 50-extra.sb
+sudo sb deactivate 50-extra.sb
+```
 
-- Buat ISO MiniOS tanpa modul firefox.sb: `sb2iso -e 'firefox' -n minios_without_firefox.iso`
-- Buat MiniOS hanya mode teks: `sb2iso --exclude='firmware|xorg|desktop|apps|firefox' --name=minios_textmode.iso`
+Aktivasi dan deaktivasi hanya berfungsi jika `/` saat ini adalah union AUFS. Fitur ini tidak tersedia di OverlayFS, dan dukungan kernel AUFS saja tidak cukup. Kedua perintah ini tidak mengubah Next Boot.
 
-### sb
+Dispatcher konverter kompatibilitas memerlukan kedua operand:
 
-Utilitas `sb` menyediakan antarmuka lengkap untuk mengelola bundle MiniOS, termasuk aktivasi, deaktivasi, dan operasi konversi.
+```bash
+sudo sb conv my-app-root 06-my-app.sb
+sudo sb conv 06-my-app.sb example-root
+```
 
-**Penting:** Utilitas `sb` membutuhkan dukungan kernel AUFS (Advanced multi layered UniFication FileSystem) untuk sebagian besar operasi. Jika AUFS tidak tersedia di kernel Anda, banyak perintah yang tidak akan berfungsi.
+Penggunaan langsung `dir2sb` dan `sb2dir` lebih disarankan karena konversi biasa dapat dijalankan tanpa root.
 
-**Perintah yang tersedia:**
+## Dokumentasi terkait
 
-- `activate BUNDLE` - Aktifkan bundle MiniOS
-- `deactivate BUNDLE` - Nonaktifkan bundle MiniOS yang aktif  
-- `list` - Daftar bundle MiniOS yang aktif
-- `savechanges` - Simpan perubahan yang terjadi saat runtime ke bundle
-- `rm DIR` / `rmdir DIR` - Hapus direktori bundle yang sudah diekstrak
-- `conv PATH` - Konversi bundle .sb ke direktori atau sebaliknya
-
-**Contoh:**
-
-- Aktifkan modul: `sb activate mymodule.sb`
-- Nonaktifkan modul: `sb deactivate mymodule.sb`
-- Daftar modul yang aktif: `sb list`
-- Konversi modul ke direktori: `sb conv mymodule.sb`
-- Konversi direktori ke modul: `sb conv mymodule/`
-
-**Catatan:** Perintah `activate`, `deactivate`, dan `list` membutuhkan dukungan kernel AUFS dan hak akses root. Perintah `conv`, `rm`, dan `rmdir` dapat berjalan tanpa AUFS namun tetap membutuhkan hak akses root.
-
-## Dokumentasi Terkait
-
-- **[Membangun Ulang ISO](/development/Rebuilding-ISO.md)** - Pelajari cara mengemas modul kustom Anda menjadi image ISO bootable menggunakan `sb2iso`
-- **[Membangun MiniOS](/development/Building-MiniOS.md)** - Panduan lengkap membangun MiniOS dari source dengan konfigurasi kustom
+- [MiniOS Module Manager](/administration/Module-Manager.md)
+- [Membangun ulang image ISO](/development/Rebuilding-ISO.md)
+- [Building MiniOS](/development/Building-MiniOS.md)
+- [Parameter boot](/configuration/Boot-Parameters.md)

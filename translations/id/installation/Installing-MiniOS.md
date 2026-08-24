@@ -1,36 +1,43 @@
-# Menginstal MiniOS
+# Instalasi MiniOS
 
-Panduan ini menjelaskan berbagai cara untuk menginstal MiniOS pada perangkat penyimpanan.
+Ada dua tugas terpisah yang sering disebut instalasi:
 
-## 1. Unduh Berkas ISO MiniOS
+- Menulis ISO ke media yang dapat dilepas akan membuat media bootable yang digunakan untuk memulai sesi live MiniOS. Alat penulis image akan menimpa perangkat yang dipilih dengan tata letak ISO.
+- Menjalankan [MiniOS Installer](/installation/MiniOS-Installer.md) dari sesi live akan menerapkan MiniOS ke disk lain. Proses ini dapat membuat instalasi live modular atau instalasi Linux native konvensional.
 
-- Unduh berkas ISO MiniOS dari situs resmi.
+## Unduh dan verifikasi ISO
 
-## 2. Membuat Drive Bootable
+Unduh ISO dari [situs resmi](https://minios.dev) atau [halaman GitHub Releases resmi](https://github.com/minios-linux/minios-live/releases). Verifikasi file tersebut sebelum menuliskannya ke perangkat; lihat [Memverifikasi unduhan](/installation/Verifying-Downloads.md).
 
-Pilih salah satu metode berikut:
+## Tulis media bootable
 
-- [Metode Original](/installation/tools/Original-Method.md)
-- [Menggunakan Rufus](/installation/tools/Rufus.md) (Windows) (Direkomendasikan)
-- [Menggunakan UNetbootin](/installation/tools/UNetbootin.md) (Windows/Linux/MacOS)
-- [Menggunakan Ventoy](/installation/tools/Ventoy.md) (Windows/Linux) (Direkomendasikan)
-- [Menggunakan Balena Etcher](/installation/tools/Balena-Etcher.md) (Windows/Linux/MacOS) (Direkomendasikan)
-- [Menggunakan `dd`](/installation/tools/dd.md) (Linux/MacOS) (Direkomendasikan)
-- [Menggunakan Drive Utility](/installation/tools/Drive-Utility.md) (Linux) (Direkomendasikan)
-- [Menggunakan MiniOS Installer](/installation/MiniOS-Installer.md) (Direkomendasikan, hanya untuk MiniOS)
+Pilih metode sesuai sistem operasi Anda:
 
-## 3. Booting dari Drive
+- [Rufus](/installation/tools/Rufus.md) di Windows
+- [Ventoy](/installation/tools/Ventoy.md) di Windows atau Linux
+- [Balena Etcher](/installation/tools/Balena-Etcher.md) di Windows, Linux, atau macOS
+- [`dd`](/installation/tools/dd.md) di Linux atau macOS
+- [Drive Utility](/installation/tools/Drive-Utility.md) di Linux
+- [UNetbootin](/installation/tools/UNetbootin.md) di Windows, Linux, atau macOS
+- [Metode asli](/installation/tools/Original-Method.md) untuk tata letak MiniOS berbasis file
 
-1.  Restart komputer Anda.
-2.  Pilih drive bootable di menu boot komputer Anda untuk melakukan boot dari drive tersebut.
+Menulis image dengan Rufus, Etcher, `dd`, atau Drive Utility bersifat destruktif. Pastikan jalur perangkat, model, dan kapasitas sudah benar sebelum memulai. Alat-alat ini membuat media bootable; mereka tidak melakukan deployment live atau native menggunakan MiniOS Installer.
 
-## 4. Catatan
+Ventoy berbeda: instal Ventoy pada perangkat, lalu salin ISO ke partisi data Ventoy. Ini mempertahankan tata letak multiboot milik Ventoy.
 
-- Boot installer tidak mendukung multiboot; hanya MiniOS yang dapat di-boot dari drive.
-- Disk Anda harus menggunakan skema partisi `msdos` (gunakan MBR, bukan GPT).
-- Drive harus diformat dengan salah satu sistem file yang didukung: FAT32, NTFS, ext2, ext3, ext4, btrfs.
+## Boot ke sesi live
 
----
+1. Restart komputer dan buka menu boot firmware-nya.
+2. Pilih perangkat USB atau media bootable lainnya.
+3. Mulai MiniOS dan pastikan penyimpanan, jaringan, serta perangkat input berfungsi sebagaimana mestinya.
 
+Pengaturan firmware berbeda-beda tergantung komputer. Image MiniOS dapat boot melalui BIOS atau UEFI; target deployment MiniOS Installer selanjutnya tidak terbatas pada MBR.
 
-**Pengingat:** Metode instalasi original tidak lagi menjadi rekomendasi utama karena dapat menyulitkan pengguna pemula. Saat menggunakan Balena Etcher, `dd`, atau Drive Utility, partisi untuk menyimpan perubahan akan dibuat secara otomatis.
+## Pilih tata letak instalasi
+
+Dari sesi live, jalankan [MiniOS Installer](/installation/MiniOS-Installer.md) jika Anda ingin menginstal MiniOS ke USB drive, SSD, atau hard disk lain.
+
+- Mode live mempertahankan stack modul terkompresi dan tata letak boot live. Mendukung opsi persistensi sesi dan cocok untuk instalasi portabel.
+- Mode native mengekstrak modul yang dipilih ke filesystem root Linux konvensional, menghasilkan initramfs, dan memasang bootloader yang didukung. Mode native hanya tersedia jika image yang diboot menyediakan metadata installer yang diperlukan.
+
+Installer mendukung tata letak otomatis BIOS/MBR, UEFI/MBR, dan UEFI/GPT. BIOS pada GPT tidak didukung oleh installer saat ini. Lihat [Menggunakan MiniOS Installer](/installation/MiniOS-Installer.md) untuk informasi tentang penempatan, filesystem, persistensi, dan batasan partisi.

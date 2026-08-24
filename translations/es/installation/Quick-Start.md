@@ -1,215 +1,89 @@
-# Primeros pasos con MiniOS 🌟
+# Inicio rápido
 
-Bienvenido a MiniOS, donde la flexibilidad y portabilidad de Linux se combinan con la comodidad y facilidad de uso. Si eres nuevo en MiniOS, esta guía completa te ayudará a comenzar y aprovechar al máximo tu sistema operativo.
+Esta guía cubre la descarga, escritura, arranque y la configuración inicial de MiniOS.
 
-## Paso 1: Elige la edición adecuada de MiniOS 📦
+## 1. Elige una edición
 
-MiniOS ofrece tres ediciones principales, cada una diseñada para diferentes necesidades:
+- **Minimum** ofrece un conjunto reducido de paquetes y el entorno Flux.
+- **Standard** es la edición Xfce de uso general.
+- **Toolbox** añade herramientas de administración, diagnóstico, almacenamiento y recuperación.
+- **Ultra** incluye el conjunto de aplicaciones más amplio.
 
-- **🚀 Estándar** - El caballo de batalla confiable para tareas diarias
-- **🧰 Toolbox** - Kit de herramientas avanzado para usuarios exigentes
-- **⚡ Ultra** - Todo en uno, con el conjunto completo de funciones
+La disponibilidad de ediciones y escritorios varía según la versión. Consulta
+[Acerca de MiniOS](/about/About-MiniOS.md) y la
+[lista de paquetes](/administration/Packages.md) antes de descargar.
 
-Para descripciones detalladas de las características y el software incluido en cada edición, consulta [Acerca de MiniOS](/about/About-MiniOS.md).
+Descarga un ISO desde [minios.dev](https://minios.dev) o la
+[página de lanzamientos en GitHub](https://github.com/minios-linux/minios-live/releases).
+Verifica su suma de comprobación antes de usarlo; consulta
+[Verificando descargas](/installation/Verifying-Downloads.md).
 
-**Opciones de descarga:**
-- **Sitio oficial**: [minios.dev](https://minios.dev) - Vista general de ediciones y descargas directas
-- **GitHub Releases**: [Últimas versiones](https://github.com/minios-linux/minios-live/releases) - Todas las versiones y notas de lanzamiento
+## 2. Prepara un dispositivo de destino
 
-Para un desglose detallado de los paquetes incluidos en cada edición, consulta la [Lista de paquetes](/administration/Packages.md).
+Utiliza un dispositivo lo suficientemente grande para el ISO seleccionado y cualquier dato o sesión persistente que desees conservar. El tamaño de los ISOs varía entre versiones, así que revisa la descarga y la herramienta de escritura en vez de confiar en un tamaño fijo listado en una guía. Haz una copia de seguridad del dispositivo de destino primero: la mayoría de los métodos de instalación sobrescriben parte o todo su contenido.
 
-## Paso 2: Crea una unidad USB booteable 🔌
+Elige un método y lee su guía antes de seleccionar un dispositivo:
 
-**Métodos de instalación recomendados:**
+- Windows: [Rufus](/installation/tools/Rufus.md),
+  [Balena Etcher](/installation/tools/Balena-Etcher.md), o
+  [Ventoy](/installation/tools/Ventoy.md)
+- Linux: [`dd`](/installation/tools/dd.md),
+  [Balena Etcher](/installation/tools/Balena-Etcher.md), o
+  [Drive Utility](/installation/tools/Drive-Utility.md)
+- macOS: [`dd`](/installation/tools/dd.md) o
+  [Balena Etcher](/installation/tools/Balena-Etcher.md)
+- Desde MiniOS: [MiniOS Installer](/installation/MiniOS-Installer.md)
 
-### 🖥️ **Windows**
+Otros métodos documentados son [UNetbootin](/installation/tools/UNetbootin.md) y el [método original](/installation/tools/Original-Method.md). Consulta
+[Herramientas de creación USB](/installation/tools/USB-Creation-Tools.md) para una comparación y [Instalando MiniOS](/installation/Installing-MiniOS.md) para la visión general de la instalación.
 
-- **[Rufus](/installation/tools/Rufus.md)** ⭐ - Sencillo y confiable
-- **[Balena Etcher](/installation/tools/Balena-Etcher.md)** ⭐ - Interfaz gráfica multiplataforma
-- **[Ventoy](/installation/tools/Ventoy.md)** ⭐ - Soporte multi-boot
+## 3. Entiende la persistencia antes de escribir
 
-### 🐧 **Linux**
+No todos los métodos de escritura o arranque crean persistencia.
 
-- **[Comando dd](/installation/tools/dd.md)** ⭐ - Herramienta rápida por línea de comandos
-- **[Balena Etcher](/installation/tools/Balena-Etcher.md)** ⭐ - Interfaz gráfica fácil de usar
+- Una escritura de imagen sin procesar con `dd`, Etcher u otra herramienta similar reproduce el ISO. Por sí sola, no configura una sesión persistente.
+- Ventoy normalmente arranca el ISO como un archivo. La persistencia de MiniOS debe configurarse por separado.
+- MiniOS Installer puede crear una instalación en vivo y configurar almacenamiento de sesión nativo, DynFileFS, sin procesar o cifrado con LUKS.
+- Un arranque nuevo se ejecuta deliberadamente sin persistencia. Otras entradas del menú de arranque de MiniOS pueden reanudar, crear o seleccionar sesiones cuando hay almacenamiento escribible disponible.
+- Una instalación nativa es un sistema instalado convencional y no utiliza la persistencia de sesión en vivo de la misma manera.
 
-### 🍎 **macOS**
+Consulta [Gestión de sesiones](/configuration/Session-Management.md) y [Parámetros de arranque](/configuration/Boot-Parameters.md) antes de modificar el almacenamiento de sesiones. Mantén una copia de seguridad de los archivos importantes, independientemente del modo de persistencia.
 
-- **[Balena Etcher](/installation/tools/Balena-Etcher.md)** ⭐ - Interfaz gráfica sencilla
-- **[Comando dd](/installation/tools/dd.md)** ⭐ - Herramienta de terminal integrada
+## 4. Arranca MiniOS
 
-### 🏠 **Desde MiniOS**
+1. Apaga el ordenador y conecta el dispositivo preparado.
+2. Abre el menú de arranque del firmware y selecciona la entrada UEFI o legacy del dispositivo.
+3. Selecciona una sesión nueva para una prueba inicial de hardware, o una sesión persistente solo si ya ha sido configurada.
+4. Confirma que gráficos, teclado, almacenamiento y red funcionan antes de realizar cambios de instalación destructivos.
 
-- **[MiniOS Installer](/installation/MiniOS-Installer.md)** - Herramienta gráfica integrada
+Si el dispositivo no aparece en la lista o el escritorio no inicia, consulta
+[Compatibilidad de hardware](/installation/Hardware-Compatibility.md) y
+[Solución de problemas](/administration/Troubleshooting.md).
 
-**Métodos adicionales:** [UNetbootin](/installation/tools/UNetbootin.md), [Drive Utility](/installation/tools/Drive-Utility.md), [Método original](/installation/tools/Original-Method.md)
+## 5. Configura el sistema
 
-### Requisitos de tamaño de la unidad
+Abre **Aplicaciones > Sistema > Configurar MiniOS**, o ejecuta:
 
-- **Estándar (787 MB)**: mínimo 2 GB
-- **Toolbox (1.2 GB)**: mínimo 4 GB
-- **Ultra (1.7 GB)**: mínimo 4 GB
-- **Tamaño recomendado**: 8 GB o más para operar cómodamente con persistencia de cambios
-
-**Notas importantes:**
-- Cada enlace anterior ofrece instrucciones detalladas paso a paso
-- Los métodos recomendados (⭐) han sido probados por su fiabilidad y facilidad de uso
-- Elige el método que mejor se adapte a tu sistema operativo y nivel de experiencia
-
-## Paso 3: Inicia y explora 🖥️
-
-Después de arrancar desde el USB, explora el entorno de escritorio de MiniOS:
-
-**Funciones clave para descubrir**:
-- Menú de aplicaciones (panel inferior izquierdo)
-- Configuración y preferencias del sistema
-- Gestor de archivos (Thunar)
-- Aplicaciones preinstaladas (navegador, suite ofimática, utilidades)
-- Opciones de personalización del escritorio
-
-El entorno de escritorio predeterminado es XFCE, que ofrece un equilibrio entre funciones y rendimiento.
-
-## Paso 4: Configuración del sistema 🌐
-
-**Configura el idioma del sistema, teclado, zona horaria y otras preferencias:**
-
-### 🔧 **Usando el Configurador de MiniOS** (Recomendado)
-
-**Acceso:** Menú de aplicaciones → Sistema → Configurar MiniOS
-
-**Ajustes clave que puedes configurar:**
-- **🌍 Idioma y región**: Establece el idioma del sistema (ejemplo: `en_US.UTF-8`, `ru_RU.UTF-8`, `pt_BR.UTF-8`)
-- **⏰ Zona horaria**: Configura tu zona horaria (ejemplo: `Europe/Berlin`, `America/New_York`, `Asia/Tokyo`)
-- **⌨️ Teclado**: Define distribuciones y opciones de cambio (ejemplo: `us,ru` con alternancia `Alt+Shift`)
-- **👤 Usuario**: Cambia nombre de usuario, nombre completo y grupos
-- **🔐 Contraseñas**: Establece contraseñas seguras para usuario y root
-- **🖥️ Sistema**: Configura el hostname, activa/desactiva servicios
-- **🔧 Avanzado**: Opciones de arranque y comportamiento del sistema
-
-**Cómo usarlo:**
-1. Abre el Configurador de MiniOS desde el menú del sistema
-2. Navega por las pestañas para configurar diferentes aspectos
-3. Realiza los cambios y guarda
-4. **Reinicia para aplicar los cambios** - la configuración se aplica tras el reinicio y se mantiene entre reinicios
-
-**Nota técnica:** El Configurador de MiniOS modifica `/etc/live/config.conf`, que es el archivo principal de configuración de MiniOS y controla el comportamiento del sistema al arrancar. Para información detallada sobre los parámetros y su funcionamiento, consulta la guía [Archivo de configuración](/configuration/Configuration-File.md).
-
-### 💻 **Alternativa: Configuración por línea de comandos**
-
-**Cambios inmediatos (se aplican al instante):**
 ```bash
-# Set system locale for current session
-sudo localectl set-locale LANG=en_US.UTF-8
-
-# Set keyboard layout with switching
-sudo localectl set-x11-keymap us,ru pc105 ,dvorak grp:alt_shift_toggle
-
-# Set timezone
-sudo timedatectl set-timezone Europe/Berlin
-
-# Change user password
-passwd live
+minios-configurator
 ```
 
-**Para cambios persistentes tras reinicios:** Usa el Configurador de MiniOS o edita directamente `/etc/live/config.conf`.
+El Configurador edita `/etc/live/config.conf`. Puede establecer la identidad de usuario, contraseñas, idioma, zona horaria, teclado, nombre de host, servicios, almacenamiento del directorio de usuario y controles de seguridad. No modifica el sistema en ejecución directamente; los ajustes guardados se aplican según la aplicabilidad de cada configuración, normalmente después de reiniciar o al crear una nueva sesión.
 
-### 📋 **Opciones de configuración adicionales**
+Los perfiles de seguridad rellenan configuraciones concretas para sudo, PolicyKit, SSH, XRDP, X11, sugerencias de contraseña, bloqueo de pantalla y acceso automático. Revisa los controles resultantes en vez de tomar el nombre del perfil como un ajuste en tiempo de ejecución. Consulta [Endurecimiento de seguridad](/administration/Security-Hardening.md) y la [guía del Configurador de MiniOS](/configuration/MiniOS-Configurator.md). La [referencia del archivo de configuración](/configuration/Configuration-File.md) documenta las claves subyacentes.
 
-- **Edición directa de archivos**: Edita manualmente `/etc/live/config.conf` para usuarios avanzados
-- **Configuración en arranque**: Usa [Parámetros de arranque](/configuration/Boot-Parameters.md) para configurar el sistema antes de iniciar
-- **Guía del archivo de configuración**: Consulta [Archivo de configuración](/configuration/Configuration-File.md) para referencia detallada de config.conf
-- **Preinstalación**: Configura antes de instalar con [MiniOS Installer](/installation/MiniOS-Installer.md)
+## 6. Instala software y guarda tu trabajo
 
-**Importante:** Los cambios en `/etc/live/config.conf` (ya sea con el Configurador de MiniOS o edición manual) requieren reinicio para aplicarse. Herramientas de línea de comandos como `localectl` y `timedatectl` aplican los cambios al instante, pero pueden no persistir tras reiniciar sin la configuración adecuada.
+Los cambios realizados con APT en una sesión en vivo solo se conservan tras reiniciar si la sesión es persistente. Los módulos SquashFS permanecen separados de la sesión escribible y pueden cargarse como parte del sistema modular; consulta [Creación de módulos](/development/Creating-Modules.md).
 
-## Paso 5: Instalación de software 🔄
+Guarda los archivos importantes en un almacenamiento conocido como escribible y prueba al menos un apagado y reinicio limpios antes de depender de una sesión persistente.
 
-MiniOS ofrece varias formas de instalar software:
+## Obtener ayuda
 
-### 📦 **Gestor de paquetes APT**
-
-Gestión básica de paquetes Debian - usa `man apt` para referencia detallada de comandos.
-
-### 🔄 **Sistema de módulos**
-
-Módulos SquashFS avanzados para software persistente - consulta la guía [Creación de módulos](/development/Creating-Modules.md).
-
-**Diferencia clave:** Las instalaciones vía APT requieren persistencia para sobrevivir a los reinicios, mientras que los módulos son persistentes automáticamente.
-
-## Paso 6: Persistencia de datos 💾
-
-**¡Buenas noticias!** MiniOS configura automáticamente la persistencia de datos durante la instalación. Tus archivos, configuraciones e instalaciones de software se guardan automáticamente.
-
-### Cómo funciona
-
-- **Configuración automática**: Todos los métodos de instalación crean persistencia automáticamente
-- **Detección inteligente**: El sistema elige el modo de persistencia óptimo según el sistema de archivos de tu unidad
-- **Portátil**: Tus datos te acompañan en la unidad USB
-
-### Configuración avanzada
-
-Para una configuración personalizada de la persistencia, consulta la guía detallada [Archivo de configuración](/configuration/Configuration-File.md) y la referencia de [Parámetros de arranque](/configuration/Boot-Parameters.md).
-
-## Paso 7: Configuración de seguridad 🔐
-
-### 👤 **Cuentas predeterminadas**
-
-- **Usuario**: `live` / `evil`
-- **Root**: `root` / `toor`
-
-### 🔒 **Pasos importantes de seguridad**
-
-1. **Cambia las contraseñas de inmediato** - Las credenciales predeterminadas son de conocimiento público
-2. **Usa contraseñas fuertes y únicas** para todas las cuentas
-
-### Métodos para configurar contraseñas
-
-- **🔧 Recomendado**: Usa **MiniOS Configurator** (Menú de aplicaciones → Sistema → Configurar MiniOS → pestaña Usuario)
-- **💻 Línea de comandos**: `passwd live` y `sudo passwd root`
-- **📋 Avanzado**: Consulta la guía [Endurecimiento de seguridad](/administration/Security-Hardening.md) para una configuración detallada
-
-⚠️ **¡Nunca uses credenciales por defecto en sistemas conectados a red!**
-
-## Paso 8: Personalización y temas avanzados 🛠️
-
-### 🎨 **Personalización básica**
-
-- Temas de escritorio y fondos desde Configuración
-- Distribución del panel y preferencias de aplicaciones
-- Atajos de teclado y ajustes del sistema
-
-### 🚀 **Configuración avanzada**
-
-- **Parámetros de arranque**: [Referencia completa](/configuration/Boot-Parameters.md) para ajustar el sistema
-- **Rendimiento**: [Guía de optimización](/administration/Performance-Optimization.md) para mayor velocidad
-- **Hardware**: [Guía de compatibilidad](/installation/Hardware-Compatibility.md) para soporte de dispositivos
-
-### 🔧 **Funciones para usuarios avanzados**
-
-- **Compilaciones personalizadas**: [Compilar MiniOS](/development/Building-MiniOS.md) desde el código fuente
-- **Creación de módulos**: Desarrollo de [módulos avanzados](/development/Creating-Modules.md)
-- **Reconstrucción de ISO**: [Empaqueta el sistema live](/development/Rebuilding-ISO.md) en una ISO booteable
-- **Actualización de kernel**: Guía de [gestión de kernel](/administration/Kernel-Management.md)
-
-## Ayuda y recursos de la comunidad 💬
-
-### 📚 **Documentación**
-
-- **Sitio oficial**: [minios.dev](https://minios.dev) - Noticias y descargas más recientes
-- **Todas las guías**: Disponibles en esta colección de documentación
-
-### 🐛 **Soporte y reportes de problemas**
-
-- **Reportes de errores**: [GitHub Issues](https://github.com/minios-linux/minios-live/issues)
-- **Código fuente**: [Repositorio en GitHub](https://github.com/minios-linux/minios-live)
-
-### 📖 **Aprende más**
-
-- **Documentación de Debian**: [www.debian.org/doc](https://www.debian.org/doc/) - MiniOS está basado en Debian
-- **Conceptos básicos de Linux**: Los tutoriales generales de Linux aplican a MiniOS
-
-## ¡Bienvenido a MiniOS! 🎉
-
-Ahora tienes todo lo necesario para empezar con MiniOS. El sistema combina la potencia de Linux con la comodidad portátil: perfecto para recuperación de sistemas, computación portátil o uso diario.
-
-**Próximos pasos:** Elige tu edición, crea tu USB y ¡comienza a explorar! 🚀
+- [Optimización del rendimiento](/administration/Performance-Optimization.md)
+- [Gestión de kernel](/administration/Kernel-Management.md)
+- [Compilando MiniOS](/development/Building-MiniOS.md)
+- [Reconstruyendo un ISO](/development/Rebuilding-ISO.md)
+- [Incidencias en GitHub](https://github.com/minios-linux/minios-live/issues)
+- [Código fuente de MiniOS](https://github.com/minios-linux/minios-live)
+- [Documentación de Debian](https://www.debian.org/doc/)

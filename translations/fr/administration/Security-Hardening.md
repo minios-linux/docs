@@ -1,216 +1,86 @@
-# Guide de renforcement de la sécurité
+# Renforcement de la sécurité
 
-Ce guide propose des étapes pratiques pour améliorer la sécurité de votre système MiniOS. Étant donné que MiniOS est un système live, les principaux enjeux de sécurité concernent la protection des données utilisateur sur le stockage persistant et le contrôle de l’accès au système en cours d’exécution. Les paramètres par défaut privilégient la portabilité, mais ne sont pas toujours adaptés à tous les usages. Les recommandations suivantes vous aideront à configurer le système pour une sécurité renforcée.
+MiniOS peut fonctionner comme système de récupération live, système portable persistant ou installation native. Les contrôles appropriés dépendent de l’utilisation du système. Protégez la session en cours, les données persistantes, le support de démarrage et toute configuration appliquée au démarrage.
 
-## Sécurité des comptes utilisateur et root
+## Commencez avec un support de confiance
 
-Par défaut, MiniOS effectue une connexion automatique sans mot de passe. Cela offre de la praticité pour un usage nomade, mais peut représenter un risque de sécurité dans certains cas.
+Téléchargez MiniOS depuis une source officielle et vérifiez l’ISO avant de l’écrire. Suivez [Vérification des téléchargements](/installation/Verifying-Downloads.md) et comparez le résultat avant de démarrer ou d’installer. La vérification détecte un téléchargement endommagé ou substitué ; elle ne garantit pas qu’une clé USB déjà modifiée soit sûre.
 
-**Identifiants par défaut :**
-- **Utilisateur** : `live` / `evil`  
-- **Root** : `root` / `toor`
+Gardez la clé USB sous contrôle physique. Les mots de passe du firmware et l’ordre de démarrage restreint peuvent limiter les démarrages non autorisés occasionnels, mais n’offrent pas de chiffrement des fichiers sur le support. Secure Boot peut fournir une protection supplémentaire de la chaîne de démarrage sur les images et matériels compatibles ; vérifiez le comportement réel de la version et du firmware au lieu de supposer la prise en charge.
 
-⚠️ **Ces identifiants sont publics et doivent être changés immédiatement pour tout usage en réseau ou en production.**
+## Remplacez les identifiants par défaut
 
-### Création d’un mot de passe chiffré
+Une image live MiniOS non personnalisée utilise les identifiants publiés `live` /
+`evil` et `root` / `toor`, avec connexion automatique et accès administrateur sans mot de passe dans sa configuration orientée commodité. Toute personne pouvant accéder au système pourrait utiliser ces identifiants, surtout si SSH est actif.
 
-Avant de configurer les mots de passe, il est recommandé de générer un hash de mot de passe chiffré :
+Avant de rejoindre un réseau non fiable :
 
-```bash
-# The command will prompt you to enter a password and output the hash
-mkpasswd -m yescrypt
-# Example output: $y$j9T$...(long hash)...$Spig/F.uP
-```
+1. Définissez des mots de passe uniques pour l’utilisateur et root dans le Configurateur MiniOS.
+2. Sélectionnez un profil de sécurité adapté et vérifiez chaque contrôle renseigné.
+3. Désactivez SSH et XRDP sauf si l’accès à distance est nécessaire.
+4. Redémarrez dans une nouvelle session après avoir modifié les paramètres de compte ou de sécurité à usage unique, puis vérifiez le comportement de connexion et de privilèges obtenu.
 
-### Définition des mots de passe
+Le Configurateur stocke les empreintes de mots de passe chiffrées plutôt que les mots de passe en clair. Si vous modifiez un compte persistant ou natif déjà créé, utilisez `passwd` pour l’utilisateur courant et `sudo passwd root` pour root.
 
-Vous pouvez définir les mots de passe de deux manières : **il est fortement recommandé** d’utiliser des mots de passe chiffrés.
+## Utilisez les contrôles de sécurité du Configurateur
 
-**Important :** La définition des mots de passe et des paramètres de compte utilisateur via les paramètres de démarrage et les fichiers de configuration n’est prise en compte qu’au premier démarrage du système. Par la suite, les mots de passe ne peuvent être modifiés qu’avec les méthodes Linux standard (`passwd`, `sudo passwd`).
+Le Configurateur MiniOS propose trois profils. Un profil remplit des paramètres concrets ; le nom du profil lui-même n’est pas enregistré comme clé de configuration en cours d’exécution, et chaque paramètre reste modifiable indépendamment.
 
-#### Via les paramètres de démarrage
+| Profil | Comportement principal |
+| --- | --- |
+| `convenient` | Compatible avec la connexion automatique, sudo et PolicyKit sans mot de passe, connexion SSH root et par mot de passe autorisée, XRDP/X11/écran de verrouillage assouplis, indices de mot de passe affichés. |
+| `balanced` | Pas de connexion automatique, sudo et PolicyKit nécessitent un mot de passe, connexion SSH root refusée mais connexion SSH par mot de passe autorisée, XRDP/X11/écran de verrouillage renforcés. |
+| `strict` | Pas de connexion automatique, sudo et PolicyKit nécessitent un mot de passe, connexion SSH root et par mot de passe refusée, XRDP désactivé, X11/écran de verrouillage renforcés, indices de mot de passe masqués. |
 
-Ajoutez les paramètres à la ligne de commande du noyau dans le menu de démarrage (GRUB pour UEFI ou SYSLINUX pour BIOS) :
+Les valeurs par défaut de l’installateur varient selon le mode d’installation : les installations live privilégient `convenient`, tandis que les installations natives privilégient `balanced`. Ce sont des valeurs par défaut, pas des recommandations pour tous les modèles de menace.
 
-**Pour les mots de passe chiffrés (recommandé) :**
-```
-user-password-crypted='$y$j9T$...(hash).../'
-root-password-crypted='$y$j9T$...(hash).../'
-```
+Les mêmes paramètres sont disponibles sous forme de clés de configuration documentées, notamment `LIVE_SUDO_MODE`, `LIVE_POLKIT_MODE`, `LIVE_SSH_PERMIT_ROOT_LOGIN`,
+`LIVE_SSH_PASSWORD_AUTHENTICATION`, `LIVE_XRDP_MODE`, `LIVE_X11_MODE`,
+`LIVE_ISSUE_PASSWORD_HINTS` et `LIVE_LOCKSCREEN_MODE`. Privilégiez ces clés ou le Configurateur plutôt que la modification directe des fichiers sudoers, PolicyKit, display-manager ou SSH générés. Voir [Fichier de configuration](/configuration/Configuration-File.md).
+Pour le comportement d’enregistrement et l’applicabilité des paramètres, voir
+[MiniOS Configurateur](/configuration/MiniOS-Configurator.md).
 
-**Pour les mots de passe en clair (non recommandé) :**
-```
-user-password='your_password'
-root-password='root_password'
-```
+La création de compte, les mots de passe, `LIVE_CONFIG_NOROOT` et la posture de sécurité sont des paramètres à usage unique appliqués lors de la création d’une nouvelle session. Le Configurateur affiche l’applicabilité de chaque contrôle. Les paramètres reconfigurables comme les services sont appliqués après redémarrage.
 
-**Important :** Les mots de passe en clair sont visibles dans la ligne de commande du noyau et peuvent être lus par d’autres utilisateurs du système.
+## Sécurisez l’accès distant
 
-#### Via le fichier de configuration
+SSH peut être activé dans une image MiniOS à des fins de récupération. Sur un réseau où les autres utilisateurs ne sont pas fiables, considérez que les identifiants par défaut publiés sont exposés tant que vous n’avez pas confirmé le contraire.
 
-Modifiez le fichier `minios/config.conf` à la racine de la clé USB :
+- Si SSH n’est pas nécessaire, ajoutez `ssh` à `DISABLE_SERVICES` dans le Configurateur et retirez-le de `ENABLE_SERVICES` si présent.
+- Si SSH est requis, refusez la connexion root avec `LIVE_SSH_PERMIT_ROOT_LOGIN=false`.
+- Privilégiez l’authentification par clé. Vérifiez la connexion par clé dans une session distincte avant de définir `LIVE_SSH_PASSWORD_AUTHENTICATION=false`.
+- Limitez l’accès entrant avec le pare-feu réseau ou le routeur, et n’exposez pas un système de récupération portable directement à Internet.
+- Vérifiez XRDP séparément. Le profil strict le désactive ; le profil équilibré le renforce mais ne désactive pas nécessairement son service.
 
-**Pour les mots de passe chiffrés :**
-```
-LIVE_USER_PASSWORD_CRYPTED="$y$j9T$...(hash).../"
-LIVE_ROOT_PASSWORD_CRYPTED="$y$j9T$...(hash).../"
-```
+Les paramètres de démarrage peuvent outrepasser les valeurs du fichier de configuration. Analysez tout comportement inattendu de service en consultant [Paramètres de démarrage](/configuration/Boot-Parameters.md).
 
-**Pour les mots de passe en clair :**
-```
-LIVE_USER_PASSWORD="your_password"
-LIVE_ROOT_PASSWORD="root_password"
-```
+## Chiffrez les données persistantes
 
-### Changement des mots de passe après le démarrage
+Une persistance non chiffrée (native, DynFileFS ou brute) peut être lue par toute personne ayant accès au support. L’installateur MiniOS peut configurer un conteneur LUKS chiffré pour une session live lorsque l’initrd source annonce la prise en charge de LUKS. L’initrd crée `changes.luks` au premier démarrage et demande sa phrase de passe ; l’installateur ne reçoit ni ne stocke cette phrase de passe.
 
-Après le premier démarrage, les mots de passe peuvent être modifiés avec les commandes Linux standard :
+La persistance LUKS protège le contenu tant que le conteneur est fermé. Elle ne protège pas les données après déverrouillage, les fichiers de démarrage non chiffrés, les fichiers copiés en dehors du conteneur ou un système de fichiers racine natif. La persistance de session LUKS n’est pas un chiffrement natif du root. Utilisez une phrase de passe robuste et conservez une sauvegarde testée.
 
-```bash
-# Change current user password
-passwd
+Voir [Installateur MiniOS](/installation/MiniOS-Installer.md) et [Gestion de session](/configuration/Session-Management.md).
 
-# Change root user password (requires sudo)
-sudo passwd root
+## Appliquez les mises à jour de façon délibérée
 
-# Change specific user password (requires sudo)
-sudo passwd username
-```
+Actualisez les métadonnées des paquets et installez les mises à jour de sécurité Debian dans les sessions live persistantes ou les installations natives en utilisant le flux de travail APT habituel. Les modifications APT dans une session live fraîche disparaissent au redémarrage. Les modules de base SquashFS sont en lecture seule, donc remplacer l’ISO ou les modules par une version MiniOS plus récente et de confiance est souvent la méthode la plus propre pour mettre à jour le système live de base.
 
-### Désactivation de la connexion automatique
+Voir [Mises à jour logicielles](/administration/Software-Updates.md) pour les flux de travail distincts APT, module, image et noyau.
 
-Après avoir défini les mots de passe, désactivez la connexion automatique pour exiger une authentification :
+Avant une mise à jour importante :
 
-#### Via les paramètres de démarrage
+- Sauvegardez les fichiers importants et les sessions persistantes.
+- Vérifiez qu’il y a suffisamment d’espace libre disponible.
+- Évitez d’interrompre les écritures ou d’éteindre l’appareil.
+- Redémarrez et vérifiez le système mis à jour avant de supprimer le support ou la session précédemment validés.
 
-```
-noautologin
-```
+## Considérez les hooks et le preseeding comme de l’exécution de code
 
-#### Via le fichier de configuration
+L’option de démarrage `hooks` et les hooks live-config peuvent exécuter des fichiers depuis le système de fichiers racine, le support de démarrage ou une URL. Les hooks distants, les hooks modifiés sur le support et les preseeds non vérifiés peuvent s’exécuter avec les privilèges système. Utilisez uniquement des fichiers vérifiés provenant d’une source de confiance, privilégiez la distribution authentifiée et évitez les hooks distants sur les réseaux non fiables. Voir [live-config](/configuration/live-config.md) pour l’ordre d’exécution et les emplacements pris en charge.
 
-```
-LIVE_CONFIG_CMDLINE="components noautologin"
-```
+## Sauvegardez et retirez les supports en toute sécurité
 
-**Désactivation partielle de l’autologin :**
-- `nox11autologin` — désactive uniquement l’autologin graphique (le gestionnaire de session demandera une authentification)
-- `nottyautologin` — désactive uniquement l’autologin console (déjà désactivé par défaut)
+La persistance n’est pas une sauvegarde. Conservez une copie séparée des fichiers utilisateur et exportez ou copiez les sessions tant qu’elles sont saines. Testez la restauration sur un autre support. Arrêtez proprement avant de retirer un stockage inscriptible et prévoyez de l’espace libre pour les métadonnées de session et le fonctionnement du système de fichiers.
 
-### Gestion des privilèges utilisateur
-
-Par défaut, l’utilisateur `live` dispose de tous les droits administrateur sans demande de mot de passe, aussi bien en console (`sudo`) que dans les applications graphiques (via polkit). Cela facilite l’utilisation en mode live, mais peut nécessiter des ajustements pour une sécurité accrue.
-
-#### Activation de la demande de mot de passe pour sudo
-
-Pour exiger la saisie du mot de passe lors de l’utilisation de `sudo`, exécutez après le démarrage :
-
-```bash
-# Change rule to require password
-echo "live ALL=(ALL:ALL) ALL" | sudo tee /etc/sudoers.d/live
-```
-
-Après cela, les commandes `sudo` demanderont le mot de passe de l’utilisateur.
-
-#### Activation de la demande de mot de passe pour les applications graphiques
-
-Pour que les programmes graphiques d’administration demandent un mot de passe, supprimez la règle polkit :
-
-```bash
-sudo rm /usr/share/polkit-1/rules.d/sudo_on_live.rules
-```
-
-Après cette modification, les installateurs de logiciels, les paramètres système et autres applications graphiques d’administration demanderont un mot de passe.
-
-#### Désactivation complète des droits administrateur (`noroot`)
-
-Pour une sécurité maximale, vous pouvez désactiver complètement `sudo` et l’accès root :
-
-**Via les paramètres de démarrage :**
-```
-noroot
-```
-
-**Via le fichier de configuration :**
-```
-LIVE_CONFIG_NOROOT=true
-```
-
-**Effet :** La commande `sudo` sera inutilisable, la connexion root sera désactivée et aucune action administrative ne sera possible.
-
-## Sécurité réseau
-
-### Paramètres SSH par défaut
-
-**Pourquoi SSH est activé par défaut :** MiniOS est conçu comme un système de récupération et de diagnostic pour le dépannage de matériel défectueux. SSH est activé avec des paramètres permissifs pour permettre un accès distant lorsque l’affichage local est indisponible, endommagé ou pour travailler sur des systèmes sans écran.
-
-**Paramètres SSH actuels :**
-- Le service SSH est activé et démarre automatiquement
-- La connexion root via SSH est autorisée
-- L’authentification par mot de passe est activée
-
-**Conséquences sur la sécurité :** Cette configuration présente des risques sur des réseaux non fiables, mais elle est nécessaire pour les scénarios de récupération.
-
-### Désactivation de SSH
-
-Si l’accès distant n’est pas nécessaire, désactivez complètement SSH :
-
-**Via les paramètres de démarrage :**
-```
-disable-services=ssh,avahi-daemon
-```
-
-**Via le fichier de configuration :**
-```
-DISABLE_SERVICES=ssh,avahi-daemon
-```
-
-### Configuration d’un accès SSH sécurisé
-
-Si SSH est nécessaire, sécurisez-le avec les méthodes suivantes :
-
-#### 1. Définition de mots de passe robustes
-
-Utilisez les méthodes de définition de mot de passe décrites ci-dessus.
-
-#### 2. Authentification par clé SSH
-
-Placez les fichiers `authorized_keys` à la racine de la clé USB :
-
-- `authorized_keys.root` — pour l’utilisateur root
-- `authorized_keys.live` — pour l’utilisateur live
-- `authorized_keys.username` — pour les autres utilisateurs
-
-Un composant système les déploiera automatiquement dans les dossiers personnels au démarrage.
-
-#### 3. Renforcement de la sécurité SSH
-
-Après le démarrage, modifiez la configuration SSH :
-
-```bash
-sudo nano /etc/ssh/sshd_config.d/minios.conf
-```
-
-Modifiez les paramètres pour des options plus sécurisées :
-```
-PermitRootLogin no
-PasswordAuthentication no
-PubkeyAuthentication yes
-```
-
-Redémarrez le service SSH :
-```bash
-sudo systemctl restart ssh
-```
-
-**Important :** Testez toujours l’accès par clé SSH avant de désactiver l’authentification par mot de passe.
-
-## Sécurité au démarrage
-
-### Démarrage sécurisé UEFI
-
-MiniOS est entièrement compatible avec Secure Boot, car il utilise le noyau Debian standard avec des bootloaders signés. Secure Boot protège contre les malwares pré-démarrage (bootkits) et est recommandé pour renforcer la sécurité.
-
-### Mot de passe BIOS/UEFI
-
-Pour la sécurité physique, définissez un mot de passe dans le BIOS/UEFI de votre ordinateur afin d’empêcher tout utilisateur non autorisé de démarrer sur d’autres périphériques ou de modifier les paramètres de démarrage.
+Avant de vous débarrasser d’un appareil, effacez-le de façon sécurisée en fonction de la technologie de stockage et de la sensibilité des données. Supprimer des fichiers ou reformater ne suffit pas toujours à rendre les anciennes données irrécupérables.

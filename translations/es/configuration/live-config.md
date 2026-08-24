@@ -60,15 +60,15 @@ Para casos de uso especiales existen algunos parámetros de arranque específico
 
 - **live-config.debug | debug**: Activa la salida de depuración en live-config.
 
-## Archivos de Configuración
+## Archivos de configuración
 
-**live-config** puede configurarse (pero no activarse) mediante archivos de configuración. Todo lo que puede configurarse con un parámetro de arranque, excepto los atajos, también puede configurarse de forma alternativa mediante uno o más archivos. Si se utilizan archivos de configuración, el parámetro `boot=live` sigue siendo necesario para activar **live-config**.
+**live-config** puede configurarse (pero no activarse) mediante archivos de configuración. Todo, excepto los atajos que pueden configurarse con un parámetro de arranque, también puede configurarse alternativamente a través de uno o más archivos. Si se utilizan archivos de configuración, el parámetro `boot=live` sigue siendo necesario para activar **live-config**.
 
-**Nota:** Si se utilizan archivos de configuración, preferentemente todos los parámetros de arranque deberían colocarse en la variable **LIVE_CONFIG_CMDLINE**, o bien pueden establecerse variables individuales. Si se usan variables individuales, el usuario debe asegurarse de que todas las variables necesarias estén definidas para crear una configuración válida.
+**Nota:** Si se usan archivos de configuración, se recomienda (preferentemente) colocar todos los parámetros de arranque en la variable **LIVE_CONFIG_CMDLINE**, o bien establecer variables individuales. Si se usan variables individuales, el usuario debe asegurarse de que todas las variables necesarias estén definidas para crear una configuración válida.
 
-Los archivos de configuración pueden colocarse tanto en el propio sistema de archivos raíz (`/etc/live/config.conf`, `/etc/live/config.conf.d/*.conf`), como en el medio live (`minios/config.conf`, `minios/config.conf.d/*.conf`). Si ambos lugares se usan para una opción determinada, los del medio live tienen prioridad sobre los del sistema de archivos raíz.
+Los archivos de configuración pueden ubicarse en el propio sistema de archivos raíz (`/etc/live/config.conf`, `/etc/live/config.conf.d/*.conf`), o en el medio live (`minios/config.conf`, `minios/config.conf.d/*.conf`). Si se usan ambos lugares para una opción determinada, las opciones del medio live tienen prioridad sobre las del sistema de archivos raíz.
 
-Aunque los archivos de configuración ubicados en los directorios de configuración no requieren un nombre específico, por coherencia se sugiere usar el esquema de nombres `vendor.conf` o `project.conf` (donde `vendor` o `project` se reemplaza por el nombre real, resultando en un archivo como `progress-linux.conf`).
+Aunque los archivos de configuración ubicados en los directorios de configuración no requieren un nombre específico, por razones de consistencia se sugiere usar el esquema de nombres `vendor.conf` o `project.conf` (donde `vendor` o `project` se reemplaza por el nombre real, resultando en un archivo como `progress-linux.conf`).
 
 El contenido real de los archivos de configuración consiste en una o más de las siguientes variables.
 
@@ -76,8 +76,8 @@ El contenido real de los archivos de configuración consiste en una o más de la
 - **LIVE_CONFIG_COMPONENTS=COMPONENT1,COMPONENT2,...COMPONENTn**: Esta variable corresponde al parámetro `**live-config.components**=*COMPONENT1*,*COMPONENT2*,...*COMPONENTn*`.
 - **LIVE_CONFIG_NOCOMPONENTS=COMPONENT1,COMPONENT2,...COMPONENTn**: Esta variable corresponde al parámetro `**live-config.nocomponents**=*COMPONENT1*,*COMPONENT2*,...*COMPONENTn*`.
 - **LIVE_DEBCONF_PRESEED=filesystem|medium|URL1|URL2|...|URLn**: Esta variable corresponde al parámetro `**live-config.debconf-preseed**=filesystem|medium|*URL1*\|*URL2*\|...|*URLn*`.
-- **LIVE_HOSTNAME=HOSTNAME**: Esta variable corresponde al parámetro `**live-config.hostname**=*HOSTNAME*`. El valor por defecto es `minios`.
-- **LIVE_USERNAME=USERNAME**: Esta variable corresponde al parámetro `**live-config.username**=*USERNAME*`. El valor por defecto es `live`.
+- **LIVE_HOSTNAME=HOSTNAME**: Esta variable corresponde al parámetro `**live-config.hostname**=*HOSTNAME*`. El valor predeterminado es `minios`.
+- **LIVE_USERNAME=USERNAME**: Esta variable corresponde al parámetro `**live-config.username**=*USERNAME*`. El valor predeterminado es `live`.
 - **LIVE_USER_DEFAULT_GROUPS=GROUP1,GROUP2,...GROUPn**: Esta variable corresponde al parámetro `**live-config.user-default-groups**="*GROUP1*,*GROUP2*...*GROUPn*"`.
 - **LIVE_USER_FULLNAME="USER FULLNAME"**: Esta variable corresponde al parámetro `**live-config.user-fullname**="*USER FULLNAME*"`.
 - **LIVE_ROOT_PASSWORD=PASSWORD**: Esta variable corresponde al parámetro `**live-config.root-password**=*PASSWORD*`. Especifica la contraseña de root en texto plano.
@@ -97,10 +97,12 @@ El contenido real de los archivos de configuración consiste en una o más de la
 - **LIVE_XORG_RESOLUTION=XORG_RESOLUTION**: Esta variable corresponde al parámetro `**live-config.xorg-resolution**=*XORG_RESOLUTION*`.
 - **LIVE_WLAN_DRIVER=WLAN_DRIVER**: Esta variable corresponde al parámetro `**live-config.wlan-driver**=*WLAN_DRIVER*`.
 - **LIVE_HOOKS=filesystem|medium|URL1|URL2|...|URLn**: Esta variable corresponde al parámetro `**live-config.hooks**=filesystem|medium|*URL1*\|*URL2*\|...|*URLn*`.
-- **LIVE_LINK_USER_DIRS=true|false**: Esta variable corresponde al parámetro `**live-config.link-user-dirs**=true|false`. Habilita o deshabilita la creación de enlaces simbólicos para los directorios de usuario.
-- **LIVE_BIND_USER_DIRS=true|false**: Esta variable corresponde al parámetro `**live-config.bind-user-dirs**=true|false`. Habilita o deshabilita el montaje bind para los directorios de usuario.
-- **LIVE_USER_DIRS_PATH=PATH**: Esta variable corresponde al parámetro `**live-config.user-dirs-path**=*PATH*`. Especifica la ruta para los directorios de usuario en el medio.
-- **LIVE_MODULE_MODE**: Esta variable contiene el estado especificado por el parámetro `live-config.module-mode` (o `module-mode`). Cuando se establece en "merged", el sistema live aplica actualizaciones (vía minios-update-users, minios-update-cache y minios-update-dpkg) para fusionar configuraciones personalizadas con el entorno base.
+- **LIVE_LINK_USER_DIRS=true|false**: Esta variable corresponde al parámetro `**live-config.link-user-dirs**=true|false`. Enlaza los directorios estándar de datos del usuario con la unidad MiniOS escribible. No puede combinarse con el modo bind ni con ningún modo `toram`.
+- **LIVE_BIND_USER_DIRS=true|false**: Esta variable corresponde al parámetro `**live-config.bind-user-dirs**=true|false`. Realiza un bind-mount de los directorios estándar de datos del usuario desde la unidad MiniOS escribible. No puede combinarse con el modo link ni con ningún modo `toram`.
+- **LIVE_USER_DIRS_PATH=PATH**: Esta variable corresponde al parámetro `**live-config.user-dirs-path**=*PATH*`. Especifica una ruta segura dentro de la unidad MiniOS FAT32, exFAT o NTFS. El valor predeterminado es `/minios/userdata`; se rechazan los segmentos de punto y de directorio padre.
+
+La configuración de medios de usuario nunca fusiona automáticamente dos directorios no vacíos. Un directorio local no vacío solo se migra cuando su destino en el medio está vacío. Cuando la función se desactiva, los datos gestionados en el medio se copian de vuelta antes de eliminar los enlaces. Una validación o copia fallida deja los directorios de usuario existentes en su lugar y registra el motivo en `/var/lib/live/config/user-media.status`.
+- **LIVE_MODULE_MODE**: Esta variable contiene el estado especificado por el parámetro `live-config.module-mode` (o `module-mode`). Cuando se establece en "merged", el sistema live aplica actualizaciones (mediante minios-update-users, minios-update-cache y minios-update-dpkg) para fusionar configuraciones personalizadas con el entorno base.
 - **LIVE_CONFIG_DEBUG=true|false**: Esta variable corresponde al parámetro `**live-config.debug**`.
 
 # PERSONALIZACIÓN

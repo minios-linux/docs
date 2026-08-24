@@ -272,9 +272,9 @@ sudo minios-kernel delete --help        # Delete command help
   - Comprueba si el nuevo kernel soporta tu hardware
   - Considera usar una variante diferente de kernel
 
-#### **🚨 Recuperación del kernel desde la imagen original de MiniOS**
+#### **🚨 Recuperación del Kernel desde la Imagen Original de MiniOS**
 
-Si necesitas recuperar un kernel dañado o incompatible, puedes iniciar desde la ISO/USB original de MiniOS:
+Si necesitas recuperar un kernel dañado o incompatible, puedes iniciar desde el ISO/USB original de MiniOS:
 
 ```bash
 # Boot from original MiniOS image with from= parameter
@@ -283,17 +283,17 @@ from=/dev/sda1  # Replace with your actual MiniOS device
 ```
 
 **Proceso de recuperación:**
-Al iniciar desde la imagen ISO/USB original de MiniOS y especificar en el parámetro `from=` el dispositivo donde está instalado MiniOS, el sistema init lo detecta y te permite acceder a tu sistema MiniOS instalado. El método de recuperación depende de si los archivos originales del kernel aún existen:
+Cuando inicias desde la imagen ISO/USB original de MiniOS y especificas en el parámetro `from=` el dispositivo donde está instalado MiniOS, el sistema de inicio detecta esto y te permite acceder a tu sistema MiniOS instalado. El método de recuperación depende de si los archivos originales del kernel aún están presentes:
 
 1. **Si el kernel original aún existe:** 
-   - El arranque se realiza sin problemas con el kernel original desde la ISO/USB
+   - El arranque se realiza sin problemas con el kernel original desde el ISO/USB
    - Activa manualmente el kernel original: `sudo minios-kernel activate <original-kernel-version>`
 
 2. **Si el kernel original fue eliminado:** 
-   - Copia manualmente los archivos del kernel desde la imagen original de MiniOS y restáuralos en las ubicaciones correspondientes de tu instalación
+   - Copia manualmente los archivos del kernel desde la imagen original de MiniOS y restáuralos en las ubicaciones correspondientes de tu instalación de MiniOS
    - Activa manualmente el kernel restaurado: `sudo minios-kernel activate <original-kernel-version>`
 
-En ambos casos, la activación del kernel requiere intervención manual tras el proceso de recuperación.
+En ambos casos, la activación del kernel requiere intervención manual después del proceso de recuperación.
 
 ### 🔍 **Comandos de diagnóstico:**
 

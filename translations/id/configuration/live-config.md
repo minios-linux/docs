@@ -62,28 +62,28 @@ Untuk kasus penggunaan khusus, terdapat beberapa parameter boot khusus.
 
 ## Berkas Konfigurasi
 
-**live-config** dapat dikonfigurasi (namun tidak diaktifkan) melalui berkas konfigurasi. Semua hal selain shortcut yang dapat dikonfigurasi dengan parameter boot juga dapat dikonfigurasi melalui satu atau lebih berkas. Jika menggunakan berkas konfigurasi, parameter `boot=live` tetap diperlukan untuk mengaktifkan **live-config**.
+**live-config** dapat dikonfigurasi (namun tidak diaktifkan) melalui berkas konfigurasi. Semua pengaturan, kecuali pintasan yang dapat dikonfigurasi melalui parameter boot, juga dapat diatur melalui satu atau beberapa berkas. Jika menggunakan berkas konfigurasi, parameter `boot=live` tetap diperlukan untuk mengaktifkan **live-config**.
 
-**Catatan:** Jika menggunakan berkas konfigurasi, sebaiknya semua parameter boot dimasukkan ke dalam variabel **LIVE_CONFIG_CMDLINE**, atau bisa juga mengatur variabel individual. Jika menggunakan variabel individual, pengguna wajib memastikan semua variabel yang diperlukan sudah diatur agar konfigurasi valid.
+**Catatan:** Jika menggunakan berkas konfigurasi, sebaiknya semua parameter boot dimasukkan ke dalam variabel **LIVE_CONFIG_CMDLINE**, atau variabel individual dapat diatur secara terpisah. Jika menggunakan variabel individual, pengguna harus memastikan semua variabel yang diperlukan sudah diatur agar konfigurasi valid.
 
-Berkas konfigurasi dapat diletakkan di root filesystem (`/etc/live/config.conf`, `/etc/live/config.conf.d/*.conf`), atau di media live (`minios/config.conf`, `minios/config.conf.d/*.conf`). Jika kedua lokasi digunakan untuk opsi yang sama, maka yang dari media live akan diutamakan.
+Berkas konfigurasi dapat ditempatkan di root filesystem (`/etc/live/config.conf`, `/etc/live/config.conf.d/*.conf`), atau pada media live (`minios/config.conf`, `minios/config.conf.d/*.conf`). Jika opsi tertentu ada di kedua lokasi, konfigurasi dari media live akan memiliki prioritas dibandingkan yang ada di root filesystem.
 
-Meskipun nama berkas konfigurasi di direktori konfigurasi tidak harus tertentu, disarankan untuk konsistensi menggunakan pola nama `vendor.conf` atau `project.conf` (di mana `vendor` atau `project` diganti dengan nama sebenarnya, misal `progress-linux.conf`).
+Meskipun nama berkas konfigurasi di direktori konfigurasi tidak harus tertentu, demi konsistensi disarankan menggunakan skema penamaan `vendor.conf` atau `project.conf` (di mana `vendor` atau `project` diganti dengan nama sebenarnya, misal `progress-linux.conf`).
 
-Isi berkas konfigurasi terdiri dari satu atau lebih variabel berikut.
+Isi berkas konfigurasi terdiri dari satu atau beberapa variabel berikut.
 
 - **LIVE_CONFIG_CMDLINE=PARAMETER1 PARAMETER2...PARAMETERn**: Variabel ini sesuai dengan command line bootloader.
 - **LIVE_CONFIG_COMPONENTS=COMPONENT1,COMPONENT2,...COMPONENTn**: Variabel ini sesuai dengan parameter `**live-config.components**=*COMPONENT1*,*COMPONENT2*,...*COMPONENTn*`.
 - **LIVE_CONFIG_NOCOMPONENTS=COMPONENT1,COMPONENT2,...COMPONENTn**: Variabel ini sesuai dengan parameter `**live-config.nocomponents**=*COMPONENT1*,*COMPONENT2*,...*COMPONENTn*`.
-- **LIVE_DEBCONF_PRESEED=filesystem|medium|URL1|URL2|...|URLn**: Variabel ini sesuai dengan parameter `**live-config.debconf-preseed**=filesystem|medium|*URL1*|*URL2*|...|*URLn*`.
+- **LIVE_DEBCONF_PRESEED=filesystem|medium|URL1|URL2|...|URLn**: Variabel ini sesuai dengan parameter `**live-config.debconf-preseed**=filesystem|medium|*URL1*\|*URL2*\|...|*URLn*`.
 - **LIVE_HOSTNAME=HOSTNAME**: Variabel ini sesuai dengan parameter `**live-config.hostname**=*HOSTNAME*`. Default-nya adalah `minios`.
 - **LIVE_USERNAME=USERNAME**: Variabel ini sesuai dengan parameter `**live-config.username**=*USERNAME*`. Default-nya adalah `live`.
 - **LIVE_USER_DEFAULT_GROUPS=GROUP1,GROUP2,...GROUPn**: Variabel ini sesuai dengan parameter `**live-config.user-default-groups**="*GROUP1*,*GROUP2*...*GROUPn*"`.
 - **LIVE_USER_FULLNAME="USER FULLNAME"**: Variabel ini sesuai dengan parameter `**live-config.user-fullname**="*USER FULLNAME*"`.
-- **LIVE_ROOT_PASSWORD=PASSWORD**: Variabel ini sesuai dengan parameter `**live-config.root-password**=*PASSWORD*`. Menentukan password root dalam teks biasa.
-- **LIVE_ROOT_PASSWORD_CRYPTED=PASSWORD**: Variabel ini sesuai dengan parameter `**live-config.root-password-crypted**=*PASSWORD*`. Menentukan password root dalam bentuk terenkripsi.
-- **LIVE_USER_PASSWORD=PASSWORD**: Variabel ini sesuai dengan parameter `**live-config.user-password**=*PASSWORD*`. Menentukan password user dalam teks biasa.
-- **LIVE_USER_PASSWORD_CRYPTED=PASSWORD**: Variabel ini sesuai dengan parameter `**live-config.user-password-crypted**=*PASSWORD*`. Menentukan password user dalam bentuk terenkripsi.
+- **LIVE_ROOT_PASSWORD=PASSWORD**: Variabel ini sesuai dengan parameter `**live-config.root-password**=*PASSWORD*`. Ini menentukan password root dalam bentuk teks biasa.
+- **LIVE_ROOT_PASSWORD_CRYPTED=PASSWORD**: Variabel ini sesuai dengan parameter `**live-config.root-password-crypted**=*PASSWORD*`. Ini menentukan password root dalam bentuk terenkripsi.
+- **LIVE_USER_PASSWORD=PASSWORD**: Variabel ini sesuai dengan parameter `**live-config.user-password**=*PASSWORD*`. Ini menentukan password user dalam bentuk teks biasa.
+- **LIVE_USER_PASSWORD_CRYPTED=PASSWORD**: Variabel ini sesuai dengan parameter `**live-config.user-password-crypted**=*PASSWORD*`. Ini menentukan password user dalam bentuk terenkripsi.
 - **LIVE_LOCALES=LOCALE1,LOCALE2,...LOCALEn**: Variabel ini sesuai dengan parameter `**live-config.locales**=*LOCALE1*,*LOCALE2*...*LOCALEn*`.
 - **LIVE_TIMEZONE=TIMEZONE**: Variabel ini sesuai dengan parameter `**live-config.timezone**=*TIMEZONE*`.
 - **LIVE_KEYBOARD_MODEL=KEYBOARD_MODEL**: Variabel ini sesuai dengan parameter `**live-config.keyboard-model**=*KEYBOARD_MODEL*`.
@@ -96,11 +96,13 @@ Isi berkas konfigurasi terdiri dari satu atau lebih variabel berikut.
 - **LIVE_XORG_DRIVER=XORG_DRIVER**: Variabel ini sesuai dengan parameter `**live-config.xorg-driver**=*XORG_DRIVER*`.
 - **LIVE_XORG_RESOLUTION=XORG_RESOLUTION**: Variabel ini sesuai dengan parameter `**live-config.xorg-resolution**=*XORG_RESOLUTION*`.
 - **LIVE_WLAN_DRIVER=WLAN_DRIVER**: Variabel ini sesuai dengan parameter `**live-config.wlan-driver**=*WLAN_DRIVER*`.
-- **LIVE_HOOKS=filesystem|medium|URL1|URL2|...|URLn**: Variabel ini sesuai dengan parameter `**live-config.hooks**=filesystem|medium|*URL1*|*URL2*|...|*URLn*`.
-- **LIVE_LINK_USER_DIRS=true|false**: Variabel ini sesuai dengan parameter `**live-config.link-user-dirs**=true|false`. Mengaktifkan atau menonaktifkan pembuatan symbolic link untuk direktori user.
-- **LIVE_BIND_USER_DIRS=true|false**: Variabel ini sesuai dengan parameter `**live-config.bind-user-dirs**=true|false`. Mengaktifkan atau menonaktifkan bind-mounting untuk direktori user.
-- **LIVE_USER_DIRS_PATH=PATH**: Variabel ini sesuai dengan parameter `**live-config.user-dirs-path**=*PATH*`. Menentukan path untuk direktori user di media.
-- **LIVE_MODULE_MODE**: Variabel ini menyimpan status yang ditentukan oleh parameter `live-config.module-mode` (atau `module-mode`). Jika diatur ke "merged", sistem live akan menerapkan update (melalui minios-update-users, minios-update-cache, dan minios-update-dpkg) untuk menggabungkan konfigurasi kustom dengan environment dasar.
+- **LIVE_HOOKS=filesystem|medium|URL1|URL2|...|URLn**: Variabel ini sesuai dengan parameter `**live-config.hooks**=filesystem|medium|*URL1*\|*URL2*\|...|*URLn*`.
+- **LIVE_LINK_USER_DIRS=true|false**: Variabel ini sesuai dengan parameter `**live-config.link-user-dirs**=true|false`. Opsi ini menghubungkan direktori data standar pengguna ke drive MiniOS yang dapat ditulis. Tidak dapat digabungkan dengan mode bind atau mode `toram` apa pun.
+- **LIVE_BIND_USER_DIRS=true|false**: Variabel ini sesuai dengan parameter `**live-config.bind-user-dirs**=true|false`. Opsi ini melakukan bind-mount direktori data standar pengguna dari drive MiniOS yang dapat ditulis. Tidak dapat digabungkan dengan mode link atau mode `toram` apa pun.
+- **LIVE_USER_DIRS_PATH=PATH**: Variabel ini sesuai dengan parameter `**live-config.user-dirs-path**=*PATH*`. Ini menentukan path aman di dalam drive MiniOS FAT32, exFAT, atau NTFS. Default-nya adalah `/minios/userdata`; segmen dot dan parent-directory akan ditolak.
+
+Pengaturan media pengguna tidak pernah menggabungkan dua direktori non-kosong secara otomatis. Direktori lokal non-kosong hanya akan dimigrasikan jika tujuan media-nya kosong. Saat fitur ini dinonaktifkan, data media yang dikelola akan disalin kembali sebelum tautan dihapus. Jika validasi atau penyalinan gagal, direktori pengguna yang ada tetap dipertahankan dan alasan kegagalan dicatat di `/var/lib/live/config/user-media.status`.
+- **LIVE_MODULE_MODE**: Variabel ini menyimpan status yang ditentukan oleh parameter `live-config.module-mode` (atau `module-mode`). Jika diatur ke "merged", sistem live akan menerapkan pembaruan (melalui minios-update-users, minios-update-cache, dan minios-update-dpkg) untuk menggabungkan konfigurasi kustom dengan lingkungan dasar.
 - **LIVE_CONFIG_DEBUG=true|false**: Variabel ini sesuai dengan parameter `**live-config.debug**`.
 
 # KUSTOMISASI

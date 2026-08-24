@@ -301,28 +301,28 @@ postgresql +st=database-server || mysql-server +st=web-server
 
     *   **Zeile:** `kernel-image-6.5.0 @trixie-backports`
 
-### Paketspezifikation nach Version
+### Paketversionsspezifikation
 
-Mit CondinAPT lässt sich die Version der zu installierenden Pakete präzise steuern.
+CondinAPT ermöglicht eine präzise Kontrolle über die Versionen der installierten Pakete.
 
 *   **Syntax:**
-    *   `package=VERSION`: Versucht, die angegebene Version (`VERSION`) zu installieren. Ist sie nicht in den Repositories verfügbar, wird eine beliebige verfügbare Version installiert.
-        *   Beispiel: `my-app=1.2.3` (versucht 1.2.3 zu installieren, andernfalls z. B. 1.2.4)
-    *   `package==VERSION`: **Strikte** Installation einer bestimmten Version. Ist diese Version nicht verfügbar, wird das Paket **nicht installiert**. Ist das Paket zusätzlich als obligatorisch (`!`) markiert, beendet das Skript mit Fehler.
-        *   Beispiel: `another-app==2.0.0` (installiert nur 2.0.0, andernfalls wird das Paket übersprungen oder es gibt einen Fehler, falls obligatorisch)
+    *   `package=VERSION`: Versucht, die angegebene Version (`VERSION`) zu installieren. Ist diese in den Repositories nicht verfügbar, installiert CondinAPT eine beliebige verfügbare Version des Pakets.
+        *   Beispiel: `my-app=1.2.3` (versucht 1.2.3 zu installieren, andernfalls z.B. 1.2.4)
+    *   `package==VERSION`: **Strikte** Installation einer bestimmten Version. Ist diese Version nicht in den Repositories verfügbar, wird das Paket **nicht installiert**. Falls das Paket zusätzlich als verpflichtend (`!`) markiert wurde, beendet das Skript die Ausführung mit einem Fehler.
+        *   Beispiel: `another-app==2.0.0` (installiert nur 2.0.0, andernfalls wird das Paket übersprungen oder es tritt ein Fehler auf, wenn verpflichtend)
 
 *   **Verhalten:**
-    1.  CondinAPT prüft zuerst, ob die geforderte Paketversion bereits installiert ist. Falls ja, gilt das Paket als installiert und wird übersprungen.
-    2.  Danach wird geprüft, ob die Version in den Repositories verfügbar ist (`apt-cache madison`).
+    1.  CondinAPT prüft zuerst, ob die benötigte Paketversion bereits auf dem System installiert ist. Falls ja, gilt das Paket als installiert und wird übersprungen.
+    2.  Anschließend wird geprüft, ob die angegebene Version in den Repositories verfügbar ist (`apt-cache madison`).
     3.  **Bei Verwendung von `=` (lockere Version):**
-        *   Ist die Version nicht verfügbar, gibt CondinAPT eine Warnung aus, dass die exakte Version nicht gefunden wurde.
-        *   Trotzdem wird versucht, eine beliebige verfügbare Version aus den Repositories zu installieren.
+        *   Ist die angegebene Version nicht verfügbar, gibt CondinAPT eine Warnung aus, dass die exakte Version nicht gefunden wurde.
+        *   Dennoch wird versucht, eine beliebige verfügbare Version des Pakets aus den Repositories zu installieren.
     4.  **Bei Verwendung von `==` (strikte Version):**
-        *   Ist die Version nicht verfügbar, wird das Paket **nicht** installiert.
-        *   Ist das Paket als obligatorisch (`!`) markiert, bricht das Skript mit Fehler ab.
+        *   Ist die angegebene Version nicht verfügbar, wird das Paket von CondinAPT **nicht** installiert.
+        *   Falls das Paket als verpflichtend (`!`) markiert wurde, bricht das Skript die Ausführung mit einem Fehler ab.
     5.  **Version halten (`apt-mark hold`):**
-        *   Wurde ein Paket mit der **exakten, angegebenen Version** erfolgreich installiert (also wenn `package==VERSION` erfolgreich war oder `package=VERSION` genau diese Version fand und installierte), setzt CondinAPT automatisch `apt-mark hold` für dieses Paket.
-        *   Dadurch werden automatische Updates dieses Pakets bei späteren `apt upgrade`-Vorgängen verhindert.
+        *   Wurde ein Paket erfolgreich mit der **exakt angegebenen Version** installiert (d.h. wenn `package==VERSION` erfolgreich war oder `package=VERSION` genau diese Version gefunden und installiert hat), führt CondinAPT automatisch den Befehl `apt-mark hold` für dieses Paket aus.
+        *   Dadurch werden automatische Updates des Pakets auf eine neue Version bei späteren `apt upgrade`-Vorgängen verhindert.
 
 ### Komplexe Filterbeispiele
 

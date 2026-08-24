@@ -1,39 +1,37 @@
-# MiniOS : L’expérience Linux portable ultime 🌐
+# À propos de MiniOS
 
-MiniOS est une distribution Linux polyvalente et portable basée sur Debian, conçue à l’aide des scripts minios-live. Son objectif principal est d’offrir un environnement complet et confortable pour le travail, le divertissement et la créativité sur tout matériel compatible x86, tout en préservant vos données personnelles sur des supports amovibles.
+MiniOS est une distribution Linux basée sur Debian, conçue pour fonctionner à partir d’un support amovible ou d’un disque local. Son système en lecture seule est assemblé à partir de modules SquashFS, avec des sessions optionnelles en écriture pour les fichiers, les paramètres et les paquets installés. MiniOS prend en charge les systèmes x86 64 bits et peut démarrer en mode UEFI ou BIOS hérité.
 
-## Basé sur Debian : Stabilité et polyvalence 🎯
+## Modèle système
 
-Reposant sur la base solide de Debian, MiniOS hérite de tous les atouts de l’une des distributions Linux les plus stables et sécurisées. Cette base confère à MiniOS :
+- Le système de base et les logiciels optionnels sont des modules séparés. Les modules peuvent être sélectionnés au démarrage ou ajoutés sans reconstruire l’ensemble du système.
+- Une nouvelle session live laisse les modules de base inchangés.
+- La persistance peut enregistrer les modifications dans un répertoire natif, un conteneur DynFileFS extensible, une image brute de taille fixe ou un conteneur LUKS chiffré, selon l’installation et le système de fichiers cible.
+- L’installateur MiniOS peut réaliser une installation live modulaire ou, lorsque l’image le permet, déployer une installation Linux native classique.
 
-- **Stabilité** : Garantit une expérience utilisateur fluide et fiable.
-- **Sécurité** : Bénéficie de l’accent mis sur la sécurité par Debian avec des mises à jour et correctifs réguliers.
-- **Compatibilité** : Accès au vaste dépôt de paquets logiciels de Debian.
-- **Support communautaire** : Profite de la vaste expertise et du soutien de la communauté Debian.
+Consultez [Architecture du système](/about/System-Architecture.md) pour la structure de démarrage et des modules, et [Gestion des sessions](/configuration/Session-Management.md) pour les sessions persistantes.
 
-## Fonctionnalités clés de MiniOS 🛠️
+## Éditions
 
-- **Modularité** : Propose un large éventail de modules personnalisables pour adapter le système à vos besoins spécifiques.
-- **Portabilité** : Conçu pour être installé sur une clé USB et utilisé sur différents appareils.
-- **Compatibilité** : Fonctionne sur une grande variété de systèmes avec prise en charge de l’UEFI et du BIOS hérité.
-- **Mises à jour** : Inclut la dernière version avec un noyau à jour et des outils supplémentaires pour le débogage.
+Les éditions disponibles dépendent de la version et de la distribution de base :
 
-## Éditions MiniOS : Personnalisées selon vos besoins 📦
+- **Minimum** utilise l’environnement Flux et un ensemble de paquets réduit. Elle convient aux systèmes où une sélection logicielle minimale est privilégiée.
+- **Standard** est l’édition polyvalente. Les versions Debian et Ubuntu standard actuelles utilisent Xfce.
+- **Toolbox** ajoute des outils d’administration système, de stockage, de diagnostic et de récupération.
+- **Ultra** propose un ensemble d’applications plus large en complément des autres éditions.
 
-### 🚀 **Standard** : Le compagnon fiable
+Xfce est l’environnement de bureau habituel dans les images Standard, Toolbox et Ultra, mais ce n’est pas le seul environnement proposé par MiniOS. Minimum utilise Flux, et certaines configurations de build peuvent offrir d’autres environnements. Consultez la description de la version avant de télécharger si l’environnement de bureau est important pour vous.
 
-MiniOS Standard est votre allié pour les tâches quotidiennes. Fiable, bien équipé et prêt à l’emploi, il constitue la base de la gamme MiniOS.
+Pour la liste des logiciels inclus dans chaque édition, consultez la [liste des paquets](/administration/Packages.md).
 
-### 🧰 **Toolbox** : La boîte à outils des utilisateurs avancés
+## Installation et persistance
 
-MiniOS Toolbox est conçue pour les professionnels et utilisateurs exigeants qui ont besoin d’un ensemble complet d’utilitaires pour l’administration système, le partitionnement de disque et la récupération de données. C’est la boîte à outils ultime pour ceux qui nécessitent des capacités avancées de gestion du système.
+Une image ISO peut être écrite comme image amorçable, copiée sur un périphérique multiboot ou installée avec l’installateur MiniOS. Ces méthodes n’ont pas toutes le même comportement de stockage. Les outils d’écriture d’image comme `dd` et Etcher reproduisent la structure de l’ISO ; Ventoy démarre le fichier ISO ; l’installateur MiniOS peut allouer et configurer un espace de stockage pour les sessions en écriture. Ne supposez pas qu’une méthode d’écriture crée automatiquement la persistance.
 
-### ⚡ **Ultra** : La solution tout-en-un
+Commencez par le [Guide de démarrage rapide](/installation/Quick-Start.md) et suivez le guide correspondant à la méthode d’installation choisie. La persistance peut aussi être sélectionnée depuis un menu de démarrage adapté ou configurée avec les paramètres de démarrage documentés lorsque le stockage en écriture est disponible.
 
-MiniOS Ultra est la version la plus complète de MiniOS, regroupant toutes les fonctionnalités et outils des éditions Standard et Toolbox, ainsi que des logiciels supplémentaires pour le développement, le multimédia et le réseau avancé. Idéal pour les utilisateurs souhaitant une station de travail portable complète, prête à l’emploi.
+## Ressources du projet
 
-Pour la liste détaillée des paquets inclus dans chaque édition, consultez : [Liste des paquets](/administration/Packages.md)
-
-## Pourquoi choisir MiniOS ? 💡
-
-MiniOS se distingue comme un choix judicieux pour ceux qui recherchent un système d’exploitation portable, stable et sécurisé. Parfait pour redonner vie à de vieux PC, créer une station de travail portable ou simplement profiter de la liberté de Linux partout.
+- [Site web MiniOS](https://minios.dev)
+- [Code source](https://github.com/minios-linux/minios-live)
+- [Gestionnaire de tickets](https://github.com/minios-linux/minios-live/issues)

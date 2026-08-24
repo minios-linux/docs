@@ -1,106 +1,121 @@
 # Using MiniOS Installer
 
-MiniOS Installer is a graphical tool for installing MiniOS to hard drives or USB drives with UEFI/BIOS support and multiple filesystem compatibility.
+MiniOS Installer is a GTK wizard and command-line backend for deploying MiniOS from a MiniOS live session. It installs to a target disk; it is not the same as writing an ISO to bootable media.
 
+## Before starting
 
-## Important
+An incorrect target or partitioning choice can destroy data. Back up important files, disconnect disks that are not needed, and identify the target by device path, model, and capacity. The final confirmation is the last point at which an installation can be cancelled safely.
 
-⚠️ **Warning:** Incorrect device selection will result in data loss! Always double-check the selected device and backup important data.
+The disk containing the running MiniOS live system is excluded from target selection. For general capacity guidance, see the [Hardware compatibility guide](Hardware-Compatibility.md#system-requirements).
 
-## Drive Requirements
+## Installation modes
 
-### Drive Size
-See [Hardware Compatibility Guide](Hardware-Compatibility.md#system-requirements) for detailed system requirements and drive sizes.
+Live mode copies the selected compressed MiniOS modules and boot assets. The result keeps the modular live-system layout and can use MiniOS session persistence.
 
-### Supported Filesystems
-- **ext4** (recommended for Linux)
-- **Btrfs** (modern filesystem with snapshots)
-- **FAT32** (maximum compatibility)
-- **NTFS** (Windows compatibility)
+Native mode expands the selected modules into a conventional Linux root filesystem, configures the target, installs required packages, generates initramfs, and installs the bootloader. The installer detects native support from the booted image. If required kernel metadata and the EFI architecture contract are absent, compatibility mode permits only live installation.
 
-## Creating Installation
+## Start the graphical installer
 
-### Launching MiniOS Installer
+Open the applications menu, select System, then select Install MiniOS. It can also be started from a terminal:
 
-**Through applications menu:**
-1. Open menu → System → "Install MiniOS"
-
-**Through terminal:**
 ```bash
 sudo minios-installer
 ```
 
-### Installation Process
+The wizard collects installation mode, security, location, wired network, keyboard, account, module, storage, and boot settings. Review the exact partition geometry and operation summary before accepting the final destructive confirmation.
 
-1. **Configure system settings (Optional but Recommended):**
-   - Click **"Configure MiniOS before installation"** button
-   - Set up your preferences:
-     - System language and locale
-     - Timezone and keyboard layout  
-     - User accounts and passwords
-     - Hostname and system services
-   - Save and close configurator
-   
-2. **Select target device:**
-   - Choose a hard drive or USB drive from the list
-   - Verify device size and model
-   
-3. **Select filesystem:**
-   - **ext4**: recommended for most cases
-   - **Btrfs**: for advanced users
-   - **FAT32**: for maximum compatibility
-   
-4. **Confirm disk wipe:**
-   - All data on the selected device will be deleted
-   - Ensure correct device selection
-   
-5. **Start installation:**
-   - Click "Install" button
-   - Wait for process completion
-   
-6. **Completion:**
-   - Restart the system
-   - Remove LiveUSB/LiveCD
-   - **Result:** System boots with your pre-configured settings
+## Placement and boot layouts
 
-## Pre-Installation Configuration
+The graphical installer offers these placement choices when the target is eligible:
 
-### Benefits of Using MiniOS Configurator Before Installation
+- Erase all creates a new partition table and destroys all data on the target disk.
+- Free space uses suitable unallocated space without shrinking an existing filesystem.
+- Alongside shrinks an eligible, unmounted final ext2, ext3, ext4, or NTFS partition. Dirty, mounted, nested, ambiguous, and otherwise unsafe layouts are refused. The installer may ask before downloading missing filesystem tools.
+- Manual partitioning is available only for native GUI installations on eligible direct disks. Changes are staged until final confirmation.
 
-**Recommended workflow for new users:**
+Automatic boot layouts are BIOS/MBR, UEFI/MBR, and UEFI/GPT. UEFI works with GPT or primary MBR layouts. BIOS is supported on primary MBR, not GPT. Extended or logical MBR preserve layouts are unsupported.
 
-1. **One-time setup**: Configure all system preferences once before installation
-2. **Ready to use**: Installed system boots with correct language, keyboard, and user settings
-3. **No post-installation work**: Skip manual configuration after first boot
-4. **Consistent experience**: Same settings across all installations
+Manual mode can create, delete, format, and reuse partitions; shrink a supported filesystem from its end; assign mount points, an EFI system partition, and swap; and undo or reset staged changes. It does not support LVM, RAID, native LUKS roots, mapped or nested storage, bcache, ZFS, or Btrfs subvolume editing. LUKS session persistence does not encrypt a native root filesystem.
 
-**Configuration options available:**
-- **🌍 Localization**: System language, locale, and timezone
-- **⌨️ Input**: Keyboard layouts and switching options  
-- **👤 Accounts**: Username, full name, passwords, and user groups
-- **🖥️ System**: Hostname, enabled/disabled services
-- **🔒 Security**: Secure password setup before going online
+## Filesystems
 
-**Simple workflow:**
-- Configure your preferences once before installation
-- Install MiniOS with your custom settings
-- Boot into a fully configured system
+- Live layouts can use ext2, ext4, Btrfs, FAT32, or NTFS when the required tools are installed.
+- Native root filesystems can use ext2, ext4, or Btrfs. Ext4 is the general-purpose default.
+- Existing ext3 filesystems may be reused or shrunk where supported, but ext3 is not offered for new formatting.
+- FAT32 is limited to files smaller than 4 GiB and is available only for live layouts.
+- NTFS is available only for live layouts, although an eligible NTFS partition may be shrunk for alongside placement.
 
-## Automatic Change Persistence
+Required space includes the selected module data, boot assets, requested persistence, and a 25 percent filesystem reserve. EFI and native swap space are calculated separately.
 
-After installation, MiniOS Installer creates a system on the selected device:
+## Configuration and security
 
-- **UEFI/BIOS compatibility**: Automatic creation of necessary boot partitions
-- **Change persistence**: Full support for MiniOS persistence modes
-- **Filesystems**: Support for ext4, Btrfs, FAT32, NTFS
+The installer can set locale, timezone, keyboard, username, passwords, user groups, hostname, services, boot menu, and module selection. Selecting a higher MiniOS module includes its required lower layers.
 
-### Parameter Configuration (for advanced users)
+Security profiles are `convenient`, `balanced`, and `strict`. Live mode defaults to `convenient`; native mode defaults to `balanced`. SSH and XRDP controls are separate from the selected profile. Review remote-access services before the first network connection.
 
-For precise persistence configuration, boot parameters can be used:
+Network configuration covers the hostname and wired DHCP or static IPv4. The installer does not create or modify Wi-Fi profiles. Native and alongside installations may need network access, with your consent, to obtain GRUB, EFI, initramfs, `os-prober`, or filesystem resize packages before disk changes.
 
-- `perchmode=native` - Direct partition saving (when free space available)
-- `perchmode=dynfilefs` - Dynamically expandable file
-- `perchmode=raw` - Fixed-size file
-- `perchsize=8000` - Storage space size for data in MB
+## Live session persistence
 
-Details in [boot parameters](/configuration/Boot-Parameters.md).
+Persistence applies only to live installations:
+
+- Native persistence stores changes directly on a POSIX-compatible target filesystem. It is not offered on FAT32 or NTFS.
+- DynFileFS uses an expandable container.
+- Raw uses a fixed-size image.
+- LUKS uses an encrypted image created by the initrd on first boot. The passphrase is requested at boot and is never received or stored by the installer.
+
+Container modes default to 4000 MiB. Raw and LUKS containers cannot exceed 4000 MiB on FAT32; DynFileFS is not subject to that single-file limit. LUKS is offered only when both the running initrd and each copied source initrd advertise the required crypto support.
+
+The resulting boot options use `perchmode` and `perchsize`. See [Boot parameters](/configuration/Boot-Parameters.md) for their runtime meaning.
+
+## Command-line deployment
+
+`minios-deploy` is intended for automation, testing, and recovery. Manual partitioning and interactive wired network setup remain GUI-only.
+
+List the disks recognized as installable:
+
+```bash
+minios-deploy list-disks
+```
+
+Replace `/dev/sdb` in every example with the verified target disk. First print a non-destructive plan:
+
+```bash
+minios-deploy plan /dev/sdb --mode live --placement free_space \
+  --filesystem ext4 --persistence-mode dynfilefs --persistence-size 8000
+```
+
+Preview the matching deployment commands without writing to disk:
+
+```bash
+sudo minios-deploy install /dev/sdb --mode live --placement free_space \
+  --filesystem ext4 --persistence-mode dynfilefs --persistence-size 8000 \
+  --security-profile balanced --dry-run
+```
+
+Run the real installation only after checking the plan, target identity, and dry-run output. `--yes` authorizes destructive changes:
+
+```bash
+sudo minios-deploy install /dev/sdb --mode live --placement free_space \
+  --filesystem ext4 --persistence-mode dynfilefs --persistence-size 8000 \
+  --security-profile balanced --yes
+```
+
+For a native installation into existing free space, use the same storage options for planning and installation:
+
+```bash
+minios-deploy plan /dev/sdb --mode native --placement free_space \
+  --filesystem ext4 --boot-layout auto
+sudo minios-deploy install /dev/sdb --mode native --placement free_space \
+  --filesystem ext4 --boot-layout auto --security-profile balanced \
+  --download-packages --yes
+```
+
+Native mode may not appear in CLI help on an image that lacks native-install support. The CLI also accepts configuration options for accounts, locale, timezone, keyboard, hostname, services, and a base `config.conf`. Check the exact options provided by the running image:
+
+```bash
+minios-deploy install --help
+man minios-deploy
+```
+
+Avoid `--password` and `--root-password` in shared environments because plaintext command-line arguments can be exposed in shell history and the process list. Use the graphical installer or a protected configuration workflow instead.

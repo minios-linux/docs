@@ -53,7 +53,7 @@ MiniOS uses `zram` by default to create a compressed swap space in your RAM. Thi
 
 **Automatic sizing:**
 - **≥4GB RAM:** 2GB ZRAM
-- **1-4GB RAM:** 50% of total RAM  
+- **1-4GB RAM:** Half of total RAM
 - **<1GB RAM:** 512MB ZRAM
 
 **Boot parameters:**

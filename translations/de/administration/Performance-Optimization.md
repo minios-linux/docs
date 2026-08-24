@@ -8,16 +8,16 @@ Die effektivste Methode, die Leistung zu steigern – besonders beim Betrieb von
 
 ### Laden des Systems in den RAM (`toram`)
 
-Dies ist die wichtigste Optimierung überhaupt. Der Boot-Parameter `toram` kopiert das gesamte MiniOS-System vom Boot-Medium in den Arbeitsspeicher Ihres Computers. Dadurch wird das System extrem reaktionsschnell, da keine Daten mehr vom langsameren USB-Stick gelesen werden müssen.
+Dies ist die mit Abstand wichtigste Optimierung. Der Boot-Parameter `toram` kopiert das gesamte MiniOS-System vom Boot-Medium in den RAM Ihres Computers. Dadurch wird das System extrem reaktionsschnell, da keine Daten mehr vom langsameren USB-Laufwerk gelesen werden müssen.
 
 - **Verwendung:** Fügen Sie `toram` der Kernel-Befehlszeile beim Start hinzu.
-- **Voraussetzung:** Sie benötigen genügend RAM, um die Kernsystemmodule aufzunehmen. Für die `standard` Edition werden mindestens 2–3 GB freier RAM empfohlen.
+- **Voraussetzung:** Sie benötigen genügend RAM, um die Kernsystemmodule aufzunehmen. Für die `standard` Edition werden mindestens 2-3 GB freier RAM empfohlen.
 - **Vorteil:** Startzeiten von Anwendungen und die allgemeine Systemreaktion werden drastisch verbessert.
 
-Es gibt zwei Modi für `toram`:
+Für `toram` gibt es zwei Modi:
 
-- **`toram=full` (Standard):** Kopiert alle Systemmodule in den RAM. Verwenden Sie dies, wenn ausreichend Arbeitsspeicher vorhanden ist.
-- **`toram=trim`:** Kopiert nur die essenziellen Module, die durch die Boot-Parameter `load` und `noload` definiert sind. Dies ist nützlich für Systeme mit begrenztem RAM.
+- **`toram=full` (Standard):** Kopiert alle Systemmodule in den RAM. Verwenden Sie dies, wenn Sie ausreichend Speicher haben.
+- **`toram=trim`:** Kopiert nur die wichtigsten Module, die durch die Boot-Parameter `load` und `noload` definiert sind. Dies ist nützlich für Systeme mit begrenztem RAM.
 
 ### Module filtern (`load` und `noload`)
 
@@ -49,19 +49,19 @@ Standardmäßig läuft MiniOS im „Live“-Modus, bei dem alle Änderungen beim
 
 ## ZRAM-Konfiguration
 
-MiniOS verwendet standardmäßig `zram`, um einen komprimierten Swap-Bereich im RAM zu erstellen. Das verbessert die Leistung auf Systemen mit wenig physischem Speicher, da so auf eine deutlich langsamere Auslagerungsdatei auf der Festplatte verzichtet werden kann.
+MiniOS verwendet standardmäßig `zram`, um einen komprimierten Swap-Bereich im RAM zu erstellen. Dies verbessert die Leistung auf Systemen mit begrenztem physischem Speicher, da so die Nutzung einer deutlich langsameren Swap-Datei auf der Festplatte vermieden wird.
 
 **Automatische Größenanpassung:**
 - **≥4GB RAM:** 2GB ZRAM
-- **1–4GB RAM:** 50% des gesamten RAM  
+- **1–4GB RAM:** Die Hälfte des gesamten RAM
 - **<1GB RAM:** 512MB ZRAM
 
 **Boot-Parameter:**
-- **`zramsize=1024`:** Legt die Größe des ZRAM-Geräts fest (z.B. `zramsize=1024` für 1GB). Standardmäßig wird die Größe automatisch anhand Ihres Gesamtspeichers konfiguriert.
-- **`zramcomp=lz4`:** Legt den Komprimierungsalgorithmus fest (`lzo`, `lzo-rle`, `lz4`, `lz4hc`, `zstd`). `lz4` bietet in der Regel ein gutes Verhältnis zwischen Geschwindigkeit und Kompression.
+- **`zramsize=1024`:** Legt die Größe des ZRAM-Geräts fest (z. B. `zramsize=1024` für 1GB). Standardmäßig wird die Größe automatisch anhand des gesamten RAM konfiguriert.
+- **`zramcomp=lz4`:** Legt den Komprimierungsalgorithmus fest (`lzo`, `lzo-rle`, `lz4`, `lz4hc`, `zstd`). `lz4` bietet in der Regel einen guten Kompromiss zwischen Geschwindigkeit und Kompressionsrate.
 - **`nozram`:** Deaktiviert ZRAM vollständig.
 
-Für die meisten Nutzer sind die Standardwerte für `zram` optimal. Eine Anpassung wird nur empfohlen, wenn Sie spezielle Anforderungen haben und die Auswirkungen kennen.
+Für die meisten Nutzer sind die Standard-Einstellungen von `zram` optimal. Eine Anpassung wird nur empfohlen, wenn Sie spezielle Anforderungen haben und die jeweiligen Auswirkungen kennen.
 
 ## Dateisystem und Speichermedien
 

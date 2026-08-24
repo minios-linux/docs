@@ -1,107 +1,121 @@
 # Usando o Instalador MiniOS
 
-O Instalador MiniOS é uma ferramenta gráfica para instalar o MiniOS em discos rígidos ou unidades USB com suporte a UEFI/BIOS e compatibilidade com múltiplos sistemas de arquivos.
+O Instalador MiniOS é um assistente GTK com backend de linha de comando para implantar o MiniOS a partir de uma sessão live do MiniOS. Ele instala em um disco de destino; não é o mesmo que gravar uma ISO em uma mídia inicializável.
 
-## Importante
+## Antes de começar
 
-⚠️ **Atenção:** Selecionar o dispositivo incorreto resultará em perda de dados! Sempre confira o dispositivo selecionado e faça backup dos dados importantes.
+Uma escolha incorreta de destino ou particionamento pode destruir dados. Faça backup dos arquivos importantes, desconecte discos que não serão usados e identifique o destino pelo caminho do dispositivo, modelo e capacidade. A confirmação final é o último ponto em que a instalação pode ser cancelada com segurança.
 
-## Requisitos do Disco
+O disco que contém o sistema live do MiniOS em execução é excluído da seleção de destino. Para orientações gerais de capacidade, consulte o [Guia de compatibilidade de hardware](Hardware-Compatibility.md#system-requirements).
 
-### Tamanho do Disco
+## Modos de instalação
 
-Consulte o [Guia de Compatibilidade de Hardware](Hardware-Compatibility.md#system-requirements) para requisitos detalhados de sistema e tamanhos de disco.
+O modo Live copia os módulos MiniOS compactados selecionados e os arquivos de inicialização. O resultado mantém o layout modular do sistema live e pode usar persistência de sessão do MiniOS.
 
-### Sistemas de Arquivos Suportados
+O modo Nativo expande os módulos selecionados em um sistema de arquivos raiz Linux convencional, configura o destino, instala os pacotes necessários, gera o initramfs e instala o bootloader. O instalador detecta o suporte nativo a partir da imagem inicializada. Se os metadados de kernel necessários e o contrato de arquitetura EFI estiverem ausentes, o modo de compatibilidade permite apenas a instalação live.
 
-- **ext4** (recomendado para Linux)
-- **Btrfs** (sistema de arquivos moderno com snapshots)
-- **FAT32** (máxima compatibilidade)
-- **NTFS** (compatibilidade com Windows)
+## Iniciar o instalador gráfico
 
-## Criando a Instalação
+Abra o menu de aplicativos, selecione Sistema e depois Instalar MiniOS. Também pode ser iniciado a partir de um terminal:
 
-### Iniciando o Instalador MiniOS
-
-**Pelo menu de aplicativos:**
-1. Abra o menu → Sistema → "Instalar MiniOS"
-
-**Pelo terminal:**
 ```bash
 sudo minios-installer
 ```
 
-### Processo de Instalação
+O assistente coleta informações sobre modo de instalação, segurança, localização, rede cabeada, teclado, conta, módulos, armazenamento e configurações de boot. Revise a geometria exata das partições e o resumo das operações antes de aceitar a confirmação final destrutiva.
 
-1. **Configurar as opções do sistema (Opcional, mas recomendado):**
-   - Clique no botão **"Configurar MiniOS antes da instalação"**
-   - Defina suas preferências:
-     - Idioma e localidade do sistema
-     - Fuso horário e layout de teclado  
-     - Contas de usuário e senhas
-     - Nome do host e serviços do sistema
-   - Salve e feche o configurador
-   
-2. **Selecione o dispositivo de destino:**
-   - Escolha um disco rígido ou unidade USB da lista
-   - Verifique o tamanho e modelo do dispositivo
-   
-3. **Selecione o sistema de arquivos:**
-   - **ext4**: recomendado para a maioria dos casos
-   - **Btrfs**: para usuários avançados
-   - **FAT32**: para máxima compatibilidade
-   
-4. **Confirme a limpeza do disco:**
-   - Todos os dados no dispositivo selecionado serão apagados
-   - Certifique-se de escolher o dispositivo correto
-   
-5. **Inicie a instalação:**
-   - Clique no botão "Instalar"
-   - Aguarde a conclusão do processo
-   
-6. **Conclusão:**
-   - Reinicie o sistema
-   - Remova o LiveUSB/LiveCD
-   - **Resultado:** O sistema inicializa com suas configurações pré-definidas
+## Opções de posicionamento e layouts de boot
 
-## Configuração Pré-Instalação
+O instalador gráfico oferece estas opções de posicionamento quando o destino é elegível:
 
-### Benefícios de Usar o Configurador MiniOS Antes da Instalação
+- Apagar tudo cria uma nova tabela de partições e destrói todos os dados no disco de destino.
+- Espaço livre utiliza espaço não alocado adequado sem reduzir um sistema de arquivos existente.
+- Paralelo reduz uma partição final ext2, ext3, ext4 ou NTFS elegível e desmontada. Layouts sujos, montados, aninhados, ambíguos ou de outra forma inseguros são recusados. O instalador pode solicitar permissão antes de baixar ferramentas de sistema de arquivos ausentes.
+- Particionamento manual está disponível apenas para instalações nativas via GUI em discos diretos elegíveis. As alterações são preparadas até a confirmação final.
 
-**Fluxo de trabalho recomendado para novos usuários:**
+Os layouts automáticos de boot são BIOS/MBR, UEFI/MBR e UEFI/GPT. UEFI funciona com layouts GPT ou MBR primário. BIOS é suportado apenas em MBR primário, não em GPT. Layouts MBR estendidos ou lógicos de preservação não são suportados.
 
-1. **Configuração única**: Defina todas as preferências do sistema uma vez antes da instalação
-2. **Pronto para usar**: O sistema instalado inicializa com idioma, teclado e configurações de usuário corretos
-3. **Sem ajustes pós-instalação**: Pule a configuração manual após o primeiro boot
-4. **Experiência consistente**: Mesmas configurações em todas as instalações
+O modo manual pode criar, excluir, formatar e reutilizar partições; reduzir um sistema de arquivos suportado a partir do final; atribuir pontos de montagem, uma partição do sistema EFI e swap; e desfazer ou redefinir alterações preparadas. Não há suporte para LVM, RAID, raiz nativa LUKS, armazenamento mapeado ou aninhado, bcache, ZFS ou edição de subvolumes Btrfs. A persistência de sessão LUKS não criptografa um sistema de arquivos raiz nativo.
 
-**Opções de configuração disponíveis:**
-- **🌍 Localização**: Idioma do sistema, localidade e fuso horário
-- **⌨️ Entrada**: Layouts de teclado e opções de alternância  
-- **👤 Contas**: Nome de usuário, nome completo, senhas e grupos de usuário
-- **🖥️ Sistema**: Nome do host, serviços ativados/desativados
-- **🔒 Segurança**: Definição de senha segura antes de conectar à internet
+## Sistemas de arquivos
 
-**Fluxo de trabalho simples:**
-- Configure suas preferências uma vez antes da instalação
-- Instale o MiniOS com suas configurações personalizadas
-- Inicie em um sistema totalmente configurado
+- Layouts live podem usar ext2, ext4, Btrfs, FAT32 ou NTFS quando as ferramentas necessárias estiverem instaladas.
+- Sistemas de arquivos raiz nativos podem usar ext2, ext4 ou Btrfs. Ext4 é o padrão para uso geral.
+- Sistemas de arquivos ext3 existentes podem ser reutilizados ou reduzidos onde suportado, mas ext3 não é oferecido para nova formatação.
+- FAT32 é limitado a arquivos menores que 4 GiB e está disponível apenas para layouts live.
+- NTFS está disponível apenas para layouts live, embora uma partição NTFS elegível possa ser reduzida para instalação paralela.
 
-## Persistência Automática de Alterações
+O espaço necessário inclui os dados dos módulos selecionados, arquivos de boot, persistência solicitada e uma reserva de 25 por cento do sistema de arquivos. Espaço EFI e swap nativo são calculados separadamente.
 
-Após a instalação, o Instalador MiniOS cria um sistema no dispositivo selecionado:
+## Configuração e segurança
 
-- **Compatibilidade UEFI/BIOS**: Criação automática das partições de boot necessárias
-- **Persistência de alterações**: Suporte completo aos modos de persistência do MiniOS
-- **Sistemas de arquivos**: Suporte para ext4, Btrfs, FAT32, NTFS
+O instalador pode definir localidade, fuso horário, teclado, nome de usuário, senhas, grupos de usuários, nome da máquina, serviços, menu de boot e seleção de módulos. Selecionar um módulo MiniOS superior inclui suas camadas inferiores obrigatórias.
 
-### Configuração de Parâmetros (para usuários avançados)
+Os perfis de segurança são `convenient`, `balanced` e `strict`. O modo live usa `convenient` como padrão; o modo nativo usa `balanced` como padrão. Os controles de SSH e XRDP são separados do perfil selecionado. Revise os serviços de acesso remoto antes da primeira conexão de rede.
 
-Para configuração precisa da persistência, parâmetros de boot podem ser utilizados:
+A configuração de rede abrange o nome da máquina e DHCP cabeado ou IPv4 estático. O instalador não cria nem modifica perfis de Wi-Fi. Instalações nativas e paralelas podem precisar de acesso à rede, com seu consentimento, para obter GRUB, EFI, initramfs, `os-prober` ou pacotes de redimensionamento de sistema de arquivos antes das alterações no disco.
 
-- `perchmode=native` - Salvamento direto na partição (quando houver espaço livre)
-- `perchmode=dynfilefs` - Arquivo expansível dinamicamente
-- `perchmode=raw` - Arquivo de tamanho fixo
-- `perchsize=8000` - Espaço de armazenamento para dados em MB
+## Persistência da sessão live
 
-Detalhes em [parâmetros de boot](/configuration/Boot-Parameters.md).
+A persistência se aplica apenas a instalações live:
+
+- Persistência nativa armazena alterações diretamente em um sistema de arquivos de destino compatível com POSIX. Não é oferecida em FAT32 ou NTFS.
+- DynFileFS usa um contêiner expansível.
+- Raw usa uma imagem de tamanho fixo.
+- LUKS usa uma imagem criptografada criada pelo initrd no primeiro boot. A senha é solicitada na inicialização e nunca é recebida nem armazenada pelo instalador.
+
+Os modos de contêiner têm padrão de 4000 MiB. Contêineres Raw e LUKS não podem exceder 4000 MiB em FAT32; DynFileFS não está sujeito a esse limite de arquivo único. LUKS só é oferecido quando tanto o initrd em execução quanto cada initrd de origem copiado anunciam o suporte criptográfico necessário.
+
+As opções de boot resultantes usam `perchmode` e `perchsize`. Veja [Parâmetros de boot](/configuration/Boot-Parameters.md) para o significado em tempo de execução.
+
+## Implantação via linha de comando
+
+`minios-deploy` é destinado à automação, testes e recuperação. O particionamento manual e a configuração interativa de rede cabeada permanecem exclusivos da interface gráfica.
+
+Liste os discos reconhecidos como instaláveis:
+
+```bash
+minios-deploy list-disks
+```
+
+Substitua `/dev/sdb` em cada exemplo pelo disco de destino verificado. Primeiro, imprima um plano não destrutivo:
+
+```bash
+minios-deploy plan /dev/sdb --mode live --placement free_space \
+  --filesystem ext4 --persistence-mode dynfilefs --persistence-size 8000
+```
+
+Visualize os comandos de implantação correspondentes sem gravar no disco:
+
+```bash
+sudo minios-deploy install /dev/sdb --mode live --placement free_space \
+  --filesystem ext4 --persistence-mode dynfilefs --persistence-size 8000 \
+  --security-profile balanced --dry-run
+```
+
+Execute a instalação real somente após conferir o plano, a identidade do destino e a saída do teste. `--yes` autoriza alterações destrutivas:
+
+```bash
+sudo minios-deploy install /dev/sdb --mode live --placement free_space \
+  --filesystem ext4 --persistence-mode dynfilefs --persistence-size 8000 \
+  --security-profile balanced --yes
+```
+
+Para uma instalação nativa em espaço livre existente, use as mesmas opções de armazenamento para planejamento e instalação:
+
+```bash
+minios-deploy plan /dev/sdb --mode native --placement free_space \
+  --filesystem ext4 --boot-layout auto
+sudo minios-deploy install /dev/sdb --mode native --placement free_space \
+  --filesystem ext4 --boot-layout auto --security-profile balanced \
+  --download-packages --yes
+```
+
+O modo nativo pode não aparecer na ajuda do CLI em uma imagem que não tenha suporte a instalação nativa. O CLI também aceita opções de configuração para contas, localidade, fuso horário, teclado, nome da máquina, serviços e um `config.conf` base. Verifique as opções exatas fornecidas pela imagem em execução:
+
+```bash
+minios-deploy install --help
+man minios-deploy
+```
+
+Evite `--password` e `--root-password` em ambientes compartilhados, pois argumentos de linha de comando em texto simples podem ser expostos no histórico do shell e na lista de processos. Use o instalador gráfico ou um fluxo de configuração protegido.

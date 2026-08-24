@@ -1,216 +1,82 @@
-# Guía de Endurecimiento de Seguridad
+# Endurecimiento de la seguridad
 
-Esta guía proporciona pasos prácticos para mejorar la seguridad de tu sistema MiniOS. Dado que MiniOS es un sistema en vivo, las principales preocupaciones de seguridad son proteger los datos del usuario en el almacenamiento persistente y controlar el acceso al sistema en ejecución. La configuración predeterminada prioriza la comodidad para el uso portátil, pero puede no ser óptima para todos los escenarios. Las siguientes recomendaciones te ayudarán a configurar el sistema para una mayor seguridad.
+MiniOS puede ejecutarse como un sistema de recuperación en vivo, un sistema portátil persistente o una instalación nativa. Los controles adecuados dependen de cómo se utilice el sistema. Protege la sesión en ejecución, los datos persistentes, el medio de arranque y cualquier configuración que se aplique al inicio.
 
-## Seguridad de las Cuentas de Usuario y Root
+## Comienza con medios de confianza
 
-Por defecto, MiniOS realiza el inicio de sesión automático sin contraseña. Esto proporciona comodidad para el uso portátil, pero puede representar un riesgo de seguridad en algunos escenarios.
+Descarga MiniOS desde una fuente oficial y verifica el ISO antes de grabarlo. Sigue [Verificación de descargas](/installation/Verifying-Downloads.md) y compara el resultado antes de arrancar o instalar. La verificación detecta una descarga dañada o sustituida; no garantiza que un dispositivo USB ya modificado sea seguro.
 
-**Credenciales predeterminadas:**
-- **Usuario**: `live` / `evil`  
-- **Root**: `root` / `toor`
+Mantén el dispositivo USB bajo control físico. Las contraseñas de firmware y el orden de arranque restringido pueden reducir el arranque no autorizado casual, pero no cifran los archivos en el dispositivo. Secure Boot puede proporcionar protección adicional en la cadena de arranque en imágenes y hardware que lo soporten; verifica el comportamiento real de la versión y el firmware en vez de asumir compatibilidad.
 
-⚠️ **Estas credenciales son de conocimiento público y deben cambiarse inmediatamente para cualquier uso en red o en producción.**
+## Sustituye las credenciales predeterminadas
 
-### Creación de una Contraseña Encriptada
+Una imagen en vivo de MiniOS sin personalizar utiliza las credenciales publicadas `live` / `evil` y `root` / `toor`, con inicio de sesión automático y acceso administrativo sin contraseña en su configuración orientada a la comodidad. Cualquiera que pueda acceder al sistema podría usar esas credenciales, especialmente si SSH está activo.
 
-Antes de configurar las contraseñas, se recomienda crear un hash de contraseña encriptada:
+Antes de conectarte a una red no confiable:
 
-```bash
-# The command will prompt you to enter a password and output the hash
-mkpasswd -m yescrypt
-# Example output: $y$j9T$...(long hash)...$Spig/F.uP
-```
+1. Establece contraseñas únicas para usuario y root en el Configurador de MiniOS.
+2. Selecciona un perfil de seguridad apropiado y revisa cada control configurado.
+3. Desactiva SSH y XRDP salvo que se requiera acceso remoto.
+4. Reinicia en una nueva sesión al cambiar configuraciones de cuenta o seguridad de un solo uso, luego verifica el comportamiento resultante de inicio de sesión y privilegios.
 
-### Configuración de Contraseñas
+El Configurador almacena los hashes de las contraseñas cifrados en lugar de las contraseñas en texto plano. Si cambias una cuenta persistente o nativa ya creada, utiliza `passwd` para el usuario actual y `sudo passwd root` para root.
 
-Puedes establecer contraseñas de dos maneras: **se recomienda encarecidamente** usar contraseñas encriptadas.
+## Utiliza los controles de seguridad del Configurador
 
-**Importante:** La configuración de contraseñas y parámetros de cuentas de usuario mediante parámetros de arranque y archivos de configuración solo tiene efecto en el primer arranque del sistema. Después de eso, las contraseñas solo pueden cambiarse usando los métodos estándar de Linux (`passwd`, `sudo passwd`).
+El Configurador de MiniOS ofrece tres perfiles. Un perfil completa configuraciones concretas; el nombre del perfil en sí no se guarda como clave de configuración en tiempo de ejecución, y cada ajuste permanece editable de forma independiente.
 
-#### Vía Parámetros de Arranque
+| Perfil | Comportamiento principal |
+| --- | --- |
+| `convenient` | Compatible con inicio de sesión automático, sudo y PolicyKit sin contraseña, root y SSH por contraseña permitidos, XRDP/X11/pantalla de bloqueo relajados, pistas de contraseña visibles. |
+| `balanced` | Sin inicio de sesión automático, sudo y PolicyKit requieren contraseña, inicio de sesión root por SSH denegado pero SSH por contraseña permitido, XRDP/X11/pantalla de bloqueo reforzados. |
+| `strict` | Sin inicio de sesión automático, sudo y PolicyKit requieren contraseña, inicio de sesión root y por contraseña en SSH denegados, XRDP deshabilitado, X11/pantalla de bloqueo reforzados, pistas de contraseña ocultas. |
 
-Agrega los parámetros a la línea de comandos del kernel en el menú de arranque (GRUB para UEFI o SYSLINUX para BIOS):
+Los valores predeterminados del instalador varían según el modo de instalación: las instalaciones en vivo favorecen `convenient`, mientras que las instalaciones nativas favorecen `balanced`. Estos son valores predeterminados, no recomendaciones para todos los modelos de amenazas.
 
-**Para contraseñas encriptadas (recomendado):**
-```
-user-password-crypted='$y$j9T$...(hash).../'
-root-password-crypted='$y$j9T$...(hash).../'
-```
+Las mismas configuraciones están disponibles como claves de configuración documentadas, incluyendo `LIVE_SUDO_MODE`, `LIVE_POLKIT_MODE`, `LIVE_SSH_PERMIT_ROOT_LOGIN`, `LIVE_SSH_PASSWORD_AUTHENTICATION`, `LIVE_XRDP_MODE`, `LIVE_X11_MODE`, `LIVE_ISSUE_PASSWORD_HINTS` y `LIVE_LOCKSCREEN_MODE`. Prefiere estas claves o el Configurador en lugar de editar archivos generados de sudoers, PolicyKit, display-manager o SSH. Consulta [Archivo de configuración](/configuration/Configuration-File.md).
+Para el comportamiento de guardado y la aplicabilidad de los ajustes, consulta [MiniOS Configurator](/configuration/MiniOS-Configurator.md).
 
-**Para contraseñas en texto plano (no recomendado):**
-```
-user-password='your_password'
-root-password='root_password'
-```
+La creación de cuentas, contraseñas, `LIVE_CONFIG_NOROOT` y la postura de seguridad son configuraciones de un solo uso que se aplican al crear una nueva sesión. El Configurador muestra la aplicabilidad de cada control. Los ajustes reconfigurables como los servicios se aplican tras reiniciar.
 
-**Importante:** Las contraseñas en texto plano son visibles en la línea de comandos del kernel y pueden ser leídas por otros usuarios del sistema.
+## Asegura el acceso remoto
 
-#### Vía Archivo de Configuración
+SSH puede estar habilitado en una imagen de MiniOS para tareas de recuperación. En una red donde no se confía en otros usuarios, asume que las credenciales predeterminadas publicadas están expuestas hasta que confirmes lo contrario.
 
-Edita el archivo `minios/config.conf` en el directorio raíz de la unidad USB:
+- Si SSH no es necesario, añade `ssh` a `DISABLE_SERVICES` en el Configurador y elimínalo de `ENABLE_SERVICES` si está presente.
+- Si SSH es requerido, deniega el inicio de sesión de root con `LIVE_SSH_PERMIT_ROOT_LOGIN=false`.
+- Prefiere la autenticación por clave. Confirma el inicio de sesión por clave en una conexión separada antes de establecer `LIVE_SSH_PASSWORD_AUTHENTICATION=false`.
+- Restringe el acceso entrante con el cortafuegos de red o el router, y no expongas directamente un sistema de recuperación portátil a Internet.
+- Revisa XRDP por separado. El perfil estricto lo deshabilita; el perfil equilibrado lo refuerza pero no necesariamente desactiva su servicio.
 
-**Para contraseñas encriptadas:**
-```
-LIVE_USER_PASSWORD_CRYPTED="$y$j9T$...(hash).../"
-LIVE_ROOT_PASSWORD_CRYPTED="$y$j9T$...(hash).../"
-```
+Los parámetros de arranque pueden sobrescribir los valores del archivo de configuración. Revisa el comportamiento inesperado de los servicios en [Parámetros de arranque](/configuration/Boot-Parameters.md).
 
-**Para contraseñas en texto plano:**
-```
-LIVE_USER_PASSWORD="your_password"
-LIVE_ROOT_PASSWORD="root_password"
-```
+## Cifra los datos persistentes
 
-### Cambio de Contraseñas Después del Arranque
+La persistencia nativa, DynFileFS y la persistencia en bruto sin cifrar pueden ser leídas por quien obtenga el dispositivo. El Instalador de MiniOS puede configurar un contenedor cifrado LUKS para una sesión en vivo cuando el initrd de origen anuncia soporte para LUKS. El initrd crea `changes.luks` en el primer arranque y solicita su frase de contraseña; el instalador no recibe ni almacena esa frase.
 
-Después del primer arranque del sistema, las contraseñas pueden cambiarse usando los comandos estándar de Linux:
+La persistencia LUKS protege el contenido mientras el contenedor está cerrado. No protege los datos después de desbloquear, los archivos de arranque sin cifrar, los archivos copiados fuera del contenedor ni un sistema de archivos raíz nativo. La persistencia de sesión LUKS no es cifrado nativo de root. Usa una frase de contraseña fuerte y mantén una copia de seguridad probada.
 
-```bash
-# Change current user password
-passwd
+Consulta [MiniOS Installer](/installation/MiniOS-Installer.md) y [Gestión de sesiones](/configuration/Session-Management.md).
 
-# Change root user password (requires sudo)
-sudo passwd root
+## Aplica actualizaciones de forma deliberada
 
-# Change specific user password (requires sudo)
-sudo passwd username
-```
+Actualiza los metadatos de paquetes e instala las actualizaciones de seguridad de Debian en sesiones en vivo persistentes o instalaciones nativas usando el flujo de trabajo normal de APT. Los cambios de APT en una sesión en vivo nueva desaparecen al reiniciar. Los módulos base SquashFS son de solo lectura, por lo que reemplazar el ISO o los módulos por una versión confiable y más reciente de MiniOS suele ser la forma más limpia de actualizar el sistema base en vivo.
 
-### Deshabilitar el Inicio de Sesión Automático
+Consulta [Actualizaciones de software](/administration/Software-Updates.md) para los flujos de trabajo separados de APT, módulos, imágenes y kernel.
 
-Después de establecer contraseñas, desactiva el inicio de sesión automático para requerir autenticación:
+Antes de una actualización grande:
 
-#### Vía Parámetros de Arranque
+- Haz una copia de seguridad de archivos importantes y sesiones persistentes.
+- Confirma que haya suficiente espacio libre disponible.
+- Evita interrumpir escrituras o apagar el dispositivo.
+- Reinicia y verifica el sistema actualizado antes de descartar el medio o la sesión anterior conocida como funcional.
 
-```
-noautologin
-```
+## Trata los hooks y preseeding como ejecución de código
 
-#### Vía Archivo de Configuración
+La opción de arranque `hooks` y los hooks de live-config pueden ejecutar archivos desde el sistema de archivos raíz, el medio de arranque o una URL. Los hooks remotos, los hooks modificados en el medio y los preseeds no revisados pueden ejecutarse con privilegios de sistema. Utiliza solo archivos revisados de una fuente confiable, prefiere la distribución autenticada y evita hooks remotos en redes no confiables. Consulta [live-config](/configuration/live-config.md) para el orden de ejecución y las ubicaciones soportadas.
 
-```
-LIVE_CONFIG_CMDLINE="components noautologin"
-```
+## Haz copias de seguridad y retira los medios de forma segura
 
-**Desactivación parcial del autologin:**
-- `nox11autologin` - desactiva solo el inicio de sesión automático gráfico (el gestor de inicio de sesión requerirá autenticación)
-- `nottyautologin` - desactiva solo el inicio de sesión automático en consola (ya desactivado por defecto)
+La persistencia no es una copia de seguridad. Mantén una copia separada de los archivos de usuario y exporta o copia las sesiones mientras estén en buen estado. Prueba la restauración en diferentes medios. Apaga correctamente antes de retirar el almacenamiento escribible y asegúrate de dejar espacio libre para los metadatos de la sesión y el funcionamiento del sistema de archivos.
 
-### Gestión de Privilegios de Usuario
-
-Por defecto, el usuario `live` tiene privilegios de administrador completos sin solicitar contraseña tanto en consola (`sudo`) como en aplicaciones gráficas (a través de polkit). Esto proporciona comodidad para el uso del sistema en vivo, pero puede requerir ajustes para una mayor seguridad.
-
-#### Habilitar Solicitud de Contraseña para sudo
-
-Para requerir la introducción de contraseña al usar `sudo`, ejecuta después de iniciar el sistema:
-
-```bash
-# Change rule to require password
-echo "live ALL=(ALL:ALL) ALL" | sudo tee /etc/sudoers.d/live
-```
-
-Después de esto, los comandos `sudo` solicitarán la contraseña del usuario.
-
-#### Habilitar Solicitud de Contraseña para Aplicaciones Gráficas
-
-Para que los programas administrativos gráficos soliciten contraseña, elimina la regla de polkit:
-
-```bash
-sudo rm /usr/share/polkit-1/rules.d/sudo_on_live.rules
-```
-
-Después de esto, los instaladores de software, la configuración del sistema y otras aplicaciones administrativas con interfaz gráfica solicitarán contraseña.
-
-#### Deshabilitación Completa de Derechos Administrativos (`noroot`)
-
-Para máxima seguridad, puedes deshabilitar completamente `sudo` y el acceso root:
-
-**Vía parámetros de arranque:**
-```
-noroot
-```
-
-**Vía archivo de configuración:**
-```
-LIVE_CONFIG_NOROOT=true
-```
-
-**Efecto:** El comando `sudo` no funcionará, el inicio de sesión como root estará deshabilitado y no habrá acciones administrativas disponibles.
-
-## Seguridad de Red
-
-### Configuración SSH Predeterminada
-
-**Por qué SSH está habilitado por defecto:** MiniOS está diseñado como un sistema de recuperación y diagnóstico para reparar hardware defectuoso. SSH está habilitado con configuraciones permisivas para proporcionar acceso remoto cuando la pantalla local no está disponible, está dañada o se trabaja con sistemas sin monitor.
-
-**Configuración actual de SSH:**
-- El servicio SSH está habilitado y se inicia automáticamente
-- Se permite el acceso root vía SSH
-- La autenticación por contraseña está habilitada
-
-**Implicaciones de seguridad:** Esta configuración genera riesgos de seguridad en redes no confiables, pero es necesaria para escenarios de recuperación.
-
-### Deshabilitar SSH
-
-Si no se necesita acceso remoto, desactiva SSH completamente:
-
-**Vía parámetros de arranque:**
-```
-disable-services=ssh,avahi-daemon
-```
-
-**Vía archivo de configuración:**
-```
-DISABLE_SERVICES=ssh,avahi-daemon
-```
-
-### Configuración Segura de Acceso SSH
-
-Si SSH es necesario, asegúralo usando los siguientes métodos:
-
-#### 1. Establecer Contraseñas Fuertes
-
-Utiliza los métodos de configuración de contraseñas descritos anteriormente.
-
-#### 2. Autenticación por Clave SSH
-
-Coloca los archivos `authorized_keys` en el directorio raíz de la unidad USB:
-
-- `authorized_keys.root` - para el usuario root
-- `authorized_keys.live` - para el usuario live
-- `authorized_keys.username` - para otros usuarios
-
-Un componente del sistema los desplegará automáticamente en los directorios home al arrancar.
-
-#### 3. Endurecimiento de Seguridad SSH
-
-Después de iniciar el sistema, edita la configuración de SSH:
-
-```bash
-sudo nano /etc/ssh/sshd_config.d/minios.conf
-```
-
-Cambia los ajustes por otros más seguros:
-```
-PermitRootLogin no
-PasswordAuthentication no
-PubkeyAuthentication yes
-```
-
-Reinicia el servicio SSH:
-```bash
-sudo systemctl restart ssh
-```
-
-**Importante:** Siempre prueba el acceso por clave SSH antes de deshabilitar la autenticación por contraseña.
-
-## Seguridad de Arranque
-
-### Secure Boot UEFI
-
-MiniOS es totalmente compatible con Secure Boot, ya que utiliza el kernel estándar de Debian con gestores de arranque firmados. Secure Boot proporciona protección contra malware previo al arranque (bootkits) y se recomienda para una mayor seguridad.
-
-### Contraseña BIOS/UEFI
-
-Para seguridad física, establece una contraseña en la BIOS/UEFI de tu equipo para evitar que usuarios no autorizados arranquen desde otros dispositivos o cambien la configuración de arranque.
+Antes de desechar un dispositivo, elimínalo de forma segura según la tecnología de almacenamiento y la sensibilidad de los datos. Eliminar archivos o reformatear por sí solos puede no hacer que los datos antiguos sean irrecuperables.

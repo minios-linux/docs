@@ -1,39 +1,37 @@
-# MiniOS: Pengalaman Linux Portabel Terbaik 🌐
+# Tentang MiniOS
 
-MiniOS adalah distribusi Linux yang serbaguna dan portabel berbasis Debian, dikembangkan dengan skrip minios-live. Tujuan utamanya adalah memberikan lingkungan yang lengkap dan nyaman untuk bekerja, hiburan, dan kreativitas di perangkat keras x86 apa pun, sambil tetap menjaga data pribadi Anda di media penyimpanan eksternal.
+MiniOS adalah distribusi Linux berbasis Debian yang dirancang untuk dijalankan dari media removable atau disk lokal. Sistemnya yang hanya-baca dibangun dari modul SquashFS, dengan opsi sesi yang dapat ditulis untuk file, pengaturan, dan paket yang diinstal. MiniOS mendukung sistem x86 64-bit dan dapat melakukan boot melalui UEFI atau BIOS lama.
 
-## Berbasis Debian: Stabilitas dan Fleksibilitas 🎯
+## Model sistem
 
-Dibangun di atas fondasi kokoh Debian, MiniOS mewarisi semua keunggulan dari salah satu distribusi Linux yang paling stabil dan aman. Basis ini memberikan MiniOS:
+- Sistem dasar dan perangkat lunak opsional merupakan modul terpisah. Modul dapat dipilih saat boot atau ditambahkan tanpa membangun ulang seluruh sistem.
+- Sesi live baru tidak mengubah modul dasar.
+- Persistensi dapat menyimpan perubahan di direktori native, kontainer DynFileFS yang dapat diperluas, image mentah berukuran tetap, atau kontainer LUKS terenkripsi, tergantung pada instalasi dan filesystem target.
+- MiniOS Installer dapat membuat instalasi live modular atau, jika image mendukungnya, melakukan instalasi Linux native konvensional.
 
-- **Stabilitas**: Menjamin pengalaman pengguna yang lancar dan andal.
-- **Keamanan**: Mendapat manfaat dari fokus keamanan Debian dengan pembaruan dan patch yang tepat waktu.
-- **Kompatibilitas**: Akses ke repositori paket perangkat lunak Debian yang sangat luas.
-- **Dukungan Komunitas**: Memanfaatkan pengetahuan dan dukungan luas dari komunitas Debian.
+Lihat [Arsitektur sistem](/about/System-Architecture.md) untuk tata letak boot dan modul, serta [Manajemen sesi](/configuration/Session-Management.md) untuk sesi persisten.
 
-## Fitur Utama MiniOS 🛠️
+## Edisi
 
-- **Modularitas**: Menawarkan beragam modul yang dapat dikustomisasi sesuai kebutuhan pengguna.
-- **Portabilitas**: Dirancang untuk diinstal pada USB drive agar dapat digunakan di berbagai perangkat.
-- **Kompatibilitas**: Berjalan di berbagai sistem dengan dukungan untuk UEFI dan BIOS lama.
-- **Pembaruan**: Menyediakan rilis terbaru dengan kernel yang diperbarui dan alat tambahan untuk debugging.
+Edisi yang tersedia tergantung pada rilis dan distribusi dasar:
 
-## Edisi MiniOS: Disesuaikan untuk Kebutuhan Anda 📦
+- **Minimum** menggunakan lingkungan Flux dan paket yang lebih sedikit. Cocok untuk sistem yang membutuhkan pilihan perangkat lunak lebih ringkas.
+- **Standard** adalah edisi serbaguna. Build Debian dan Ubuntu standar saat ini menggunakan Xfce.
+- **Toolbox** menambahkan alat administrasi sistem, penyimpanan, diagnostik, dan pemulihan.
+- **Ultra** menambahkan lebih banyak aplikasi di atas edisi lainnya.
 
-### 🚀 **Standard**: Andal untuk Kebutuhan Harian
+Xfce adalah desktop utama pada image Standard, Toolbox, dan Ultra, namun bukan satu-satunya lingkungan MiniOS. Minimum menggunakan Flux, dan konfigurasi build yang didukung dapat menawarkan lingkungan lain. Periksa deskripsi rilis sebelum mengunduh jika lingkungan desktop menjadi pertimbangan.
 
-MiniOS Standard adalah pilihan utama Anda untuk aktivitas sehari-hari. Andal, lengkap, dan siap digunakan, menjadi tulang punggung dari lini produk MiniOS.
+Untuk perangkat lunak yang disertakan di setiap edisi, lihat [daftar paket](/administration/Packages.md).
 
-### 🧰 **Toolbox**: Toolkit untuk Pengguna Profesional
+## Instalasi dan persistensi
 
-MiniOS Toolbox dirancang untuk profesional dan pengguna tingkat lanjut yang membutuhkan rangkaian utilitas lengkap untuk administrasi sistem, partisi disk, dan pemulihan data. Ini adalah toolkit terbaik bagi mereka yang membutuhkan kemampuan manajemen sistem tingkat lanjut.
+File ISO dapat ditulis sebagai image bootable, disalin ke perangkat multiboot, atau diinstal menggunakan MiniOS Installer. Metode ini memiliki perilaku penyimpanan yang berbeda. Alat penulisan image seperti `dd` dan Etcher mereplikasi tata letak ISO; Ventoy melakukan boot dari file ISO; MiniOS Installer dapat mengalokasikan dan mengonfigurasi penyimpanan sesi yang dapat ditulis. Jangan berasumsi bahwa metode penulisan otomatis membuat persistensi.
 
-### ⚡ **Ultra**: Solusi All-in-One Terlengkap
+Mulailah dengan [Quick start](/installation/Quick-Start.md) dan gunakan panduan yang terhubung sesuai metode instalasi yang dipilih. Persistensi juga dapat dipilih dari menu boot yang sesuai atau dikonfigurasi dengan parameter boot yang didokumentasikan jika penyimpanan yang dapat ditulis tersedia.
 
-MiniOS Ultra adalah versi MiniOS paling lengkap, menggabungkan semua fitur dan alat dari edisi Standard dan Toolbox, serta tambahan perangkat lunak untuk pengembangan, multimedia, dan jaringan tingkat lanjut. Cocok untuk pengguna yang menginginkan workstation portabel lengkap dengan semua kebutuhan siap pakai.
+## Sumber daya proyek
 
-Untuk daftar paket yang disertakan di setiap edisi, lihat: [Package List](/administration/Packages.md)
-
-## Mengapa Memilih MiniOS? 💡
-
-MiniOS menjadi pilihan cerdas bagi Anda yang membutuhkan sistem operasi portabel, stabil, dan aman. Sangat cocok untuk menghidupkan kembali PC lama, membuat workstation portabel, atau sekadar menikmati kebebasan Linux di mana saja.
+- [Situs web MiniOS](https://minios.dev)
+- [Kode sumber](https://github.com/minios-linux/minios-live)
+- [Pelacak isu](https://github.com/minios-linux/minios-live/issues)

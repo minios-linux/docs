@@ -49,19 +49,19 @@ Por padrão, o MiniOS roda em modo "live", onde todas as alterações são desca
 
 ## Configuração do ZRAM
 
-O MiniOS utiliza `zram` por padrão para criar uma área de swap compactada na RAM. Isso melhora o desempenho em sistemas com pouca memória física, evitando o uso de um arquivo de swap muito mais lento no disco.
+O MiniOS utiliza `zram` por padrão para criar um espaço de swap compactado na sua RAM. Isso melhora o desempenho em sistemas com pouca memória física, evitando o uso de um arquivo de swap muito mais lento no disco.
 
 **Dimensionamento automático:**
 - **≥4GB RAM:** 2GB de ZRAM
-- **1-4GB RAM:** 50% da RAM total  
+- **1-4GB RAM:** Metade da RAM total
 - **<1GB RAM:** 512MB de ZRAM
 
 **Parâmetros de boot:**
-- **`zramsize=1024`:** Define o tamanho do dispositivo zram (ex: `zramsize=1024` para 1GB). Por padrão, é configurado automaticamente de acordo com sua RAM total.
-- **`zramcomp=lz4`:** Define o algoritmo de compressão (`lzo`, `lzo-rle`, `lz4`, `lz4hc`, `zstd`). `lz4` geralmente oferece um bom equilíbrio entre velocidade e taxa de compressão.
+- **`zramsize=1024`:** Define o tamanho do dispositivo zram (ex.: `zramsize=1024` para 1GB). Por padrão, é configurado automaticamente de acordo com a sua RAM total.
+- **`zramcomp=lz4`:** Define o algoritmo de compactação (`lzo`, `lzo-rle`, `lz4`, `lz4hc`, `zstd`). `lz4` geralmente oferece um bom equilíbrio entre velocidade e taxa de compactação.
 - **`nozram`:** Desativa completamente o ZRAM.
 
-Para a maioria dos usuários, as configurações padrão do `zram` são ideais. Só ajuste se você tiver necessidades específicas e entender os impactos.
+Para a maioria dos usuários, as configurações padrão de `zram` são ideais. Ajustá-las só é recomendado se você tiver necessidades específicas e compreender os impactos dessas mudanças.
 
 ## Sistema de Arquivos e Hardware de Armazenamento
 

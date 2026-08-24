@@ -5,7 +5,7 @@ MiniOS differs from most classic flash distributions in that some parameters can
 ```
 # You can get information about minios-live-config and other options:
 # man live-config
-LIVE_CONFIG_CMDLINE="components"
+LIVE_CONFIG_CMDLINE="components nottyautologin"
 LIVE_HOSTNAME="minios"
 LIVE_USERNAME="live"
 LIVE_USER_FULLNAME="MiniOS Live User"
@@ -41,7 +41,7 @@ EXPORT_LOGS="false"
 
 | Parameter | Reconfigurable | Meaning | Example |
 | --------- | -------------- | ------- | ------- |
-| LIVE_CONFIG_CMDLINE | 🔄 | Additional live-config boot parameters. See `man 7 live-config`. | LIVE_CONFIG_CMDLINE="components" |
+| LIVE_CONFIG_CMDLINE | 🔄 | Additional live-config options. `nottyautologin` is stored here instead of being hard-coded into every boot entry. See `man 7 live-config`. | LIVE_CONFIG_CMDLINE="components nottyautologin" |
 | LIVE_HOSTNAME | 🔄 | The name of the node associated with the system. See `man 7 live-config`. | LIVE_HOSTNAME="minios" |
 | LIVE_USERNAME | 🔒 | The name of the user whose profile will be created on first boot. If you specify the username <strong>root</strong>, then no user profile will be created, and login will be performed using the <strong>root</strong> profile. See `man 7 live-config`. | LIVE_USERNAME="live" |
 | LIVE_USER_FULLNAME | 🔒 | Full name for the main user. See `man 7 live-config`. | LIVE_USER_FULLNAME="MiniOS Live User" |

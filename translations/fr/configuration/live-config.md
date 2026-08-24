@@ -62,17 +62,17 @@ Pour des cas d’utilisation particuliers, il existe certains paramètres de dé
 
 ## Fichiers de configuration
 
-**live-config** peut être configuré (mais non activé) via des fichiers de configuration. Tout ce qui peut être configuré avec un paramètre de démarrage, à l’exception des raccourcis, peut aussi être configuré via un ou plusieurs fichiers. Si des fichiers de configuration sont utilisés, le paramètre `boot=live` reste nécessaire pour activer **live-config**.
+**live-config** peut être configuré (mais pas activé) via des fichiers de configuration. Toutes les options, à l’exception des raccourcis configurables par un paramètre de démarrage, peuvent également être définies via un ou plusieurs fichiers. Si vous utilisez des fichiers de configuration, le paramètre `boot=live` reste obligatoire pour activer **live-config**.
 
-**Remarque :** Si des fichiers de configuration sont utilisés, il est conseillé (de préférence) de placer tous les paramètres de démarrage dans la variable **LIVE_CONFIG_CMDLINE**, ou bien de définir les variables individuellement. Si des variables individuelles sont utilisées, l’utilisateur doit s’assurer que toutes les variables nécessaires sont définies pour obtenir une configuration valide.
+**Remarque :** Si vous utilisez des fichiers de configuration, il est recommandé (de préférence) de placer tous les paramètres de démarrage dans la variable **LIVE_CONFIG_CMDLINE**, ou bien de définir les variables individuellement. Si vous choisissez de définir les variables individuellement, il vous incombe de vous assurer que toutes les variables nécessaires sont renseignées pour obtenir une configuration valide.
 
-Les fichiers de configuration peuvent être placés soit dans le système de fichiers racine (`/etc/live/config.conf`, `/etc/live/config.conf.d/*.conf`), soit sur le support live (`minios/config.conf`, `minios/config.conf.d/*.conf`). Si les deux emplacements sont utilisés pour une option donnée, ceux du support live priment sur ceux du système de fichiers racine.
+Les fichiers de configuration peuvent être placés soit dans le système de fichiers racine (`/etc/live/config.conf`, `/etc/live/config.conf.d/*.conf`), soit sur le support live (`minios/config.conf`, `minios/config.conf.d/*.conf`). Si une option est définie aux deux emplacements, celle du support live a la priorité sur celle du système de fichiers racine.
 
-Bien que les fichiers placés dans les répertoires de configuration n’exigent pas de nom particulier, il est recommandé, pour des raisons de cohérence, d’utiliser le schéma de nommage `vendor.conf` ou `project.conf` (où `vendor` ou `project` est remplacé par le nom réel, ce qui donne un nom de fichier comme `progress-linux.conf`).
+Bien que les fichiers placés dans les répertoires de configuration n’exigent pas de nom particulier, il est conseillé, pour des raisons de cohérence, d’utiliser le schéma de nommage `vendor.conf` ou `project.conf` (où `vendor` ou `project` est remplacé par le nom réel, ce qui donne un nom de fichier comme `progress-linux.conf`).
 
 Le contenu des fichiers de configuration consiste en une ou plusieurs des variables suivantes :
 
-- **LIVE_CONFIG_CMDLINE=PARAMETER1 PARAMETER2...PARAMETERn** : Cette variable correspond à la ligne de commande du bootloader.
+- **LIVE_CONFIG_CMDLINE=PARAMETER1 PARAMETER2...PARAMETERn** : Cette variable correspond à la ligne de commande du chargeur d’amorçage.
 - **LIVE_CONFIG_COMPONENTS=COMPONENT1,COMPONENT2,...COMPONENTn** : Cette variable correspond au paramètre `**live-config.components**=*COMPONENT1*,*COMPONENT2*,...*COMPONENTn*`.
 - **LIVE_CONFIG_NOCOMPONENTS=COMPONENT1,COMPONENT2,...COMPONENTn** : Cette variable correspond au paramètre `**live-config.nocomponents**=*COMPONENT1*,*COMPONENT2*,...*COMPONENTn*`.
 - **LIVE_DEBCONF_PRESEED=filesystem|medium|URL1|URL2|...|URLn** : Cette variable correspond au paramètre `**live-config.debconf-preseed**=filesystem|medium|*URL1*\|*URL2*\|...|*URLn*`.
@@ -80,10 +80,10 @@ Le contenu des fichiers de configuration consiste en une ou plusieurs des variab
 - **LIVE_USERNAME=USERNAME** : Cette variable correspond au paramètre `**live-config.username**=*USERNAME*`. Par défaut : `live`.
 - **LIVE_USER_DEFAULT_GROUPS=GROUP1,GROUP2,...GROUPn** : Cette variable correspond au paramètre `**live-config.user-default-groups**="*GROUP1*,*GROUP2*...*GROUPn*"`.
 - **LIVE_USER_FULLNAME="USER FULLNAME"** : Cette variable correspond au paramètre `**live-config.user-fullname**="*USER FULLNAME*"`.
-- **LIVE_ROOT_PASSWORD=PASSWORD** : Cette variable correspond au paramètre `**live-config.root-password**=*PASSWORD*`. Spécifie le mot de passe root en clair.
-- **LIVE_ROOT_PASSWORD_CRYPTED=PASSWORD** : Cette variable correspond au paramètre `**live-config.root-password-crypted**=*PASSWORD*`. Spécifie le mot de passe root sous forme chiffrée.
-- **LIVE_USER_PASSWORD=PASSWORD** : Cette variable correspond au paramètre `**live-config.user-password**=*PASSWORD*`. Spécifie le mot de passe utilisateur en clair.
-- **LIVE_USER_PASSWORD_CRYPTED=PASSWORD** : Cette variable correspond au paramètre `**live-config.user-password-crypted**=*PASSWORD*`. Spécifie le mot de passe utilisateur sous forme chiffrée.
+- **LIVE_ROOT_PASSWORD=PASSWORD** : Cette variable correspond au paramètre `**live-config.root-password**=*PASSWORD*`. Elle définit le mot de passe root en clair.
+- **LIVE_ROOT_PASSWORD_CRYPTED=PASSWORD** : Cette variable correspond au paramètre `**live-config.root-password-crypted**=*PASSWORD*`. Elle définit le mot de passe root chiffré.
+- **LIVE_USER_PASSWORD=PASSWORD** : Cette variable correspond au paramètre `**live-config.user-password**=*PASSWORD*`. Elle définit le mot de passe utilisateur en clair.
+- **LIVE_USER_PASSWORD_CRYPTED=PASSWORD** : Cette variable correspond au paramètre `**live-config.user-password-crypted**=*PASSWORD*`. Elle définit le mot de passe utilisateur chiffré.
 - **LIVE_LOCALES=LOCALE1,LOCALE2,...LOCALEn** : Cette variable correspond au paramètre `**live-config.locales**=*LOCALE1*,*LOCALE2*...*LOCALEn*`.
 - **LIVE_TIMEZONE=TIMEZONE** : Cette variable correspond au paramètre `**live-config.timezone**=*TIMEZONE*`.
 - **LIVE_KEYBOARD_MODEL=KEYBOARD_MODEL** : Cette variable correspond au paramètre `**live-config.keyboard-model**=*KEYBOARD_MODEL*`.
@@ -97,10 +97,12 @@ Le contenu des fichiers de configuration consiste en une ou plusieurs des variab
 - **LIVE_XORG_RESOLUTION=XORG_RESOLUTION** : Cette variable correspond au paramètre `**live-config.xorg-resolution**=*XORG_RESOLUTION*`.
 - **LIVE_WLAN_DRIVER=WLAN_DRIVER** : Cette variable correspond au paramètre `**live-config.wlan-driver**=*WLAN_DRIVER*`.
 - **LIVE_HOOKS=filesystem|medium|URL1|URL2|...|URLn** : Cette variable correspond au paramètre `**live-config.hooks**=filesystem|medium|*URL1*\|*URL2*\|...|*URLn*`.
-- **LIVE_LINK_USER_DIRS=true|false** : Cette variable correspond au paramètre `**live-config.link-user-dirs**=true|false`. Active ou désactive la création de liens symboliques pour les répertoires utilisateur.
-- **LIVE_BIND_USER_DIRS=true|false** : Cette variable correspond au paramètre `**live-config.bind-user-dirs**=true|false`. Active ou désactive le bind-mount des répertoires utilisateur.
-- **LIVE_USER_DIRS_PATH=PATH** : Cette variable correspond au paramètre `**live-config.user-dirs-path**=*PATH*`. Spécifie le chemin des répertoires utilisateur sur le support.
-- **LIVE_MODULE_MODE** : Cette variable contient l’état défini par le paramètre `live-config.module-mode` (ou `module-mode`). Lorsqu’il est réglé sur "merged", le système live applique les mises à jour (via minios-update-users, minios-update-cache et minios-update-dpkg) pour fusionner les configurations personnalisées avec l’environnement de base.
+- **LIVE_LINK_USER_DIRS=true|false** : Cette variable correspond au paramètre `**live-config.link-user-dirs**=true|false`. Elle relie les répertoires standards de données de l’utilisateur au disque MiniOS en écriture. Elle ne peut pas être combinée avec le mode bind ni avec un mode `toram`.
+- **LIVE_BIND_USER_DIRS=true|false** : Cette variable correspond au paramètre `**live-config.bind-user-dirs**=true|false`. Elle monte en bind les répertoires standards de données de l’utilisateur depuis le disque MiniOS en écriture. Elle ne peut pas être combinée avec le mode lien ni avec un mode `toram`.
+- **LIVE_USER_DIRS_PATH=PATH** : Cette variable correspond au paramètre `**live-config.user-dirs-path**=*PATH*`. Elle définit un chemin sécurisé à l’intérieur du disque MiniOS FAT32, exFAT ou NTFS. Par défaut : `/minios/userdata` ; les segments point et répertoire parent sont rejetés.
+
+La configuration des supports utilisateurs ne fusionne jamais automatiquement deux répertoires non vides. Un répertoire local non vide n’est migré que si la destination sur le support est vide. Lorsque la fonctionnalité est désactivée, les données gérées sur le support sont recopiées avant de supprimer les liens. Un échec de validation ou de copie laisse les répertoires utilisateur existants en place et consigne la raison dans `/var/lib/live/config/user-media.status`.
+- **LIVE_MODULE_MODE** : Cette variable contient l’état défini par le paramètre `live-config.module-mode` (ou `module-mode`). Lorsqu’elle est définie sur "merged", le système live applique les mises à jour (via minios-update-users, minios-update-cache et minios-update-dpkg) pour fusionner les configurations personnalisées avec l’environnement de base.
 - **LIVE_CONFIG_DEBUG=true|false** : Cette variable correspond au paramètre `**live-config.debug**`.
 
 # PERSONNALISATION

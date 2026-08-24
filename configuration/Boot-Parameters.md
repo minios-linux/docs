@@ -1,78 +1,76 @@
 # Boot parameters
 
-## How to Use Boot Parameters
-Boot parameters, also known as kernel parameters, are commands that you can enter to customize the boot process of MiniOS. They can be used to disable hardware detection, start MiniOS from a specific device, and more.
+## How to use boot parameters
+Boot parameters customize how MiniOS starts. Separate parameters with spaces on the kernel command line.
 
-### For Syslinux:
+### Syslinux
 - Press <kbd>Esc</kbd> during the MiniOS boot sequence to access the boot menu.
 - Press <kbd>Tab</kbd> to edit the boot options.
-- Enter your desired parameters and press Enter to boot.
+- Enter the parameters and press <kbd>Enter</kbd> to boot.
 
-### For Grub:
-- Press <kbd>E</kbd> when you see the grub menu.
+### GRUB
+- Press <kbd>E</kbd> at the GRUB menu.
 - Edit the boot parameters at the end of the command line.
 - Press <kbd>F10</kbd> to boot with the new settings.
 
-## Boot Parameters Table
-The table below lists the boot parameters available in MiniOS, their functions, and examples of how to use them.
+## Boot parameters
+The application column distinguishes parameters normally accepted on every boot from account settings intended for initial setup. With persistence, live-config components normally run only once; see [live-config](/configuration/live-config.md).
 
-**Legend:**
-- 🔒 **One-time only** - Applied only on first boot, cannot be changed on subsequent boots
-- 🔄 **Reconfigurable** - Can be changed on every boot and reapplied
-
-
-| Parameter | Reconfigurable | Description | Example Usage |
+| Parameter | Application | Description | Example |
 |---|---|---|---|
-| `from` | 🔄 | Loads MiniOS data from a specified directory, device, or ISO file. | `from=/minios/`<br>`from=/Downloads/minios.iso`<br>`from=http://domain.com/minios.iso`<br>`from=/dev/sr0/minios`<br>`from=/dev/disk/by-label/MyFlash/minios`<br>`from=askdisk`<br>`from=askdisk/customdir` |
-| `load` | 🔄 | Enables loading of specified `.sb` modules using a regular expression. Works in conjunction with the `toram=trim` command, allowing only selected modules to be loaded into RAM.| `load=00-core`<br>`load=core,kernel,firmware`<br>`load=00,01,02`<br>`load=00-03` |
-| `noload` | 🔄 | Disables loading of specified `.sb` modules using a regular expression. Works together with `toram=trim` command allowing to exclude selected modules from loading into RAM. | `noload=05-xfce-apps`<br>`noload=xfce-apps,firefox`<br>`noload=05,06`<br>`noload=04-06` |
-| `bext` | 🔄 | Sets the file extension for bundles (modules). Defaults to `sb`. | `bext=mymod` |
-| `timing` | 🔄 | Enables timing output during startup for debugging performance. | `timing` |
-| `union` | 🔄 | Forces the use of a specific union filesystem. | `union=aufs`<br>`union=overlayfs` |
-| `ip` | 🔄 | Sets a static IP address for network interfaces, used for PXE boot. Format: `<client-ip>:<server-ip>:<gateway-ip>:<netmask>`. | `ip=192.168.1.10:192.168.1.1:192.168.1.1:255.255.255.0` |
-| `cache` | 🔄 | Sets the cache size in MB for data loaded via HTTP. | `cache=512` |
-| `rd.break` | 🔄 | Halts the boot process at the end of the initramfs stage and provides a debug shell. | `rd.break` |
-| `perchdir` | 🔄 | Selects a profile or performs an action with a profile. Accepts the profile number or the keywords `resume` (resume previous session), `new` (start a new session), or `ask` (select session at startup). If omitted, MiniOS starts in "clean" mode. | `perchdir=1`<br>`perchdir=resume`<br>`perchdir=new`<br>`perchdir=ask`<br>`perchdir=/dev/sda1/changes`<br>`perchdir=/dev/disk/by-label/MyFlash/changes`<br>`perchdir=askdisk`<br>`perchdir=askdisk/customdir` |
-| `perchsize` | 🔄 | Sets the size of the DynFileFS virtual file system (in MB), used for storing data on non-Linux file systems (e.g., FAT32, NTFS). Defaults to 16GB. Use this option if your target disk is smaller. | `perchsize=4000`<br>`perchsize=32000` |
-| `perchmode` | 🔄 | Save mode for persistent changes.<br>`native` (default) - storing data as is on POSIX-compatible file systems;<br>`dynfilefs` - storing data in dynamically expandable image files;<br>`raw` - storing data in a fixed-size image file.| `perchmode=native`<br>`perchmode=dynfilefs`<br>`perchmode=raw` |
-| `perch` | 🔄 | Enables persistence and resumes the last used session. Equivalent to `perchdir=resume`. | `perch` |
-| `toram` | 🔄 | Copies the system to RAM. Can take `trim` and `full` values. If specified without parameters, it defaults to `full`.<br>`trim` - only necessary data is copied, considering `load` and `noload` filters. If `perch` parameters are specified, changes are also loaded.<br>`full` - the entire minios folder is loaded, excluding changes unless `perch` is specified. | `toram`<br>`toram=trim`<br>`toram=full` |
-| `text` | 🔄 | Disables the X server and starts in text console mode. | `text` |
-| `automount` | 🔄 | Enables automatic mounting of storage devices. | `automount` |
-| `debug` | 🔄 | Enables debugging output during startup. | `debug` |
-| `nozram` | 🔄 | Disables zram swap. | `nozram` |
-| `zramsize` | 🔄 | Sets the zram swap size (in MB). | `zramsize=512`<br>`zramsize=2048` |
-| `zramcomp` | 🔄 | Specifies the zram compression algorithm. Available options for Debian 12: `lzo`, `lzo-rle`, `lz4`, `lz4hc`, `zstd`. Defaults to `lzo-rle`. | `zramcomp=lzo`<br>`zramcomp=lz4` |
-| `default-target` | 🔄 | Sets the default systemd target. | `default-target=multi-user`<br>`default-target=rescue` |
-| `enable-services` | 🔄 | Enables specified systemd services at boot. | `enable-services=ssh,docker`<br>`enable-services=ssh` |
-| `disable-services` | 🔄 | Disables specified systemd services at boot. | `disable-services=apache2`<br>`disable-services=nginx` |
-| `novirtres` | 🔄 | Disables automatic screen resolution changes in virtual machines. The default resolution in virtual machines is 1280x800. (Only applicable in the XFCE environment.) | `novirtres` |
-| `virtres` | 🔄 | Sets the screen resolution in virtual machines (width x height). (Only applicable in the XFCE environment.) | `virtres=1920x1080`<br>`virtres=1024x768` |
-| `components` | 🔄 | Specifies which live-config components to run. | `components=hostname,user-setup,sudo` |
-| `nocomponents` | 🔄 | Specifies which live-config components NOT to run. | `nocomponents=anacron,apport` |
-| `hostname` | 🔄 | Sets the system hostname. | `hostname=minios` |
-| `username` | 🔒 | Sets the username for autologin. | `username=live` |
-| `user-default-groups` | 🔒 | Sets default groups for the user. | `user-default-groups=audio,cdrom,video` |
-| `user-fullname` | 🔒 | Sets the full name of the user. | `user-fullname="MiniOS Live User"` |
-| `root-password` | 🔒 | Sets the root password in plain text. | `root-password=toor` |
-| `root-password-crypted` | 🔒 | Sets the root password in crypted form. | `root-password-crypted=$y$j9T$...` |
-| `user-password` | 🔒 | Sets the user password in plain text. | `user-password=live` |
-| `user-password-crypted` | 🔒 | Sets the user password in crypted form. | `user-password-crypted=$y$j9T$...` |
-| `locales` | 🔄 | Sets the system locale. | `locales=en_US.UTF-8` |
-| `timezone` | 🔄 | Sets the system timezone. | `timezone=Europe/Berlin` |
-| `keyboard-model` | 🔄 | Sets the keyboard model. | `keyboard-model=pc105` |
-| `keyboard-layouts` | 🔄 | Sets the keyboard layouts (comma-separated). | `keyboard-layouts=us,de` |
-| `keyboard-variants` | 🔄 | Sets the keyboard variants (comma-separated). | `keyboard-variants=,dvorak` |
-| `keyboard-options` | 🔄 | Sets keyboard options. | `keyboard-options=grp:alt_shift_toggle` |
-| `noroot` | 🔒 | Disables sudo and policykit privileges. | `noroot` |
-| `noautologin` | 🔄 | Disables both console and graphical autologin. | `noautologin` |
-| `nottyautologin` | 🔄 | Disables console autologin only. | `nottyautologin` |
-| `nox11autologin` | 🔄 | Disables graphical autologin only. | `nox11autologin` |
-| `xorg-driver` | 🔄 | Sets the xorg driver instead of autodetecting. | `xorg-driver=nouveau` |
-| `xorg-resolution` | 🔄 | Sets the xorg resolution instead of autodetecting. | `xorg-resolution=1920x1080` |
-| `module-mode` | 🔄 | Sets the live configuration module mode. When set to "merged", dynamically integrates configuration changes. | `module-mode=merged` |
-| `hooks` | 🔄 | Executes arbitrary files from filesystem, medium, or URLs. | `hooks=filesystem`<br>`hooks=http://example.com/script.sh` |
+| `from` | Every boot | Loads MiniOS data from a directory, device, or ISO. Remote ISO over **`http://` only** starts [network boot](/installation/Network-Boot.md) (httpfs2). | `from=/minios/`<br>`from=/Downloads/minios.iso`<br>`from=http://domain.com/minios.iso`<br>`from=/dev/sr0/minios`<br>`from=/dev/disk/by-label/MyFlash/minios`<br>`from=askdisk`<br>`from=askdisk/customdir` |
+| `load` | Every boot | Loads only `.sb` modules matching a name, list, regular expression, or supported numeric range. Also filters modules copied by `toram=trim`. | `load=00-core`<br>`load=core,kernel,firmware`<br>`load=00,01,02`<br>`load=00-03` |
+| `noload` | Every boot | Excludes matching `.sb` modules, including from `toram=trim`. | `noload=05-xfce-apps`<br>`noload=xfce-apps,firefox`<br>`noload=05,06`<br>`noload=04-06` |
+| `bext` | Every boot | Sets the bundle extension. Default: `sb`. | `bext=mymod` |
+| `timing` | Every boot | Enables startup timing output. | `timing` |
+| `union` | Every boot | Selects the union filesystem. | `union=aufs`<br>`union=overlayfs` |
+| `ip` | Every boot | **Network boot (PXE) only.** Static address for early fetch. Format: `<client-ip>:<server-ip>:<gateway-ip>:<netmask>[:<port>]` (default HTTP port **7529**). Non-empty `ip=` forces PXE data download and skips local media. Not session NetworkManager config. See [Network boot](/installation/Network-Boot.md). | `ip=192.168.1.10:192.168.1.1:192.168.1.1:255.255.255.0` |
+| `cache` | Every boot | httpfs cache size in MB for HTTP ISO network boot (`from=http://…`). See [Network boot](/installation/Network-Boot.md). | `cache=512` |
+| `rd.break` | Every boot | Opens a debug shell at the end of the initramfs stage. | `rd.break` |
+| `perchdir` | Every boot | Selects a numbered persistence session or an action: `resume`, `new`, or `ask`. A device/path or `askdisk` form selects another persistence location. Without a persistence parameter, MiniOS starts cleanly. | `perchdir=1`<br>`perchdir=resume`<br>`perchdir=new`<br>`perchdir=ask`<br>`perchdir=/dev/sda1/changes`<br>`perchdir=/dev/disk/by-label/MyFlash/changes`<br>`perchdir=askdisk`<br>`perchdir=askdisk/customdir` |
+| `perchsize` | Every boot | Container size for `dynfilefs`, `raw`, and `luks`; it does not apply to `native` or `squashfs`. Accepts a whole number in MB or an `M`/`MB`, `G`/`GB`, or `T`/`TB` suffix; GB and TB are converted at 1000 MB and 1,000,000 MB. The limit is 1,000,000 MB, further capped by available space after `perchreserve`; raw and LUKS files are capped at 4000 MB on FAT32. New raw and LUKS containers default to 4000 MB. Initramfs-created DynFileFS defaults to available capacity rounded down to 1000 MB; Session Manager defaults it to 4000 MB. | `perchsize=4000`<br>`perchsize=32GB`<br>`perchsize=1TB` |
+| `perchreserve` | Every boot | Free space, in MiB, kept on the persistence device. New or growing containers do not consume it, and MiniOS warns when free space reaches it. Default: 256; maximum: 4096. | `perchreserve=512`<br>`perchreserve=1024` |
+| `perchmode` | Every boot | Persistence storage mode.<br>`native` (default): a directory on a writable POSIX filesystem.<br>`dynfilefs`: an expandable container, including on FAT32, NTFS, or exFAT.<br>`raw`: a fixed-size ext4 image.<br>`luks`: a LUKS2-encrypted ext4 container; creation and unlock prompt on the console and require crypt support in the initramfs.<br>`squashfs`: an existing compressed snapshot unpacked for the session. Session Manager can create and save SquashFS snapshots from the running system; the initramfs can resume but cannot create them. | `perchmode=native`<br>`perchmode=dynfilefs`<br>`perchmode=raw`<br>`perchmode=luks`<br>`perchmode=squashfs` |
+| `perch` | Every boot | Enables persistence and resumes the last session. Equivalent to `perchdir=resume`. | `perch` |
+| `toram` | Every boot | Copies MiniOS to RAM. With no value it uses `full`; `full` copies the complete MiniOS directory, while `trim` copies the module set selected by `load` and `noload`. Persistent changes are included when persistence is requested. | `toram`<br>`toram=trim`<br>`toram=full` |
+| `text` | Every boot | Starts in text console mode. | `text` |
+| `automount` | Every boot | Enables automatic mounting of storage devices. | `automount` |
+| `debug` | Every boot | Enables additional startup diagnostics. | `debug` |
+| `nozram` | Every boot | Disables zram swap. | `nozram` |
+| `zramsize` | Every boot | Sets the zram swap size in MiB. If omitted, MiniOS calculates it from total RAM. | `zramsize=512`<br>`zramsize=2048` |
+| `zramcomp` | Every boot | Selects `lzo`, `lzo-rle`, `lz4`, `lz4hc`, or `zstd`; availability depends on the running kernel. If omitted, the kernel default is retained. | `zramcomp=lzo`<br>`zramcomp=lz4` |
+| `default-target` | Every boot | Sets the default systemd target. | `default-target=multi-user`<br>`default-target=rescue` |
+| `enable-services` | Every boot | Enables specified systemd services at boot. | `enable-services=ssh,docker`<br>`enable-services=ssh` |
+| `disable-services` | Every boot | Disables specified systemd services at boot. | `disable-services=apache2`<br>`disable-services=nginx` |
+| `novirtres` | Every boot | Disables automatic screen resolution changes in virtual machines. The XFCE default is 1280x800. | `novirtres` |
+| `virtres` | Every boot | Sets the XFCE screen resolution in virtual machines. | `virtres=1920x1080`<br>`virtres=1024x768` |
+| `components` | Every boot | Runs only the listed live-config components, in component order. | `components=hostname,user-setup,sudo` |
+| `nocomponents` | Every boot | Runs all live-config components except those listed. | `nocomponents=anacron,apport` |
+| `hostname` | Every boot | Sets the system hostname. | `hostname=minios` |
+| `username` | Initial setup | Sets the username created for autologin. | `username=live` |
+| `user-default-groups` | Initial setup | Sets the created user's default groups. | `user-default-groups=audio,cdrom,video` |
+| `user-fullname` | Initial setup | Sets the created user's full name. | `user-fullname="MiniOS Live User"` |
+| `root-password` | Initial setup | Sets the root password in plain text. | `root-password=toor` |
+| `root-password-crypted` | Initial setup | Sets the root password as a crypt hash. | `root-password-crypted=$y$j9T$...` |
+| `user-password` | Initial setup | Sets the user password in plain text. | `user-password=live` |
+| `user-password-crypted` | Initial setup | Sets the user password as a crypt hash. | `user-password-crypted=$y$j9T$...` |
+| `locales` | Every boot | Sets one or more system locales. | `locales=en_US.UTF-8` |
+| `timezone` | Every boot | Sets the system timezone. | `timezone=Europe/Berlin` |
+| `keyboard-model` | Every boot | Sets the keyboard model. | `keyboard-model=pc105` |
+| `keyboard-layouts` | Every boot | Sets comma-separated keyboard layouts. | `keyboard-layouts=us,de` |
+| `keyboard-variants` | Every boot | Sets comma-separated keyboard variants corresponding to the layouts. | `keyboard-variants=,dvorak` |
+| `keyboard-options` | Every boot | Sets keyboard options. | `keyboard-options=grp:alt_shift_toggle` |
+| `noroot` | Initial setup | Prevents live-config from granting sudo and policykit privileges. | `noroot` |
+| `noautologin` | Every boot | Prevents live-config from setting up console and graphical autologin; existing persistent configuration is not removed. | `noautologin` |
+| `nottyautologin` | Every boot | Prevents setup of console autologin only; existing persistent configuration is not removed. | `nottyautologin` |
+| `nox11autologin` | Every boot | Prevents setup of graphical autologin only; existing persistent configuration is not removed. | `nox11autologin` |
+| `xorg-driver` | Every boot | Selects an Xorg driver instead of autodetection. | `xorg-driver=nouveau` |
+| `xorg-resolution` | Every boot | Sets the Xorg resolution instead of autodetection. | `xorg-resolution=1920x1080` |
+| `module-mode` | Every boot | With `merged`, integrates configuration changes into the running live system. | `module-mode=merged` |
+| `hooks` | Every boot | Fetches and executes hooks from the filesystem, live medium, or wget-supported URLs. | `hooks=filesystem`<br>`hooks=http://example.com/script.sh` |
 
 Separate commands with spaces. See the `man bootparam` reference pages for additional kernel parameters common to all Linux distributions.
 
 For detailed information about live-config parameters, see [live-config](/configuration/live-config.md).
+
+For loading MiniOS over the network (PXE and HTTP ISO), see [Network boot](/installation/Network-Boot.md).

@@ -1,355 +1,77 @@
-# Liste des paquets MiniOS
+# Packages et éditions
 
-Ce document fournit un aperçu complet de tous les paquets inclus dans les différentes éditions de MiniOS. MiniOS est disponible en trois éditions principales, chacune proposant un ensemble différent de logiciels préinstallés :
+Le contenu des paquets MiniOS est généré à partir de listes sources conditionnelles. Il varie selon la suite de distribution, l’architecture, le système d’initialisation, l’environnement de bureau, la langue, les options du noyau et la disponibilité des dépôts. Cette page décrit l’héritage des éditions et présente des exemples de contenus représentatifs ; il ne s’agit pas d’une table exhaustive des paquets publiés.
 
-- **Standard** - Système minimal avec fonctionnalités de base
-- **Toolbox** - Outils d’administration système et de diagnostic
-- **Ultra** - Environnement de bureau complet avec applications
+## Héritage des éditions
 
-## Utilitaires console et paquets système
+Les variantes de paquets forment une séquence additive :
 
-### ⚙️ Paquets système principaux
+1. **Minimum** fournit le système live commun et le plus petit bureau sélectionné.
+2. **Standard** hérite de Minimum et ajoute des outils d’administration générale, de gestion du bureau et de MiniOS.
+3. **Toolbox** hérite de Standard et ajoute des outils de récupération, de diagnostic, de stockage, de réseau et de virtualisation.
+4. **Ultra** hérite de Toolbox et ajoute des logiciels de station de travail, multimédia, bureautique et de conteneurisation plus larges.
 
-| Paquet                         | Standard | Toolbox | Ultra | ℹ️ Informations sur le paquet                                 |
-| :----------------------------- | :------: | :-----: | :---: | :----------------------------------------------------------- |
-| minios-tools                   |    ✅     |    ✅    |   ✅   | Outils et scripts de base pour MiniOS.                       |
-| minios-welcome                 |    ✅     |    ✅    |   ✅   | Message de bienvenue dans le navigateur.                     |
-| minios-live-config             |    ✅     |    ✅    |   ✅   | Scripts de configuration pour le système Live.               |
-| minios-live-config-systemd     |    ✅     |    ✅    |   ✅   | Configuration du système Live pour systemd.                  |
-| minios-live-config-doc         |    ✅     |    ✅    |   ✅   | Documentation pour minios-live-config.                       |
-| user-setup                     |    ✅     |    ✅    |   ✅   | Utilitaire de configuration utilisateur.                     |
-| linux-base                     |    ✅     |    ✅    |   ✅   | Scripts de base pour le système Linux.                       |
-| kbd                            |    ✅     |    ✅    |   ✅   | Utilitaires pour gérer la disposition clavier en console.    |
-| keyboard-configuration         |    ✅     |    ✅    |   ✅   | Système de configuration du clavier.                         |
-| locales                        |    ✅     |    ✅    |   ✅   | Bibliothèques et données pour la localisation (langues).     |
-| console-setup                  |    ✅     |    ✅    |   ✅   | Configuration de la police et de l’encodage de la console.   |
-| systemd-timesyncd              |    ✅     |    ✅    |   ✅   | Service de synchronisation de l’heure par le réseau.         |
-| polkitd / policykit-1 / pkexec |    ✅     |    ✅    |   ✅   | Cadre de gestion des privilèges des services système.        |
+Des expressions conditionnelles peuvent sélectionner des alternatives ou omettre un paquet selon la suite, l’architecture, l’environnement ou l’option de compilation. Un paquet cité ci-dessous est donc représentatif des listes sources actuelles, sans garantie que le même nom de paquet binaire Debian existe dans chaque version de MiniOS.
 
-### 📦 Gestion des paquets et des logiciels
+## Portée du bureau et de l’environnement
 
-| Paquet              | Standard | Toolbox | Ultra | ℹ️ Informations sur le paquet                                         |
-| :------------------ | :------: | :-----: | :---: | :------------------------------------------------------------------- |
-| apt-transport-https |    ✅     |    ✅    |   ✅   | Permet l’utilisation de dépôts via le protocole HTTPS.               |
-| gettext-base        |    ✅     |    ✅    |   ✅   | Utilitaires pour l’internationalisation et la localisation logicielle.|
-| man-db              |    ✅     |    ✅    |   ✅   | Système d’affichage des pages de manuel (man).                       |
-| bash-completion     |    ✅     |    ✅    |   ✅   | Fournit l’auto-complétion des commandes dans le shell Bash.           |
+Les paquets de bureau proviennent de la chaîne de modules ordonnée de l’environnement sélectionné. Les environnements Xfce, Fluxbox, LXQt, core et debug n’ont pas des ensembles de modules ou de paquets identiques. Les exemples ci-dessous utilisent les listes Xfce actuelles sauf si une fonctionnalité provient de la liste core partagée. Une version console ou un autre bureau doit être inspecté séparément.
 
-### 🌐 Utilitaires réseau
+## Contenus représentatifs
 
-| Paquet                     | Standard | Toolbox | Ultra | ℹ️ Informations sur le paquet                                         |
-| :------------------------- | :------: | :-----: | :---: | :------------------------------------------------------------------- |
-| network-manager / connman  |    ✅     |    ✅    |   ✅   | Gestionnaires de connexions réseau.                                  |
-| dnsmasq-base               |    ✅     |    ✅    |   ✅   | Serveur DNS et DHCP léger (fichiers de base).                       |
-| wpasupplicant              |    ✅     |    ✅    |   ✅   | Utilitaire pour se connecter aux réseaux Wi-Fi sécurisés (WPA/WPA2). |
-| iputils-ping               |    ✅     |    ✅    |   ✅   | Utilitaire `ping` pour vérifier la disponibilité d’un hôte.          |
-| ssh                        |    ✅     |    ✅    |   ✅   | Client et serveur pour connexions distantes sécurisées (SSH).        |
-| wget                       |    ✅     |    ✅    |   ✅   | Utilitaire pour télécharger des fichiers depuis le réseau.           |
-| curl                       |    ✅     |    ✅    |   ✅   | Utilitaire pour le transfert de données via divers protocoles.       |
-| ipset                      |    ✅     |    ✅    |   ✅   | Utilitaire pour gérer des ensembles d’adresses IP dans le noyau.     |
-| whois                      |    ✅     |    ✅    |   ✅   | Client pour obtenir des infos sur les domaines et adresses IP.       |
-| nmap                       |    ❌     |    ✅    |   ✅   | Puissant scanner réseau et outil d’audit de sécurité.                |
-| ncat                       |    ❌     |    ✅    |   ✅   | Version améliorée de `netcat` de la suite nmap.                     |
-| ndiff                      |    ❌     |    ✅    |   ✅   | Utilitaire pour comparer les résultats de scan nmap.                 |
-| iperf3                     |    ❌     |    ✅    |   ✅   | Outil de mesure de la bande passante réseau.                        |
-| netcat                     |    ❌     |    ✅    |   ✅   | Utilitaire réseau pour lire/écrire sur TCP/IP.                       |
-| netcat-openbsd             |    ❌     |    ✅    |   ✅   | Implémentation alternative de `netcat` depuis OpenBSD.               |
-| open-iscsi                 |    ❌     |    ❌    |   ✅   | Client (initiateur) pour le stockage iSCSI.                          |
-| tgt                        |    ❌     |    ❌    |   ✅   | Serveur (cible) pour fournir du stockage iSCSI.                      |
+### Minimum
 
-### 💾 Gestion des disques et des systèmes de fichiers
+La composition Minimum commune inclut la configuration live MiniOS et les outils d’image, NetworkManager, SSH, la prise en charge du clavier et de la langue, le firmware sélectionné pour la cible, ainsi que des utilitaires pour l’inspection matérielle et les tâches de stockage courantes. Les paquets représentatifs incluent `minios-tools`, `minios-image-compose`, `minios-live-config`, `pciutils`, `usbutils`, `smartmontools`, `dosfstools`, `ntfs-3g`, `btrfs-progs`, `xorriso`, `squashfs-tools`, `zstd`, `rfkill` et `wpasupplicant`.
 
-| Paquet         | Standard | Toolbox | Ultra | ℹ️ Informations sur le paquet                                             |
-| :------------- | :------: | :-----: | :---: | :----------------------------------------------------------------------- |
-| parted         |    ✅     |    ✅    |   ✅   | Programme pour créer et modifier des partitions disque.                  |
-| dosfstools     |    ✅     |    ✅    |   ✅   | Utilitaires pour créer et vérifier des systèmes de fichiers FAT.         |
-| ntfs-3g        |    ✅     |    ✅    |   ✅   | Pilote pour lire et écrire sur des partitions NTFS.                      |
-| mdadm          |    ✅     |    ✅    |   ✅   | Utilitaire de gestion des ensembles RAID logiciels.                      |
-| hdparm         |    ✅     |    ✅    |   ✅   | Utilitaire pour configurer et afficher les paramètres des disques durs.  |
-| sdparm         |    ✅     |    ✅    |   ✅   | Utilitaire pour accéder aux paramètres des périphériques SCSI/SATA/SAS.  |
-| btrfs-progs    |    ✅     |    ✅    |   ✅   | Utilitaires pour le système de fichiers Btrfs.                           |
-| xfsprogs       |    ✅     |    ✅    |   ✅   | Utilitaires pour le système de fichiers XFS.                             |
-| exfat-utils    |    ✅     |    ✅    |   ✅   | Utilitaires pour exFAT (implémentation héritée).                         |
-| exfat-fuse     |    ✅     |    ✅    |   ✅   | Module FUSE pour la prise en charge d’exFAT.                             |
-| exfatprogs     |    ✅     |    ✅    |   ✅   | Utilitaires pour créer et vérifier des systèmes de fichiers exFAT.       |
-| cifs-utils     |    ✅     |    ✅    |   ✅   | Utilitaires pour monter des partages réseau Windows (Samba/CIFS).        |
-| nfs-common     |    ✅     |    ✅    |   ✅   | Fichiers communs pour le support NFS (client).                           |
-| smartmontools  |    ✅     |    ✅    |   ✅   | Utilitaires de surveillance de l’état des disques via S.M.A.R.T.         |
-| gpart          |    ❌     |    ✅    |   ✅   | Utilitaire pour « deviner » la table de partitions sur disques endommagés.|
-| mtools         |    ❌     |    ✅    |   ✅   | Ensemble d’outils pour accéder aux disquettes et partitions MS-DOS.      |
-| gddrescue      |    ❌     |    ✅    |   ✅   | Outil de copie de données depuis des supports endommagés.                |
-| zfsutils-linux |    ❌     |    ✅    |   ✅   | Utilitaires pour gérer les pools et systèmes de fichiers ZFS.            |
-| davfs2         |    ❌     |    ✅    |   ✅   | Permet de monter des ressources WebDAV comme un système de fichiers local.|
-| f2fs-tools     |    ❌     |    ✅    |   ✅   | Utilitaires pour le système de fichiers F2FS.                            |
-| hfsutils       |    ❌     |    ✅    |   ✅   | Utilitaires pour le système de fichiers Apple « classique » (HFS).       |
-| hfsprogs       |    ❌     |    ✅    |   ✅   | Utilitaires pour créer et vérifier des systèmes de fichiers HFS+.        |
-| jfsutils       |    ❌     |    ✅    |   ✅   | Utilitaires pour le système de fichiers JFS.                             |
-| reiserfsprogs  |    ❌     |    ✅    |   ✅   | Utilitaires pour le système de fichiers ReiserFS (v3).                   |
-| reiser4progs   |    ❌     |    ✅    |   ✅   | Utilitaires pour le système de fichiers Reiser4.                         |
-| udftools       |    ❌     |    ✅    |   ✅   | Utilitaires pour le système de fichiers UDF (DVD/Blu-ray).               |
-| nilfs-tools    |    ❌     |    ✅    |   ✅   | Utilitaires pour le système de fichiers log-structuré NILFS2.            |
-| sshfs          |    ❌     |    ✅    |   ✅   | Monter un système de fichiers distant via SSH.                           |
-| lvm2           |    ❌     |    ✅    |   ✅   | Gestionnaire de volumes logiques.                                        |
-| cryptsetup     |    ❌     |    ✅    |   ✅   | Utilitaire pour configurer des partitions chiffrées (LUKS).              |
-| zulucrypt-cli  |    ❌     |    ✅    |   ✅   | CLI pour gérer les volumes chiffrés (LUKS, VeraCrypt, etc.).             |
-| zulumount-cli  |    ❌     |    ✅    |   ✅   | CLI pour monter les volumes gérés par zulucrypt.                         |
+La chaîne Minimum Xfce ajoute Xorg, Blackbox ou Openbox selon la liste source, Thunar, Mousepad, le panneau Xfce, la session, les paramètres, les composants du bureau et du gestionnaire de fenêtres, l’applet NetworkManager pour le bureau, les contrôles ALSA, Xarchiver, la gestion de la batterie, ainsi que Firefox ou Firefox ESR selon la famille de distribution.
 
-### 💻 Utilitaires système et surveillance
+Les utilitaires MiniOS présents dans chaque édition, y compris Xfce Minimum, sont `minios-tools`, `minios-image-compose`, `minios-live-config`, l’intégration systemd ou SysV correspondante, `minios-live-config-doc` et `minios-welcome`.
 
-| Paquet         | Standard | Toolbox | Ultra | ℹ️ Informations sur le paquet                                               |
-| :------------- | :------: | :-----: | :---: | :------------------------------------------------------------------------- |
-| pciutils       |    ✅     |    ✅    |   ✅   | Utilitaires pour afficher les informations sur les périphériques PCI.       |
-| usbutils       |    ✅     |    ✅    |   ✅   | Utilitaires pour afficher les informations sur les périphériques USB.       |
-| psmisc         |    ✅     |    ✅    |   ✅   | Ensemble d’utilitaires pour gérer les processus (`fuser`, `killall`).       |
-| lsof           |    ✅     |    ✅    |   ✅   | Affiche quels fichiers sont utilisés par quels processus.                   |
-| htop           |    ✅     |    ✅    |   ✅   | Moniteur interactif de processus.                                           |
-| rfkill         |    ✅     |    ✅    |   ✅   | Outil pour activer/désactiver les périphériques sans fil.                   |
-| file           |    ✅     |    ✅    |   ✅   | Détermine le type de fichier.                                               |
-| usb-modeswitch |    ✅     |    ✅    |   ✅   | Permet de changer le mode des périphériques USB (ex : modems).              |
-| ncdu           |    ✅     |    ✅    |   ✅   | Analyseur d’utilisation disque en interface ncurses.                        |
-| lshw           |    ❌     |    ✅    |   ✅   | Affiche des informations détaillées sur le matériel.                        |
-| screen         |    ❌     |    ✅    |   ✅   | Multiplexeur de terminal, permet de gérer plusieurs sessions.               |
-| nmon           |    ❌     |    ✅    |   ✅   | Utilitaire de surveillance des performances système.                        |
-| inxi           |    ❌     |    ✅    |   ✅   | Script pour collecter et afficher des informations système détaillées.       |
+### Standard
 
-### 🗜️ Archives et compression
+Standard ajoute des fonctionnalités partagées telles que la prise en charge DNS, des outils de compression et de fichiers supplémentaires, des clients de systèmes de fichiers réseau, FUSE, le partitionnement et la création d’ISO. Les paquets représentatifs incluent `dnsmasq-base`, `ncdu`, `lsof`, `xfsprogs`, `exfatprogs` ou son alternative spécifique à la suite, `cifs-utils`, `nfs-common`, `parted`, `7zip` et `genisoimage`.
 
-| Paquet        | Standard | Toolbox | Ultra | ℹ️ Informations sur le paquet                                         |
-| :------------ | :------: | :-----: | :---: | :------------------------------------------------------------------- |
-| zip           |    ✅     |    ✅    |   ✅   | Archiveur pour créer et extraire des fichiers .zip.                  |
-| unzip         |    ✅     |    ✅    |   ✅   | Utilitaire pour extraire les archives .zip.                          |
-| xz-utils      |    ✅     |    ✅    |   ✅   | Utilitaires de compression de données avec l’algorithme LZMA/XZ.     |
-| zstd          |    ✅     |    ✅    |   ✅   | Utilitaire de compression de données avec Zstandard.                 |
-| lz4           |    ✅     |    ✅    |   ✅   | Utilitaire de compression très rapide.                               |
-| liblz4-tools  |    ✅     |    ✅    |   ✅   | Outils supplémentaires pour le format lz4.                           |
-| bzip2         |    ✅     |    ✅    |   ✅   | Utilitaire de compression de données avec l’algorithme bzip2.        |
-| 7zip          |    ✅     |    ✅    |   ✅   | Archiveur puissant supportant de nombreux formats, dont 7z.          |
-| pv            |    ❌     |    ✅    |   ✅   | Utilitaire pour suivre la progression du transfert de données via pipe.|
-| pigz          |    ❌     |    ✅    |   ✅   | Implémentation parallèle (multi-thread) de gzip.                     |
-| pixz          |    ❌     |    ✅    |   ✅   | Implémentation indexable parallèle de xz.                            |
-| plzip         |    ❌     |    ✅    |   ✅   | Implémentation parallèle de lzip.                                    |
-| lrzip         |    ❌     |    ✅    |   ✅   | Archiveur longue portée, efficace pour les gros fichiers.            |
-| lzop          |    ❌     |    ✅    |   ✅   | Utilitaire de compression très rapide.                               |
-| pbzip2        |    ❌     |    ✅    |   ✅   | Implémentation parallèle de bzip2.                                   |
-| cabextract    |    ❌     |    ✅    |   ✅   | Utilitaire pour extraire les archives Microsoft .cab.                |
+Dans Xfce, les éditions Standard et ultérieures ajoutent les utilitaires graphiques et d’administration MiniOS actuels : `minios-configurator`, `minios-installer`, `minios-session-manager`, `minios-kernel-manager`, `minios-store`, `minios-store-gui`, `minios-image-builder`, `minios-module-manager` et `driveutility`. Elles ajoutent également LightDM, l’intégration audio et Bluetooth du bureau, les captures d’écran, la gestion des tâches, les notifications et le terminal Xfce.
 
-### 🕵️ Récupération et forensique
+### Toolbox
 
-| Paquet     | Standard | Toolbox | Ultra | ℹ️ Informations sur le paquet                                |
-| :--------- | :------: | :-----: | :---: | :---------------------------------------------------------- |
-| clonezilla |    ❌     |    ✅    |   ✅   | Outil de clonage et de sauvegarde de disques.               |
-| testdisk   |    ❌     |    ✅    |   ✅   | Utilitaire pour récupérer des partitions et fichiers supprimés.|
-| chntpw     |    ❌     |    ✅    |   ✅   | Utilitaire pour réinitialiser les mots de passe Windows.    |
-| reglookup  |    ❌     |    ✅    |   ✅   | Utilitaire pour lire et analyser la base de registre Windows.|
-| hexedit    |    ❌     |    ✅    |   ✅   | Éditeur hexadécimal simple pour la console.                 |
+Toolbox ajoute des fonctionnalités en ligne de commande pour le stockage, la récupération, la performance, le réseau et les machines virtuelles. Les exemples actuels incluent les outils LVM et LUKS, Clonezilla, Partclone, TestDisk, `gddrescue`, les outils ZFS si la compilation le permet, Nmap, iperf3, QEMU, libvirt, les agents invités, fio, sysbench et le rapport matériel.
 
-### ☁️ Virtualisation et conteneurs
+Le module d’applications Xfce ajoute des outils représentatifs tels que GParted, GSmartControl, Guymager, des utilitaires de secours et de disque, Wireshark, Remmina, Virt Manager, VLC, KeePassXC, PDF Arranger, Codium, BleachBit et des outils graphiques de chiffrement. Les noms exacts dépendent de la suite ; par exemple, une liste source peut utiliser l’une de plusieurs alternatives de paquets.
 
-| Paquet                  | Standard | Toolbox | Ultra | ℹ️ Informations sur le paquet                                         |
-| :---------------------- | :------: | :-----: | :---: | :------------------------------------------------------------------- |
-| open-vm-tools           |    ❌     |    ✅    |   ✅   | Ensemble d’outils pour une meilleure intégration VMware.             |
-| hyperv-daemons          |    ❌     |    ✅    |   ✅   | Services d’intégration avec l’hyperviseur Microsoft Hyper-V.         |
-| qemu-system-x86         |    ❌     |    ✅    |   ✅   | Émulateur pour exécuter des systèmes x86/x86_64.                     |
-| qemu-utils              |    ❌     |    ✅    |   ✅   | Utilitaires pour gérer les images disques QEMU.                      |
-| libvirt-daemon-system   |    ❌     |    ✅    |   ✅   | Démons pour gérer les machines virtuelles.                           |
-| virt-what               |    ❌     |    ✅    |   ✅   | Script pour détecter si le système tourne dans une VM.               |
-| uidmap                  |    ❌     |    ❌    |   ✅   | Utilitaires pour gérer les espaces de noms utilisateur.              |
-| docker.io               |    ❌     |    ❌    |   ✅   | Plateforme de conteneurisation d’applications.                       |
-| docker-compose          |    ❌     |    ❌    |   ✅   | Outil pour gérer les applications Docker multi-conteneurs.           |
-| lazydocker              |    ❌     |    ❌    |   ✅   | Interface terminal pour gérer Docker et Docker Compose.              |
-| selinux-policy-default  |    ❌     |    ❌    |   ✅   | Politique de sécurité SELinux par défaut.                            |
+### Ultra
 
-### 🧩 Divers
+Ultra conserve l’ensemble Toolbox et ajoute des logiciels de conteneurisation et de station de travail. Les ajouts partagés représentatifs incluent les paquets Docker sélectionnés pour le dépôt cible, la prise en charge de Compose, `lazydocker`, les outils iSCSI et les utilitaires de gestion des espaces de noms utilisateur. La liste actuelle des applications Xfce ajoute LibreOffice, GIMP, Inkscape, Blender, Audacity, OBS Studio, RawTherapee, Synaptic et les paquets d’intégration de bureau associés.
 
-| Paquet         | Standard | Toolbox | Ultra | ℹ️ Informations sur le paquet                                                      |
-| :------------- | :------: | :-----: | :---: | :------------------------------------------------------------------------------- |
-| mc             |    ✅     |    ✅    |   ✅   | Gestionnaire de fichiers Midnight Commander.                                      |
-| gpg            |    ✅     |    ✅    |   ✅   | GNU Privacy Guard – utilitaire de chiffrement et de signature.                    |
-| gnupg          |    ✅     |    ✅    |   ✅   | Suite complète GNU Privacy Guard.                                                 |
-| squashfs-tools |    ✅     |    ✅    |   ✅   | Utilitaires pour créer et extraire des images SquashFS.                           |
-| xorriso        |    ✅     |    ✅    |   ✅   | Utilitaire pour créer et graver des images ISO-9660.                              |
-| genisoimage    |    ✅     |    ✅    |   ✅   | Crée des images de systèmes de fichiers ISO-9660.                                 |
-| eject          |    ✅     |    ✅    |   ✅   | Utilitaire pour éjecter les supports amovibles (CD/DVD/USB).                      |
-| fuse3 / fuse   |    ✅     |    ✅    |   ✅   | Cadre pour créer des systèmes de fichiers en espace utilisateur.                  |
-| libfuse2       |    ✅     |    ✅    |   ✅   | Bibliothèque de compatibilité pour les applications FUSE anciennes.               |
-| memtest86+     |    ❌     |    ✅    |   ✅   | Programme de test de la mémoire vive (RAM).                                      |
-| xmount         |    ❌     |    ✅    |   ✅   | Outil pour monter des images disque de différents formats.                        |
-| aria2          |    ❌     |    ✅    |   ✅   | Gestionnaire de téléchargements multi-protocoles.                                 |
-| fio            |    ❌     |    ✅    |   ✅   | Outil avancé de test et de benchmark des performances disque (Flexible I/O Tester).|
-| bonnie++       |    ❌     |    ✅    |   ✅   | Benchmark pour tester les performances des systèmes de fichiers.                  |
-| iozone3        |    ❌     |    ✅    |   ✅   | Benchmark pour tester les performances d’E/S disque.                             |
-| stress         |    ❌     |    ✅    |   ✅   | Outil pour générer de la charge système (CPU, mémoire, I/O).                     |
-| sysbench       |    ❌     |    ✅    |   ✅   | Benchmark complet pour tester CPU, mémoire, I/O, bases de données.               |
+## Inspecter le contenu exact d’une version
 
-## Microprogrammes et pilotes
+Le système en cours d’exécution fait autorité pour les paquets effectivement installés dans cette version. Listez les noms et versions des paquets avec :
 
-### 📦 Pilotes (DKMS)
+```bash
+dpkg-query -W -f='${binary:Package}\t${Version}\n' | sort
+```
 
-| Paquet                   | Standard | Toolbox | Ultra | ℹ️ Informations sur le paquet                                                                                  |
-| :----------------------- | :------: | :-----: | :---: | :----------------------------------------------------------------------------------------------------------- |
-| broadcom-sta-dkms        |    ✅     |    ✅    |   ✅   | Pilote propriétaire Broadcom 802.11 STA pour cartes Wi-Fi. Requis sur de nombreux PC portables Broadcom.    |
-| zfs-dkms                 |    ❌     |    ✅    |   ✅   | Modules noyau pour la prise en charge du système de fichiers ZFS.                                            |
-| realtek-rtl8821au-dkms   |    ✅     |    ✅    |   ✅   | Pilote DKMS pour chipsets Wi-Fi Realtek RTL8812AU/8821AU.                                                   |
-| realtek-rtl88xxau-dkms   |    ✅     |    ✅    |   ✅   | Pilote DKMS pour divers chipsets Wi-Fi Realtek RTL88xxAU.                                                   |
-| realtek-rtl8188eus-dkms  |    ✅     |    ✅    |   ✅   | Pilote DKMS pour chipsets Wi-Fi Realtek RTL8188EUS.                                                        |
-| realtek-rtl8814au-dkms   |    ✅     |    ✅    |   ✅   | Pilote DKMS pour chipsets Wi-Fi Realtek RTL8814AU.                                                         |
+Inspectez séparément les modules ordonnés composant la racine en cours d’exécution et les fichiers sélectionnés pour le prochain démarrage. Le gestionnaire de modules MiniOS les présente comme **En cours d’exécution** et **Prochain démarrage**. Depuis un terminal, les montages SquashFS actifs peuvent être listés avec :
 
-### 🔌 Microprogrammes
+```bash
+findmnt -rn -t squashfs -o TARGET,SOURCE
+```
 
-| Paquet                    | Standard | Toolbox | Ultra | ℹ️ Informations sur le paquet                                                  |
-| :------------------------ | :------: | :-----: | :---: | :--------------------------------------------------------------------------- |
-| firmware-linux-free       |    ✅     |    ✅    |   ✅   | Collection de microprogrammes libres (niveau licence) pour divers matériels.  |
-| firmware-linux-nonfree    |    ✅     |    ✅    |   ✅   | Métapaquet incluant tous les microprogrammes non libres (propriétaires).      |
-| firmware-atheros          |    ✅     |    ✅    |   ✅   | Microprogramme pour cartes réseau sans fil sur puces Atheros.                 |
-| firmware-iwlwifi          |    ✅     |    ✅    |   ✅   | Microprogramme pour cartes réseau Intel Wireless (Wi-Fi).                     |
-| firmware-zd1211           |    ✅     |    ✅    |   ✅   | Microprogramme pour périphériques Wi-Fi ZyDAS ZD1211/ZD1211B.                 |
-| firmware-realtek          |    ✅     |    ✅    |   ✅   | Microprogramme pour divers périphériques Realtek (cartes réseau, Bluetooth…). |
-| firmware-bnx2             |    ✅     |    ✅    |   ✅   | Microprogramme pour cartes réseau Broadcom NetXtreme II.                      |
-| firmware-brcm80211        |    ✅     |    ✅    |   ✅   | Microprogramme pour cartes sans fil Broadcom/Cypress 802.11.                  |
-| firmware-cavium           |    ✅     |    ✅    |   ✅   | Microprogramme pour processeurs et adaptateurs réseau Cavium.                 |
-| firmware-ipw2x00          |    ✅     |    ✅    |   ✅   | Microprogramme pour anciennes cartes Intel Pro/Wireless 2100/2200/2915.       |
-| firmware-libertas         |    ✅     |    ✅    |   ✅   | Microprogramme pour cartes sans fil Marvell Libertas 8xxx.                    |
-| firmware-ti-connectivity  |    ✅     |    ✅    |   ✅   | Microprogramme pour puces combo Texas Instruments (Wi-Fi, Bluetooth).         |
-| firmware-b43-installer    |    ✅     |    ✅    |   ✅   | Installeur pour le microprogramme des cartes Broadcom B43 anciennes.          |
-| firmware-sof-signed       |    ✅     |    ✅    |   ✅   | Microprogramme signé pour la plateforme Sound Open Firmware (DSP audio).      |
+Pour un support hors ligne ou une image ISO montée, inventoriez directement les fichiers de modules sources :
 
-## Interface graphique de base
+```bash
+find /path/to/media/minios -type f -name '*.sb' -printf '%P\n' | sort -n
+```
 
-### 🖥️ Système graphique (Xorg)
+Pour une compilation source, les fichiers et répertoires suivants sont les manifestes sources et entrées de sélection faisant foi :
 
-| Paquet                   | Standard | Toolbox | Ultra | ℹ️ Informations sur le paquet                                              |
-| :----------------------- | :------: | :-----: | :---: | :----------------------------------------------------------------------- |
-| xserver-xorg             |    ✅     |    ✅    |   ✅   | Serveur principal du système graphique X.Org.                            |
-| xserver-xorg-video-all   |    ✅     |    ✅    |   ✅   | Métapaquet installant tous les pilotes vidéo 2D pour X.Org.              |
-| xserver-xorg-video-intel |    ✅     |    ✅    |   ✅   | Pilote vidéo pour les graphiques intégrés Intel.                         |
-| xserver-xorg-input-all   |    ✅     |    ✅    |   ✅   | Métapaquet installant tous les pilotes d’entrée (souris, clavier).       |
-| xinit                    |    ✅     |    ✅    |   ✅   | Utilitaire pour démarrer le serveur X.                                   |
-| xterm                    |    ✅     |    ✅    |   ✅   | Émulateur de terminal standard pour X.                                   |
-| blackbox or openbox      |    ✅     |    ✅    |   ✅   | Gestionnaires de fenêtres légers.                                        |
-| libxcursor1              |    ✅     |    ✅    |   ✅   | Bibliothèque pour la gestion des curseurs X11.                           |
-| breeze-cursor-theme      |    ✅     |    ✅    |   ✅   | Thème de curseur Breeze de KDE.                                          |
-| x11-utils                |    ✅     |    ✅    |   ✅   | Ensemble d’utilitaires X11 de base.                                      |
-| wmctrl                   |    ✅     |    ✅    |   ✅   | Utilitaire pour contrôler les fenêtres en ligne de commande.             |
-| xdotool                  |    ✅     |    ✅    |   ✅   | Utilitaire pour simuler les entrées clavier et souris.                   |
-| libdrm-intel1            |    ✅     |    ✅    |   ✅   | Bibliothèque utilisateur pour Intel DRM (Direct Rendering Manager).       |
-| libgl1-mesa-dri          |    ✅     |    ✅    |   ✅   | Implémentation OpenGL libre pour le rendu direct.                        |
-| libglu1-mesa             |    ✅     |    ✅    |   ✅   | Bibliothèque utilitaire Mesa OpenGL (GLU).                               |
+- `linux-live/environments/<environment>/` pour la chaîne de modules ordonnée.
+- `linux-live/scripts/00-core/packages.list` pour la sélection partagée des éditions.
+- `linux-live/scripts/01-kernel/packages.list` et `02-firmware/packages.list` pour les ajouts conditionnels au noyau et au firmware.
+- `packages.list` de chaque module de bureau et d’application sélectionné.
+- `linux-live/build.conf` pour les valeurs de filtre de suite, architecture, environnement, variante de paquet, système d’initialisation, noyau, langue, etc.
+- `linux-live/condinapt.map` pour la signification des préfixes de filtre dans les listes de paquets.
 
-### 🔌 Accès distant (XRDP)
+Les listes sources décrivent les paquets demandés et les alternatives. Seule l’image finalisée et `dpkg-query` montrent l’ensemble exact des dépendances résolues et leurs versions pour une version donnée. La disponibilité et les noms des paquets peuvent changer entre les suites Debian, Ubuntu et Devuan, ainsi qu’entre les environnements de bureau.
 
-| Paquet            | Standard | Toolbox | Ultra | ℹ️ Informations sur le paquet                                         |
-| :---------------- | :------: | :-----: | :---: | :------------------------------------------------------------------- |
-| xrdp and xorgxrdp  |    ❌     |    ✅    |   ✅   | Serveur pour se connecter au bureau graphique via le protocole RDP.  |
-
-### 🎨 Composants d’interface
-
-| Paquet                       | Standard | Toolbox | Ultra | ℹ️ Informations sur le paquet                  |
-| :--------------------------- | :------: | :-----: | :---: | :-------------------------------------------- |
-| librsvg2-common              |    ✅     |    ✅    |   ✅   | Bibliothèque pour le rendu d’images SVG.      |
-| adwaita-icon-theme-antix     |    ✅     |    ✅    |   ✅   | Thème d’icônes Adwaita.                      |
-| elementary-minios-icon-theme |    ✅     |    ✅    |   ✅   | Thème d’icônes elementary spécial pour MiniOS.|
-
-## XFCE
-
-### 🖼️ Environnement de bureau (XFCE)
-
-| Paquet                | Standard | Toolbox | Ultra | ℹ️ Informations sur le paquet                                                               |
-| :-------------------- | :------: | :-----: | :---: | :---------------------------------------------------------------------------------------- |
-| dbus-x11              |    ✅     |    ✅    |   ✅   | Démarre le bus de messages D-Bus dans la session X11, nécessaire à la communication inter-applications. |
-| libxfce4ui-utils      |    ✅     |    ✅    |   ✅   | Bibliothèques de widgets et utilitaires communs pour l’interface XFCE.                     |
-| thunar                |    ✅     |    ✅    |   ✅   | Gestionnaire de fichiers par défaut dans XFCE.                                             |
-| thunar-volman         |    ✅     |    ✅    |   ✅   | Gère le montage automatique des supports amovibles dans Thunar.                            |
-| xfce4-appfinder       |    ✅     |    ✅    |   ✅   | Utilitaire pour rechercher et lancer rapidement des applications.                          |
-| xfce4-panel           |    ✅     |    ✅    |   ✅   | Tableau de bord du bureau XFCE.                                                           |
-| xfce4-session         |    ✅     |    ✅    |   ✅   | Gestionnaire de session XFCE, contrôle le démarrage et l’arrêt de la session.              |
-| xfce4-settings        |    ✅     |    ✅    |   ✅   | Centre de contrôle des paramètres XFCE.                                                   |
-| xfconf                |    ✅     |    ✅    |   ✅   | Système de configuration pour XFCE.                                                       |
-| xfdesktop4            |    ✅     |    ✅    |   ✅   | Gère le bureau : fonds d’écran, icônes, menu.                                             |
-| xfwm4                 |    ✅     |    ✅    |   ✅   | Gestionnaire de fenêtres XFCE.                                                            |
-| greybird-gtk-theme    |    ✅     |    ✅    |   ✅   | Thème GTK populaire et épuré, souvent utilisé dans XFCE.                                  |
-| xfce4-xkb-plugin      |    ✅     |    ✅    |   ✅   | Plugin de panneau pour changer la disposition clavier.                                    |
-| xfce4-notifyd         |    ❌     |    ✅    |   ✅   | Démons pour afficher les notifications du bureau.                                         |
-| menulibre             |    ❌     |    ✅    |   ✅   | Éditeur de menus avancé pour environnements GTK.                                          |
-| network-manager-gnome |    ✅     |    ✅    |   ✅   | Applet graphique pour gérer les connexions réseau (NetworkManager).                       |
-
-### 🛠️ Utilitaires système et graphiques
-
-| Paquet                    | Standard | Toolbox | Ultra | ℹ️ Informations sur le paquet                                                                              |
-| :------------------------ | :------: | :-----: | :---: | :-------------------------------------------------------------------------------------------------------- |
-| gvfs-backends             |    ✅     |    ✅    |   ✅   | Ensemble de backends pour GVfs, donne accès à FTP, SFTP, SMB, etc. via le gestionnaire de fichiers.       |
-| open-vm-tools-desktop     |    ❌     |    ✅    |   ✅   | Composants pour une meilleure intégration de l’OS invité avec VMware (presse-papiers, résolution…).      |
-| gtk-update-icon-cache     |    ❌     |    ✅    |   ✅   | Utilitaire pour mettre à jour le cache des thèmes d’icônes GTK.                                          |
-| libglib2.0-bin            |    ✅     |    ✅    |   ✅   | Utilitaires binaires pour la bibliothèque GLib 2.0.                                                      |
-| at-spi2-core              |    ✅     |    ✅    |   ✅   | Protocole et bibliothèques pour l’accessibilité (lecteurs d’écran, etc.).                                |
-| qt5/qt6-gtk-platformtheme |    ❌     |    ✅    |   ✅   | Plugins pour que les applications Qt5/Qt6 utilisent le thème GTK pour une apparence cohérente.           |
-| policykit-1-gnome         |    ✅     |    ✅    |   ✅   | Agent d’authentification PolicyKit pour GTK, demande le mot de passe pour les actions privilégiées.      |
-| libxml2-utils             |    ✅     |    ✅    |   ✅   | Utilitaires en ligne de commande pour manipuler des fichiers XML (ex : `xmllint`).                       |
-| xmlstarlet                |    ✅     |    ✅    |   ✅   | Outil puissant en ligne de commande pour parser, transformer et éditer du XML.                          |
-
-### 🧰 Applications
-
-| Paquet                         | Standard | Toolbox | Ultra | ℹ️ Informations sur le paquet                                                                                          |
-| :----------------------------- | :------: | :-----: | :---: | :-------------------------------------------------------------------------------------------------------------------- |
-| minios-installer               |    ✅     |    ✅    |   ✅   | Installateur graphique du système MiniOS.                                                                             |
-| minios-configurator            |    ✅     |    ✅    |   ✅   | Outil graphique de configuration du système MiniOS.                                                                   |
-| mintstick                      |    ✅     |    ✅    |   ✅   | Utilitaire pour formater les clés USB et écrire des images ISO.                                                       |
-| mousepad                       |    ✅     |    ✅    |   ✅   | Éditeur de texte simple et rapide pour XFCE.                                                                          |
-| ristretto                      |    ✅     |    ✅    |   ✅   | Visionneuse d’images simple et rapide pour XFCE.                                                                      |
-| **Navigateurs web**            |
-| firefox-esr                    |    ✅     |    ✅    |   ✅   | Navigateur web Firefox avec Extended Support Release (ESR). Version stable recevant des mises à jour de sécurité sur la durée. |
-| **Multimédia**                 |
-| vlc                            |    ❌     |    ✅    |   ✅   | Lecteur multimédia puissant et populaire, supportant de nombreux formats.                                             |
-| vlc-plugin-bittorrent          |    ❌     |    ✅    |   ✅   | Plugin VLC pour lire des vidéos directement depuis des fichiers torrent.                                               |
-| vlc-plugin-samba               |    ❌     |    ✅    |   ✅   | Plugin VLC pour accéder aux fichiers sur les partages réseau Samba (Windows).                                          |
-| vlc-l10n                       |    ❌     |    ✅    |   ✅   | Paquets de traduction pour l’interface de VLC.                                                                        |
-| gimp                           |    ❌     |    ❌    |   ✅   | Puissant éditeur d’images matricielles, alternative à Adobe Photoshop.                                                |
-| obs-studio                     |    ❌     |    ❌    |   ✅   | Programme d’enregistrement et de streaming vidéo à partir de l’écran et d’autres sources.                             |
-| obs-plugins                    |    ❌     |    ❌    |   ✅   | Plugins et effets supplémentaires pour OBS Studio.                                                                    |
-| inkscape                       |    ❌     |    ❌    |   ✅   | Éditeur professionnel d’images vectorielles, alternative à Adobe Illustrator.                                         |
-| blender                        |    ❌     |    ❌    |   ✅   | Suite professionnelle de création graphique, animation et vidéo 3D.                                                   |
-| audacity                       |    ❌     |    ❌    |   ✅   | Éditeur audio populaire pour l’enregistrement et le traitement du son.                                                |
-| rawtherapee                    |    ❌     |    ❌    |   ✅   | Éditeur avancé pour le traitement des photos RAW.                                                                     |
-| **Bureautique et documents**   |
-| pdfarranger                    |    ❌     |    ✅    |   ✅   | Utilitaire simple pour fusionner, séparer et réorganiser les pages PDF.                                               |
-| libreoffice                    |    ❌     |    ❌    |   ✅   | Suite bureautique complète (traitement de texte, tableur, présentations).                                             |
-| libreoffice-gtk3               |    ❌     |    ❌    |   ✅   | Intégration de LibreOffice avec le thème GTK3 pour une apparence cohérente.                                           |
-| libreoffice-style-elementary   |    ❌     |    ❌    |   ✅   | Thème d’icônes elementary pour LibreOffice.                                                                          |
-| fonts-open-sans                |    ❌     |    ❌    |   ✅   | Police Open Sans, populaire et très lisible.                                                                         |
-| **Utilitaires système (GUI)**  |
-| gparted                        |    ❌     |    ✅    |   ✅   | Éditeur graphique de partitions disque.                                                                              |
-| gsmartcontrol                  |    ❌     |    ✅    |   ✅   | Interface graphique pour l’utilitaire smartmontools (surveillance disque).                                            |
-| baobab                         |    ❌     |    ✅    |   ✅   | Analyseur graphique d’utilisation de l’espace disque.                                                                |
-| hardinfo                       |    ❌     |    ✅    |   ✅   | Utilitaire pour collecter et afficher des informations système et matériel détaillées.                                |
-| virt-manager                   |    ❌     |    ✅    |   ✅   | Interface graphique pour gérer les machines virtuelles via libvirt.                                                  |
-| gir1.2-spiceclientgtk-3.0      |    ❌     |    ✅    |   ✅   | Bibliothèque pour l’intégration du protocole SPICE (accès distant VM).                                               |
-| doublecmd-gtk                  |    ❌     |    ✅    |   ✅   | Gestionnaire de fichiers à deux panneaux, similaire à Total Commander.                                               |
-| onboard                        |    ❌     |    ✅    |   ✅   | Clavier virtuel à l’écran pour personnes en situation de handicap.                                                   |
-| grsync                         |    ❌     |    ✅    |   ✅   | Interface graphique pour l’utilitaire de synchronisation puissant `rsync`.                                           |
-| rescuezilla                    |    ❌     |    ✅    |   ✅   | Outil simple pour créer des sauvegardes et restaurer des disques, alternative à Clonezilla.                          |
-| kdiskmark                      |    ❌     |    ✅    |   ✅   | Outil de test de performance disque, alternative à CrystalDiskMark.                                                  |
-| qdiskinfo                      |    ❌     |    ✅    |   ✅   | Outil d’affichage des informations disque, alternative à CrystalDiskInfo.                                            |
-| bleachbit                      |    ❌     |    ✅    |   ✅   | Utilitaire pour nettoyer le système des fichiers temporaires et inutiles.                                            |
-| gtkhash                        |    ❌     |    ✅    |   ✅   | Utilitaire simple pour calculer les sommes de hachage de fichiers.                                                   |
-| czkawka / czkawka-gui          |    ❌     |    ✅    |   ✅   | Utilitaire pour trouver et supprimer les fichiers en double, dossiers vides, etc.                                    |
-| zulucrypt-gui                  |    ❌     |    ✅    |   ✅   | Interface graphique pour gérer les volumes chiffrés.                                                                 |
-| zulumount-gui                  |    ❌     |    ✅    |   ✅   | Interface graphique pour monter les volumes chiffrés.                                                                |
-| keepassxc                      |    ❌     |    ✅    |   ✅   | Gestionnaire de mots de passe multiplateforme.                                                                       |
-| guymager                       |    ❌     |    ✅    |   ✅   | Outil de copie forensique de disques (création d’images).                                                           |
-| isomaster                      |    ❌     |    ✅    |   ✅   | Éditeur graphique d’images disque ISO.                                                                              |
-| qphotorec                      |    ❌     |    ✅    |   ✅   | Interface graphique pour l’utilitaire PhotoRec (récupération de fichiers).                                           |
-| veracrypt                      |    ❌     |    ✅    |   ✅   | Programme pour créer et gérer des conteneurs et disques chiffrés.                                                   |
-| wxhexeditor                    |    ❌     |    ✅    |   ✅   | Éditeur hexadécimal avancé pour gros fichiers.                                                                      |
-| synaptic                       |    ❌     |    ❌    |   ✅   | Gestionnaire graphique de paquets classique pour Debian/Ubuntu.                                                     |
-| eddy / eddy-handler            |    ❌     |    ❌    |   ✅   | Installateur graphique simple pour paquets .deb locaux.                                                             |
-| **Applications réseau (GUI)**  |
-| wireshark                      |    ❌     |    ✅    |   ✅   | Analyseur puissant de trafic réseau.                                                                                |
-| remmina                        |    ❌     |    ✅    |   ✅   | Client de bureau à distance avec support RDP, VNC, SSH et autres protocoles.                                        |
-| remmina-plugin-rdp             |    ❌     |    ✅    |   ✅   | Plugin pour le support du protocole RDP dans Remmina.                                                               |
-| remmina-plugin-vnc             |    ❌     |    ✅    |   ✅   | Plugin pour le support du protocole VNC dans Remmina.                                                               |
-| gnome-nettool                  |    ❌     |    ✅    |   ✅   | Ensemble d’utilitaires réseau graphiques (ping, traceroute, scan de ports).                                         |
-| zenmap                         |    ❌     |    ✅    |   ✅   | Interface graphique officielle pour le scanner réseau nmap.                                                         |
-| x11vnc                         |    ❌     |    ✅    |   ✅   | Serveur VNC permettant le contrôle à distance de la session X en cours.                                             |
-| uget                           |    ❌     |    ✅    |   ✅   | Gestionnaire de téléchargements graphique.                                                                         |
-| android-file-transfer          |    ❌     |    ✅    |   ✅   | Utilitaire pour transférer des fichiers depuis des appareils Android via MTP.                                       |
-| **Développement**              |
-| codium                         |    ❌     |    ✅    |   ✅   | Version libre de l’éditeur VS Code sans télémétrie Microsoft.                                                      |
+Voir [Architecture système](/about/System-Architecture.md) pour l’ordre des modules et [CondinAPT dans MiniOS](/development/CondinAPT-MiniOS.md) pour la sélection conditionnelle des paquets.

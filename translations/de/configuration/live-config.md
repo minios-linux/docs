@@ -62,45 +62,47 @@ Für spezielle Anwendungsfälle gibt es einige besondere Boot-Parameter.
 
 ## Konfigurationsdateien
 
-**live-config** kann (aber nicht aktiviert) über Konfigurationsdateien konfiguriert werden. Alles außer den Kurzbefehlen, was über einen Boot-Parameter eingestellt werden kann, lässt sich alternativ auch über eine oder mehrere Dateien konfigurieren. Wird diese Methode genutzt, ist der Parameter `boot=live` dennoch erforderlich, um **live-config** zu aktivieren.
+**live-config** kann über Konfigurationsdateien konfiguriert (aber nicht aktiviert) werden. Alles außer den Shortcuts, die über einen Boot-Parameter konfiguriert werden können, lässt sich alternativ auch über eine oder mehrere Dateien einstellen. Wird die Konfiguration über Dateien vorgenommen, ist der Parameter `boot=live` dennoch erforderlich, um **live-config** zu aktivieren.
 
-**Hinweis:** Wenn Konfigurationsdateien verwendet werden, sollten vorzugsweise alle Boot-Parameter in die Variable **LIVE_CONFIG_CMDLINE** geschrieben werden, oder einzelne Variablen gesetzt werden. Bei Verwendung einzelner Variablen muss der Nutzer sicherstellen, dass alle notwendigen Variablen gesetzt sind, um eine gültige Konfiguration zu erzeugen.
+**Hinweis:** Wenn Konfigurationsdateien verwendet werden, sollten vorzugsweise alle Boot-Parameter in die Variable **LIVE_CONFIG_CMDLINE** geschrieben werden, alternativ können auch einzelne Variablen gesetzt werden. Bei Verwendung einzelner Variablen muss der Nutzer sicherstellen, dass alle notwendigen Variablen gesetzt sind, um eine gültige Konfiguration zu erzeugen.
 
-Konfigurationsdateien können entweder direkt im Root-Dateisystem (`/etc/live/config.conf`, `/etc/live/config.conf.d/*.conf`) oder auf dem Live-Medium (`minios/config.conf`, `minios/config.conf.d/*.conf`) abgelegt werden. Wenn beide Orte für eine Option genutzt werden, haben die vom Live-Medium Vorrang vor denen aus dem Root-Dateisystem.
+Konfigurationsdateien können entweder im Root-Dateisystem selbst (`/etc/live/config.conf`, `/etc/live/config.conf.d/*.conf`) oder auf dem Live-Medium (`minios/config.conf`, `minios/config.conf.d/*.conf`) abgelegt werden. Falls für eine bestimmte Option beide Orte verwendet werden, haben die Dateien vom Live-Medium Vorrang vor denen aus dem Root-Dateisystem.
 
-Obwohl die in den Konfigurationsverzeichnissen abgelegten Dateien keinen bestimmten Namen haben müssen, wird aus Gründen der Konsistenz empfohlen, entweder `vendor.conf` oder `project.conf` als Namensschema zu verwenden (wobei `vendor` oder `project` durch den tatsächlichen Namen ersetzt wird, z. B. `progress-linux.conf`).
+Obwohl die Konfigurationsdateien in den Konfigurationsverzeichnissen keinen bestimmten Namen haben müssen, wird aus Gründen der Konsistenz empfohlen, entweder das Schema `vendor.conf` oder `project.conf` zu verwenden (wobei `vendor` oder `project` durch den tatsächlichen Namen ersetzt wird, z. B. `progress-linux.conf`).
 
-Der eigentliche Inhalt der Konfigurationsdateien besteht aus einer oder mehreren der folgenden Variablen.
+Der eigentliche Inhalt der Konfigurationsdateien besteht aus einer oder mehreren der folgenden Variablen:
 
 - **LIVE_CONFIG_CMDLINE=PARAMETER1 PARAMETER2...PARAMETERn**: Diese Variable entspricht der Bootloader-Kommandozeile.
-- **LIVE_CONFIG_COMPONENTS=KOMPONENTE1,KOMPONENTE2,...KOMPONENTEn**: Diese Variable entspricht dem Parameter `**live-config.components**=*KOMPONENTE1*,*KOMPONENTE2*,...*KOMPONENTEn*`.
-- **LIVE_CONFIG_NOCOMPONENTS=KOMPONENTE1,KOMPONENTE2,...KOMPONENTEn**: Diese Variable entspricht dem Parameter `**live-config.nocomponents**=*KOMPONENTE1*,*KOMPONENTE2*,...*KOMPONENTEn*`.
+- **LIVE_CONFIG_COMPONENTS=COMPONENT1,COMPONENT2,...COMPONENTn**: Diese Variable entspricht dem Parameter `**live-config.components**=*COMPONENT1*,*COMPONENT2*,...*COMPONENTn*`.
+- **LIVE_CONFIG_NOCOMPONENTS=COMPONENT1,COMPONENT2,...COMPONENTn**: Diese Variable entspricht dem Parameter `**live-config.nocomponents**=*COMPONENT1*,*COMPONENT2*,...*COMPONENTn*`.
 - **LIVE_DEBCONF_PRESEED=filesystem|medium|URL1|URL2|...|URLn**: Diese Variable entspricht dem Parameter `**live-config.debconf-preseed**=filesystem|medium|*URL1*\|*URL2*\|...|*URLn*`.
 - **LIVE_HOSTNAME=HOSTNAME**: Diese Variable entspricht dem Parameter `**live-config.hostname**=*HOSTNAME*`. Standard ist `minios`.
 - **LIVE_USERNAME=USERNAME**: Diese Variable entspricht dem Parameter `**live-config.username**=*USERNAME*`. Standard ist `live`.
-- **LIVE_USER_DEFAULT_GROUPS=GRUPPE1,GRUPPE2,...GRUPPEn**: Diese Variable entspricht dem Parameter `**live-config.user-default-groups**="*GRUPPE1*,*GRUPPE2*...*GRUPPEn*"`.
-- **LIVE_USER_FULLNAME="BENUTZERVOLLNAME"**: Diese Variable entspricht dem Parameter `**live-config.user-fullname**="*BENUTZERVOLLNAME*"`.
-- **LIVE_ROOT_PASSWORD=PASSWORT**: Diese Variable entspricht dem Parameter `**live-config.root-password**=*PASSWORT*`. Sie legt das Root-Passwort im Klartext fest.
-- **LIVE_ROOT_PASSWORD_CRYPTED=PASSWORT**: Diese Variable entspricht dem Parameter `**live-config.root-password-crypted**=*PASSWORT*`. Sie legt das Root-Passwort in verschlüsselter Form fest.
-- **LIVE_USER_PASSWORD=PASSWORT**: Diese Variable entspricht dem Parameter `**live-config.user-password**=*PASSWORT*`. Sie legt das Benutzerpasswort im Klartext fest.
-- **LIVE_USER_PASSWORD_CRYPTED=PASSWORT**: Diese Variable entspricht dem Parameter `**live-config.user-password-crypted**=*PASSWORT*`. Sie legt das Benutzerpasswort in verschlüsselter Form fest.
+- **LIVE_USER_DEFAULT_GROUPS=GROUP1,GROUP2,...GROUPn**: Diese Variable entspricht dem Parameter `**live-config.user-default-groups**="*GROUP1*,*GROUP2*...*GROUPn*"`.
+- **LIVE_USER_FULLNAME="USER FULLNAME"**: Diese Variable entspricht dem Parameter `**live-config.user-fullname**="*USER FULLNAME*"`.
+- **LIVE_ROOT_PASSWORD=PASSWORD**: Diese Variable entspricht dem Parameter `**live-config.root-password**=*PASSWORD*`. Sie legt das Root-Passwort im Klartext fest.
+- **LIVE_ROOT_PASSWORD_CRYPTED=PASSWORD**: Diese Variable entspricht dem Parameter `**live-config.root-password-crypted**=*PASSWORD*`. Sie legt das Root-Passwort in verschlüsselter Form fest.
+- **LIVE_USER_PASSWORD=PASSWORD**: Diese Variable entspricht dem Parameter `**live-config.user-password**=*PASSWORD*`. Sie legt das Benutzerpasswort im Klartext fest.
+- **LIVE_USER_PASSWORD_CRYPTED=PASSWORD**: Diese Variable entspricht dem Parameter `**live-config.user-password-crypted**=*PASSWORD*`. Sie legt das Benutzerpasswort in verschlüsselter Form fest.
 - **LIVE_LOCALES=LOCALE1,LOCALE2,...LOCALEn**: Diese Variable entspricht dem Parameter `**live-config.locales**=*LOCALE1*,*LOCALE2*...*LOCALEn*`.
-- **LIVE_TIMEZONE=ZEITZONE**: Diese Variable entspricht dem Parameter `**live-config.timezone**=*ZEITZONE*`.
-- **LIVE_KEYBOARD_MODEL=TASTATUR_MODELL**: Diese Variable entspricht dem Parameter `**live-config.keyboard-model**=*TASTATUR_MODELL*`.
-- **LIVE_KEYBOARD_LAYOUTS=TASTATUR_LAYOUT1,TASTATUR_LAYOUT2,...TASTATUR_LAYOUTn**: Diese Variable entspricht dem Parameter `**live-config.keyboard-layouts**=*TASTATUR_LAYOUT1*,*TASTATUR_LAYOUT2*...*TASTATUR_LAYOUTn*`.
-- **LIVE_KEYBOARD_VARIANTS=TASTATUR_VARIANTE1,TASTATUR_VARIANTE2,...TASTATUR_VARIANTEn**: Diese Variable entspricht dem Parameter `**live-config.keyboard-variants**=*TASTATUR_VARIANTE1*,*TASTATUR_VARIANTE2*...*TASTATUR_VARIANTEn*`.
-- **LIVE_KEYBOARD_OPTIONS=TASTATUR_OPTIONEN**: Diese Variable entspricht dem Parameter `**live-config.keyboard-options**=*TASTATUR_OPTIONEN*`.
-- **LIVE_SYSV_RC=DIENST1,DIENST2,...DIENSTn**: Diese Variable entspricht dem Parameter `**live-config.sysv-rc**=*DIENST1*,*DIENST2*...*DIENSTn*`.
+- **LIVE_TIMEZONE=TIMEZONE**: Diese Variable entspricht dem Parameter `**live-config.timezone**=*TIMEZONE*`.
+- **LIVE_KEYBOARD_MODEL=KEYBOARD_MODEL**: Diese Variable entspricht dem Parameter `**live-config.keyboard-model**=*KEYBOARD_MODEL*`.
+- **LIVE_KEYBOARD_LAYOUTS=KEYBOARD_LAYOUT1,KEYBOARD_LAYOUT2,...KEYBOARD_LAYOUTn**: Diese Variable entspricht dem Parameter `**live-config.keyboard-layouts**=*KEYBOARD_LAYOUT1*,*KEYBOARD_LAYOUT2*...*KEYBOARD_LAYOUTn*`.
+- **LIVE_KEYBOARD_VARIANTS=KEYBOARD_VARIANT1,KEYBOARD_VARIANT2,...KEYBOARD_VARIANTn**: Diese Variable entspricht dem Parameter `**live-config.keyboard-variants**=*KEYBOARD_VARIANT1*,*KEYBOARD_VARIANT2*...*KEYBOARD_VARIANTn*`.
+- **LIVE_KEYBOARD_OPTIONS=KEYBOARD_OPTIONS**: Diese Variable entspricht dem Parameter `**live-config.keyboard-options**=*KEYBOARD_OPTIONS*`.
+- **LIVE_SYSV_RC=SERVICE1,SERVICE2,...SERVICEn**: Diese Variable entspricht dem Parameter `**live-config.sysv-rc**=*SERVICE1*,*SERVICE2*...*SERVICEn*`.
 - **LIVE_UTC=yes|no**: Diese Variable entspricht dem Parameter `**live-config.utc**=**yes**|no`.
 - **LIVE_X_SESSION_MANAGER=X_SESSION_MANAGER**: Diese Variable entspricht dem Parameter `**live-config.x-session-manager**=*X_SESSION_MANAGER*`.
-- **LIVE_XORG_DRIVER=XORG_TREIBER**: Diese Variable entspricht dem Parameter `**live-config.xorg-driver**=*XORG_TREIBER*`.
-- **LIVE_XORG_RESOLUTION=XORG_AUFLÖSUNG**: Diese Variable entspricht dem Parameter `**live-config.xorg-resolution**=*XORG_AUFLÖSUNG*`.
-- **LIVE_WLAN_DRIVER=WLAN_TREIBER**: Diese Variable entspricht dem Parameter `**live-config.wlan-driver**=*WLAN_TREIBER*`.
+- **LIVE_XORG_DRIVER=XORG_DRIVER**: Diese Variable entspricht dem Parameter `**live-config.xorg-driver**=*XORG_DRIVER*`.
+- **LIVE_XORG_RESOLUTION=XORG_RESOLUTION**: Diese Variable entspricht dem Parameter `**live-config.xorg-resolution**=*XORG_RESOLUTION*`.
+- **LIVE_WLAN_DRIVER=WLAN_DRIVER**: Diese Variable entspricht dem Parameter `**live-config.wlan-driver**=*WLAN_DRIVER*`.
 - **LIVE_HOOKS=filesystem|medium|URL1|URL2|...|URLn**: Diese Variable entspricht dem Parameter `**live-config.hooks**=filesystem|medium|*URL1*\|*URL2*\|...|*URLn*`.
-- **LIVE_LINK_USER_DIRS=true|false**: Diese Variable entspricht dem Parameter `**live-config.link-user-dirs**=true|false`. Sie aktiviert oder deaktiviert die Erstellung von symbolischen Links für Benutzerverzeichnisse.
-- **LIVE_BIND_USER_DIRS=true|false**: Diese Variable entspricht dem Parameter `**live-config.bind-user-dirs**=true|false`. Sie aktiviert oder deaktiviert das Bind-Mounten von Benutzerverzeichnissen.
-- **LIVE_USER_DIRS_PATH=PFAD**: Diese Variable entspricht dem Parameter `**live-config.user-dirs-path**=*PFAD*`. Sie legt den Pfad für Benutzerverzeichnisse auf dem Medium fest.
-- **LIVE_MODULE_MODE**: Diese Variable enthält den Status, der durch den Parameter `live-config.module-mode` (oder `module-mode`) angegeben wird. Wenn auf "merged" gesetzt, übernimmt das Live-System Updates (über minios-update-users, minios-update-cache und minios-update-dpkg), um benutzerdefinierte Konfigurationen mit der Basisumgebung zu verschmelzen.
+- **LIVE_LINK_USER_DIRS=true|false**: Diese Variable entspricht dem Parameter `**live-config.link-user-dirs**=true|false`. Sie verlinkt die Standard-Datenverzeichnisse des Benutzers mit dem beschreibbaren MiniOS-Laufwerk. Sie kann nicht mit Bind-Modus oder einem beliebigen `toram`-Modus kombiniert werden.
+- **LIVE_BIND_USER_DIRS=true|false**: Diese Variable entspricht dem Parameter `**live-config.bind-user-dirs**=true|false`. Sie bindet die Standard-Datenverzeichnisse des Benutzers vom beschreibbaren MiniOS-Laufwerk ein. Sie kann nicht mit Link-Modus oder einem beliebigen `toram`-Modus kombiniert werden.
+- **LIVE_USER_DIRS_PATH=PATH**: Diese Variable entspricht dem Parameter `**live-config.user-dirs-path**=*PATH*`. Sie gibt einen sicheren Pfad innerhalb des FAT32-, exFAT- oder NTFS-MiniOS-Laufwerks an. Standard ist `/minios/userdata`; Segmente mit Punkt oder Elternverzeichnis werden abgelehnt.
+
+Beim Einrichten von Benutzermedien werden niemals automatisch zwei nicht-leere Verzeichnisse zusammengeführt. Ein lokales, nicht-leeres Verzeichnis wird nur migriert, wenn das Zielmedium leer ist. Ist die Funktion deaktiviert, werden verwaltete Mediendaten vor dem Entfernen der Links zurückkopiert. Ein fehlgeschlagener Validierungs- oder Kopiervorgang belässt die bestehenden Benutzerverzeichnisse unverändert und protokolliert den Grund in `/var/lib/live/config/user-media.status`.
+- **LIVE_MODULE_MODE**: Diese Variable enthält den Zustand, der durch den Parameter `live-config.module-mode` (oder `module-mode`) festgelegt wird. Ist sie auf "merged" gesetzt, übernimmt das Live-System Aktualisierungen (über minios-update-users, minios-update-cache und minios-update-dpkg), um benutzerdefinierte Konfigurationen mit der Basisumgebung zu verschmelzen.
 - **LIVE_CONFIG_DEBUG=true|false**: Diese Variable entspricht dem Parameter `**live-config.debug**`.
 
 # ANPASSUNG

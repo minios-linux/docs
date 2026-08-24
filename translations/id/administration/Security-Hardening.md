@@ -1,216 +1,84 @@
-# Panduan Penguatan Keamanan
+# Penguatan Keamanan
 
-Panduan ini memberikan langkah-langkah praktis untuk meningkatkan keamanan sistem MiniOS Anda. Karena MiniOS adalah sistem live, perhatian utama keamanan adalah melindungi data pengguna pada penyimpanan persisten dan mengontrol akses ke sistem yang sedang berjalan. Pengaturan default dirancang untuk kenyamanan penggunaan portabel, namun mungkin tidak optimal untuk semua skenario penggunaan. Rekomendasi berikut akan membantu Anda mengonfigurasi sistem untuk keamanan yang lebih baik.
+MiniOS dapat dijalankan sebagai sistem pemulihan live, sistem portabel persisten, atau instalasi native. Pengendalian yang tepat bergantung pada bagaimana sistem digunakan. Lindungi sesi yang sedang berjalan, data persisten, media boot, dan setiap konfigurasi yang diterapkan saat startup.
 
-## Keamanan Akun Pengguna dan Root
+## Mulai dengan media tepercaya
 
-Secara default, MiniOS melakukan login otomatis tanpa kata sandi. Ini memberikan kemudahan untuk penggunaan portabel, namun dapat menjadi risiko keamanan dalam beberapa skenario.
+Unduh MiniOS dari sumber resmi dan verifikasi file ISO sebelum menuliskannya. Ikuti panduan [Memverifikasi unduhan](/installation/Verifying-Downloads.md) dan bandingkan hasilnya sebelum melakukan booting atau instalasi. Verifikasi mendeteksi unduhan yang rusak atau telah diganti; namun, ini tidak membuktikan bahwa perangkat USB yang sudah dimodifikasi aman.
 
-**Kredensial Akun Default:**
-- **User**: `live` / `evil`  
-- **Root**: `root` / `toor`
+Jaga perangkat USB tetap dalam kendali fisik Anda. Kata sandi firmware dan pengaturan urutan boot yang dibatasi dapat mengurangi booting tidak sah secara kasual, tetapi tidak mengenkripsi file di perangkat tersebut. Secure Boot dapat memberikan perlindungan tambahan pada rantai boot untuk image dan perangkat keras yang mendukungnya; periksa perilaku rilis dan firmware yang sebenarnya, jangan hanya mengandalkan asumsi dukungan.
 
-⚠️ **Kredensial ini sudah diketahui publik dan harus segera diubah untuk penggunaan jaringan atau produksi.**
+## Ganti kredensial default
 
-### Membuat Password Terenkripsi
+Image live MiniOS yang belum dikustomisasi menggunakan kredensial yang dipublikasikan `live` /
+`evil` dan `root` / `toor`, dengan login otomatis dan akses administratif tanpa kata sandi dalam konfigurasi yang berorientasi pada kemudahan. Siapa pun yang dapat mengakses sistem mungkin bisa menggunakan kredensial tersebut, terutama jika SSH aktif.
 
-Sebelum mengatur password, disarankan untuk membuat hash password terenkripsi:
+Sebelum bergabung ke jaringan yang tidak tepercaya:
 
-```bash
-# The command will prompt you to enter a password and output the hash
-mkpasswd -m yescrypt
-# Example output: $y$j9T$...(long hash)...$Spig/F.uP
-```
+1. Atur kata sandi unik untuk user dan root di MiniOS Configurator.
+2. Pilih profil keamanan yang sesuai dan tinjau setiap kontrol yang diisi.
+3. Nonaktifkan SSH dan XRDP kecuali akses jarak jauh memang diperlukan.
+4. Reboot ke sesi baru saat mengubah pengaturan akun atau keamanan satu kali, lalu verifikasi perilaku login dan hak akses yang dihasilkan.
 
-### Mengatur Password
+Configurator menyimpan hash kata sandi terenkripsi, bukan kata sandi dalam bentuk teks. Jika mengubah akun persisten atau native yang sudah dibuat, gunakan `passwd` untuk pengguna saat ini dan `sudo passwd root` untuk root.
 
-Anda dapat mengatur password dengan dua cara: **sangat disarankan** menggunakan password terenkripsi.
+## Gunakan kontrol keamanan Configurator
 
-**Penting:** Pengaturan password dan parameter akun pengguna melalui parameter boot dan file konfigurasi hanya berlaku pada boot sistem pertama. Setelah itu, password hanya dapat diubah menggunakan metode standar Linux (`passwd`, `sudo passwd`).
+MiniOS Configurator menyediakan tiga profil. Sebuah profil mengisi pengaturan konkret; nama profil itu sendiri tidak disimpan sebagai kunci konfigurasi runtime, dan setiap pengaturan tetap dapat diedit secara independen.
 
-#### Melalui Parameter Boot
+| Profil | Perilaku utama |
+| --- | --- |
+| `convenient` | Kompatibel autologin, sudo dan PolicyKit tanpa kata sandi, root dan SSH dengan kata sandi diizinkan, XRDP/X11/layar kunci longgar, petunjuk kata sandi ditampilkan. |
+| `balanced` | Tidak ada autologin, sudo dan PolicyKit memerlukan kata sandi, login root SSH ditolak tapi SSH dengan kata sandi diizinkan, XRDP/X11/layar kunci diperketat. |
+| `strict` | Tidak ada autologin, sudo dan PolicyKit memerlukan kata sandi, login root dan SSH dengan kata sandi ditolak, XRDP dinonaktifkan, X11/layar kunci diperketat, petunjuk kata sandi disembunyikan. |
 
-Tambahkan parameter ke command line kernel di menu boot (GRUB untuk UEFI atau SYSLINUX untuk BIOS):
+Pengaturan default installer berbeda tergantung mode instalasi: instalasi live mengutamakan `convenient`, sedangkan instalasi native mengutamakan `balanced`. Ini adalah default, bukan rekomendasi untuk setiap model ancaman.
 
-**Untuk password terenkripsi (disarankan):**
-```
-user-password-crypted='$y$j9T$...(hash).../'
-root-password-crypted='$y$j9T$...(hash).../'
-```
+Pengaturan yang sama tersedia sebagai kunci konfigurasi terdokumentasi, termasuk `LIVE_SUDO_MODE`, `LIVE_POLKIT_MODE`, `LIVE_SSH_PERMIT_ROOT_LOGIN`,
+`LIVE_SSH_PASSWORD_AUTHENTICATION`, `LIVE_XRDP_MODE`, `LIVE_X11_MODE`,
+`LIVE_ISSUE_PASSWORD_HINTS`, dan `LIVE_LOCKSCREEN_MODE`. Utamakan penggunaan kunci ini atau Configurator daripada mengedit file sudoers, PolicyKit, display-manager, atau SSH yang dihasilkan secara manual. Lihat [Berkas konfigurasi](/configuration/Configuration-File.md). Untuk perilaku penyimpanan dan penerapan pengaturan, lihat [MiniOS Configurator](/configuration/MiniOS-Configurator.md).
 
-**Untuk password biasa (tidak disarankan):**
-```
-user-password='your_password'
-root-password='root_password'
-```
+Pembuatan akun, kata sandi, `LIVE_CONFIG_NOROOT`, dan postur keamanan adalah pengaturan satu kali yang digunakan saat sesi baru dibuat. Configurator menampilkan penerapan untuk setiap kontrol. Pengaturan yang dapat dikonfigurasi ulang seperti layanan akan diterapkan setelah reboot.
 
-**Penting:** Password biasa akan terlihat di command line kernel dan dapat dibaca oleh pengguna sistem lain.
+## Amankan akses jarak jauh
 
-#### Melalui File Konfigurasi
+SSH dapat diaktifkan dalam image MiniOS untuk keperluan pemulihan. Pada jaringan di mana pengguna lain tidak tepercaya, anggap kredensial default yang dipublikasikan terekspos sampai Anda memastikan sebaliknya.
 
-Edit file `minios/config.conf` di direktori root USB drive:
+- Jika SSH tidak diperlukan, tambahkan `ssh` ke `DISABLE_SERVICES` di Configurator dan hapus dari `ENABLE_SERVICES` jika ada.
+- Jika SSH diperlukan, tolak login root dengan `LIVE_SSH_PERMIT_ROOT_LOGIN=false`.
+- Utamakan otentikasi kunci. Konfirmasi login kunci di koneksi terpisah sebelum mengatur `LIVE_SSH_PASSWORD_AUTHENTICATION=false`.
+- Batasi akses masuk dengan firewall jaringan atau router, dan jangan mengekspos sistem pemulihan portabel langsung ke Internet.
+- Tinjau XRDP secara terpisah. Profil ketat menonaktifkannya; profil seimbang memperketatnya tetapi tidak selalu menonaktifkan layanannya.
 
-**Untuk password terenkripsi:**
-```
-LIVE_USER_PASSWORD_CRYPTED="$y$j9T$...(hash).../"
-LIVE_ROOT_PASSWORD_CRYPTED="$y$j9T$...(hash).../"
-```
+Parameter boot dapat menimpa nilai file konfigurasi. Periksa perilaku layanan yang tidak terduga terhadap [Parameter boot](/configuration/Boot-Parameters.md).
 
-**Untuk password biasa:**
-```
-LIVE_USER_PASSWORD="your_password"
-LIVE_ROOT_PASSWORD="root_password"
-```
+## Enkripsi data persisten
 
-### Mengubah Password Setelah Boot
+Data native, DynFileFS, dan persistensi raw yang tidak dienkripsi dapat dibaca oleh siapa saja yang mendapatkan perangkat tersebut. MiniOS Installer dapat mengonfigurasi kontainer LUKS terenkripsi untuk sesi live jika initrd sumber mendukung LUKS. Initrd akan membuat `changes.luks` saat boot pertama dan meminta passphrase-nya; installer tidak menerima atau menyimpan passphrase tersebut.
 
-Setelah boot sistem pertama, password dapat diubah menggunakan perintah Linux standar:
+Persistensi LUKS melindungi isi kontainer saat kontainer dalam keadaan tertutup. Ini tidak melindungi data setelah kontainer dibuka, file boot yang tidak dienkripsi, file yang disalin ke luar kontainer, atau filesystem root native. Persistensi sesi LUKS bukanlah enkripsi root native. Gunakan passphrase yang kuat dan simpan cadangan yang sudah diuji.
 
-```bash
-# Change current user password
-passwd
+Lihat [MiniOS Installer](/installation/MiniOS-Installer.md) dan [Manajemen sesi](/configuration/Session-Management.md).
 
-# Change root user password (requires sudo)
-sudo passwd root
+## Terapkan pembaruan secara sengaja
 
-# Change specific user password (requires sudo)
-sudo passwd username
-```
+Segarkan metadata paket dan instal pembaruan keamanan Debian pada sesi live persisten atau instalasi native menggunakan alur kerja APT seperti biasa. Perubahan APT pada sesi live baru akan hilang saat reboot. Modul dasar SquashFS bersifat read-only, jadi mengganti ISO atau modul dengan rilis MiniOS tepercaya yang lebih baru sering kali merupakan cara paling bersih untuk memperbarui sistem live dasar.
 
-### Menonaktifkan Login Otomatis
+Lihat [Pembaruan perangkat lunak](/administration/Software-Updates.md) untuk alur kerja APT, modul, image, dan kernel yang terpisah.
 
-Setelah mengatur password, nonaktifkan login otomatis agar autentikasi diperlukan:
+Sebelum melakukan pembaruan besar:
 
-#### Melalui Parameter Boot
+- Cadangkan file penting dan sesi persisten.
+- Pastikan ruang kosong yang cukup tersedia.
+- Hindari menginterupsi proses penulisan atau mematikan perangkat secara paksa.
+- Reboot dan verifikasi sistem yang telah diperbarui sebelum membuang media atau sesi yang sebelumnya sudah teruji.
 
-```
-noautologin
-```
+## Perlakukan hook dan preseeding sebagai eksekusi kode
 
-#### Melalui File Konfigurasi
+Opsi boot `hooks` dan hook live-config dapat mengeksekusi file dari filesystem root, media boot, atau URL. Hook jarak jauh, hook media yang telah dimodifikasi, dan preseed yang belum ditinjau dapat berjalan dengan hak istimewa sistem. Gunakan hanya file yang telah ditinjau dari sumber tepercaya, utamakan distribusi yang terautentikasi, dan hindari hook jarak jauh di jaringan yang tidak tepercaya. Lihat [live-config](/configuration/live-config.md) untuk urutan eksekusi dan lokasi yang didukung.
 
-```
-LIVE_CONFIG_CMDLINE="components noautologin"
-```
+## Cadangkan dan hapus media dengan aman
 
-**Menonaktifkan autologin sebagian:**
-- `nox11autologin` - hanya menonaktifkan autologin grafis (login manager akan meminta autentikasi)
-- `nottyautologin` - hanya menonaktifkan autologin konsol (sudah dinonaktifkan secara default)
+Persistensi bukanlah cadangan. Simpan salinan terpisah file pengguna dan ekspor atau salin sesi saat masih sehat. Uji proses pemulihan di media yang berbeda. Matikan perangkat dengan benar sebelum melepas media penyimpanan yang dapat ditulis, dan sisakan ruang kosong untuk metadata sesi serta operasi filesystem.
 
-### Mengelola Hak Akses Pengguna
-
-Secara default, pengguna `live` memiliki hak administrator penuh tanpa permintaan password baik di konsol (`sudo`) maupun aplikasi grafis (melalui polkit). Ini memberikan kenyamanan untuk penggunaan sistem live, namun mungkin perlu diubah untuk keamanan yang lebih baik.
-
-#### Mengaktifkan Permintaan Password untuk sudo
-
-Untuk meminta password saat menggunakan `sudo`, jalankan setelah sistem boot:
-
-```bash
-# Change rule to require password
-echo "live ALL=(ALL:ALL) ALL" | sudo tee /etc/sudoers.d/live
-```
-
-Setelah itu, perintah `sudo` akan meminta password pengguna.
-
-#### Mengaktifkan Permintaan Password untuk Aplikasi Grafis
-
-Agar program administratif grafis meminta password, hapus aturan polkit:
-
-```bash
-sudo rm /usr/share/polkit-1/rules.d/sudo_on_live.rules
-```
-
-Setelah itu, installer software, pengaturan sistem, dan aplikasi GUI administratif lainnya akan meminta password.
-
-#### Menonaktifkan Hak Administrator Sepenuhnya (`noroot`)
-
-Untuk keamanan maksimal, Anda dapat menonaktifkan `sudo` dan akses root sepenuhnya:
-
-**Melalui parameter boot:**
-```
-noroot
-```
-
-**Melalui file konfigurasi:**
-```
-LIVE_CONFIG_NOROOT=true
-```
-
-**Dampak:** Perintah `sudo` tidak akan berfungsi, login root akan dinonaktifkan, dan tidak ada tindakan administratif yang tersedia.
-
-## Keamanan Jaringan
-
-### Pengaturan SSH Default
-
-**Mengapa SSH diaktifkan secara default:** MiniOS dirancang sebagai sistem pemulihan dan diagnostik untuk servis perangkat keras bermasalah. SSH diaktifkan dengan pengaturan permisif untuk menyediakan akses jarak jauh saat tampilan lokal tidak tersedia, rusak, atau saat bekerja dengan sistem tanpa layar.
-
-**Pengaturan SSH saat ini:**
-- Layanan SSH diaktifkan dan berjalan otomatis
-- Login root melalui SSH diizinkan
-- Autentikasi password diaktifkan
-
-**Implikasi keamanan:** Konfigurasi ini menimbulkan risiko keamanan pada jaringan yang tidak terpercaya, namun diperlukan untuk skenario pemulihan.
-
-### Menonaktifkan SSH
-
-Jika akses jarak jauh tidak diperlukan, nonaktifkan SSH sepenuhnya:
-
-**Melalui parameter boot:**
-```
-disable-services=ssh,avahi-daemon
-```
-
-**Melalui file konfigurasi:**
-```
-DISABLE_SERVICES=ssh,avahi-daemon
-```
-
-### Mengonfigurasi Akses SSH yang Aman
-
-Jika SSH diperlukan, amankan dengan metode berikut:
-
-#### 1. Mengatur Password yang Kuat
-
-Gunakan metode pengaturan password yang dijelaskan di atas.
-
-#### 2. Autentikasi Kunci SSH
-
-Tempatkan file `authorized_keys` di direktori root USB drive:
-
-- `authorized_keys.root` - untuk pengguna root
-- `authorized_keys.live` - untuk pengguna live
-- `authorized_keys.username` - untuk pengguna lain
-
-Komponen sistem akan secara otomatis menyalinnya ke direktori home saat boot.
-
-#### 3. Penguatan Keamanan SSH
-
-Setelah sistem boot, edit konfigurasi SSH:
-
-```bash
-sudo nano /etc/ssh/sshd_config.d/minios.conf
-```
-
-Ubah pengaturan ke yang lebih aman:
-```
-PermitRootLogin no
-PasswordAuthentication no
-PubkeyAuthentication yes
-```
-
-Restart layanan SSH:
-```bash
-sudo systemctl restart ssh
-```
-
-**Penting:** Selalu uji akses kunci SSH sebelum menonaktifkan autentikasi password.
-
-## Keamanan Boot
-
-### UEFI Secure Boot
-
-MiniOS sepenuhnya kompatibel dengan Secure Boot, karena menggunakan kernel Debian standar dengan bootloader yang sudah ditandatangani. Secure Boot memberikan perlindungan terhadap malware sebelum boot (bootkit) dan direkomendasikan untuk keamanan yang lebih baik.
-
-### Password BIOS/UEFI
-
-Untuk keamanan fisik, atur password di BIOS/UEFI komputer Anda untuk mencegah pengguna tidak sah melakukan boot dari perangkat lain atau mengubah pengaturan boot.
+Sebelum membuang perangkat, hapus data secara aman sesuai dengan teknologi penyimpanan dan sensitivitas data. Menghapus file atau sekadar memformat ulang biasanya tidak cukup untuk membuat data lama tidak dapat dipulihkan.

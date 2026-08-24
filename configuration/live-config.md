@@ -4,6 +4,8 @@
 
 **live-config** contains the components that configure a live system during the boot process (late userspace).
 
+Network boot in the initramfs (`ip=`, PXE, `from=http://…`) is a separate LiveKit layer and is **not** managed by live-config. See [Network boot](/installation/Network-Boot.md).
+
 **live-config** can be configured through boot parameters or configuration files. If both mechanisms are used for a certain option, the boot parameters take precedence over the configuration files. When using persistency, **live-config** components are only run once.
 
 If *live-build*(7) is used to build the live system, the live-config parameters used by default can be set through the `--bootappend-live` option, see *lb_config*(1) manual page.
@@ -50,9 +52,9 @@ Some individual components can change their behaviour upon a boot parameter.
 For some common use cases where it would require to combine several individual parameters, **live-config** provides shortcuts. This allows both to have full granularity over all the options, as well keep things simple.
 
 - **live-config.noroot | noroot**: Disables sudo and policykit, the user cannot gain root privileges on the system.
-- **live-config.noautologin | noautologin**: Disables both the automatic console login and the graphical autologin.
-- **live-config.nottyautologin | nottyautologin**: Disables the automatic login on the console, not affecting the graphical autologin.
-- **live-config.nox11autologin | nox11autologin**: Disables the automatic login with any display manager, not affecting tty autologin.
+- **live-config.noautologin | noautologin**: Prevents live-config from setting up console and graphical autologin. It does not remove autologin already configured in a persistent session.
+- **live-config.nottyautologin | nottyautologin**: Prevents live-config from setting up console autologin, without affecting graphical setup. Existing persistent configuration is not removed.
+- **live-config.nox11autologin | nox11autologin**: Prevents live-config from setting up display-manager autologin, without affecting TTY setup. Existing persistent configuration is not removed.
 
 ## Boot Parameters (special options)
 
@@ -97,9 +99,15 @@ The actual content of the configuration files consists of one or more of the fol
 - **LIVE_XORG_RESOLUTION=XORG_RESOLUTION**: This variable corresponds to the `**live-config.xorg-resolution**=*XORG_RESOLUTION*` parameter.
 - **LIVE_WLAN_DRIVER=WLAN_DRIVER**: This variable corresponds to the `**live-config.wlan-driver**=*WLAN_DRIVER*` parameter.
 - **LIVE_HOOKS=filesystem|medium|URL1|URL2|...|URLn**: This variable corresponds to the `**live-config.hooks**=filesystem|medium|*URL1*\|*URL2*\|...|*URLn*` parameter.
-- **LIVE_LINK_USER_DIRS=true|false**: This variable corresponds to the `**live-config.link-user-dirs**=true|false` parameter. It enables or disables creation of symbolic links for user directories.
-- **LIVE_BIND_USER_DIRS=true|false**: This variable corresponds to the `**live-config.bind-user-dirs**=true|false` parameter. It enables or disables bind-mounting for user directories.
-- **LIVE_USER_DIRS_PATH=PATH**: This variable corresponds to the `**live-config.user-dirs-path**=*PATH*` parameter. It specifies the path for user directories on the media.
+- **LIVE_LINK_USER_DIRS=true|false**: This variable corresponds to the `**live-config.link-user-dirs**=true|false` parameter. It links the user's standard data directories to the writable MiniOS drive. It cannot be combined with bind mode or any `toram` mode.
+- **LIVE_BIND_USER_DIRS=true|false**: This variable corresponds to the `**live-config.bind-user-dirs**=true|false` parameter. It bind-mounts the user's standard data directories from the writable MiniOS drive. It cannot be combined with link mode or any `toram` mode.
+- **LIVE_USER_DIRS_PATH=PATH**: This variable corresponds to the `**live-config.user-dirs-path**=*PATH*` parameter. It specifies a safe path inside the FAT32, exFAT, or NTFS MiniOS drive. The default is `/minios/userdata`; dot and parent-directory segments are rejected.
+
+User-media setup never merges two non-empty directories automatically. A local
+non-empty directory is migrated only when its media destination is empty. When
+the feature is disabled, managed media data is copied back before links are
+removed. A failed validation or copy leaves the existing user directories in
+place and records the reason in `/var/lib/live/config/user-media.status`.
 - **LIVE_MODULE_MODE**: This variable holds the state specified by the `live-config.module-mode` (or `module-mode`) parameter. When it is set to "merged", the live system applies updates (via minios-update-users, minios-update-cache, and minios-update-dpkg) to merge custom configurations with the base environment.
 - **LIVE_CONFIG_DEBUG=true|false**: This variable corresponds to the `**live-config.debug**` parameter.
 

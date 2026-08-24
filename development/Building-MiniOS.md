@@ -263,8 +263,17 @@ Each module directory contains:
 - **`install`**: Bash script executed during module build
 - **`rootcopy-install/`**: Files copied to the system during build
 - **`rootcopy-postinstall/`**: Files copied after package installation
+- **`.minios-ownership`**: Optional ownership manifest inside a `rootcopy-*` directory for files that require a non-root owner
 - **`skip_conditions.conf`**: Conditions for skipping module build
 - **`patches/`**: Patches applied before building (not available for 00-core)
+
+Files in `rootcopy-install/` and `rootcopy-postinstall/` are copied as build templates. Host checkout ownership is not preserved; files normally become `root:root` in the target tree. If a file or directory needs a non-root owner, create `.minios-ownership` in the relevant rootcopy directory:
+
+```text
+owner:group relative/path
+```
+
+Paths are relative to that rootcopy directory. Absolute paths and paths containing `../` are rejected. The owner and group must already exist when the manifest is applied. If they are created by a package installed later, use `rootcopy-postinstall/` or set ownership in `install`/`postinstall`.
 
 ### Example Module Template
 

@@ -1,249 +1,215 @@
 # Module erstellen
 
-Module in MiniOS sind eigenständige Pakete aus Dateien und Konfigurationen, die die Funktionalität des Basissystems erweitern. Sie ähneln Paketen in anderen Linux-Distributionen, sind jedoch so konzipiert, dass sie übereinander geschichtet werden können, was ein flexibles und anpassbares System ermöglicht. Dieser Layer-Ansatz erlaubt eine einfache Anpassung, das Zurücksetzen von Änderungen und das Teilen von Konfigurationen.
+MiniOS-Module sind schreibgeschützte SquashFS-Dateisystem-Images, die üblicherweise die Dateiendung `.sb` tragen. Beim Systemstart ordnet MiniOS die ausgewählten Module zu einem geschichteten Root-Dateisystem an. Dateien in einer höher priorisierten Schicht können Dateien aus niedrigeren Schichten ergänzen oder ausblenden.
 
-Den vollständigen Kontext zum MiniOS-Bauprozess und zur Systemarchitektur finden Sie im [Building MiniOS Guide](/development/Building-MiniOS.md). Informationen zum in Modulen verwendeten CondinAPT-Paketmanagementsystem finden Sie in der [CondinAPT Dokumentation](/development/CondinAPT.md).
+Diese Anleitung dokumentiert die aktuellen Kommandozeilen-Workflows der MiniOS Tools. Für die grafische Anwendung siehe [MiniOS Module Manager](/administration/Module-Manager.md). Den vollständigen Image-Bauprozess und die Systemarchitektur finden Sie unter [Building MiniOS](/development/Building-MiniOS.md). Die beim Bau von MiniOS verwendeten Paketlisten sind in der [CondinAPT-Dokumentation](/development/CondinAPT.md) beschrieben.
 
-Für das Erstellen von Modulen in MiniOS stehen zahlreiche Werkzeuge zur Verfügung. Alle sind für die Nutzung im Terminal ausgelegt und erfordern Root-Rechte.
+## Sicherheits- und Privilegiengrenzen
 
-**Werkzeuge zur Modulerstellung:**
+Nicht jede Moduloperation erfordert Root-Rechte:
 
-**apt2sb** – Installiert Pakete aus Repositories und packt sie in ein Modul.<br>
-**script2sb** – Führt die im Skript beschriebenen Aktionen aus und packt das Ergebnis in ein Modul.<br>
-**chroot2sb** – Öffnet eine chroot-Umgebung, in der beliebige Aktionen durchgeführt werden können; nach dem Verlassen werden die Änderungen im Modul gespeichert.<br>
+| Operation | Privileg |
+|---|---|
+| Aktuell laufende oder für den nächsten Start ausgewählte Module mit `sb` auflisten | Ohne Root |
+| Ein Modul mit `sb inspect` inspizieren | Ohne Root |
+| Normale `dir2sb`- und `sb2dir`-Konvertierung | Ohne Root |
+| Besitzrechte erhalten oder spezielle Dateien bei der Konvertierung zulassen | Root |
+| Bauen mit `apt2sb`, `script2sb` oder `chroot2sb` | Root |
+| Sitzung mit `savechanges` erfassen | Root |
+| Aktivieren, deaktivieren, zum nächsten Start hinzufügen oder vom nächsten Start entfernen | Root |
 
-**Weitere Werkzeuge zur Modulverwaltung:**
+Die Builder verwenden ein isoliertes Union-Dateisystem und installieren keine Pakete oder Skriptänderungen im laufenden Root. Die Erstellung aktiviert das Ergebnis auch nicht und wählt es nicht für den nächsten Start aus.
 
-**dir2sb** – Wandelt ein bestehendes Verzeichnis in ein komprimiertes Modul um.<br>
-**sb2dir** – Wandelt ein komprimiertes Modul in ein Verzeichnis zur Prüfung um.<br>
-**rmsbdir** – Entfernt ein von sb2dir erstelltes Modulverzeichnis.<br>
-**savechanges** – Speichert alle geänderten Dateien im System als komprimiertes Dateisystem-Bundle.<br>
-**sb2iso** – Erstellt ein MiniOS-ISO-Image und kann dabei Module hinzufügen oder ausschließen.<br>
-**sb** – Umfassende Oberfläche zur Verwaltung von MiniOS-Bundles (aktivieren, deaktivieren, auflisten, konvertieren).<br>
+Aktuelle Konverter und Builder verwenden eine No-Replace-Publikation. Ein bereits existierendes Ziel, einschließlich symbolischer Links, wird nicht überschrieben. Wählen Sie einen neuen Ausgabepfad oder entfernen Sie das alte Ziel explizit selbst.
 
-**Gemeinsame Merkmale der Modulerstellungswerkzeuge:**
-- Unterstützung verschiedener Komprimierungsarten: zstd (Standard), gzip, lzo, xz
-- Anpassbare Dateiendung für Module (Standard: sb)
-- Ebenenbasierte Filterung zur Steuerung, welche bestehenden Module als Abhängigkeiten einbezogen werden
-- Individuelle Namensvergabe für Ausgabemodule
-- Alle Werkzeuge müssen als root ausgeführt werden
+Verwenden Sie die `--help`-Ausgabe jedes Befehls als Referenz für die installierte Version. Die Standard-Komprimierungsoptionen des Builders sind `zstd` (Standard), `gzip`, `lzo` und `xz`; `dir2sb` unterstützt außerdem `lz4`.
 
-## apt2sb
+## Modulnamen und Filterstufen
 
-Um ein Modul mit apt2sb zu erstellen, listen Sie einfach die Pakete auf, die Sie im Modul bündeln möchten, z. B. `apt2sb install chromium chromium-sandbox`. Wenn Sie diesen Befehl im entsprechenden Ordner ausführen, entsteht ein chromium.sb-Modul, das den Chromium-Browser enthält. Dieses Modul wird relativ zu allen Modulen gebaut, die im System geladen sind. Das bedeutet, dass es diese Module zum Ausführen benötigt, da die für das Programm erforderlichen Bibliotheken möglicherweise bereits im System installiert und in unteren Modulen enthalten sind.
+Namen beginnen häufig mit einer Zahl wie `06-browser.sb`, da die Schichtreihenfolge die Konfliktlösung beeinflusst. Ein Modul sollte Pfade relativ zum System-Root enthalten, z. B. `usr/bin/example`, und nicht ein zusätzliches Verzeichnis, das diesen Baum enthält.
 
-Mit der Option `-l`/`--level` können Sie angeben, auf welchem Top-Modul Ihr Modul aufgebaut werden soll. Zum Beispiel filtert der Befehl `apt2sb install -l 4 chromium chromium-sandbox` alle Module mit der Nummer 04 und höher beim Bauen heraus, d. h. das Modul wird auf Basis der Module 00-03 erstellt. Nach Ausführung dieses Befehls erhalten Sie das Modul 04-chromium.sb im aktuellen Ordner. Dieses Modul ist größer als das im vorherigen Beispiel, da es alle zum Ausführen notwendigen Bibliotheken enthält, die sich sonst in Modulen ab 04 befinden könnten. Es kann also sowohl mit als auch ohne die Module 04-xx laufen.
+Die Option `--level LEVEL` bei `apt2sb`, `script2sb` und `chroot2sb` begrenzt die Basisschichten, die zum Erstellen des Build-Unions verwendet werden. Mit `--level 3` werden nummerierte Schichten bis `03` verwendet, und höher nummerierte Schichten werden herausgefiltert. Das kann ein Modul weniger abhängig von optionalen höheren Schichten machen, allerdings auf Kosten zusätzlicher Abhängigkeiten im Ergebnis.
 
-Der Modulname wird automatisch aus dem Namen des zuerst angegebenen Pakets (hier chromium) und, falls die --level-Option gesetzt ist, der Ebenennummer gebildet. Möchten Sie den Modulnamen selbst festlegen, nutzen Sie die Option `-n`/`--name`, z. B. `apt2sb install -l 4 chromium chromium-sandbox -n 10-browser.sb`.
+## Modul aus Paketen erstellen
 
-**Weitere Optionen von apt2sb:**
+`apt2sb` installiert Repository-Pakete oder lesbare lokale `.deb`-Dateien in ein privates Build-Union und erfasst das Ergebnis. Dafür ist eine unterstützte MiniOS-Live-Sitzung und Root erforderlich.
 
-- `-c`/`--comp` – Komprimierungsart (zstd, gzip, lzo, xz). Standard: zstd
-- `-b`/`--bext` – Bundle-Endung. Standard: sb
-- `-y`/`--yes` – Automatische Bestätigung aller Abfragen
-- `--allow-downgrades` – Paket-Downgrades erlauben
-- `--install-recommends` – Empfohlene Pakete als Abhängigkeit berücksichtigen
-- `--install-suggests` – Vorgeschlagene Pakete als Abhängigkeit berücksichtigen
-- `--no-install-recommends` – Empfohlene Pakete nicht als Abhängigkeit berücksichtigen
-- `--no-install-suggests` – Vorgeschlagene Pakete nicht als Abhängigkeit berücksichtigen
-- `-t`/`--target-release` – Standard-Release, aus dem Pakete installiert werden
-
-apt2sb bietet auch den Befehl `upgrade`, mit dem bereits installierte Pakete aktualisiert werden können. Die Optionen sind identisch mit denen von install.
-
-## script2sb
-
-Um ein Modul mit script2sb zu erstellen, schreiben Sie ein Bash-Skript, das die nötigen Schritte zur Erstellung Ihres Moduls beschreibt. Das ist besonders nützlich, wenn Sie vor oder nach der Installation Aktionen im Dateisystem ausführen, Schlüssel importieren, ein Repository hinzufügen usw. müssen. Hier ein Beispiel für ein solches Skript:
 ```bash
-#!/bin/bash
-# Install the keys to access the Debian repository and the apt add-on to access the repository via https
-apt install -y debian-keyring debian-archive-keyring apt-transport-https
-# Adding a GPG key for the Caddy repository
-curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
-# Add the Caddy repository to the package source list
-curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list
-# Updating the list of packages
-apt update
-# Installing Caddy
-apt install caddy
-# Remove keys to access the Debian repository
-apt remove -y debian-keyring debian-archive-keyring apt-transport-https
-# Deleting the source list file and GPG key for the Caddy repository
-rm /etc/apt/sources.list.d/caddy-stable.list /usr/share/keyrings/caddy-stable-archive-keyring.gpg
-```
-Um den Build mit diesem Skript (nennen wir es caddy.sh) zu starten, führen Sie den Befehl `script2sb -s ./caddy.sh` aus.
-
-**Verfügbare Optionen für script2sb:**
-
-- `-s`/`--script` – Verwendet DATEI als Installationsskript (erforderlich)
-- `-l`/`--level` – Verwendet LEVEL als Filterebene
-- `-n`/`--name` – Verwendet NAME als Dateinamen für das Modul
-- `-c`/`--comp` – Komprimierungsart (zstd, gzip, lzo, xz). Standard: zstd
-- `-b`/`--bext` – Bundle-Endung. Standard: sb
-- `-d`/`--directory` – Kopiert den Inhalt von VERZEICHNIS in das Root des Moduls
-
-Wird kein Modulname angegeben, wird der Name aus der Ebenennummer (falls angegeben) und dem Skriptnamen gebildet. Ein Beispiel für die Ausführung mit diesen Optionen: `script2sb -s ./caddy.sh -l 1 -n 01-caddy.sb`.
-
-Zusätzlich können Sie die Option `-d`/`--directory` nutzen. Ist diese Option gesetzt, wird der Inhalt des angegebenen Ordners vor Ausführung des Skripts ins Root des Moduls kopiert. Die Dateien in diesem Ordner sollten so angeordnet sein, wie sie im System-Root liegen würden. Möchten Sie z. B. eine Verknüpfung für ein Programm im Menü platzieren, erstellen Sie einen mymodule-Ordner und darin die entsprechende Struktur relativ zum System-Root:
-```
-mkdir -p /home/user/mymodule/usr/share/applications
-```
-In den Ordner mymodule/usr/share/applications legen Sie die Desktop-Datei, die nach dem Build ins Modul gepackt wird, und führen dann den Build-Befehl aus:
-```
-script2sb -s ./caddy.sh -l 1 -n 01-caddy.sb -d /home/user/mymodule
+sudo apt2sb install chromium chromium-sandbox
+sudo apt2sb install -y --level 3 -n 06-browser.sb chromium chromium-sandbox
+sudo apt2sb install -y --no-install-recommends ./example_amd64.deb -n 06-example.sb
 ```
 
-## chroot2sb
+Ohne `--name` wird der Ausgabename vom ersten Paket abgeleitet. Nützliche APT-Optionen sind `--install-recommends`, `--no-install-recommends`, `--install-suggests`, `--no-install-suggests`, `--allow-downgrades` und `--target-release RELEASE`. Die Target-Release-Option gilt nur für `install`.
 
-Das Tool `chroot2sb` dient dazu, eine interaktive chroot-Umgebung zu erstellen. So können Sie *beliebige* Aktionen zur Erstellung Ihres Moduls manuell durchführen (Pakete installieren, Dateien bearbeiten, Befehle ausführen usw.). Nach dem Verlassen der chroot-Umgebung werden Ihre Änderungen in ein Modul gepackt.
+Um Upgrades bereits installierter Pakete zu erfassen:
 
-**Verfügbare Optionen für chroot2sb:**
+```bash
+sudo apt2sb upgrade -y -n upgrades.sb
+```
 
-- `-l`/`--level` – Verwendet LEVEL als Filterebene  
-- `-n`/`--name` – Verwendet NAME als Dateinamen für das Modul
-- `-c`/`--comp` – Komprimierungsart (zstd, gzip, lzo, xz). Standard: zstd
-- `-b`/`--bext` – Bundle-Endung. Standard: sb
-- `-d`/`--directory` – Kopiert den Inhalt von VERZEICHNIS in das Root des Moduls
+## Modul aus einem Skript erstellen
 
-Wird kein Modulname angegeben, wird der Name aus der Ebenennummer (falls angegeben) und dem aktuellen Datum und der Uhrzeit im Format JJJJMMTT-HHMM gebildet.
+`script2sb` kopiert ein Installationsskript in ein privates Chroot, macht es ausführbar, führt es als Root ohne interaktives Terminal aus, entfernt es anschließend und erfasst die resultierenden Änderungen am Dateisystem. Ein fehlgeschlagenes Skript erzeugt kein Modul.
 
-Sie können auch die Option `-d`/`--directory` wie bei `script2sb` nutzen. Ist diese Option gesetzt, wird der Inhalt des angegebenen Ordners *vor* dem Betreten der chroot-Umgebung ins Root des Moduls kopiert. So haben Sie eine Ausgangsbasis für Ihre Anpassungen.
+```bash
+sudo script2sb --script ./install-example.sh -n 06-example.sb
+sudo script2sb --script ./install-example.sh --directory ./seed-root --level 3 -n 06-example.sb
+```
 
-**Beispiele:**
+Die optionale `--directory DIR` kopiert vor der Skriptausführung alle Quellinhalte, einschließlich versteckter Dateien, in das Modul-Root. Ordnen Sie das Seed-Verzeichnis als Dateisystembaum an:
 
-- Basis-chroot, automatischer Modulname: `chroot2sb`
-- Ebene und Komprimierung angeben: `chroot2sb -l 3 -c gzip`
-- Ebene, Name und Komprimierung angeben: `chroot2sb -l 3 -n 04-my-module.sb -c xz`
-- Dateien aus einem Verzeichnis vor dem chroot kopieren: `chroot2sb -d /path/to/my/files`
+```text
+seed-root/
+`-- usr/
+    `-- share/
+        `-- applications/
+            `-- example.desktop
+```
 
-Nach Ausführung des Befehls `chroot2sb` befinden Sie sich in einer chroot-Umgebung. Dort können Sie alle gewünschten Aktionen durchführen. Wenn Sie fertig sind, geben Sie `exit` ein, um die Umgebung zu verlassen. `chroot2sb` packt dann die Änderungen in ein Modul. Die in der chroot eingegebenen Befehle werden *nicht* als Teil des Installationsprozesses im Modul gespeichert. Es handelt sich um einen Snapshot des finalen Dateisystemzustands. Die Bash-History wird automatisch aus dem Modul entfernt.
+Überprüfen Sie das Skript vor der Ausführung. Es läuft mit Administratorrechten und kann beliebige Befehle ausführen. Verwenden Sie stattdessen `chroot2sb`, wenn die Installation Eingabeaufforderungen oder manuelle Arbeit erfordert.
 
-## Weitere Werkzeuge zur Modulverwaltung
+## Modul interaktiv erstellen
 
-Zusätzlich zu den Modulerstellungswerkzeugen stellt MiniOS mehrere Tools zur Verwaltung und Bearbeitung bestehender Module bereit:
+`chroot2sb` erstellt ein privates Build-Union und öffnet darin eine Root-Shell. Installieren Sie Pakete oder bearbeiten Sie Dateien und verlassen Sie dann die Shell, um die Änderungen zu erfassen:
 
-### dir2sb
+```bash
+sudo chroot2sb --level 3 -n 06-custom.sb
+sudo chroot2sb --directory ./seed-root -c xz -n 06-custom.sb
+```
 
-Das Tool `dir2sb` wird verwendet, um ein bestehendes Verzeichnis in ein komprimiertes Modul umzuwandeln. Das ist nützlich, wenn Sie bereits eine Verzeichnisstruktur mit allen benötigten Dateien vorbereitet haben und diese ohne Installationsprozesse in ein Modul packen möchten.
+Die in der Shell eingegebenen Befehle werden beim Laden des Moduls nicht erneut ausgeführt; das Modul ist ein Schnappschuss des resultierenden Dateisystemzustands. Die Shell-Historie wird aus dem Ergebnis entfernt. Wird kein Name angegeben, verwendet der generierte Name das aktuelle Datum und die Uhrzeit.
 
-**Verfügbare Optionen für dir2sb:**
+Der geteilte `prepare`, `shell`, `finish` und `cancel`-Lebenszyklus existiert für geschützte grafische Frontends. Für die normale Terminalnutzung verwenden Sie den oben gezeigten Einzelbefehl.
 
-- `-c`/`--comp` – Komprimierungsart (zstd, gzip, lzo, xz). Standard: zstd
-- `-b`/`--bext` – Bundle-Endung. Standard: sb
+## Modul aus einem Verzeichnis erstellen
 
-**Verwendung:**
+`dir2sb` verpackt den Inhalt eines vorbereiteten Verzeichnisses in ein neues Modul. Beide Operanden sind erforderlich:
 
-`dir2sb [OPTIONEN] QUELLVERZEICHNIS [ZIELDATEI]`
+```bash
+dir2sb my-app-root 06-my-app.sb
+dir2sb --comp xz my-app-root 06-my-app-xz.sb
+```
 
-**Verhalten:**
+Die normale Konvertierung ist ohne Root möglich. Die Quelle bleibt unverändert, die Besitzrechte im Modul werden auf Root normalisiert, Geräteknoten, Sockets und FIFOs werden abgelehnt, und das Ziel wird niemals überschrieben. Verwenden Sie `--keep-ownership` oder `--allow-special` nur, wenn diese privilegierten Semantiken benötigt werden.
 
-- Hat das `QUELLVERZEICHNIS` keine .sb-Endung und heißt nicht 'squashfs-root', wird das Verzeichnis selbst ins Modul aufgenommen und `ZIELDATEI` ist erforderlich.
-- Wird `ZIELDATEI` nicht angegeben, wird das `QUELLVERZEICHNIS` durch die neue Moduldatei ersetzt.
+## Änderungen der aktuellen Sitzung erfassen
 
-**Beispiele:**
+`savechanges` liest die maßgebliche beschreibbare Schicht einer laufenden MiniOS-Sitzung aus. Dafür sind Root-Rechte erforderlich, da diese Schicht Root-exklusive Dateien enthalten kann. Der Standard-Speicherort für Änderungen wird automatisch erkannt:
 
-- Vorbereitetes Verzeichnis in Modul umwandeln: `dir2sb /path/to/my/prepared/files my-module.sb`
-- squashfs-root-Verzeichnis umwandeln (ersetzt Original): `dir2sb squashfs-root`
-- Andere Komprimierung verwenden: `dir2sb -c xz /path/to/files custom-module.sb`
+```bash
+sudo savechanges session-changes.sb
+sudo savechanges --comp xz session-changes-xz.sb
+```
 
-Dieses Tool ist besonders nützlich, wenn Sie:
-- Vorgefertigte Dateien und Verzeichnisse bündeln möchten
-- Entpackte Modul-Inhalte wieder in ein Modul umwandeln wollen
-- Module aus manuell vorbereiteten Verzeichnisstrukturen erstellen möchten
+Ohne `--profile` lässt die historische MiniOS-Policy leere Verzeichnisse, Caches, Logs, Bootdaten, Laufzeitpfade, Pseudodateisysteme sowie ausgewählte Sitzungs- und Systemdateien aus. Das ist praktisch für die klassische Modulerstellung, stellt jedoch keine explizite Datenschutzgarantie dar.
 
-### sb2dir
+Die expliziten Profile sind:
 
-Das Tool `sb2dir` wandelt ein komprimiertes Modul (.sb-Datei) in ein gleichnamiges Verzeichnis um. Das ist hilfreich, um den Inhalt eines Moduls zu extrahieren und zu untersuchen.
+- `exact` erhält alle darstellbaren Änderungen, einschließlich Benutzerdaten, Logs, Caches, Identitätsdateien, Zugangsdaten und unterstützter Löschmetadaten. Nicht unterstützte Dateisystemobjekte werden abgelehnt, anstatt sie stillschweigend zu verlieren.
+- `clean` verwendet eine enge, softwareorientierte Pfad-Positivliste. Home- und Root-Daten, Logs, Caches, Identitäten, Netzwerkkonfiguration, Zugangsdaten, beliebige Systemkonfigurationen und `/usr/local` werden ausgeschlossen. Das reduziert die Datenschutzexposition, kann aber nicht garantieren, dass eine zugelassene Softwaredatei keine Geheimnisse enthält.
+- `selected` enthält nur geprüfte relative Pfade aus einer Inventar- und Auswahldatei. Explizite Ausschlüsse haben Vorrang. Dieses Profil ist geeignet, wenn das Modul einen kontrollierten Teil der Sitzungsänderungen enthalten muss.
 
-**Verwendung:**
+Beispiele:
 
-`sb2dir [quelldatei.sb] [optional_ausgabeverzeichnis]`
+```bash
+sudo savechanges --profile exact exact-session.sb
+sudo savechanges --profile clean --comp xz software-session.sb
+sudo savechanges --inventory-json session-inventory.json
+sudo savechanges --profile selected --selection selection.json selected-session.sb
+```
 
-**Verhalten:**
+Eine Auswahldatei hat diese strikte JSON-Struktur:
 
-- Wird ein Ausgabeverzeichnis angegeben, muss es existieren
-- Wird kein Ausgabeverzeichnis angegeben, wird der Name der quelldatei.sb verwendet und das Verzeichnis mit tmpfs überlagert
+```json
+{
+  "product_kind": "minios-session-selection",
+  "schema_version": 1,
+  "include_paths": ["etc/default", "opt/my-app"],
+  "exclude_paths": ["opt/my-app/private"]
+}
+```
 
-**Beispiele:**
+Pfade sind normalisierte, nicht-leere Pfade relativ zum Änderungen-Root. Erstellen und prüfen Sie zuerst das Inventar; jede Aufnahme muss mit den Inventardaten übereinstimmen. Das Inventar erfasst Metadaten wie Pfad, Typ, Kategorie, Sensitivität und Größe, liest oder speichert jedoch keine Dateiinhalte, Symlink-Ziele oder Geheimwerte. Ausgaben und Inventare expliziter Profile sind im Modus `0600`; Legacy-Policy-Module sind im Modus `0644`.
 
-- Modul extrahieren, um den Inhalt zu prüfen: `sb2dir mymodule.sb`
-- In ein bestimmtes Verzeichnis extrahieren: `sb2dir mymodule.sb /tmp/extracted`
+Die Sitzungsaufnahme kann unterstützte Dateilöschungen und Verzeichnis-Opazität für das aktive AUFS- oder OverlayFS-Backend erhalten. Laufzeit-Mounts, eingebettete Dateisysteme, Union-Buchhaltung und die Ausgabe selbst werden ausgeschlossen. Ein bestehendes Ziel wird niemals ersetzt.
 
-### rmsbdir
+## Module inspizieren und extrahieren
 
-Das Tool `rmsbdir` entfernt ein von `sb2dir` erstelltes Modulverzeichnis. Dadurch wird ein ggf. verwendetes tmpfs sauber entfernt.
+Ein Modul inspizieren, ohne es einzuhängen oder zu extrahieren:
 
-**Verwendung:**
+```bash
+sb inspect 06-example.sb
+sb inspect 06-example.sb --json
+```
 
-`rmsbdir [quelldatei.sb]`
+Die Inspektion ist ohne Root möglich und funktioniert auch außerhalb einer laufenden MiniOS-Sitzung.
 
-**Beispiel:**
+Ein Modul in ein neues Verzeichnis extrahieren:
 
-- Extrahiertes Modulverzeichnis entfernen: `rmsbdir mymodule.sb`
+```bash
+sb2dir 06-example.sb example-root
+```
 
-### savechanges
+Die normale Extraktion ist ohne Root möglich und verändert die Quelle nicht. Das Zielverzeichnis darf nicht existieren. Spezielle Dateien werden abgelehnt, es sei denn, `--allow-special` wird mit ausreichenden Rechten angefordert.
 
-Das Tool `savechanges` speichert alle geänderten Dateien im System als komprimiertes Dateisystem-Bundle. Das ist nützlich, um Module aus Laufzeitänderungen zu erstellen.
+Von aktuellen `sb2dir` erzeugte Verzeichnisse sind normale Verzeichnisse. `rmsbdir`, `sb rm` und `sb rmdir` sind veraltete Kompatibilitätsbefehle, die immer das Entfernen verweigern; sie führen kein Unmount oder rekursives Löschen durch. Überprüfen Sie einen extrahierten Pfad und dessen Inhalte, bevor Sie ihn mit Standard-Dateisystemwerkzeugen entfernen.
 
-**Verfügbare Optionen:**
+## Laufende und Next-Boot-Module verwalten
 
-- `-c`/`--comp` – Komprimierungsart (zstd, gzip, lzo, xz). Standard: zstd
-- `-b`/`--bext` – Bundle-Endung. Standard: sb
+"Running Now" und "Next Boot" sind unabhängige Zusammenstellungen.
 
-**Verwendung:**
+Listen Sie die Module auf, die das aktuelle AUFS- oder OverlayFS-Root zusammensetzen, von niedrigster zu höchster Priorität:
 
-`savechanges [OPTIONEN] zieldatei.sb [changes_verzeichnis]`
+```bash
+sb list
+sb list --json
+```
 
-Wird kein changes_verzeichnis angegeben, wird `/run/initramfs/memory/changes` verwendet.
+Listen Sie die Module auf, die durch die aktuellen Boot-Regeln ausgewählt wurden, einschließlich `bext`, `load` und `noload`:
 
-**Beispiele:**
+```bash
+sb next-boot
+sb next-boot --json
+```
 
-- Alle aktuellen Änderungen speichern: `savechanges my-changes.sb`
-- Mit anderer Komprimierung speichern: `savechanges -c xz my-changes.sb`
+Diese Abfragen sind ohne Root möglich. Ein Next-Boot-Modul kann aus dem Basisdatenbaum, seinem `modules/`-Verzeichnis oder einem separaten Persistenzmodulspeicher stammen. Eine spätere Quelle mit demselben Basisnamen ersetzt die frühere Auswahl.
 
-### sb2iso
+Um ein Benutzermodul für den nächsten Boot verfügbar zu machen:
 
-Das Tool `sb2iso` erstellt ein MiniOS-ISO-Image und kann dabei bestimmte Module hinzufügen oder bestehende ausschließen.
+```bash
+sudo sb next-boot add 50-extra.sb
+```
 
-**Verfügbare Optionen:**
+MiniOS verwendet geeigneten, dauerhaften, beschreibbaren Speicher, bereitet die Kopie vor, prüft sie und veröffentlicht sie atomar, ohne ein bestehendes Modul zu ersetzen. Der Dateiname muss die aktuellen Boot-Filter erfüllen. Entfernen Sie ein ausgewähltes Benutzermodul anhand seines exakten Basisnamens:
 
-- `-e`/`--exclude` – Schließt jeden Pfad oder jede Datei aus, die auf REGEX passt
-- `-n`/`--name` – Gibt den Namen der Ausgabedatei für das ISO an (Standard: minios-YYYYMMDD_HHMM.iso)
+```bash
+sudo sb next-boot remove 50-extra.sb
+```
 
-**Verwendung:**
+Das Entfernen wird für Basismodule und Module auf schreibgeschützten oder flüchtigen Quellen verweigert.
 
-`sb2iso [OPTIONEN]... [MODULE.SB]...`
+Die Laufzeitaktivierung ist eine separate, nur für die Sitzung gültige Operation:
 
-**Beispiele:**
+```bash
+sudo sb activate 50-extra.sb
+sudo sb deactivate 50-extra.sb
+```
 
-- MiniOS-ISO ohne firefox.sb-Modul erstellen: `sb2iso -e 'firefox' -n minios_without_firefox.iso`
-- Nur MiniOS-Textmodus-Kern erstellen: `sb2iso --exclude='firmware|xorg|desktop|apps|firefox' --name=minios_textmode.iso`
+Aktivierung und Deaktivierung funktionieren nur, wenn `/` aktuell ein AUFS-Union ist. Sie sind auf OverlayFS nicht verfügbar, und Kernel-AUFS-Unterstützung allein reicht nicht aus. Keine dieser Aktionen ändert den Next Boot.
 
-### sb
+Der Kompatibilitäts-Konverter-Dispatcher benötigt beide Operanden:
 
-Das Tool `sb` bietet eine umfassende Oberfläche zur Verwaltung von MiniOS-Bundles, einschließlich Aktivierung, Deaktivierung und Konvertierung.
+```bash
+sudo sb conv my-app-root 06-my-app.sb
+sudo sb conv 06-my-app.sb example-root
+```
 
-**Wichtig:** Das Tool `sb` benötigt AUFS (Advanced multi layered UniFication FileSystem) Kernel-Support für die meisten Operationen. Ist AUFS im Kernel nicht verfügbar, funktionieren viele Befehle nicht.
+Direkte Verwendung von `dir2sb` und `sb2dir` ist vorzuziehen, da die normale Konvertierung rootlos erfolgen kann.
 
-**Verfügbare Befehle:**
+## Verwandte Dokumentation
 
-- `activate BUNDLE` – Aktiviert ein MiniOS-Bundle
-- `deactivate BUNDLE` – Deaktiviert ein aktives MiniOS-Bundle  
-- `list` – Listet aktive MiniOS-Bundles auf
-- `savechanges` – Speichert zur Laufzeit vorgenommene Änderungen im Bundle
-- `rm DIR` / `rmdir DIR` – Entfernt ein entpacktes Bundle-Verzeichnis
-- `conv PFAD` – Konvertiert ein .sb-Bundle in ein Verzeichnis oder umgekehrt
-
-**Beispiele:**
-
-- Modul aktivieren: `sb activate mymodule.sb`
-- Modul deaktivieren: `sb deactivate mymodule.sb`
-- Aktive Module auflisten: `sb list`
-- Modul in Verzeichnis umwandeln: `sb conv mymodule.sb`
-- Verzeichnis in Modul umwandeln: `sb conv mymodule/`
-
-**Hinweis:** Die Befehle `activate`, `deactivate` und `list` erfordern AUFS-Kernel-Support und Root-Rechte. Die Befehle `conv`, `rm` und `rmdir` funktionieren ohne AUFS, benötigen aber ebenfalls Root-Rechte.
-
-## Weiterführende Dokumentation
-
-- **[ISO neu bauen](/development/Rebuilding-ISO.md)** – Erfahren Sie, wie Sie Ihre eigenen Module mit `sb2iso` in bootfähige ISO-Images integrieren
-- **[Building MiniOS](/development/Building-MiniOS.md)** – Komplette Anleitung zum Bau von MiniOS aus dem Quellcode mit individuellen Konfigurationen
+- [MiniOS Module Manager](/administration/Module-Manager.md)
+- [ISO-Abbilder neu erstellen](/development/Rebuilding-ISO.md)
+- [MiniOS erstellen](/development/Building-MiniOS.md)
+- [Boot-Parameter](/configuration/Boot-Parameters.md)

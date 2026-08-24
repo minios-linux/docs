@@ -1,537 +1,200 @@
-# Gestion des sessions dans MiniOS 🔄
+# Gestion des sessions dans MiniOS
 
-## 🤔 Qu'est-ce qu'une session ?
+Les sessions MiniOS conservent les modifications apportées au système live après redémarrage. Chaque session correspond à un répertoire numéroté sous `minios/changes/` ; les modules MiniOS en lecture seule restent inchangés et la session sélectionnée fournit la couche writable du système de fichiers union.
 
-Les sessions MiniOS offrent un stockage persistant de vos modifications, vous permettant de :
-
-- **Sauvegarder les modifications** effectuées pendant une session live
-- **Reprendre votre travail** là où vous l'avez laissé après un redémarrage
-- **Gérer plusieurs** environnements de travail distincts
-- **Basculer entre** différentes configurations
-
-Les sessions utilisent la technologie **Union Filesystem** (AUFS ou OverlayFS) pour superposer les modifications au-dessus du système de base en lecture seule.
-
----
-
-## 📋 Types et modes de session
-
-### **Actions sur les sessions**
-
-- **`resume`** - Continuer à partir de la dernière session utilisée (par défaut)
-- **`new`** - Créer une nouvelle session
-- **`ask`** - Sélection interactive de la session au démarrage
-- **`fresh`** - Sans persistance (session temporaire)
-
-### **Modes de stockage**
-
-- **`native`** - Stockage direct sur le système de fichiers (nécessite un système de fichiers POSIX : ext4, btrfs, xfs)
-- **`dynfilefs`** - Fichiers conteneurs extensibles (fonctionne sur tout système de fichiers, recommandé pour FAT32/NTFS/exFAT)
-- **`raw`** - Fichiers image de taille fixe (fonctionne sur tout système de fichiers)
-
----
-
-## 🚀 Paramètres de démarrage pour le contrôle des sessions
-
-### **Paramètres principaux des sessions**
-
-| Paramètre | Valeurs | Description |
-|-----------|--------|-------------|
-| `perch` | - | Active la persistance des modifications |
-| `perchdir` | `resume` \| `new` \| `ask` \| `/path` | Action ou dossier de session |
-| `perchmode` | `native` \| `dynfilefs` \| `raw` | Mode de stockage |
-| `perchsize` | `<size_in_MB>` | Taille initiale pour les modes conteneur/image |
-
-### **Structure du dossier de session**
-
-```
-/minios/changes/
-├── session.conf          # Session configuration (default format)
-├── session.json          # JSON metadata (when jq is available)
-├── 1/                     # Session #1 directory
-├── 2/                     # Session #2 directory
-└── N/                     # Session #N directory
-```
-
----
-
-## 🎛️ Intégration au bootloader
-
-### **Configuration GRUB**
-
-MiniOS propose des entrées de menu GRUB préconfigurées pour différents modes de session :
+Utilisez le Gestionnaire de sessions depuis un système MiniOS en cours d’exécution :
 
 ```bash
-# Resume previous session
-linux /minios/boot/vmlinuz... perchdir=resume
-
-# Start new session  
-linux /minios/boot/vmlinuz... perchdir=new
-
-# Interactive session selection
-linux /minios/boot/vmlinuz... perchdir=ask
-
-# Fresh start (no persistence)
-linux /minios/boot/vmlinuz... 
-```
-
-### **Configuration SYSLINUX**
-
-Entrées SYSLINUX correspondantes :
-
-```bash
-LABEL default
-MENU LABEL Run MiniOS (Resume previous session)
-APPEND ... perchdir=resume
-
-LABEL perch
-MENU LABEL Run MiniOS (Start a new session)  
-APPEND ... perchdir=new
-
-LABEL asksession
-MENU LABEL Run MiniOS (Choose session during startup)
-APPEND ... perchdir=ask
-
-LABEL live
-MENU LABEL Run MiniOS (Fresh start)
-APPEND ...
-```
-
----
-
-## 🔧 Commandes de gestion des sessions
-
-### **Utilisation du gestionnaire de sessions MiniOS (GUI)**
-
-```bash
-# Launch graphical session manager
 minios-session-manager
 ```
 
-**Fonctionnalités :**
-- Afficher toutes les sessions disponibles avec leurs métadonnées
-- Créer de nouvelles sessions avec différents modes
-- Activer/basculer entre les sessions
-- Supprimer les anciennes sessions
-- Nettoyer les sessions plus anciennes qu'un nombre de jours spécifié
+L’outil équivalent en ligne de commande est `minios-session`. Ses commandes de modification nécessitent des privilèges administrateur ; c’est pourquoi les exemples ci-dessous utilisent `sudo`.
 
-### **Utilisation de minios-session (CLI)**
+## Modes de session
 
-⚠️ **Privilèges administrateur requis :**
+| Mode | Stockage | Contraintes principales |
+|------|----------|------------------------|
+| `native` | Modifications stockées directement dans le répertoire de session | Nécessite un système de fichiers POSIX writable tel que ext2/3/4, Btrfs, XFS, F2FS ou ReiserFS. |
+| `dynfilefs` | Conteneur ext4 extensible découpé en fichiers de support | Fonctionne sur POSIX writable, FAT32, NTFS et exFAT. Nécessite le backend DynFileFS. |
+| `raw` | `changes.img` de taille fixe contenant ext4 | Fonctionne sur POSIX writable, FAT32, NTFS et exFAT. |
+| `luks` | `changes.luks` chiffré LUKS2 contenant ext4 | Nécessite `cryptsetup`, le support loop et le hook LUKS de l’initrd MiniOS. |
+| `squashfs` | Snapshot compressé dans `changes.sb` | L’enregistrement nécessite un système de fichiers persistant POSIX capable de préserver liens, propriétaires, modes, xattrs, ACLs, capacités et whiteouts. |
 
-L'outil en ligne de commande nécessite les droits root et les vérifie automatiquement. Exécutez les commandes avec `sudo` ou via `pkexec` :
+`dynfilefs`, `raw` et `luks` créés avec `minios-session` ont par défaut une taille de 4000 Mo. Les tailles utilisent les unités décimales `MB`, `GB` ou `TB` et sont limitées à 1 To. Les fichiers raw et LUKS sont limités à 4000 Mo sur FAT32. Les opérations de redimensionnement de conteneur ne permettent que d’augmenter la taille d’une session ; la réduction n’est pas prise en charge.
 
-```bash
-sudo minios-session list
-# or
-pkexec minios-session activate 3
-```
+Le mode natif est le choix le plus simple et le plus rapide sur un système de fichiers compatible. Utilisez DynFileFS lorsque le système de fichiers persistant ne peut pas représenter les métadonnées Linux. Utilisez raw lorsqu’une allocation fixe est requise, LUKS si la session doit être chiffrée, et SquashFS pour un snapshot compressé exact.
 
-#### **Commandes de base :**
+Exécutez les commandes suivantes pour inspecter le système de fichiers persistant réel et les modes disponibles dessus :
 
 ```bash
-# List all sessions
-sudo minios-session list
-
-# Show currently active session (will boot next)
-sudo minios-session active
-
-# Show currently running session (current boot)
-sudo minios-session running
-
-# Check filesystem compatibility and session directory status
 sudo minios-session info
 sudo minios-session status
+```
 
-# Create new sessions (using positional arguments)
+Aucune session ne peut être créée sur un support en lecture seule. L’activation de SquashFS sur FAT32/NTFS/exFAT reste désactivée tant qu’un espace de travail intermédiaire préservant les métadonnées n’est pas disponible.
+
+## Sélection au démarrage
+
+Tout paramètre de persistance reconnu active la gestion de la persistance. Les menus de démarrage MiniOS proposent généralement des entrées pour reprendre, créer une nouvelle session, sélectionner, ou démarrer sans persistance.
+
+| Paramètre | Signification |
+|-----------|--------------|
+| `perch` | Demande la persistance. |
+| `perchdir=resume` | Reprend la session par défaut. Ceci est effectué au mieux et continue en mémoire si aucune session writable et compatible n’est disponible. |
+| `perchdir=new` | Alloue une nouvelle session numérotée. |
+| `perchdir=ask` | Sélectionne une session existante ou en crée une au démarrage. |
+| `perchdir=<id>` | Sélectionne directement cette session numérotée. |
+| `perchdir=<device/path>` | Utilise un emplacement de persistance sur un périphérique, y compris les formes `/dev/...` et `label:...` gérées par l’initrd. |
+| `perchmode=<mode>` | Définit `native`, `dynfilefs`, `raw`, `luks` ou `squashfs`. |
+| `perchsize=<size>` | Définit une taille de conteneur nouvelle ou supérieure ; les valeurs simples sont en Mo et les suffixes `MB`, `GB` et `TB` sont acceptés. |
+
+Si aucun mode n’est spécifié pour une nouvelle session, le démarrage utilise le mode natif. Sur FAT32/NTFS/exFAT, la création native bascule sur DynFileFS. Un nouveau conteneur raw ou LUKS démarre à 4000 Mo ; une nouvelle session DynFileFS sans `perchsize` est dimensionnée selon l’espace disponible tout en conservant une réserve de sécurité. Les sessions SquashFS sont capturées depuis le système en cours via le Gestionnaire de sessions ou `minios-session create squashfs` ; `perchdir=new perchmode=squashfs` ne crée pas de snapshot dans l’initrd.
+
+Lors de la reprise, MiniOS vérifie la version enregistrée, l’édition, le système de fichiers union et le mode. Le chemin normal `resume` crée une nouvelle session au lieu de remplacer une session incompatible. La sélection interactive affiche un avertissement avant d’autoriser une session incompatible.
+
+Le stockage des sessions a la forme suivante :
+
+```text
+minios/changes/
+|-- session.conf
+|-- 1/
+|-- 2/
+`-- N/
+```
+
+`session.conf` enregistre les identifiants par défaut et en cours, ainsi que le mode, la version, l’édition, le système de fichiers union, la taille, l’état et les paramètres spécifiques à chaque session. Il s’agit de la configuration validée par le démarrage. Ne l’éditez pas et ne déplacez pas les données de session numérotées pendant qu’une session est montée ; utilisez le Gestionnaire de sessions ou `minios-session`.
+
+## Sessions actives et en cours d’exécution
+
+Ces termes décrivent des états différents :
+
+- La session **active** est celle sélectionnée par défaut pour le prochain démarrage.
+- La session **en cours** fournit la persistance à la session en cours d’exécution.
+
+Activer une session modifie le prochain démarrage sans changer le système de fichiers union actuel :
+
+```bash
+sudo minios-session active
+sudo minios-session running
+sudo minios-session activate <id>
+```
+
+La session active ne peut pas être supprimée ni convertie sur place. Une session en cours ne peut normalement pas être supprimée, exportée, copiée, redimensionnée ou convertie. Le nettoyage protège également ces deux identifiants.
+
+## Référence des commandes
+
+Lister les sessions et inspecter le stockage :
+
+```bash
+sudo minios-session list
+sudo minios-session active
+sudo minios-session running
+sudo minios-session info
+sudo minios-session status
+```
+
+Créer des sessions :
+
+```bash
+sudo minios-session create
 sudo minios-session create native
-sudo minios-session create dynfilefs 2000
-sudo minios-session create raw 2000
+sudo minios-session create dynfilefs
+sudo minios-session create raw 4GB
+sudo minios-session create luks 4GB
+sudo minios-session create squashfs --policy shutdown
+sudo minios-session create squashfs --policy manual --autosave 60
+```
 
-# Activate specific session
-sudo minios-session activate 3
+`create` sans mode sélectionne natif. La création SquashFS capture les modifications live actuelles et n’a pas de taille fixe. Sa politique d’arrêt est par défaut `shutdown` ; la sauvegarde périodique est désactivée par défaut.
 
-# Delete session
-sudo minios-session delete 2
+Sauvegarder et configurer une session SquashFS :
 
-# Resize session (dynfilefs/raw modes only)
-sudo minios-session resize 1 8000
+```bash
+sudo minios-session save <running-squashfs-id>
+sudo minios-session settings <squashfs-id> --shutdown on
+sudo minios-session settings <squashfs-id> --shutdown off --autosave 0
+sudo minios-session settings <squashfs-id> --shutdown on --autosave 60
+```
 
-# Export session to archive
-sudo minios-session export 1 /path/to/backup.tar.zst
+Les intervalles périodiques valides sont `30`, `60`, `120`, `240` et `480` minutes ; `0` désactive la sauvegarde périodique. Les paramètres d’arrêt et de périodicité sont indépendants.
 
-# Import session from archive
-sudo minios-session import /path/to/backup.tar.zst
-sudo minios-session import /path/to/backup.tar.zst dynfilefs  # with mode conversion
+Exporter et importer des archives `.tar.zst` :
 
-# Copy session with optional mode conversion
-sudo minios-session copy 1 2              # copy keeping same mode
-sudo minios-session copy 1 3 raw          # copy and convert to raw mode
-sudo minios-session copy 1 4 native 3000  # copy, convert to native, set size
+```bash
+sudo minios-session export <id> /path/to/session.tar.zst
+sudo minios-session import /path/to/session.tar.zst
+sudo minios-session import /path/to/session.tar.zst --auto-convert
+sudo minios-session import /path/to/session.tar.zst --force-mode dynfilefs
+```
 
-# Cleanup old sessions (older than 30 days)
+Seuls les imports `.tar.zst` sont acceptés. Les chemins et membres d’archive sont validés, et l’extraction est limitée. `--auto-convert` choisit un mode compatible avec le système de fichiers actuel. `--force-mode <mode>` sélectionne explicitement un mode disponible.
+
+Copier ou convertir une session :
+
+```bash
+sudo minios-session copy <id>
+sudo minios-session copy <id> --to-mode raw --size 4GB
+sudo minios-session convert <id> dynfilefs --size 4GB
+sudo minios-session convert <id> luks --size 4GB --new-session
+```
+
+`copy` attribue toujours un nouvel identifiant de session. `convert` remplace la source par défaut ; utilisez `--new-session` pour préserver la source. Une taille n’est pertinente que pour une cible conteneur.
+
+Agrandir, supprimer ou nettoyer des sessions :
+
+```bash
+sudo minios-session resize <id> 8GB
+sudo minios-session delete <id>
+sudo minios-session cleanup
 sudo minios-session cleanup --days 30
 ```
 
-#### **Options avancées :**
+Le redimensionnement prend en charge les sessions DynFileFS, raw et LUKS et nécessite une taille supérieure à la taille actuelle. Le nettoyage concerne par défaut les sessions de plus de 30 jours.
+
+Toutes les commandes acceptent `--json`, et un autre stockage de sessions peut être sélectionné avec `--sessions-dir PATH` :
 
 ```bash
-# JSON output for automation (available for all commands)
 sudo minios-session --json list
-sudo minios-session --json info
-sudo minios-session --json active
-sudo minios-session --json running
-sudo minios-session --json status
-sudo minios-session --json create native
-sudo minios-session --json activate 2
-sudo minios-session --json delete 3
-sudo minios-session --json cleanup --days 30
-sudo minios-session --json resize 1 8000
-sudo minios-session --json export 1 backup.tar.zst
-sudo minios-session --json import backup.tar.zst
-sudo minios-session --json copy 1 2 native
-
-# Custom sessions directory
-sudo minios-session --sessions-dir /custom/path list
-sudo minios-session --sessions-dir /mnt/usb/sessions create native
+sudo minios-session --sessions-dir /mnt/store/minios/changes list
 ```
 
-#### **Principales différences de commandes :**
+## Comportement de sauvegarde SquashFS
 
-- `active` - Affiche la session qui sera utilisée au prochain démarrage
-- `running` - Affiche la session actuellement utilisée (le cas échéant)
-- `resize` - Modifier la taille de la session (seulement pour les modes dynfilefs/raw)
-- `export` - Exporter la session vers une archive .tar.zst pour sauvegarde
-- `import` - Importer une session depuis une archive avec conversion de mode optionnelle
-- `copy` - Copier une session avec conversion de mode optionnelle
-- `info` - Vérifier la compatibilité du système de fichiers et recommandations
+Une session SquashFS est décompressée en RAM pour la couche writable en cours d’exécution. La sauvegarde reconstruit et valide un snapshot exact, puis remplace atomiquement `changes.sb`. Aucune génération de rollback n’est conservée. La fonction "Sauvegarder maintenant" est accessible depuis l’icône de la barre système, le Gestionnaire de sessions ou `minios-session save` quel que soit le paramétrage automatique.
 
----
+La sauvegarde à l’arrêt est assurée par le déclencheur d’arrêt principal de MiniOS et le backend `minios-squashfs-save`, elle ne dépend donc pas de l’ouverture ou de l’installation du Gestionnaire de sessions. La sauvegarde périodique est vérifiée toutes les 30 minutes par un timer systemd ou un worker SysV, qui appellent tous deux le même backend d’autosauvegarde. La reconstruction du snapshot consomme du CPU et écrit le snapshot complet ; des intervalles d’une heure ou plus sont recommandés.
 
-## 📦 Sauvegarde et migration des sessions
-
-### **Exporter des sessions**
-
-Exportez les sessions vers des archives compressées pour sauvegarde ou transfert :
+Lors d’une opération SquashFS en RAM, un snapshot SquashFS nouvellement capturé et activé peut prendre possession de la cible de sauvegarde en cours. Après ce transfert, l’ancien snapshot en cours peut être supprimé sans redémarrage :
 
 ```bash
-# Export session to archive
-sudo minios-session export 1 /backup/session1.tar.zst
-
-# Export with JSON output
-sudo minios-session --json export 2 /backup/session2.tar.zst
+sudo minios-session activate <new-squashfs-id>
+sudo minios-session delete <old-running-squashfs-id> --handoff
 ```
 
-**Fonctionnalités :**
-- Crée une archive compressée .tar.zst
-- Préserve toutes les données et métadonnées de session
-- Peut être importée sur n'importe quel système MiniOS
-- Compression automatique pour optimiser l'espace
+Cette exception ne s’applique qu’à un transfert SquashFS valide de la session en cours de démarrage. Les autres modes de persistance en cours restent protégés contre la suppression.
 
-### **Importer des sessions**
+## Chiffrement
 
-Importez des sessions depuis des archives avec conversion de mode optionnelle :
+Le mode LUKS stocke un système de fichiers ext4 directement dans un fichier LUKS2 `changes.luks` ; il n’y a pas de table de partitions ni de conteneur DynFileFS imbriqué. Les options LUKS ne sont disponibles que lorsque `/run/initramfs/etc/minios-initramfs-crypt`, `cryptsetup` et `losetup` sont présents.
+
+La création interactive LUKS demande la phrase de passe deux fois. Les opérations qui lisent ou créent des données LUKS peuvent les lire depuis l’entrée standard avec `--password-stdin`. Les phrases de passe ne sont pas placées dans les arguments de commande ni dans les métadonnées de session. Au démarrage, l’initrd demande la phrase de passe sur la console et ne bascule pas vers une persistance non chiffrée si l’activation échoue.
+
+Les exports LUKS contiennent les fichiers logiques de session déchiffrés, pas `changes.luks`. L’import ou la conversion vers LUKS crée un nouveau conteneur chiffré.
+
+## Sauvegardes et récupération
+
+Utilisez `export` pour les sauvegardes plutôt que de copier un répertoire de session monté. Conservez l’archive obtenue sur un autre périphérique et vérifiez qu’elle peut être lue ou importée avant de s’y fier. L’import crée toujours une nouvelle session numérotée ; activez-la explicitement lorsqu’elle est prête à l’emploi.
+
+Pour la récupération après un périphérique de stockage plein, une écriture interrompue ou la création répétée de sessions vides, suivez le guide dédié [DynFileFS et dynblk pour la récupération](./DynFileFS-Recovery.md).
+
+Commencez le diagnostic sans modifier les données de session :
 
 ```bash
-# Import session keeping original mode
-sudo minios-session import /backup/session1.tar.zst
-
-# Import and convert to different mode
-sudo minios-session import /backup/session1.tar.zst dynfilefs
-sudo minios-session import /backup/session2.tar.zst raw
-sudo minios-session import /backup/session3.tar.zst native
-
-# Import with JSON output
-sudo minios-session --json import /backup/session.tar.zst
-```
-
-**Fonctionnalités :**
-- Restaure les données de session depuis une archive
-- Convertit automatiquement entre les modes de stockage si précisé
-- Ignore les fichiers existants pour éviter toute perte de données
-- Crée automatiquement un nouveau numéro de session
-
-### **Copier et convertir des sessions**
-
-Copiez des sessions entre différents modes de stockage :
-
-```bash
-# Copy session keeping same mode
-sudo minios-session copy 1 2
-
-# Copy and convert to different mode
-sudo minios-session copy 1 3 raw           # convert to raw mode
-sudo minios-session copy 1 4 dynfilefs     # convert to dynfilefs
-sudo minios-session copy 1 5 native        # convert to native
-
-# Copy with custom size (for raw/dynfilefs)
-sudo minios-session copy 1 6 raw 4000      # 4GB raw image
-sudo minios-session copy 2 7 dynfilefs 2000 # 2GB dynfilefs
-```
-
-**Conversions prises en charge :**
-- native ⇄ dynfilefs ⇄ raw
-- Toutes les combinaisons de modes sont supportées
-- Gestion automatique de la taille
-- Préserve les données de session lors de la conversion
-
-**Cas d'usage :**
-- Migrer de FAT32 vers ext4 (dynfilefs → native)
-- Créer des sessions portables (native → dynfilefs/raw)
-- Optimiser pour différents systèmes de fichiers
-- Sauvegarder des sessions avec différents modes
-
----
-
-## 🏗️ Détail des modes de stockage de session
-
-### **Mode natif**
-
-**Idéal pour :** Systèmes sur des systèmes de fichiers POSIX (ext4, btrfs, xfs)
-
-```bash
-# Enable native mode
-perchmode=native
-```
-
-**Caractéristiques :**
-- Accès direct au système de fichiers sans conteneur
-- Conformité POSIX totale (liens physiques, permissions, attributs étendus)
-- Meilleures performances parmi tous les modes
-- **Exigences :** Système de fichiers compatible POSIX (ext4, btrfs, xfs)
-- **Non compatible :** FAT32, NTFS, exFAT
-
-### **Mode DynFileFS**
-
-**Idéal pour :** Systèmes de fichiers non POSIX (FAT32, NTFS, exFAT)
-
-```bash
-# Enable dynfilefs mode with initial size
-perchmode=dynfilefs perchsize=2000
-```
-
-**Caractéristiques :**
-- Conteneur extensible avec un système de fichiers ext4 à l'intérieur
-- S'agrandit automatiquement selon l'espace disponible
-- Fonctionne sur tout type de système de fichiers
-- Légère surcharge de performance par rapport au natif
-- **Taille par défaut :** 1000 Mo, expansion dynamique
-- **Recommandé pour :** systèmes de fichiers FAT32, NTFS, exFAT
-
-### **Mode Raw**
-
-**Idéal pour :** Besoins de taille fixe sur tout système de fichiers
-
-```bash
-# Enable raw mode with fixed size
-perchmode=raw perchsize=2000
-```
-
-**Caractéristiques :**
-- Image de taille fixe avec système de fichiers ext4 à l'intérieur
-- Utilisation disque prévisible et constante
-- Fonctionne sur tout type de système de fichiers
-- Taille à spécifier lors de la création
-- **Taille par défaut :** 1000 Mo si non spécifié
-- **Cas d'usage :** Sessions portables, quotas de stockage, allocation d'espace prévisible
-
----
-
-## 🗂️ Métadonnées de session et compatibilité
-
-### **Formats des métadonnées de session**
-
-**Format par défaut (session.conf) :**
-```bash
-default=2
-session_mode[1]=native
-session_version[1]=5.0.0
-session_edition[1]=standard
-session_union[1]=overlayfs
-session_mode[2]=dynfilefs
-session_version[2]=5.0.0
-session_edition[2]=standard
-session_union[2]=overlayfs
-```
-
-**Format JSON (si jq est disponible) :**
-```json
-{
-  "default": "2",
-  "sessions": {
-    "1": {
-      "mode": "native",
-      "version": "5.0.0",
-      "edition": "standard",
-      "union": "overlayfs"
-    },
-    "2": {
-      "mode": "dynfilefs", 
-      "version": "5.0.0",
-      "edition": "standard",
-      "union": "overlayfs"
-    }
-  }
-}
-```
-
-> **Remarque :** MiniOS détecte automatiquement si `jq` est disponible et utilise le format JSON quand c'est possible, sinon il revient au format conf traditionnel.
-
-### **Vérification de la compatibilité**
-
-MiniOS vérifie automatiquement la compatibilité des sessions :
-
-- **Incompatibilité de version** - Crée une nouvelle session si la version de MiniOS diffère
-- **Incompatibilité d'édition** - Crée une nouvelle session si l'édition diffère (standard/toolbox/ultra)
-- **Incompatibilité Union FS** - Crée une nouvelle session si le système de fichiers union diffère (aufs/overlayfs)
-- **Changement de mode** - Crée une nouvelle session si le mode de stockage change
-
-### **Système d’avertissement**
-
-Lors de la sélection de sessions incompatibles, MiniOS affiche des avertissements :
-- Avertissements d’incompatibilité de version
-- Notifications de différence d’édition
-- Problèmes de compatibilité du système de fichiers union
-- Option de continuer à vos risques et périls
-
----
-
-## 🎯 Configuration avancée des sessions
-
-### **Emplacements personnalisés pour les sessions**
-
-```bash
-# Specify custom session directory
-perchdir=/dev/sda2/my-sessions
-
-# Use labeled partition  
-perchdir=label:MYSESSIONS/work
-
-# Interactive disk selection
-perchdir=askdisk
-```
-
-### **Gestion de la taille des sessions**
-
-```bash
-# Auto-size for dynfilefs (uses 90% of available space)
-perchmode=dynfilefs perchsize=0
-
-# Fixed size for any mode
-perchsize=8000  # 8GB
-
-# Size limits per filesystem:
-# - FAT32: Maximum 4095MB (4GB limit)
-# - Others: Limited by available space
-```
-
-### **Gestion automatique des sessions**
-
-```bash
-# Resume last session (default behavior)
-perchdir=resume
-
-# Force new session creation
-perchdir=new
-
-# Interactive session management
-perchdir=ask
-```
-
----
-
-## 🛠️ Dépannage des sessions
-
-### **Problèmes courants**
-
-#### **Session introuvable**
-
-```bash
-# Check session directory
-ls -la /minios/changes/
-
-# Verify session metadata  
-cat /minios/changes/session.conf
-# or if JSON format is used:
-cat /minios/changes/session.json
-```
-
-#### **Problèmes de permissions**
-
-```bash
-# Check directory permissions
-ls -ld /minios/changes/
-
-# Verify filesystem mount options
-mount | grep changes
-```
-
-#### **Échecs du mode de stockage**
-
-```bash
-# Native mode falls back to dynfilefs automatically
-# Check system logs for details
-sudo minios-session status
-sudo minios-session info  # Show filesystem compatibility
-```
-
-### **Récupération de session**
-
-```bash
-# List all sessions and their status
 sudo minios-session list
-
-# Check session integrity and filesystem info
-sudo minios-session status
-sudo minios-session info
-
-# Show active vs running session status
 sudo minios-session active
 sudo minios-session running
-
-# Create new session if corrupted
-sudo minios-session create native
+sudo minios-session status
+sudo minios-session info
 ```
 
-### **Nettoyage des sessions**
-
-```bash
-# Remove sessions older than 30 days
-sudo minios-session cleanup --days 30
-
-# Delete specific session (safe method)
-sudo minios-session delete 3
-
-# Manual session removal (advanced users only)
-sudo rm -rf /minios/changes/session_number/
-```
-
----
-
-## 📊 Bonnes pratiques pour les sessions
-
-### **Choisir les modes de stockage**
-
-- **Mode natif :** À utiliser lorsque MiniOS est sur un système de fichiers POSIX (ext4, btrfs, xfs) – meilleures performances
-- **Mode DynFileFS :** À privilégier pour les systèmes de fichiers FAT32, NTFS, exFAT – gestion automatique de l’espace
-- **Mode brut :** À utiliser lorsque vous avez besoin d’une taille fixe sur n’importe quel système de fichiers – occupation disque prévisible
-
-### **Planification de la taille**
-
-- **Petites sessions :** 1-2 Go pour des modifications de configuration basiques
-- **Développement :** 4-8 Go pour des environnements de développement
-- **Charges lourdes :** 8 Go+ pour des installations logicielles importantes
-
-### **Gestion des sessions**
-
-- Nettoyez régulièrement les anciennes sessions
-- Utilisez des noms de session explicites en gestion manuelle
-- Surveillez l’utilisation de l’espace disque
-- Conservez au moins une session stable connue pour la récupération
-
-### **Optimisation des performances**
-
-- Utilisez le mode natif lorsque possible pour de meilleures performances
-- Placez le stockage des sessions sur des supports rapides
-- Privilégiez un SSD pour les sessions fréquemment utilisées
-
----
+Au démarrage, les systèmes de fichiers conteneurs sont vérifiés avant l’activation writable. En cas d’échec sérieux du fsck, le conteneur est préservé pour récupération au lieu d’être monté en writable. SquashFS détecte un état précédent non propre et restaure le dernier snapshot sauvegardé avec succès. Supprimez les sessions uniquement via le Gestionnaire de sessions ou `minios-session delete` ; ne supprimez pas manuellement les répertoires de session.

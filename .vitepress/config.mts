@@ -75,8 +75,10 @@ function localizeItems<T extends { text?: string; link?: string; items?: T[] }>(
     'Installation': 'sidebar.installation',
     'Quick Start Guide': 'sidebar.quickStartGuide',
     'Hardware Compatibility': 'sidebar.hardwareCompatibility',
+    'Verifying Downloads': 'sidebar.verifyingDownloads',
     'Installing MiniOS': 'sidebar.installingMiniOS',
     'MiniOS Installer': 'sidebar.miniosInstaller',
+    'Network Boot': 'sidebar.networkBoot',
     'USB Creation Tools': 'sidebar.usbCreationTools',
     'UNetbootin': 'sidebar.unetbootin',
     'dd command': 'sidebar.ddCommand',
@@ -86,18 +88,26 @@ function localizeItems<T extends { text?: string; link?: string; items?: T[] }>(
     'Boot Menus': 'sidebar.bootMenus',
     'Boot Parameters': 'sidebar.bootParameters',
     'Configuration File': 'sidebar.configurationFile',
+    'MiniOS Configurator': 'sidebar.miniosConfigurator',
     'live-config Parameters': 'sidebar.liveConfigParameters',
     'Session Management': 'sidebar.sessionManagement',
+    'DynFileFS Recovery': 'sidebar.dynfilefsRecovery',
     'Administration': 'sidebar.administration',
     'Package List': 'sidebar.packageList',
+    'Software Updates': 'sidebar.softwareUpdates',
+    'Module Manager': 'sidebar.moduleManager',
+    'MiniOS Store': 'sidebar.miniosStore',
     'Kernel Management': 'sidebar.kernelManagement',
     'Security Hardening': 'sidebar.securityHardening',
     'Performance Optimization': 'sidebar.performanceOptimization',
     'Virtualization': 'sidebar.virtualization',
+    'Troubleshooting': 'sidebar.troubleshooting',
     'Development': 'sidebar.development',
     'Building MiniOS': 'sidebar.buildingMiniOS',
+    'Build Commands': 'sidebar.buildCommands',
     'Creating Modules': 'sidebar.creatingModules',
     'Rebuilding ISO': 'sidebar.rebuildingIso',
+    'Image Builder': 'sidebar.imageBuilder',
     'CondinAPT': 'sidebar.condinapt',
     'CondinAPT in MiniOS': 'sidebar.condinaptInMinios'
   }
@@ -119,7 +129,9 @@ function nav(locale = 'root') {
       text: message(locale, 'nav.install'),
       items: [
         { text: message(locale, 'nav.hardwareCompatibility'), link: p('/installation/Hardware-Compatibility') },
+        { text: message(locale, 'nav.verifyingDownloads'), link: p('/installation/Verifying-Downloads') },
         { text: message(locale, 'nav.installingToDisk'), link: p('/installation/Installing-MiniOS') },
+        { text: message(locale, 'nav.networkBoot'), link: p('/installation/Network-Boot') },
         {
           text: message(locale, 'nav.usbCreationTools'),
           link: p('/installation/tools/USB-Creation-Tools'),
@@ -138,6 +150,7 @@ function nav(locale = 'root') {
         { text: message(locale, 'nav.bootMenus'), link: p('/configuration/Boot-Menus') },
         { text: message(locale, 'nav.bootParameters'), link: p('/configuration/Boot-Parameters') },
         { text: message(locale, 'nav.configurationFile'), link: p('/configuration/Configuration-File') },
+        { text: message(locale, 'nav.miniosConfigurator'), link: p('/configuration/MiniOS-Configurator') },
         { text: message(locale, 'nav.liveConfigParameters'), link: p('/configuration/live-config') },
         { text: message(locale, 'nav.sessionManagement'), link: p('/configuration/Session-Management') }
       ]
@@ -146,18 +159,24 @@ function nav(locale = 'root') {
       text: message(locale, 'nav.manage'),
       items: [
         { text: message(locale, 'nav.packages'), link: p('/administration/Packages') },
+        { text: message(locale, 'nav.softwareUpdates'), link: p('/administration/Software-Updates') },
+        { text: message(locale, 'nav.moduleManager'), link: p('/administration/Module-Manager') },
+        { text: message(locale, 'nav.miniosStore'), link: p('/administration/MiniOS-Store') },
         { text: message(locale, 'nav.kernelManagement'), link: p('/administration/Kernel-Management') },
         { text: message(locale, 'nav.securityHardening'), link: p('/administration/Security-Hardening') },
         { text: message(locale, 'nav.performance'), link: p('/administration/Performance-Optimization') },
-        { text: message(locale, 'nav.virtualization'), link: p('/administration/Virtualization') }
+        { text: message(locale, 'nav.virtualization'), link: p('/administration/Virtualization') },
+        { text: message(locale, 'nav.troubleshooting'), link: p('/administration/Troubleshooting') }
       ]
     },
     {
       text: message(locale, 'nav.develop'),
       items: [
         { text: message(locale, 'nav.buildingMiniOS'), link: p('/development/Building-MiniOS') },
+        { text: message(locale, 'nav.buildCommands'), link: p('/development/Build-Commands') },
         { text: message(locale, 'nav.creatingModules'), link: p('/development/Creating-Modules') },
         { text: message(locale, 'nav.rebuildingIso'), link: p('/development/Rebuilding-ISO') },
+        { text: message(locale, 'nav.imageBuilder'), link: p('/development/Image-Builder') },
         { text: message(locale, 'nav.condinapt'), link: p('/development/CondinAPT') },
         { text: message(locale, 'nav.condinaptInMinios'), link: p('/development/CondinAPT-MiniOS') }
       ]

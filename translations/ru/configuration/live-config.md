@@ -60,48 +60,50 @@
 
 - **live-config.debug | debug**: Включает вывод отладочной информации в live-config.
 
-## Конфигурационные файлы
+## Файлы конфигурации
 
-**live-config** можно настраивать (но не активировать) через конфигурационные файлы. Всё, кроме сокращений, что можно настроить через параметры загрузки, также может быть настроено через один или несколько файлов. Если используются конфигурационные файлы, для активации **live-config** всё равно требуется параметр `boot=live`.
+**live-config** можно настраивать (но не активировать) с помощью файлов конфигурации. Всё, кроме ярлыков, что можно задать через параметр загрузки, также может быть настроено через один или несколько файлов. Если используются файлы конфигурации, параметр `boot=live` всё равно необходим для активации **live-config**.
 
-**Примечание:** Если используются конфигурационные файлы, рекомендуется (предпочтительно) все параметры загрузки поместить в переменную **LIVE_CONFIG_CMDLINE**, либо задать отдельные переменные. При использовании отдельных переменных пользователь должен убедиться, что заданы все необходимые переменные для создания валидной конфигурации.
+**Примечание:** Если используются файлы конфигурации, рекомендуется (предпочтительно) все параметры загрузки поместить в переменную **LIVE_CONFIG_CMDLINE**, либо можно задать отдельные переменные. Если используются отдельные переменные, пользователь должен убедиться, что все необходимые переменные заданы для создания корректной конфигурации.
 
-Конфигурационные файлы могут располагаться либо в самой корневой файловой системе (`/etc/live/config.conf`, `/etc/live/config.conf.d/*.conf`), либо на live-носителе (`minios/config.conf`, `minios/config.conf.d/*.conf`). Если для одной и той же опции используются оба варианта, приоритет имеют файлы с live-носителя.
+Файлы конфигурации можно размещать либо в самой корневой файловой системе (`/etc/live/config.conf`, `/etc/live/config.conf.d/*.conf`), либо на live-носителе (`minios/config.conf`, `minios/config.conf.d/*.conf`). Если для определённой опции используются оба места, приоритет имеют файлы с live-носителя по сравнению с файлами из корневой файловой системы.
 
-Хотя конфигурационные файлы, размещённые в соответствующих директориях, не требуют определённого имени, для единообразия рекомендуется использовать схему именования `vendor.conf` или `project.conf` (где `vendor` или `project` заменяется на реальное имя, например, `progress-linux.conf`).
+Хотя для файлов конфигурации, размещённых в каталогах конфигурации, не требуется определённое имя, для единообразия рекомендуется использовать схему именования `vendor.conf` или `project.conf` (где `vendor` или `project` заменяется на фактическое имя, что приводит к имени файла вроде `progress-linux.conf`).
 
-Содержимое конфигурационных файлов состоит из одной или нескольких следующих переменных.
+Содержимое файлов конфигурации состоит из одной или нескольких следующих переменных.
 
-- **LIVE_CONFIG_CMDLINE=PARAMETER1 PARAMETER2...PARAMETERn**: Соответствует командной строке загрузчика.
-- **LIVE_CONFIG_COMPONENTS=COMPONENT1,COMPONENT2,...COMPONENTn**: Соответствует параметру `**live-config.components**=*COMPONENT1*,*COMPONENT2*,...*COMPONENTn*`.
-- **LIVE_CONFIG_NOCOMPONENTS=COMPONENT1,COMPONENT2,...COMPONENTn**: Соответствует параметру `**live-config.nocomponents**=*COMPONENT1*,*COMPONENT2*,...*COMPONENTn*`.
-- **LIVE_DEBCONF_PRESEED=filesystem|medium|URL1|URL2|...|URLn**: Соответствует параметру `**live-config.debconf-preseed**=filesystem|medium|*URL1*\|*URL2*\|...|*URLn*`.
-- **LIVE_HOSTNAME=HOSTNAME**: Соответствует параметру `**live-config.hostname**=*HOSTNAME*`. По умолчанию — `minios`.
-- **LIVE_USERNAME=USERNAME**: Соответствует параметру `**live-config.username**=*USERNAME*`. По умолчанию — `live`.
-- **LIVE_USER_DEFAULT_GROUPS=GROUP1,GROUP2,...GROUPn**: Соответствует параметру `**live-config.user-default-groups**="*GROUP1*,*GROUP2*...*GROUPn*"`.
-- **LIVE_USER_FULLNAME="USER FULLNAME"**: Соответствует параметру `**live-config.user-fullname**="*USER FULLNAME*"`.
-- **LIVE_ROOT_PASSWORD=PASSWORD**: Соответствует параметру `**live-config.root-password**=*PASSWORD*`. Указывает пароль root в открытом виде.
-- **LIVE_ROOT_PASSWORD_CRYPTED=PASSWORD**: Соответствует параметру `**live-config.root-password-crypted**=*PASSWORD*`. Указывает пароль root в зашифрованном виде.
-- **LIVE_USER_PASSWORD=PASSWORD**: Соответствует параметру `**live-config.user-password**=*PASSWORD*`. Указывает пароль пользователя в открытом виде.
-- **LIVE_USER_PASSWORD_CRYPTED=PASSWORD**: Соответствует параметру `**live-config.user-password-crypted**=*PASSWORD*`. Указывает пароль пользователя в зашифрованном виде.
-- **LIVE_LOCALES=LOCALE1,LOCALE2,...LOCALEn**: Соответствует параметру `**live-config.locales**=*LOCALE1*,*LOCALE2*...*LOCALEn*`.
-- **LIVE_TIMEZONE=TIMEZONE**: Соответствует параметру `**live-config.timezone**=*TIMEZONE*`.
-- **LIVE_KEYBOARD_MODEL=KEYBOARD_MODEL**: Соответствует параметру `**live-config.keyboard-model**=*KEYBOARD_MODEL*`.
-- **LIVE_KEYBOARD_LAYOUTS=KEYBOARD_LAYOUT1,KEYBOARD_LAYOUT2,...KEYBOARD_LAYOUTn**: Соответствует параметру `**live-config.keyboard-layouts**=*KEYBOARD_LAYOUT1*,*KEYBOARD_LAYOUT2*...*KEYBOARD_LAYOUTn*`.
-- **LIVE_KEYBOARD_VARIANTS=KEYBOARD_VARIANT1,KEYBOARD_VARIANT2,...KEYBOARD_VARIANTn**: Соответствует параметру `**live-config.keyboard-variants**=*KEYBOARD_VARIANT1*,*KEYBOARD_VARIANT2*...*KEYBOARD_VARIANTn*`.
-- **LIVE_KEYBOARD_OPTIONS=KEYBOARD_OPTIONS**: Соответствует параметру `**live-config.keyboard-options**=*KEYBOARD_OPTIONS*`.
-- **LIVE_SYSV_RC=SERVICE1,SERVICE2,...SERVICEn**: Соответствует параметру `**live-config.sysv-rc**=*SERVICE1*,*SERVICE2*...*SERVICEn*`.
-- **LIVE_UTC=yes|no**: Соответствует параметру `**live-config.utc**=**yes**|no`.
-- **LIVE_X_SESSION_MANAGER=X_SESSION_MANAGER**: Соответствует параметру `**live-config.x-session-manager**=*X_SESSION_MANAGER*`.
-- **LIVE_XORG_DRIVER=XORG_DRIVER**: Соответствует параметру `**live-config.xorg-driver**=*XORG_DRIVER*`.
-- **LIVE_XORG_RESOLUTION=XORG_RESOLUTION**: Соответствует параметру `**live-config.xorg-resolution**=*XORG_RESOLUTION*`.
-- **LIVE_WLAN_DRIVER=WLAN_DRIVER**: Соответствует параметру `**live-config.wlan-driver**=*WLAN_DRIVER*`.
-- **LIVE_HOOKS=filesystem|medium|URL1|URL2|...|URLn**: Соответствует параметру `**live-config.hooks**=filesystem|medium|*URL1*\|*URL2*\|...|*URLn*`.
-- **LIVE_LINK_USER_DIRS=true|false**: Соответствует параметру `**live-config.link-user-dirs**=true|false`. Включает или отключает создание символических ссылок для пользовательских директорий.
-- **LIVE_BIND_USER_DIRS=true|false**: Соответствует параметру `**live-config.bind-user-dirs**=true|false`. Включает или отключает bind-монтирование пользовательских директорий.
-- **LIVE_USER_DIRS_PATH=PATH**: Соответствует параметру `**live-config.user-dirs-path**=*PATH*`. Указывает путь к пользовательским директориям на носителе.
-- **LIVE_MODULE_MODE**: Содержит состояние, заданное параметром `live-config.module-mode` (или `module-mode`). При значении "merged" live-система применяет обновления (через minios-update-users, minios-update-cache и minios-update-dpkg) для объединения пользовательских конфигураций с базовой средой.
-- **LIVE_CONFIG_DEBUG=true|false**: Соответствует параметру `**live-config.debug**`.
+- **LIVE_CONFIG_CMDLINE=ПАРАМЕТР1 ПАРАМЕТР2...ПАРАМЕТРn**: Эта переменная соответствует командной строке загрузчика.
+- **LIVE_CONFIG_COMPONENTS=КОМПОНЕНТ1,КОМПОНЕНТ2,...КОМПОНЕНТn**: Эта переменная соответствует параметру `**live-config.components**=*COMPONENT1*,*COMPONENT2*,...*COMPONENTn*`.
+- **LIVE_CONFIG_NOCOMPONENTS=КОМПОНЕНТ1,КОМПОНЕНТ2,...КОМПОНЕНТn**: Эта переменная соответствует параметру `**live-config.nocomponents**=*COMPONENT1*,*COMPONENT2*,...*COMPONENTn*`.
+- **LIVE_DEBCONF_PRESEED=filesystem|medium|URL1|URL2|...|URLn**: Эта переменная соответствует параметру `**live-config.debconf-preseed**=filesystem|medium|*URL1*\|*URL2*\|...|*URLn*`.
+- **LIVE_HOSTNAME=ИМЯ_ХОСТА**: Эта переменная соответствует параметру `**live-config.hostname**=*HOSTNAME*`. По умолчанию — `minios`.
+- **LIVE_USERNAME=ИМЯ_ПОЛЬЗОВАТЕЛЯ**: Эта переменная соответствует параметру `**live-config.username**=*USERNAME*`. По умолчанию — `live`.
+- **LIVE_USER_DEFAULT_GROUPS=ГРУППА1,ГРУППА2,...ГРУППАн**: Эта переменная соответствует параметру `**live-config.user-default-groups**="*GROUP1*,*GROUP2*...*GROUPn*"`.
+- **LIVE_USER_FULLNAME="ПОЛНОЕ ИМЯ ПОЛЬЗОВАТЕЛЯ"**: Эта переменная соответствует параметру `**live-config.user-fullname**="*USER FULLNAME*"`.
+- **LIVE_ROOT_PASSWORD=ПАРОЛЬ**: Эта переменная соответствует параметру `**live-config.root-password**=*PASSWORD*`. Указывает пароль root в открытом виде.
+- **LIVE_ROOT_PASSWORD_CRYPTED=ПАРОЛЬ**: Эта переменная соответствует параметру `**live-config.root-password-crypted**=*PASSWORD*`. Указывает пароль root в зашифрованном виде.
+- **LIVE_USER_PASSWORD=ПАРОЛЬ**: Эта переменная соответствует параметру `**live-config.user-password**=*PASSWORD*`. Указывает пароль пользователя в открытом виде.
+- **LIVE_USER_PASSWORD_CRYPTED=ПАРОЛЬ**: Эта переменная соответствует параметру `**live-config.user-password-crypted**=*PASSWORD*`. Указывает пароль пользователя в зашифрованном виде.
+- **LIVE_LOCALES=ЛОКАЛЬ1,ЛОКАЛЬ2,...ЛОКАЛЬn**: Эта переменная соответствует параметру `**live-config.locales**=*LOCALE1*,*LOCALE2*...*LOCALEn*`.
+- **LIVE_TIMEZONE=ЧАСОВОЙ_ПОЯС**: Эта переменная соответствует параметру `**live-config.timezone**=*TIMEZONE*`.
+- **LIVE_KEYBOARD_MODEL=МОДЕЛЬ_КЛАВИАТУРЫ**: Эта переменная соответствует параметру `**live-config.keyboard-model**=*KEYBOARD_MODEL*`.
+- **LIVE_KEYBOARD_LAYOUTS=РАСКЛАДКА1,РАСКЛАДКА2,...РАСКЛАДКАн**: Эта переменная соответствует параметру `**live-config.keyboard-layouts**=*KEYBOARD_LAYOUT1*,*KEYBOARD_LAYOUT2*...*KEYBOARD_LAYOUTn*`.
+- **LIVE_KEYBOARD_VARIANTS=ВАРИАНТ1,ВАРИАНТ2,...ВАРИАНТn**: Эта переменная соответствует параметру `**live-config.keyboard-variants**=*KEYBOARD_VARIANT1*,*KEYBOARD_VARIANT2*...*KEYBOARD_VARIANTn*`.
+- **LIVE_KEYBOARD_OPTIONS=ОПЦИИ_КЛАВИАТУРЫ**: Эта переменная соответствует параметру `**live-config.keyboard-options**=*KEYBOARD_OPTIONS*`.
+- **LIVE_SYSV_RC=СЕРВИС1,СЕРВИС2,...СЕРВИСn**: Эта переменная соответствует параметру `**live-config.sysv-rc**=*SERVICE1*,*SERVICE2*...*SERVICEn*`.
+- **LIVE_UTC=yes|no**: Эта переменная соответствует параметру `**live-config.utc**=**yes**|no`.
+- **LIVE_X_SESSION_MANAGER=X_SESSION_MANAGER**: Эта переменная соответствует параметру `**live-config.x-session-manager**=*X_SESSION_MANAGER*`.
+- **LIVE_XORG_DRIVER=XORG_DRIVER**: Эта переменная соответствует параметру `**live-config.xorg-driver**=*XORG_DRIVER*`.
+- **LIVE_XORG_RESOLUTION=XORG_RESOLUTION**: Эта переменная соответствует параметру `**live-config.xorg-resolution**=*XORG_RESOLUTION*`.
+- **LIVE_WLAN_DRIVER=WLAN_DRIVER**: Эта переменная соответствует параметру `**live-config.wlan-driver**=*WLAN_DRIVER*`.
+- **LIVE_HOOKS=filesystem|medium|URL1|URL2|...|URLn**: Эта переменная соответствует параметру `**live-config.hooks**=filesystem|medium|*URL1*\|*URL2*\|...|*URLn*`.
+- **LIVE_LINK_USER_DIRS=true|false**: Эта переменная соответствует параметру `**live-config.link-user-dirs**=true|false`. Она связывает стандартные пользовательские каталоги данных с доступным для записи диском MiniOS. Не может использоваться совместно с режимом bind или любым режимом `toram`.
+- **LIVE_BIND_USER_DIRS=true|false**: Эта переменная соответствует параметру `**live-config.bind-user-dirs**=true|false`. Она монтирует стандартные пользовательские каталоги данных с доступного для записи диска MiniOS в режиме bind. Не может использоваться совместно с режимом link или любым режимом `toram`.
+- **LIVE_USER_DIRS_PATH=ПУТЬ**: Эта переменная соответствует параметру `**live-config.user-dirs-path**=*PATH*`. Указывает безопасный путь внутри диска MiniOS с файловой системой FAT32, exFAT или NTFS. По умолчанию — `/minios/userdata`; сегменты с точкой и переходом к родительскому каталогу отклоняются.
+
+При настройке пользовательских носителей никогда не происходит автоматического объединения двух непустых каталогов. Локальный непустой каталог переносится только если его место назначения на носителе пусто. При отключении функции управляемые данные с носителя копируются обратно перед удалением ссылок. В случае ошибки проверки или копирования существующие пользовательские каталоги остаются на месте, а причина записывается в `/var/lib/live/config/user-media.status`.
+- **LIVE_MODULE_MODE**: Эта переменная содержит состояние, заданное параметром `live-config.module-mode` (или `module-mode`). Если установлено значение "merged", live-система применяет обновления (через minios-update-users, minios-update-cache и minios-update-dpkg) для объединения пользовательских настроек с базовой средой.
+- **LIVE_CONFIG_DEBUG=true|false**: Эта переменная соответствует параметру `**live-config.debug**`.
 
 # КАСТОМИЗАЦИЯ
 

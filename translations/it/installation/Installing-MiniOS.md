@@ -1,36 +1,43 @@
 # Installazione di MiniOS
 
-Questa guida descrive i diversi modi per installare MiniOS su dispositivi di archiviazione.
+Ci sono due operazioni distinte che spesso vengono chiamate installazione:
 
-## 1. Scarica il file ISO di MiniOS
+- Scrivere l’ISO su un supporto rimovibile crea il supporto avviabile utilizzato per avviare una sessione live di MiniOS. Gli strumenti di scrittura immagini sovrascrivono il dispositivo selezionato con la struttura dell’ISO.
+- Eseguire il [MiniOS Installer](/installation/MiniOS-Installer.md) da una sessione live distribuisce MiniOS su un altro disco. Può creare sia un’installazione live modulare sia una classica installazione Linux nativa.
 
-- Scarica il file ISO di MiniOS dal sito ufficiale.
+## Scarica e verifica l’ISO
 
-## 2. Crea un'unità avviabile
+Scarica un file ISO dal [sito ufficiale](https://minios.dev) oppure dalla pagina ufficiale delle [GitHub Releases](https://github.com/minios-linux/minios-live/releases). Verifica il file prima di scriverlo su un dispositivo; consulta [Verifica dei download](/installation/Verifying-Downloads.md).
 
-Scegli uno dei seguenti metodi:
+## Scrivi il supporto avviabile
 
-- [Metodo originale](/installation/tools/Original-Method.md)
-- [Utilizzando Rufus](/installation/tools/Rufus.md) (Windows) (Consigliato)
-- [Utilizzando UNetbootin](/installation/tools/UNetbootin.md) (Windows/Linux/MacOS)
-- [Utilizzando Ventoy](/installation/tools/Ventoy.md) (Windows/Linux) (Consigliato)
-- [Utilizzando Balena Etcher](/installation/tools/Balena-Etcher.md) (Windows/Linux/MacOS) (Consigliato)
-- [Utilizzando `dd`](/installation/tools/dd.md) (Linux/MacOS) (Consigliato)
-- [Utilizzando Drive Utility](/installation/tools/Drive-Utility.md) (Linux) (Consigliato)
-- [Utilizzando MiniOS Installer](/installation/MiniOS-Installer.md) (Consigliato, solo MiniOS)
+Scegli un metodo in base al tuo sistema operativo:
 
-## 3. Avvio dall'unità
+- [Rufus](/installation/tools/Rufus.md) su Windows
+- [Ventoy](/installation/tools/Ventoy.md) su Windows o Linux
+- [Balena Etcher](/installation/tools/Balena-Etcher.md) su Windows, Linux o macOS
+- [`dd`](/installation/tools/dd.md) su Linux o macOS
+- [Drive Utility](/installation/tools/Drive-Utility.md) su Linux
+- [UNetbootin](/installation/tools/UNetbootin.md) su Windows, Linux o macOS
+- [Metodo originale](/installation/tools/Original-Method.md) per una struttura MiniOS basata su file
 
-1.  Riavvia il computer.
-2.  Seleziona l'unità avviabile dal menu di avvio del computer per eseguire l'avvio.
+La scrittura di un’immagine con Rufus, Etcher, `dd` o Drive Utility è distruttiva. Conferma percorso, modello e capacità del dispositivo prima di iniziare. Questi strumenti creano il supporto avviabile; non eseguono un deployment live o nativo con MiniOS Installer.
 
-## 4. Note
+Ventoy è diverso: installa Ventoy sul dispositivo, poi copia l’ISO nella sua partizione dati. In questo modo viene mantenuta la struttura multiboot di Ventoy.
 
-- Il boot installer non supporta il multiboot; solo MiniOS sarà avviabile dall'unità.
-- Il disco deve utilizzare lo schema di partizionamento `msdos` (usa MBR, non GPT).
-- L'unità deve essere formattata con uno dei file system supportati: FAT32, NTFS, ext2, ext3, ext4, btrfs.
+## Avvia la sessione live
 
----
+1. Riavvia il computer e apri il menu di avvio del firmware.
+2. Seleziona il dispositivo USB o un altro supporto avviabile.
+3. Avvia MiniOS e verifica che archiviazione, rete e dispositivi di input funzionino correttamente.
 
+Le impostazioni del firmware variano a seconda del computer. Un’immagine MiniOS può avviarsi sia tramite BIOS che UEFI; la destinazione di una successiva installazione tramite MiniOS Installer non è limitata a MBR.
 
-**Promemoria:** Il metodo di installazione originale non è più quello principale consigliato, poiché può risultare difficile per utenti alle prime armi. Utilizzando Balena Etcher, `dd` o Drive Utility, la partizione per il salvataggio delle modifiche verrà creata automaticamente.
+## Scegli una modalità di installazione
+
+Dalla sessione live, avvia il [MiniOS Installer](/installation/MiniOS-Installer.md) quando desideri installare MiniOS su un’altra chiavetta USB, SSD o disco rigido.
+
+- La modalità live mantiene la pila di moduli compressi e la struttura di avvio live. Supporta la persistenza opzionale della sessione ed è adatta a installazioni portatili.
+- La modalità nativa espande i moduli selezionati in un filesystem root Linux convenzionale, genera l’initramfs e installa un bootloader supportato. La modalità nativa è disponibile solo se l’immagine avviata fornisce i metadati necessari per l’installer.
+
+L’installer supporta layout automatici BIOS/MBR, UEFI/MBR e UEFI/GPT. BIOS su GPT non è supportato dall’attuale installer. Consulta [Utilizzo di MiniOS Installer](/installation/MiniOS-Installer.md) per limiti su posizionamento, filesystem, persistenza e partizionamento.

@@ -49,19 +49,19 @@ Par défaut, MiniOS fonctionne en mode « live » où toutes les modifications s
 
 ## Configuration de ZRAM
 
-MiniOS utilise `zram` par défaut pour créer un espace swap compressé dans votre RAM. Cela améliore les performances sur les systèmes avec peu de mémoire physique en évitant l’utilisation d’un fichier swap beaucoup plus lent sur le disque.
+MiniOS utilise par défaut `zram` pour créer un espace d’échange compressé dans votre RAM. Cela améliore les performances sur les systèmes disposant de peu de mémoire physique en évitant l’utilisation d’un fichier d’échange beaucoup plus lent sur le disque.
 
 **Dimensionnement automatique :**
-- **≥4 Go de RAM :** 2 Go de ZRAM
-- **1–4 Go de RAM :** 50 % de la RAM totale  
-- **<1 Go de RAM :** 512 Mo de ZRAM
+- **≥4GB RAM :** 2GB de ZRAM
+- **1-4GB RAM :** La moitié de la RAM totale
+- **<1GB RAM :** 512MB de ZRAM
 
 **Paramètres de démarrage :**
-- **`zramsize=1024` :** Définit la taille du périphérique zram (ex. : `zramsize=1024` pour 1 Go). Par défaut, la taille est configurée automatiquement selon votre quantité de RAM.
-- **`zramcomp=lz4` :** Définit l’algorithme de compression (`lzo`, `lzo-rle`, `lz4`, `lz4hc`, `zstd`). `lz4` offre en général un bon compromis entre vitesse et taux de compression.
+- **`zramsize=1024` :** Définit la taille du périphérique zram (par exemple, `zramsize=1024` pour 1GB). Par défaut, la taille est configurée automatiquement selon la quantité totale de RAM.
+- **`zramcomp=lz4` :** Définit l’algorithme de compression (`lzo`, `lzo-rle`, `lz4`, `lz4hc`, `zstd`). `lz4` offre généralement un bon compromis entre vitesse et taux de compression.
 - **`nozram` :** Désactive complètement ZRAM.
 
-Pour la plupart des utilisateurs, la configuration `zram` par défaut est optimale. Il n’est conseillé de la modifier que si vous avez des besoins spécifiques et comprenez les compromis.
+Pour la plupart des utilisateurs, la configuration par défaut de `zram` est optimale. Il est recommandé de les modifier uniquement si vous avez des besoins spécifiques et comprenez les compromis impliqués.
 
 ## Système de fichiers et matériel de stockage
 

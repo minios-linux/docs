@@ -1,537 +1,200 @@
-# Manajemen Sesi di MiniOS 🔄
+# Manajemen sesi di MiniOS
 
-## 🤔 Apa itu Sesi?
+Sesi MiniOS mempertahankan perubahan yang dilakukan pada sistem live setelah reboot. Setiap sesi adalah direktori bernomor di bawah `minios/changes/`; modul MiniOS yang hanya-baca tetap tidak berubah dan sesi yang dipilih menyediakan lapisan union filesystem yang dapat ditulis.
 
-Sesi MiniOS menyediakan penyimpanan yang persisten untuk perubahan Anda, memungkinkan Anda untuk:
-
-- **Menyimpan perubahan** yang dilakukan selama sesi live
-- **Melanjutkan pekerjaan** dari posisi terakhir setelah reboot
-- **Mengelola beberapa** lingkungan kerja terpisah
-- **Beralih antar** konfigurasi yang berbeda
-
-Sesi menggunakan teknologi **Union Filesystem** (AUFS atau OverlayFS) untuk melapiskan perubahan di atas sistem dasar yang hanya-baca.
-
----
-
-## 📋 Jenis dan Mode Sesi
-
-### **Aksi Sesi**
-
-- **`resume`** - Melanjutkan dari sesi terakhir yang digunakan (default)
-- **`new`** - Membuat sesi baru
-- **`ask`** - Pilih sesi secara interaktif saat boot
-- **`fresh`** - Tanpa persistensi (sesi sementara)
-
-### **Mode Penyimpanan**
-
-- **`native`** - Penyimpanan langsung pada filesystem (memerlukan filesystem POSIX: ext4, btrfs, xfs)
-- **`dynfilefs`** - File container yang dapat diperluas (berjalan di semua filesystem, direkomendasikan untuk FAT32/NTFS/exFAT)
-- **`raw`** - File image ukuran tetap (berjalan di semua filesystem)
-
----
-
-## 🚀 Parameter Boot untuk Kontrol Sesi
-
-### **Parameter Inti Sesi**
-
-| Parameter | Nilai | Deskripsi |
-|-----------|--------|-------------|
-| `perch` | - | Aktifkan perubahan persisten |
-| `perchdir` | `resume` \| `new` \| `ask` \| `/path` | Aksi sesi atau direktori |
-| `perchmode` | `native` \| `dynfilefs` \| `raw` | Mode penyimpanan |
-| `perchsize` | `<size_in_MB>` | Ukuran awal untuk mode container/image |
-
-### **Struktur Direktori Sesi**
-
-```
-/minios/changes/
-├── session.conf          # Session configuration (default format)
-├── session.json          # JSON metadata (when jq is available)
-├── 1/                     # Session #1 directory
-├── 2/                     # Session #2 directory
-└── N/                     # Session #N directory
-```
-
----
-
-## 🎛️ Integrasi Bootloader
-
-### **Konfigurasi GRUB**
-
-MiniOS menyediakan entri menu GRUB yang sudah dikonfigurasi untuk berbagai mode sesi:
+Gunakan Session Manager dari sistem MiniOS yang sedang berjalan:
 
 ```bash
-# Resume previous session
-linux /minios/boot/vmlinuz... perchdir=resume
-
-# Start new session  
-linux /minios/boot/vmlinuz... perchdir=new
-
-# Interactive session selection
-linux /minios/boot/vmlinuz... perchdir=ask
-
-# Fresh start (no persistence)
-linux /minios/boot/vmlinuz... 
-```
-
-### **Konfigurasi SYSLINUX**
-
-Entri SYSLINUX yang sesuai:
-
-```bash
-LABEL default
-MENU LABEL Run MiniOS (Resume previous session)
-APPEND ... perchdir=resume
-
-LABEL perch
-MENU LABEL Run MiniOS (Start a new session)  
-APPEND ... perchdir=new
-
-LABEL asksession
-MENU LABEL Run MiniOS (Choose session during startup)
-APPEND ... perchdir=ask
-
-LABEL live
-MENU LABEL Run MiniOS (Fresh start)
-APPEND ...
-```
-
----
-
-## 🔧 Perintah Manajemen Sesi
-
-### **Menggunakan MiniOS Session Manager (GUI)**
-
-```bash
-# Launch graphical session manager
 minios-session-manager
 ```
 
-**Fitur:**
-- Melihat semua sesi yang tersedia beserta metadata
-- Membuat sesi baru dengan berbagai mode
-- Mengaktifkan/berpindah sesi
-- Menghapus sesi lama
-- Membersihkan sesi yang lebih tua dari jumlah hari tertentu
+Alat baris perintah yang setara adalah `minios-session`. Perintah-perintah yang memodifikasi membutuhkan hak administratif, sehingga contoh di bawah ini menggunakan `sudo`.
 
-### **Menggunakan minios-session (CLI)**
+## Mode sesi
 
-⚠️ **Hak Akses Administrator Diperlukan:**
+| Mode | Penyimpanan | Kendala utama |
+|------|-------------|----------------|
+| `native` | Perubahan disimpan langsung di direktori sesi | Membutuhkan filesystem POSIX yang dapat ditulis seperti ext2/3/4, Btrfs, XFS, F2FS, atau ReiserFS. |
+| `dynfilefs` | Kontainer ext4 yang dapat diperluas, dibagi menjadi file-file pendukung | Berjalan di filesystem POSIX, FAT32, NTFS, dan exFAT yang dapat ditulis. Membutuhkan backend DynFileFS. |
+| `raw` | `changes.img` berukuran tetap yang berisi ext4 | Berjalan di filesystem POSIX, FAT32, NTFS, dan exFAT yang dapat ditulis. |
+| `luks` | `changes.luks` terenkripsi LUKS2 yang berisi ext4 | Membutuhkan `cryptsetup`, dukungan loop, dan MiniOS initrd LUKS hook. |
+| `squashfs` | Snapshot terkompresi dalam `changes.sb` | Penyimpanan membutuhkan filesystem persistensi POSIX yang dapat mempertahankan link, kepemilikan, mode, xattrs, ACL, kapabilitas, dan whiteouts. |
 
-Alat CLI memerlukan hak akses root dan akan memeriksanya secara otomatis. Jalankan perintah dengan `sudo` atau melalui `pkexec`:
+`dynfilefs`, `raw`, dan `luks` yang dibuat dengan `minios-session` secara default berukuran 4000 MB. Ukuran menggunakan satuan desimal `MB`, `GB`, atau `TB` dan dibatasi hingga 1 TB. File raw dan LUKS dibatasi hingga 4000 MB pada FAT32. Operasi resize kontainer hanya dapat memperbesar sesi; pengecilan tidak didukung.
 
-```bash
-sudo minios-session list
-# or
-pkexec minios-session activate 3
-```
+Mode native adalah pilihan paling sederhana dan tercepat pada filesystem yang kompatibel. Gunakan DynFileFS jika filesystem persistensi tidak dapat merepresentasikan metadata Linux. Gunakan raw jika diperlukan alokasi tetap, LUKS jika sesi harus dienkripsi, dan SquashFS untuk snapshot terkompresi yang persis.
 
-#### **Perintah Dasar:**
+Jalankan perintah berikut untuk memeriksa filesystem persistensi yang sebenarnya dan mode yang tersedia di dalamnya:
 
 ```bash
-# List all sessions
-sudo minios-session list
-
-# Show currently active session (will boot next)
-sudo minios-session active
-
-# Show currently running session (current boot)
-sudo minios-session running
-
-# Check filesystem compatibility and session directory status
 sudo minios-session info
 sudo minios-session status
+```
 
-# Create new sessions (using positional arguments)
+Tidak ada sesi yang dapat dibuat pada media hanya-baca. Aktivasi SquashFS pada FAT32/NTFS/exFAT tetap dinonaktifkan hingga workspace staging yang mempertahankan metadata tersedia.
+
+## Pemilihan boot
+
+Setiap parameter persistensi yang dikenali akan mengaktifkan penanganan persistensi. Menu boot MiniOS biasanya menyediakan entri resume, baru, pemilihan, dan non-persisten.
+
+| Parameter | Arti |
+|-----------|------|
+| `perch` | Meminta persistensi. |
+| `perchdir=resume` | Melanjutkan sesi default. Ini bersifat best-effort dan akan berjalan di memori jika tidak ada sesi yang dapat ditulis dan kompatibel. |
+| `perchdir=new` | Membuat sesi baru yang bernomor. |
+| `perchdir=ask` | Memilih sesi yang sudah ada atau membuatnya saat boot. |
+| `perchdir=<id>` | Memilih sesi bernomor tersebut secara langsung. |
+| `perchdir=<device/path>` | Menggunakan lokasi persistensi pada perangkat, termasuk bentuk `/dev/...` dan `label:...` yang ditangani oleh initrd. |
+| `perchmode=<mode>` | Mengatur `native`, `dynfilefs`, `raw`, `luks`, atau `squashfs`. |
+| `perchsize=<size>` | Mengatur ukuran kontainer baru atau yang lebih besar; nilai tanpa satuan adalah MB dan akhiran `MB`, `GB`, dan `TB` diterima. |
+
+Jika tidak ada mode yang ditentukan untuk sesi baru, boot akan menggunakan mode native. Pada FAT32/NTFS/exFAT, pembuatan boot native akan beralih ke DynFileFS. Kontainer boot raw atau LUKS baru secara default berukuran 4000 MB; sesi boot DynFileFS baru tanpa `perchsize` akan disesuaikan dari ruang yang tersedia dengan tetap mempertahankan cadangan keamanan. Sesi SquashFS diambil dari sistem yang sedang berjalan menggunakan Session Manager atau `minios-session create squashfs`; `perchdir=new perchmode=squashfs` tidak membuat snapshot di initrd.
+
+Saat melanjutkan, MiniOS akan memeriksa versi, edisi, union filesystem, dan mode yang tercatat. Jalur `resume` normal akan membuat sesi baru daripada menggantikan yang tidak kompatibel. Pemilihan interaktif akan menampilkan peringatan sebelum mengizinkan sesi yang tidak kompatibel.
+
+Penyimpanan sesi berbentuk seperti ini:
+
+```text
+minios/changes/
+|-- session.conf
+|-- 1/
+|-- 2/
+`-- N/
+```
+
+`session.conf` mencatat ID default dan yang sedang berjalan serta mode per sesi, versi, edisi, union filesystem, ukuran, status, dan pengaturan khusus mode. Ini adalah konfigurasi yang dikomit oleh implementasi boot. Jangan mengeditnya atau memindahkan data sesi bernomor saat sesi sedang ter-mount; gunakan Session Manager atau `minios-session`.
+
+## Sesi aktif dan berjalan
+
+Istilah-istilah ini menggambarkan status yang berbeda:
+
+- Sesi **aktif** adalah default yang dipilih untuk boot berikutnya.
+- Sesi **berjalan** menyediakan persistensi untuk boot saat ini.
+
+Mengaktifkan sesi akan mengubah boot berikutnya dan tidak akan mengganti union filesystem saat ini:
+
+```bash
+sudo minios-session active
+sudo minios-session running
+sudo minios-session activate <id>
+```
+
+Sesi aktif tidak dapat dihapus atau dikonversi secara langsung. Sesi yang sedang berjalan biasanya tidak dapat dihapus, diekspor, disalin, di-resize, atau dikonversi. Proses cleanup juga melindungi kedua ID tersebut.
+
+## Referensi perintah
+
+Daftar sesi dan inspeksi store:
+
+```bash
+sudo minios-session list
+sudo minios-session active
+sudo minios-session running
+sudo minios-session info
+sudo minios-session status
+```
+
+Buat sesi:
+
+```bash
+sudo minios-session create
 sudo minios-session create native
-sudo minios-session create dynfilefs 2000
-sudo minios-session create raw 2000
+sudo minios-session create dynfilefs
+sudo minios-session create raw 4GB
+sudo minios-session create luks 4GB
+sudo minios-session create squashfs --policy shutdown
+sudo minios-session create squashfs --policy manual --autosave 60
+```
 
-# Activate specific session
-sudo minios-session activate 3
+`create` tanpa mode akan memilih native. Pembuatan SquashFS menangkap perubahan live saat ini dan tidak memiliki ukuran tetap. Kebijakan shutdown-nya secara default adalah `shutdown`; penyimpanan periodik secara default nonaktif.
 
-# Delete session
-sudo minios-session delete 2
+Simpan dan konfigurasikan sesi SquashFS:
 
-# Resize session (dynfilefs/raw modes only)
-sudo minios-session resize 1 8000
+```bash
+sudo minios-session save <running-squashfs-id>
+sudo minios-session settings <squashfs-id> --shutdown on
+sudo minios-session settings <squashfs-id> --shutdown off --autosave 0
+sudo minios-session settings <squashfs-id> --shutdown on --autosave 60
+```
 
-# Export session to archive
-sudo minios-session export 1 /path/to/backup.tar.zst
+Interval periodik yang valid adalah `30`, `60`, `120`, `240`, dan `480` menit; `0` menonaktifkan penyimpanan periodik. Pengaturan shutdown dan periodik bersifat independen.
 
-# Import session from archive
-sudo minios-session import /path/to/backup.tar.zst
-sudo minios-session import /path/to/backup.tar.zst dynfilefs  # with mode conversion
+Ekspor dan impor arsip `.tar.zst`:
 
-# Copy session with optional mode conversion
-sudo minios-session copy 1 2              # copy keeping same mode
-sudo minios-session copy 1 3 raw          # copy and convert to raw mode
-sudo minios-session copy 1 4 native 3000  # copy, convert to native, set size
+```bash
+sudo minios-session export <id> /path/to/session.tar.zst
+sudo minios-session import /path/to/session.tar.zst
+sudo minios-session import /path/to/session.tar.zst --auto-convert
+sudo minios-session import /path/to/session.tar.zst --force-mode dynfilefs
+```
 
-# Cleanup old sessions (older than 30 days)
+Hanya impor `.tar.zst` yang diterima. Path dan anggota arsip divalidasi, dan ekstraksi dibatasi. `--auto-convert` memilih mode yang kompatibel untuk filesystem saat ini. `--force-mode <mode>` secara eksplisit memilih mode yang tersedia.
+
+Salin atau konversi sesi:
+
+```bash
+sudo minios-session copy <id>
+sudo minios-session copy <id> --to-mode raw --size 4GB
+sudo minios-session convert <id> dynfilefs --size 4GB
+sudo minios-session convert <id> luks --size 4GB --new-session
+```
+
+`copy` selalu memberikan ID sesi baru. `convert` secara default menggantikan sumber; gunakan `--new-session` untuk mempertahankan sumber. Ukuran hanya relevan untuk target kontainer.
+
+Perbesar, hapus, atau bersihkan sesi:
+
+```bash
+sudo minios-session resize <id> 8GB
+sudo minios-session delete <id>
+sudo minios-session cleanup
 sudo minios-session cleanup --days 30
 ```
 
-#### **Opsi Lanjutan:**
+Resize mendukung sesi DynFileFS, raw, dan LUKS dan membutuhkan ukuran lebih besar dari ukuran saat ini. Cleanup secara default membersihkan sesi yang lebih tua dari 30 hari.
+
+Semua perintah menerima `--json`, dan store sesi yang berbeda dapat dipilih dengan `--sessions-dir PATH`:
 
 ```bash
-# JSON output for automation (available for all commands)
 sudo minios-session --json list
-sudo minios-session --json info
-sudo minios-session --json active
-sudo minios-session --json running
-sudo minios-session --json status
-sudo minios-session --json create native
-sudo minios-session --json activate 2
-sudo minios-session --json delete 3
-sudo minios-session --json cleanup --days 30
-sudo minios-session --json resize 1 8000
-sudo minios-session --json export 1 backup.tar.zst
-sudo minios-session --json import backup.tar.zst
-sudo minios-session --json copy 1 2 native
-
-# Custom sessions directory
-sudo minios-session --sessions-dir /custom/path list
-sudo minios-session --sessions-dir /mnt/usb/sessions create native
+sudo minios-session --sessions-dir /mnt/store/minios/changes list
 ```
 
-#### **Perbedaan Perintah Utama:**
+## Perilaku penyimpanan SquashFS
 
-- `active` - Menampilkan sesi yang akan digunakan pada boot berikutnya
-- `running` - Menampilkan sesi yang sedang digunakan (jika ada)
-- `resize` - Mengubah ukuran sesi (hanya untuk mode dynfilefs/raw)
-- `export` - Ekspor sesi ke arsip .tar.zst untuk backup
-- `import` - Impor sesi dari arsip dengan konversi mode opsional
-- `copy` - Menyalin sesi dengan konversi mode opsional
-- `info` - Memeriksa kompatibilitas filesystem dan rekomendasi
+Sesi SquashFS diekstrak ke dalam RAM untuk lapisan writable yang sedang berjalan. Proses penyimpanan akan membangun ulang dan memvalidasi snapshot yang persis, lalu secara atomik menggantikan `changes.sb`. Tidak ada generasi rollback yang disimpan. Save Now tersedia dari ikon tray, Session Manager, atau `minios-session save` terlepas dari kebijakan otomatis.
 
----
+Penyimpanan saat shutdown diimplementasikan oleh trigger shutdown inti MiniOS dan backend `minios-squashfs-save`, sehingga tidak bergantung pada Session Manager yang sedang terbuka atau terpasang. Penyimpanan periodik dicek setiap 30 menit oleh timer systemd atau worker SysV, keduanya memanggil backend autosave yang sama. Proses rebuild snapshot akan menggunakan CPU dan menulis seluruh snapshot; interval satu jam atau lebih lama sangat disarankan.
 
-## 📦 Backup dan Migrasi Sesi
-
-### **Ekspor Sesi**
-
-Ekspor sesi ke arsip terkompresi untuk backup atau transfer:
+Selama operasi SquashFS berbasis RAM, snapshot SquashFS yang baru di-capture dan diaktifkan dapat mengambil alih target penyimpanan yang sedang berjalan. Setelah proses handoff tersebut, snapshot yang sedang berjalan sebelumnya dapat dihapus tanpa reboot:
 
 ```bash
-# Export session to archive
-sudo minios-session export 1 /backup/session1.tar.zst
-
-# Export with JSON output
-sudo minios-session --json export 2 /backup/session2.tar.zst
+sudo minios-session activate <new-squashfs-id>
+sudo minios-session delete <old-running-squashfs-id> --handoff
 ```
 
-**Fitur:**
-- Membuat arsip .tar.zst terkompresi
-- Menyimpan semua data dan metadata sesi
-- Dapat diimpor pada sistem MiniOS manapun
-- Kompresi otomatis untuk efisiensi ruang
+Pengecualian ini hanya berlaku untuk handoff SquashFS yang valid pada boot saat ini. Mode persistensi lain yang sedang berjalan tetap terlindungi dari penghapusan.
 
-### **Impor Sesi**
+## Enkripsi
 
-Impor sesi dari arsip dengan konversi mode opsional:
+Mode LUKS menyimpan filesystem ext4 secara langsung di file `changes.luks` LUKS2; tidak ada tabel partisi atau kontainer DynFileFS bersarang. Opsi LUKS hanya tersedia jika `/run/initramfs/etc/minios-initramfs-crypt`, `cryptsetup`, dan `losetup` tersedia.
+
+Pembuatan LUKS interaktif meminta frasa sandi dua kali. Operasi yang membaca atau membuat data LUKS dapat membacanya dari standard input dengan `--password-stdin`. Frasa sandi tidak ditempatkan di argumen perintah atau metadata sesi. Saat boot, initrd akan meminta frasa sandi di konsol dan tidak akan beralih ke persistensi tidak terenkripsi jika aktivasi gagal.
+
+Ekspor LUKS berisi file sesi logis yang telah didekripsi, bukan `changes.luks`. Impor atau konversi ke LUKS akan membuat kontainer terenkripsi baru.
+
+## Cadangan dan pemulihan
+
+Gunakan `export` untuk cadangan, bukan menyalin direktori sesi yang sedang ter-mount. Simpan arsip yang dihasilkan di perangkat lain dan pastikan dapat didaftar atau diimpor sebelum mengandalkannya. Impor selalu membuat sesi baru yang bernomor; aktifkan secara eksplisit saat sudah siap digunakan.
+
+Untuk pemulihan setelah perangkat penyimpanan penuh, penulisan yang terputus, atau pembuatan sesi kosong berulang kali, ikuti panduan khusus [Panduan pemulihan DynFileFS dan dynblk](./DynFileFS-Recovery.md).
+
+Mulai diagnosis tanpa memodifikasi data sesi:
 
 ```bash
-# Import session keeping original mode
-sudo minios-session import /backup/session1.tar.zst
-
-# Import and convert to different mode
-sudo minios-session import /backup/session1.tar.zst dynfilefs
-sudo minios-session import /backup/session2.tar.zst raw
-sudo minios-session import /backup/session3.tar.zst native
-
-# Import with JSON output
-sudo minios-session --json import /backup/session.tar.zst
-```
-
-**Fitur:**
-- Mengembalikan data sesi dari arsip
-- Secara otomatis mengonversi antar mode penyimpanan jika ditentukan
-- Melewati file yang sudah ada untuk mencegah kehilangan data
-- Membuat nomor sesi baru secara otomatis
-
-### **Salin dan Konversi Sesi**
-
-Salin sesi antar mode penyimpanan yang berbeda:
-
-```bash
-# Copy session keeping same mode
-sudo minios-session copy 1 2
-
-# Copy and convert to different mode
-sudo minios-session copy 1 3 raw           # convert to raw mode
-sudo minios-session copy 1 4 dynfilefs     # convert to dynfilefs
-sudo minios-session copy 1 5 native        # convert to native
-
-# Copy with custom size (for raw/dynfilefs)
-sudo minios-session copy 1 6 raw 4000      # 4GB raw image
-sudo minios-session copy 2 7 dynfilefs 2000 # 2GB dynfilefs
-```
-
-**Konversi yang Didukung:**
-- native ⇄ dynfilefs ⇄ raw
-- Semua kombinasi mode didukung
-- Penanganan ukuran otomatis
-- Data sesi tetap terjaga selama konversi
-
-**Contoh Penggunaan:**
-- Migrasi dari filesystem FAT32 ke ext4 (dynfilefs → native)
-- Membuat sesi portabel (native → dynfilefs/raw)
-- Optimasi untuk filesystem berbeda
-- Membuat backup sesi dengan mode berbeda
-
----
-
-## 🏗️ Mode Penyimpanan Sesi Secara Detail
-
-### **Mode Native**
-
-**Terbaik untuk:** Sistem dengan filesystem POSIX (ext4, btrfs, xfs)
-
-```bash
-# Enable native mode
-perchmode=native
-```
-
-**Karakteristik:**
-- Akses langsung ke filesystem tanpa container
-- Kompatibilitas penuh POSIX (hard link, permission, extended attribute)
-- Performa terbaik di antara semua mode
-- **Syarat:** Filesystem yang kompatibel POSIX (ext4, btrfs, xfs)
-- **Tidak kompatibel:** FAT32, NTFS, exFAT
-
-### **Mode DynFileFS**
-
-**Terbaik untuk:** Filesystem non-POSIX (FAT32, NTFS, exFAT)
-
-```bash
-# Enable dynfilefs mode with initial size
-perchmode=dynfilefs perchsize=2000
-```
-
-**Karakteristik:**
-- Container yang dapat diperluas dengan filesystem ext4 di dalamnya
-- Secara otomatis bertambah sesuai kebutuhan hingga ruang tersedia
-- Berjalan di semua jenis filesystem
-- Sedikit overhead performa dibanding native
-- **Ukuran default:** 1000MB, bertambah dinamis
-- **Direkomendasikan untuk:** filesystem FAT32, NTFS, exFAT
-
-### **Mode Raw**
-
-**Terbaik untuk:** Kebutuhan ukuran tetap di semua filesystem
-
-```bash
-# Enable raw mode with fixed size
-perchmode=raw perchsize=2000
-```
-
-**Karakteristik:**
-- Image ukuran tetap dengan filesystem ext4 di dalamnya
-- Penggunaan disk yang tetap dan dapat diprediksi
-- Berjalan di semua jenis filesystem
-- Ukuran harus ditentukan saat pembuatan
-- **Ukuran default:** 1000MB jika tidak ditentukan
-- **Penggunaan:** Sesi portabel, kuota penyimpanan, alokasi ruang yang pasti
-
----
-
-## 🗂️ Metadata Sesi dan Kompatibilitas
-
-### **Format Metadata Sesi**
-
-**Format Default (session.conf):**
-```bash
-default=2
-session_mode[1]=native
-session_version[1]=5.0.0
-session_edition[1]=standard
-session_union[1]=overlayfs
-session_mode[2]=dynfilefs
-session_version[2]=5.0.0
-session_edition[2]=standard
-session_union[2]=overlayfs
-```
-
-**Format JSON (jika jq tersedia):**
-```json
-{
-  "default": "2",
-  "sessions": {
-    "1": {
-      "mode": "native",
-      "version": "5.0.0",
-      "edition": "standard",
-      "union": "overlayfs"
-    },
-    "2": {
-      "mode": "dynfilefs", 
-      "version": "5.0.0",
-      "edition": "standard",
-      "union": "overlayfs"
-    }
-  }
-}
-```
-
-> **Catatan:** MiniOS secara otomatis mendeteksi jika `jq` tersedia dan menggunakan format JSON jika memungkinkan, jika tidak akan menggunakan format conf tradisional.
-
-### **Pemeriksaan Kompatibilitas**
-
-MiniOS secara otomatis memeriksa kompatibilitas sesi:
-
-- **Versi tidak cocok** - Membuat sesi baru jika versi MiniOS berbeda
-- **Edisi tidak cocok** - Membuat sesi baru jika edisi berbeda (standard/toolbox/ultra)
-- **Union FS tidak cocok** - Membuat sesi baru jika union filesystem berbeda (aufs/overlayfs)
-- **Perubahan mode** - Membuat sesi baru jika mode penyimpanan berubah
-
-### **Sistem Peringatan**
-
-Saat memilih sesi yang tidak kompatibel, MiniOS akan menampilkan peringatan:
-- Peringatan ketidakcocokan versi
-- Notifikasi perbedaan edisi
-- Masalah kompatibilitas union filesystem
-- Opsi untuk melanjutkan dengan risiko pengguna
-
----
-
-## 🎯 Konfigurasi Sesi Lanjutan
-
-### **Lokasi Sesi Kustom**
-
-```bash
-# Specify custom session directory
-perchdir=/dev/sda2/my-sessions
-
-# Use labeled partition  
-perchdir=label:MYSESSIONS/work
-
-# Interactive disk selection
-perchdir=askdisk
-```
-
-### **Manajemen Ukuran Sesi**
-
-```bash
-# Auto-size for dynfilefs (uses 90% of available space)
-perchmode=dynfilefs perchsize=0
-
-# Fixed size for any mode
-perchsize=8000  # 8GB
-
-# Size limits per filesystem:
-# - FAT32: Maximum 4095MB (4GB limit)
-# - Others: Limited by available space
-```
-
-### **Manajemen Sesi Otomatis**
-
-```bash
-# Resume last session (default behavior)
-perchdir=resume
-
-# Force new session creation
-perchdir=new
-
-# Interactive session management
-perchdir=ask
-```
-
----
-
-## 🛠️ Pemecahan Masalah Sesi
-
-### **Masalah Umum**
-
-#### **Sesi Tidak Ditemukan**
-
-```bash
-# Check session directory
-ls -la /minios/changes/
-
-# Verify session metadata  
-cat /minios/changes/session.conf
-# or if JSON format is used:
-cat /minios/changes/session.json
-```
-
-#### **Masalah Izin Akses**
-
-```bash
-# Check directory permissions
-ls -ld /minios/changes/
-
-# Verify filesystem mount options
-mount | grep changes
-```
-
-#### **Kegagalan Mode Penyimpanan**
-
-```bash
-# Native mode falls back to dynfilefs automatically
-# Check system logs for details
-sudo minios-session status
-sudo minios-session info  # Show filesystem compatibility
-```
-
-### **Pemulihan Sesi**
-
-```bash
-# List all sessions and their status
 sudo minios-session list
-
-# Check session integrity and filesystem info
-sudo minios-session status
-sudo minios-session info
-
-# Show active vs running session status
 sudo minios-session active
 sudo minios-session running
-
-# Create new session if corrupted
-sudo minios-session create native
+sudo minios-session status
+sudo minios-session info
 ```
 
-### **Membersihkan Sesi**
-
-```bash
-# Remove sessions older than 30 days
-sudo minios-session cleanup --days 30
-
-# Delete specific session (safe method)
-sudo minios-session delete 3
-
-# Manual session removal (advanced users only)
-sudo rm -rf /minios/changes/session_number/
-```
-
----
-
-## 📊 Praktik Terbaik Sesi
-
-### **Memilih Mode Penyimpanan**
-
-- **Mode Native:** Gunakan saat MiniOS berada di filesystem POSIX (ext4, btrfs, xfs) - performa terbaik
-- **Mode DynFileFS:** Gunakan untuk filesystem FAT32, NTFS, exFAT - manajemen ruang otomatis
-- **Mode Raw:** Gunakan jika membutuhkan ukuran tetap di semua filesystem - penggunaan disk yang terprediksi
-
-### **Perencanaan Ukuran**
-
-- **Sesi kecil:** 1-2GB untuk perubahan konfigurasi dasar
-- **Pengembangan:** 4-8GB untuk lingkungan pengembangan
-- **Beban kerja berat:** 8GB+ untuk instalasi software yang ekstensif
-
-### **Manajemen Sesi**
-
-- Bersihkan sesi lama secara rutin
-- Gunakan nama sesi yang deskriptif untuk manajemen manual
-- Pantau penggunaan ruang disk
-- Simpan minimal satu sesi yang sudah terbukti baik untuk pemulihan
-
-### **Optimasi Performa**
-
-- Gunakan mode native jika memungkinkan untuk performa terbaik
-- Tempatkan penyimpanan sesi di perangkat penyimpanan yang cepat
-- Pertimbangkan SSD untuk sesi yang sering digunakan
-
----
+Saat boot, filesystem kontainer akan diperiksa sebelum aktivasi writable. Kegagalan fsck yang serius akan mempertahankan kontainer untuk pemulihan daripada me-mount-nya secara writable. SquashFS mendeteksi status sebelumnya yang tidak bersih dan mengembalikan snapshot terakhir yang berhasil disimpan. Hapus sesi hanya melalui Session Manager atau `minios-session delete`; jangan menghapus direktori sesi secara manual.
