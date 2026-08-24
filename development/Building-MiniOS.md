@@ -76,6 +76,21 @@ The core build script that orchestrates the step-by-step build process:
 
 For detailed usage information, see the [minios-live documentation](https://github.com/minios-linux/minios-live/blob/master/docs/minios-live.md).
 
+### Offline Help Documentation
+
+`submodules/docs/` is the single editable source for MiniOS documentation. Before
+releasing `minios-help`, refresh its packaged offline copy with:
+
+```bash
+submodules/minios-help/tools/sync-from-docs.sh
+```
+
+The generated `submodules/minios-help/share/docs/` tree is committed with the
+application and is consumed directly by its Debian source package. Normal MiniOS
+image builds do not run VitePress, Node.js, or the documentation synchronizer;
+they install the already published `minios-help` package like any other desktop
+package.
+
 ## Project Structure
 
 The MiniOS build system is organized as follows:

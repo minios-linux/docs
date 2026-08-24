@@ -1,74 +1,92 @@
 [
   {
+    "key": "sidebar.about",
     "text": "About MiniOS",
     "items": [
       {
+        "key": "sidebar.overview",
         "text": "Overview",
         "link": "/about/About-MiniOS"
       },
       {
+        "key": "sidebar.systemArchitecture",
         "text": "System Architecture",
         "link": "/about/System-Architecture"
       }
     ]
   },
   {
+    "key": "sidebar.installation",
     "text": "Installation",
     "items": [
       {
+        "key": "sidebar.quickStartGuide",
         "text": "Quick Start Guide",
         "link": "/installation/Quick-Start"
       },
       {
+        "key": "sidebar.hardwareCompatibility",
         "text": "Hardware Compatibility",
         "link": "/installation/Hardware-Compatibility"
       },
       {
+        "key": "sidebar.verifyingDownloads",
         "text": "Verifying Downloads",
         "link": "/installation/Verifying-Downloads"
       },
       {
+        "key": "sidebar.installingMiniOS",
         "text": "Installing MiniOS",
         "link": "/installation/Installing-MiniOS"
       },
       {
+        "key": "sidebar.miniosInstaller",
         "text": "MiniOS Installer",
         "link": "/installation/MiniOS-Installer"
       },
       {
+        "key": "sidebar.networkBoot",
         "text": "Network Boot",
         "link": "/installation/Network-Boot"
       },
       {
+        "key": "sidebar.usbCreationTools",
         "text": "USB Creation Tools",
         "link": "/installation/tools/USB-Creation-Tools",
         "collapsed": true,
         "items": [
           {
+            "key": "sidebar.rufus",
             "text": "Rufus",
             "link": "/installation/tools/Rufus"
           },
           {
+            "key": "sidebar.ventoy",
             "text": "Ventoy",
             "link": "/installation/tools/Ventoy"
           },
           {
+            "key": "sidebar.balenaEtcher",
             "text": "Balena Etcher",
             "link": "/installation/tools/Balena-Etcher"
           },
           {
+            "key": "sidebar.unetbootin",
             "text": "UNetbootin",
             "link": "/installation/tools/UNetbootin"
           },
           {
+            "key": "sidebar.ddCommand",
             "text": "dd command",
             "link": "/installation/tools/dd"
           },
           {
+            "key": "sidebar.driveUtility",
             "text": "Drive Utility",
             "link": "/installation/tools/Drive-Utility"
           },
           {
+            "key": "sidebar.originalMethod",
             "text": "Original Method",
             "link": "/installation/tools/Original-Method"
           }
@@ -77,107 +95,133 @@
     ]
   },
   {
+    "key": "sidebar.configuration",
     "text": "Configuration",
     "items": [
       {
+        "key": "sidebar.bootMenus",
         "text": "Boot Menus",
         "link": "/configuration/Boot-Menus"
       },
       {
+        "key": "sidebar.bootParameters",
         "text": "Boot Parameters",
         "link": "/configuration/Boot-Parameters"
       },
       {
+        "key": "sidebar.configurationFile",
         "text": "Configuration File",
         "link": "/configuration/Configuration-File"
       },
       {
+        "key": "sidebar.miniosConfigurator",
         "text": "MiniOS Configurator",
         "link": "/configuration/MiniOS-Configurator"
       },
       {
+        "key": "sidebar.liveConfigParameters",
         "text": "live-config Parameters",
         "link": "/configuration/live-config"
       },
       {
+        "key": "sidebar.sessionManagement",
         "text": "Session Management",
         "link": "/configuration/Session-Management"
       },
       {
+        "key": "sidebar.dynfilefsRecovery",
         "text": "DynFileFS Recovery",
         "link": "/configuration/DynFileFS-Recovery"
       }
     ]
   },
   {
+    "key": "sidebar.administration",
     "text": "Administration",
     "items": [
       {
+        "key": "sidebar.packageList",
         "text": "Package List",
         "link": "/administration/Packages"
       },
       {
+        "key": "sidebar.softwareUpdates",
         "text": "Software Updates",
         "link": "/administration/Software-Updates"
       },
       {
+        "key": "sidebar.moduleManager",
         "text": "Module Manager",
         "link": "/administration/Module-Manager"
       },
       {
+        "key": "sidebar.miniosStore",
         "text": "MiniOS Store",
         "link": "/administration/MiniOS-Store"
       },
       {
+        "key": "sidebar.kernelManagement",
         "text": "Kernel Management",
         "link": "/administration/Kernel-Management"
       },
       {
+        "key": "sidebar.securityHardening",
         "text": "Security Hardening",
         "link": "/administration/Security-Hardening"
       },
       {
+        "key": "sidebar.performanceOptimization",
         "text": "Performance Optimization",
         "link": "/administration/Performance-Optimization"
       },
       {
+        "key": "sidebar.virtualization",
         "text": "Virtualization",
         "link": "/administration/Virtualization"
       },
       {
+        "key": "sidebar.troubleshooting",
         "text": "Troubleshooting",
         "link": "/administration/Troubleshooting"
       }
     ]
   },
   {
+    "key": "sidebar.development",
     "text": "Development",
     "items": [
       {
+        "key": "sidebar.buildingMiniOS",
         "text": "Building MiniOS",
         "link": "/development/Building-MiniOS"
       },
       {
+        "key": "sidebar.buildCommands",
         "text": "Build Commands",
         "link": "/development/Build-Commands"
       },
       {
+        "key": "sidebar.creatingModules",
         "text": "Creating Modules",
         "link": "/development/Creating-Modules"
       },
       {
+        "key": "sidebar.rebuildingIso",
         "text": "Rebuilding ISO",
         "link": "/development/Rebuilding-ISO"
       },
       {
+        "key": "sidebar.imageBuilder",
         "text": "Image Builder",
         "link": "/development/Image-Builder"
       },
       {
+        "key": "sidebar.condinapt",
         "text": "CondinAPT",
         "link": "/development/CondinAPT"
       },
       {
+        "key": "sidebar.condinaptInMinios",
         "text": "CondinAPT in MiniOS",
         "link": "/development/CondinAPT-MiniOS"
       }

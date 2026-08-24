@@ -105,6 +105,9 @@
     "theme.returnToTop": "Вернуться к началу",
     "theme.changeLanguage": "Изменить язык",
     "theme.skipToContent": "Перейти к содержимому",
-    "theme.onThisPage": "На этой странице"
+    "theme.onThisPage": "На этой странице",
+    "sidebar.rufus": "Rufus",
+    "sidebar.ventoy": "Ventoy",
+    "sidebar.balenaEtcher": "Balena Etcher"
   }
 }

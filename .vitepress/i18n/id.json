@@ -105,6 +105,9 @@
     "theme.returnToTop": "Kembali ke atas",
     "theme.changeLanguage": "Ganti bahasa",
     "theme.skipToContent": "Lewati ke konten",
-    "theme.onThisPage": "Di halaman ini"
+    "theme.onThisPage": "Di halaman ini",
+    "sidebar.rufus": "Rufus",
+    "sidebar.ventoy": "Ventoy",
+    "sidebar.balenaEtcher": "Balena Etcher"
   }
 }

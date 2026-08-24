@@ -105,6 +105,9 @@
     "theme.returnToTop": "Retour en haut",
     "theme.changeLanguage": "Changer de langue",
     "theme.skipToContent": "Aller au contenu",
-    "theme.onThisPage": "Sur cette page"
+    "theme.onThisPage": "Sur cette page",
+    "sidebar.rufus": "Rufus",
+    "sidebar.ventoy": "Ventoy",
+    "sidebar.balenaEtcher": "Balena Etcher"
   }
 }

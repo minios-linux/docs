@@ -67,53 +67,10 @@ function routeRewrite(id: string) {
   return id
 }
 
-function localizeItems<T extends { text?: string; link?: string; items?: T[] }>(items: T[], locale: string): T[] {
-  const sidebarTextKeys = {
-    'About MiniOS': 'sidebar.about',
-    'Overview': 'sidebar.overview',
-    'System Architecture': 'sidebar.systemArchitecture',
-    'Installation': 'sidebar.installation',
-    'Quick Start Guide': 'sidebar.quickStartGuide',
-    'Hardware Compatibility': 'sidebar.hardwareCompatibility',
-    'Verifying Downloads': 'sidebar.verifyingDownloads',
-    'Installing MiniOS': 'sidebar.installingMiniOS',
-    'MiniOS Installer': 'sidebar.miniosInstaller',
-    'Network Boot': 'sidebar.networkBoot',
-    'USB Creation Tools': 'sidebar.usbCreationTools',
-    'UNetbootin': 'sidebar.unetbootin',
-    'dd command': 'sidebar.ddCommand',
-    'Drive Utility': 'sidebar.driveUtility',
-    'Original Method': 'sidebar.originalMethod',
-    'Configuration': 'sidebar.configuration',
-    'Boot Menus': 'sidebar.bootMenus',
-    'Boot Parameters': 'sidebar.bootParameters',
-    'Configuration File': 'sidebar.configurationFile',
-    'MiniOS Configurator': 'sidebar.miniosConfigurator',
-    'live-config Parameters': 'sidebar.liveConfigParameters',
-    'Session Management': 'sidebar.sessionManagement',
-    'DynFileFS Recovery': 'sidebar.dynfilefsRecovery',
-    'Administration': 'sidebar.administration',
-    'Package List': 'sidebar.packageList',
-    'Software Updates': 'sidebar.softwareUpdates',
-    'Module Manager': 'sidebar.moduleManager',
-    'MiniOS Store': 'sidebar.miniosStore',
-    'Kernel Management': 'sidebar.kernelManagement',
-    'Security Hardening': 'sidebar.securityHardening',
-    'Performance Optimization': 'sidebar.performanceOptimization',
-    'Virtualization': 'sidebar.virtualization',
-    'Troubleshooting': 'sidebar.troubleshooting',
-    'Development': 'sidebar.development',
-    'Building MiniOS': 'sidebar.buildingMiniOS',
-    'Build Commands': 'sidebar.buildCommands',
-    'Creating Modules': 'sidebar.creatingModules',
-    'Rebuilding ISO': 'sidebar.rebuildingIso',
-    'Image Builder': 'sidebar.imageBuilder',
-    'CondinAPT': 'sidebar.condinapt',
-    'CondinAPT in MiniOS': 'sidebar.condinaptInMinios'
-  }
+function localizeItems<T extends { key?: string; text?: string; link?: string; items?: T[] }>(items: T[], locale: string): T[] {
   return items.map((item) => ({
     ...item,
-    text: item.text ? message(locale, sidebarTextKeys[item.text] || item.text) : item.text,
+    text: item.key ? message(locale, item.key) : item.text,
     link: locale !== 'root' && item.link?.startsWith('/') ? localePath(locale, item.link) : item.link,
     items: item.items ? localizeItems(item.items, locale) : undefined
   }))
