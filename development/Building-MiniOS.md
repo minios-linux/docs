@@ -737,5 +737,5 @@ Build logs are stored in:
 ## Related Documentation
 
 - **[Creating Modules](/development/Creating-Modules.md)** - Learn how to create custom SquashFS modules with additional software
-- **[Rebuilding ISO](/development/Rebuilding-ISO.md)** - Repack your running live system into a bootable ISO using `sb2iso`
+- **[Composing ISO images](/development/Rebuilding-ISO.md)** - Remaster an existing MiniOS system with `minios-image-compose`
 - **[CondinAPT](/development/CondinAPT.md)** - Understand the conditional package management system used in builds

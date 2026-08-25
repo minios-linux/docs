@@ -61,5 +61,5 @@ Das Ablegen eines Elements führt keinen Code aus und ändert weder Aktuell ausg
 ## Verwandte Dokumentation
 
 - [Module erstellen](/development/Creating-Modules.md)
-- [ISO-Abbilder neu erstellen](/development/Rebuilding-ISO.md)
+- [ISO-Images über die Kommandozeile zusammenstellen](/development/Rebuilding-ISO.md)
 - [Boot-Parameter](/configuration/Boot-Parameters.md)

@@ -76,7 +76,17 @@ Lo script principale che orchestra il processo di build passo-passo:
 
 Per informazioni dettagliate sull'utilizzo, consulta la [documentazione di minios-live](https://github.com/minios-linux/minios-live/blob/master/docs/minios-live.md).
 
-## Struttura del Progetto
+### Documentazione offline di aiuto
+
+`submodules/docs/` è l'unica fonte modificabile per la documentazione di MiniOS. Prima di rilasciare `minios-help`, aggiorna la sua copia offline inclusa con:
+
+```bash
+submodules/minios-help/tools/sync-from-docs.sh
+```
+
+L'albero `submodules/minios-help/share/docs/` generato viene incluso con l'applicazione e utilizzato direttamente dal pacchetto sorgente Debian. Le normali build delle immagini MiniOS non eseguono VitePress, Node.js o il sincronizzatore della documentazione; installano il pacchetto `minios-help` già pubblicato come qualsiasi altro pacchetto desktop.
+
+## Struttura del progetto
 
 Il sistema di build di MiniOS è organizzato come segue:
 
@@ -98,9 +108,9 @@ minios-live/
 └── minios-live                 # Main script for building MiniOS
 ```
 
-## Processo di Build
+## Processo di build
 
-Il processo di compilazione segue una sequenza strutturata di fasi:
+Il processo di build segue una sequenza strutturata di fasi:
 
 ```mermaid
 flowchart TD
@@ -165,19 +175,19 @@ flowchart TD
     class NetworkFail criticalBox
 ```
 
-### Fasi di Build Spiegate
+### Spiegazione delle fasi di build
 
 1. **`build-bootstrap`** - Crea il sistema base minimale utilizzando debootstrap
 2. **`build-chroot`** - Installa i pacchetti e configura il sistema nell'ambiente chroot
-3. **`build-live`** - Crea l'immagine SquashFS principale con il sistema core
-4. **`build-modules`** - Compila moduli SquashFS aggiuntivi per software extra
+3. **`build-live`** - Crea l'immagine principale SquashFS con il sistema core
+4. **`build-modules`** - Costruisce moduli SquashFS aggiuntivi per software extra
 5. **`build-boot`** - Prepara i file del bootloader e del kernel
-6. **`build-config`** - Genera i file di configurazione di avvio
+6. **`build-config`** - Genera i file di configurazione dell'avvio
 7. **`build-iso`** - Crea l'immagine ISO finale avviabile
 
-### Opzioni di Build
+### Opzioni di build
 
-#### Compilazione Sistema Completo
+#### Build completa del sistema
 
 ```bash
 # Full automated build
@@ -186,7 +196,7 @@ flowchart TD
 ./minios-live build-bootstrap - build-iso
 ```
 
-#### Build Incrementali
+#### Build incrementali
 
 ```bash
 # Run only bootstrap stage
@@ -202,28 +212,28 @@ flowchart TD
 ./minios-live build-iso
 ```
 
-## Sistema di Configurazione
+## Sistema di configurazione
 
-### File di Configurazione Build
+### File di configurazione della build
 
-#### Configurazione Principale: `linux-live/build.conf`
+#### Configurazione principale: `linux-live/build.conf`
 
 Questo è il file di configurazione principale che definisce:
-- **Impostazioni distribuzione**: Distribuzione di destinazione (buster, bookworm, trixie, sid)
+- **Impostazioni della distribuzione**: distribuzione di destinazione (buster, bookworm, trixie, sid)
 - **Architettura**: amd64, i386, i386-pae (solo per bookworm e precedenti; trixie e sid supportano solo amd64)
 - **Ambiente desktop**: core, flux, xfce, lxqt
-- **Variante pacchetti**: minimum, standard, toolbox, ultra
+- **Variante di pacchetti**: minimum, standard, toolbox, ultra
 - **Compressione**: xz, lzo, gz, lz4, zstd
-- **Impostazioni kernel**: tipo, supporto AUFS, compilazione DKMS
+- **Impostazioni del kernel**: tipo, supporto AUFS, compilazione DKMS
 - **Impostazioni locali**: lingua, fuso orario, layout tastiera
 
-#### Configurazione Runtime: `minios_build.conf`
+#### Configurazione runtime: `minios_build.conf`
 
-Generato automaticamente durante il processo di build e contiene impostazioni specifiche di runtime per l'ambiente chroot.
+Generata automaticamente durante il processo di build e contiene impostazioni specifiche per l'ambiente chroot.
 
-### Varianti di Pacchetti
+### Varianti di pacchetti
 
-MiniOS supporta diverse varianti di pacchetti che determinano quali software vengono inclusi:
+MiniOS supporta diverse varianti di pacchetti che determinano quali software sono inclusi:
 
 - **minimum**: Solo pacchetti essenziali
 - **standard**: Applicazioni desktop standard
@@ -239,11 +249,11 @@ firefox +pv=toolbox +pv=ultra
 basic-tool +pv=minimum
 ```
 
-## Sistema Moduli
+## Sistema dei moduli
 
-### Struttura dei Moduli
+### Struttura dei moduli
 
-Il sistema di build utilizza una struttura numerata di moduli situata in `linux-live/scripts/`:
+Il sistema di build utilizza una struttura di moduli numerati situata in `linux-live/scripts/`:
 
 ```
 00-core/          # Base system packages
@@ -255,38 +265,47 @@ Il sistema di build utilizza una struttura numerata di moduli situata in `linux-
 10-example/       # Example module template
 ```
 
-### Componenti del Modulo
+### Componenti del modulo
 
 Ogni directory di modulo contiene:
 
 - **`packages.list`**: Elenco dei pacchetti da installare con marcatori condizionali
-- **`install`**: Script Bash eseguito durante la build del modulo
+- **`install`**: Script bash eseguito durante la build del modulo
 - **`rootcopy-install/`**: File copiati nel sistema durante la build
 - **`rootcopy-postinstall/`**: File copiati dopo l'installazione dei pacchetti
+- **`.minios-ownership`**: Manifest opzionale di proprietà all'interno di una directory `rootcopy-*` per file che richiedono un proprietario diverso da root
 - **`skip_conditions.conf`**: Condizioni per saltare la build del modulo
-- **`patches/`**: Patch applicate prima della compilazione (non disponibile per 00-core)
+- **`patches/`**: Patch applicate prima della build (non disponibile per 00-core)
 
-### Esempio di Template Modulo
+I file in `rootcopy-install/` e `rootcopy-postinstall/` vengono copiati come template di build. La proprietà del checkout host non viene mantenuta; i file diventano normalmente `root:root` nell'albero di destinazione. Se un file o una directory necessita di un proprietario diverso da root, crea `.minios-ownership` nella relativa directory rootcopy:
+
+```text
+owner:group relative/path
+```
+
+I percorsi sono relativi a quella directory rootcopy. I percorsi assoluti e quelli contenenti `../` vengono rifiutati. Il proprietario e il gruppo devono già esistere quando il manifest viene applicato. Se vengono creati da un pacchetto installato successivamente, usa `rootcopy-postinstall/` o imposta la proprietà in `install`/`postinstall`.
+
+### Esempio di template modulo
 
 Il modulo **`10-example/`** funge da template per la creazione di nuovi moduli. Contiene:
 
-- Un file `packages.list` completo con esempi di marcatori condizionali
-- Uno script `install` di base che mostra il corretto utilizzo di condinapt
+- Un `packages.list` completo con esempi di marcatori condizionali
+- Uno script base `install` che mostra il corretto utilizzo di condinapt
 - Esempi di directory `rootcopy-install/` e `rootcopy-postinstall/`
 - Commenti di documentazione che spiegano ogni componente
 
-**Per creare un nuovo modulo**: Copia la directory `10-example` e modificala secondo le tue esigenze:
+**Per creare un nuovo modulo**: copia la directory `10-example` e modificala secondo le tue esigenze:
 ```bash
 cp -r linux-live/scripts/10-example linux-live/scripts/06-my-module
 ```
 
-Questo template viene utilizzato in tutta la documentazione e rappresenta il punto di partenza ideale per moduli personalizzati.
+Questo template è utilizzato in tutta la documentazione e rappresenta il punto di partenza ideale per moduli personalizzati.
 
-### Caricamento Moduli Basato su Ambiente
+### Caricamento dei moduli basato sull'ambiente
 
-Il sistema moduli funziona tramite configurazioni ambiente in `linux-live/environments/`. Ogni directory ambiente contiene link simbolici ai moduli che devono essere inclusi per quello specifico ambiente desktop e variante pacchetti.
+Il sistema dei moduli funziona tramite configurazioni ambiente in `linux-live/environments/`. Ogni directory ambiente contiene collegamenti simbolici ai moduli che devono essere inclusi per quello specifico ambiente desktop e variante di pacchetto.
 
-#### Ambienti Disponibili
+#### Ambienti disponibili
 
 ```bash
 linux-live/environments/
@@ -297,7 +316,7 @@ linux-live/environments/
 └── xfce-debug/    # XFCE with debug modules
 ```
 
-Ogni directory ambiente contiene link simbolici alle directory dei moduli in `linux-live/scripts/`:
+Ogni directory ambiente contiene collegamenti simbolici alle directory dei moduli in `linux-live/scripts/`:
 
 ```bash
 # Example: XFCE environment
@@ -310,9 +329,9 @@ linux-live/environments/xfce/
 └── 06-firefox -> ../../scripts/10-firefox
 ```
 
-#### Compilazione dei Moduli
+#### Build dei moduli
 
-Per compilare i moduli, utilizza il comando `build-modules`:
+Per costruire i moduli, utilizza il comando `build-modules`:
 
 ```bash
 # Build all unbuilt modules for the current environment
@@ -324,14 +343,14 @@ Per compilare i moduli, utilizza il comando `build-modules`:
 # 3. Meet the skip conditions (if any)
 ```
 
-### Script di Installazione Modulo
+### Script di installazione dei moduli
 
 Lo script `install` in ogni modulo:
-- Sorgente `/minioslib` per funzioni comuni
-- Sorgente `/minios_build.conf` per la configurazione della build
+- Include `/minioslib` per le funzioni comuni
+- Include `/minios_build.conf` per la configurazione della build
 - Imposta le selezioni debconf per la configurazione automatica dei pacchetti
 - Esegue configurazioni personalizzate e modifiche ai file
-- Utilizza colori console per la formattazione dell'output
+- Utilizza colori sulla console per formattare l'output
 
 Struttura di esempio:
 ```bash
@@ -360,11 +379,11 @@ done
 # ...
 ```
 
-## Gestione Pacchetti con CondinAPT
+## Gestione pacchetti con CondinAPT
 
-CondinAPT è il sistema di installazione condizionale dei pacchetti di MiniOS che gestisce la selezione dei pacchetti in base a parametri di build come ambiente desktop, distribuzione e variante pacchetti.
+CondinAPT è il sistema di installazione condizionale dei pacchetti di MiniOS che gestisce la selezione dei pacchetti in base ai parametri di build come ambiente desktop, distribuzione e variante di pacchetto.
 
-### Utilizzo Base
+### Utilizzo di base
 
 Ogni modulo contiene un file `packages.list` con specifiche condizionali dei pacchetti:
 
@@ -377,7 +396,7 @@ package-name -pv=minimum       # Install except for minimum variant
 preferred-pkg || fallback-pkg  # Try first, use second if unavailable
 ```
 
-### Utilizzo di CondinAPT negli Script Modulo
+### Utilizzo di CondinAPT negli script dei moduli
 
 Utilizzo standard negli script di installazione dei moduli:
 
@@ -390,21 +409,21 @@ Utilizzo standard negli script di installazione dei moduli:
     -m /linux-live/condinapt.map
 ```
 
-### Documentazione Completa
+### Documentazione completa
 
-Per la documentazione completa di CondinAPT, inclusa sintassi avanzata, filtri, code di priorità, modalità di debug ed esempi reali, consulta: **[CondinAPT.md](/development/CondinAPT.md)**
+Per una documentazione completa su CondinAPT, inclusa sintassi avanzata, filtri, code di priorità, modalità di debug ed esempi reali, consulta: **[CondinAPT.md](/development/CondinAPT.md)**
 
-### Filtri di Condizione Comuni
+### Filtri di condizione comuni
 
-- `+pv=variant` - Variante pacchetti (minimum, standard, toolbox, ultra)
+- `+pv=variant` - Variante di pacchetto (minimum, standard, toolbox, ultra)
 - `+d=distribution` - Distribuzione (bookworm, trixie, jammy, noble)
 - `+de=desktop` - Ambiente desktop (core, flux, xfce, lxqt)
 - `+da=architecture` - Architettura (amd64, i386)
-- `+dt=type` - Tipo distribuzione (debian, ubuntu)
+- `+dt=type` - Tipo di distribuzione (debian, ubuntu)
 
-## Compilare la tua prima ISO
+## Creare la tua prima ISO
 
-### Avvio Rapido
+### Avvio rapido
 
 1. **Clona il repository e prepara:**
 ```bash
@@ -418,17 +437,17 @@ sudo apt-get update
 sudo apt-get install sudo binutils debootstrap squashfs-tools xz-utils lz4 zstd xorriso mtools rsync grub-efi-amd64-bin grub-pc-bin
 ```
 
-3. **Compila con minios-cmd (consigliato):**
+3. **Build con minios-cmd (consigliato):**
 ```bash
 ./minios-cmd -d bookworm -a amd64 -de xfce -pv standard
 ```
 
-4. **Oppure compila con minios-live:**
+4. **Oppure build con minios-live:**
 ```bash
 ./minios-live -
 ```
 
-### Personalizzare la tua Build
+### Personalizzazione della build
 
 1. **Copia e modifica la configurazione:**
 ```bash
@@ -436,16 +455,16 @@ cp linux-live/build.conf linux-live/build-custom.conf
 # Edit build-custom.conf with your preferences
 ```
 
-2. **Compila con configurazione personalizzata:**
+2. **Build con configurazione personalizzata:**
 ```bash
 BUILD_CONF=linux-live/build-custom.conf ./minios-live -
 ```
 
-## Personalizzazione Avanzata
+## Personalizzazione avanzata
 
-### Creare Ambienti Personalizzati
+### Creare ambienti personalizzati
 
-Puoi creare nuovi ambienti desktop creando una nuova directory ambiente e configurando i moduli appropriati. Ecco come creare un ambiente GNOME come esempio:
+Puoi creare nuovi ambienti desktop creando una nuova directory ambiente e configurando i moduli appropriati. Ecco come creare ad esempio un ambiente GNOME:
 
 1. **Crea la directory ambiente:**
 ```bash
@@ -588,26 +607,26 @@ sed -i 's/PACKAGE_VARIANT=".*"/PACKAGE_VARIANT="standard"/' linux-live/build-gno
 BUILD_CONF=linux-live/build-gnome.conf ./minios-live -
 ```
 
-### Best Practice per la Struttura degli Ambienti
+### Best practice per la struttura degli ambienti
 
 Quando crei ambienti personalizzati:
 
 - **Moduli base** (01-03): Di solito uguali per tutti gli ambienti
-- **Modulo desktop** (04): Contiene i pacchetti e la configurazione dell'ambiente desktop principale
+- **Modulo desktop** (04): Contiene i pacchetti e la configurazione del core desktop environment
 - **Modulo apps** (05): Applicazioni specifiche per il desktop
 - **Moduli opzionali** (06+): Pacchetti software aggiuntivi
 
-**Convenzione di nomenclatura dei moduli:**
+**Convenzione di denominazione dei moduli:**
 - Usa il formato `04-{desktop}-desktop` per il modulo desktop principale
 - Usa `05-{desktop}-apps` o `05-apps` per le applicazioni
 - Numerare i moduli aggiuntivi in sequenza (06, 07, 08, ecc.)
 
-**Considerazioni di configurazione:**
-- Ogni ambiente necessita condizioni di skip appropriate nei moduli
-- I pacchetti specifici del desktop dovrebbero usare condizioni `+de={environment}`
-- Test approfonditi con le diverse varianti di pacchetti (minimum, standard, toolbox, ultra)
+**Considerazioni sulla configurazione:**
+- Ogni ambiente necessita di condizioni di skip appropriate nei moduli
+- I pacchetti specifici per desktop dovrebbero usare condizioni `+de={environment}`
+- Test approfonditi con le diverse varianti di pacchetto (minimum, standard, toolbox, ultra)
 
-### Aggiungere Moduli Personalizzati
+### Aggiunta di moduli personalizzati
 
 1. **Crea un nuovo modulo utilizzando il template:**
 ```bash
@@ -631,36 +650,36 @@ cp -r linux-live/scripts/10-example linux-live/scripts/06-custom-module
 ln -s ../../scripts/06-custom-module linux-live/environments/xfce/06-custom-module
 ```
 
-5. **Compila i moduli:**
+5. **Costruisci i moduli:**
 ```bash
 ./minios-live build-modules
 ```
 
-## Risoluzione dei Problemi
+## Risoluzione dei problemi
 
 ### Problemi comuni
 
-1. **La build non parte - Connessione Internet richiesta:**
+1. **La build non parte - È richiesta la connettività Internet:**
    - **Problema**: `minios-live` esegue un controllo obbligatorio della connettività Internet all'avvio
-   - **Soluzione**: Assicurati di avere una connessione Internet stabile prima di avviare la build
+   - **Soluzione**: Assicurati di avere una connessione Internet stabile prima di iniziare la build
    - **Verifica**: Controlla la risoluzione DNS: `nslookup deb.debian.org`
-   - **Proxy**: Configura le impostazioni del proxy se sei dietro un firewall aziendale
-   - **Nota**: La build non può proseguire senza accesso a Internet
+   - **Proxy**: Configura le impostazioni proxy se sei dietro un firewall aziendale
+   - **Nota**: La build non può procedere senza accesso a Internet
 
-2. **Errore durante il bootstrap della build:**
+2. **La build fallisce durante il bootstrap:**
    - Verifica che i repository della distribuzione di destinazione siano disponibili
    - Assicurati che i prerequisiti siano installati
    - Test: `wget -q --spider http://deb.debian.org`
 
 3. **Errori nella build dei moduli:**
    - Controlla la disponibilità dei pacchetti nella distribuzione di destinazione
-   - Verifica la sintassi dei marker condizionali
-   - Controlla lo script di installazione per eventuali errori
+   - Verifica la sintassi dei marcatori condizionali
+   - Controlla lo script di installazione per errori
 
 4. **Pacchetti mancanti:**
    - Controlla le condizioni di condinapt
    - Verifica i nomi dei pacchetti per la distribuzione di destinazione
-   - Controlla le impostazioni delle varianti dei pacchetti
+   - Controlla le impostazioni della variante di pacchetto
 
 5. **Problemi di avvio:**
    - Controlla la configurazione di GRUB
@@ -681,7 +700,7 @@ VERBOSITY_LEVEL=1   # Verbose output (default)
 VERBOSITY_LEVEL=0   # Minimal output
 ```
 
-**Opzione 2: Crea una configurazione personalizzata con impostazioni di debug**
+**Opzione 2: Crea una configurazione personalizzata con le impostazioni di debug**
 ```bash
 cp linux-live/build.conf linux-live/build-debug.conf
 sed -i 's/VERBOSITY_LEVEL=.*/VERBOSITY_LEVEL=2/' linux-live/build-debug.conf
@@ -696,22 +715,22 @@ BUILD_CONF=linux-live/build-debug.conf ./minios-live -
 
 **Livelli di verbosità:**
 - `0`: Output minimo - solo messaggi essenziali
-- `1`: Output verboso - informazioni standard della build (predefinito)
-- `2`: Output molto verboso - tracciamento dettagliato con debug bash attivo
+- `1`: Output dettagliato - informazioni standard sulla build (predefinito)
+- `2`: Output molto dettagliato - tracciamento completo con debug bash attivo
 
 ### File di log
 
 I log della build sono salvati in:
 - `build/log/` - Log generali della build
 
-### Supporto
+### Ottenere supporto
 
 - Consulta la [wiki ufficiale](https://github.com/minios-linux/minios-live/wiki)
-- Controlla le issue esistenti su GitHub
-- Partecipa ai forum della community su [minios.dev](https://minios.dev)
+- Controlla le issue già esistenti su GitHub
+- Unisciti ai forum della community su [minios.dev](https://minios.dev)
 
 ## Documentazione correlata
 
-- **[Creazione di moduli](/development/Creating-Modules.md)** - Scopri come creare moduli SquashFS personalizzati con software aggiuntivo
-- **[Ricostruzione ISO](/development/Rebuilding-ISO.md)** - Ricrea il tuo sistema live in esecuzione in una ISO avviabile usando `sb2iso`
+- **[Creazione dei moduli](/development/Creating-Modules.md)** - Scopri come creare moduli SquashFS personalizzati con software aggiuntivo
+- **[Composizione delle immagini ISO](/development/Rebuilding-ISO.md)** - Rimasterizza un sistema MiniOS esistente con `minios-image-compose`
 - **[CondinAPT](/development/CondinAPT.md)** - Comprendi il sistema di gestione condizionale dei pacchetti utilizzato nelle build

@@ -143,4 +143,4 @@ sha256sum -c custom-minios.iso.sha256
 
 - [Сборка MiniOS](/development/Building-MiniOS.md)
 - [Создание модулей](/development/Creating-Modules.md)
-- [Пересборка ISO](/development/Rebuilding-ISO.md)
+- [Создание ISO-образов из командной строки](/development/Rebuilding-ISO.md)

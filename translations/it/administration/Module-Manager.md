@@ -60,6 +60,6 @@ Il rilascio di un elemento non esegue codice né modifica Esecuzione attuale o P
 
 ## Documentazione correlata
 
-- [Creazione dei moduli](/development/Creating-Modules.md)
-- [Ricostruzione delle immagini ISO](/development/Rebuilding-ISO.md)
+- [Creazione di moduli](/development/Creating-Modules.md)
+- [Composizione di immagini ISO da riga di comando](/development/Rebuilding-ISO.md)
 - [Parametri di avvio](/configuration/Boot-Parameters.md)

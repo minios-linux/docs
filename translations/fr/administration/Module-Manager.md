@@ -61,5 +61,5 @@ Déposer un élément n’exécute aucun code et ne modifie ni En cours d’exé
 ## Documentation associée
 
 - [Créer des modules](/development/Creating-Modules.md)
-- [Reconstruire des images ISO](/development/Rebuilding-ISO.md)
+- [Composer des images ISO en ligne de commande](/development/Rebuilding-ISO.md)
 - [Paramètres de démarrage](/configuration/Boot-Parameters.md)

@@ -141,6 +141,6 @@ Build yang dibatalkan atau gagal tidak akan mempublikasikan ISO privatnya. Tujua
 
 ## Dokumentasi terkait
 
-- [Building MiniOS](/development/Building-MiniOS.md)
-- [Creating modules](/development/Creating-Modules.md)
-- [Rebuilding ISO](/development/Rebuilding-ISO.md)
+- [Membangun MiniOS](/development/Building-MiniOS.md)
+- [Membuat modul](/development/Creating-Modules.md)
+- [Menyusun citra ISO dari command line](/development/Rebuilding-ISO.md)

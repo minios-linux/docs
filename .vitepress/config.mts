@@ -132,7 +132,7 @@ function nav(locale = 'root') {
         { text: message(locale, 'nav.buildingMiniOS'), link: p('/development/Building-MiniOS') },
         { text: message(locale, 'nav.buildCommands'), link: p('/development/Build-Commands') },
         { text: message(locale, 'nav.creatingModules'), link: p('/development/Creating-Modules') },
-        { text: message(locale, 'nav.rebuildingIso'), link: p('/development/Rebuilding-ISO') },
+        { text: message(locale, 'nav.composingIso'), link: p('/development/Rebuilding-ISO') },
         { text: message(locale, 'nav.imageBuilder'), link: p('/development/Image-Builder') },
         { text: message(locale, 'nav.condinapt'), link: p('/development/CondinAPT') },
         { text: message(locale, 'nav.condinaptInMinios'), link: p('/development/CondinAPT-MiniOS') }

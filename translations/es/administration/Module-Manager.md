@@ -61,5 +61,5 @@ Soltar un elemento no ejecuta código ni modifica En ejecución ni Próximo arra
 ## Documentación relacionada
 
 - [Creación de módulos](/development/Creating-Modules.md)
-- [Reconstrucción de imágenes ISO](/development/Rebuilding-ISO.md)
+- [Composición de imágenes ISO desde la línea de comandos](/development/Rebuilding-ISO.md)
 - [Parámetros de arranque](/configuration/Boot-Parameters.md)

@@ -206,8 +206,8 @@
         "link": "/development/Creating-Modules"
       },
       {
-        "key": "sidebar.rebuildingIso",
-        "text": "Rebuilding ISO",
+        "key": "sidebar.composingIso",
+        "text": "Composing ISO Images",
         "link": "/development/Rebuilding-ISO"
       },
       {

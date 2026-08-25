@@ -61,5 +61,5 @@ Soltar um item não executa código nem altera Em Execução Agora ou Próximo B
 ## Documentação relacionada
 
 - [Criando módulos](/development/Creating-Modules.md)
-- [Reconstruindo imagens ISO](/development/Rebuilding-ISO.md)
+- [Compondo imagens ISO pela linha de comando](/development/Rebuilding-ISO.md)
 - [Parâmetros de boot](/configuration/Boot-Parameters.md)

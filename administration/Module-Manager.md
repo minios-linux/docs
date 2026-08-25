@@ -61,5 +61,5 @@ Dropping an item does not execute code or change Running Now or Next Boot.
 ## Related documentation
 
 - [Creating modules](/development/Creating-Modules.md)
-- [Rebuilding ISO images](/development/Rebuilding-ISO.md)
+- [Composing ISO images from the command line](/development/Rebuilding-ISO.md)
 - [Boot parameters](/configuration/Boot-Parameters.md)

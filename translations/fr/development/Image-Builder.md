@@ -141,6 +141,6 @@ Une construction annulée ou échouée ne publie pas son ISO privé. Toute desti
 
 ## Documentation associée
 
-- [Building MiniOS](/development/Building-MiniOS.md)
-- [Creating modules](/development/Creating-Modules.md)
-- [Rebuilding ISO](/development/Rebuilding-ISO.md)
+- [Compiler MiniOS](/development/Building-MiniOS.md)
+- [Créer des modules](/development/Creating-Modules.md)
+- [Composer des images ISO en ligne de commande](/development/Rebuilding-ISO.md)

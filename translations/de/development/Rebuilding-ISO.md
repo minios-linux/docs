@@ -1,358 +1,167 @@
-# ISO neu erstellen
+# MiniOS ISO-Abbilder über die Kommandozeile erstellen
 
-In dieser Anleitung erfahren Sie, wie Sie MiniOS-ISO-Abbilder mit den integrierten Tools neu erstellen und anpassen können. Egal, ob Sie schlanke Versionen erstellen, eigene Software hinzufügen oder angepasste Systeme verteilen möchten – mit diesen Tools können Sie Ihr Live-System ganz einfach in ein neues bootfähiges ISO umwandeln.
+`minios-image-compose` ist das Kommandozeilen-Backend, das mit dem MiniOS Image Builder ausgeliefert wird. Es ersetzt das eingestellte Dienstprogramm `sb2iso`. Der Befehl remastert einen bestehenden MiniOS-Inhaltsbaum, ändert optional das Modulsatz und die unterstützte Konfiguration, prüft das Ergebnis und veröffentlicht ein bootfähiges ISO.
 
-## Übersicht
+Für einen geführten Projektablauf nutzen Sie den grafischen [MiniOS Image Builder](/development/Image-Builder.md). Verwenden Sie diesen Befehl direkt für Skripte, Automatisierung oder reproduzierbare Kommandozeilen-Builds. Für einen vollständigen Quellcode-Build nutzen Sie stattdessen [Building MiniOS](/development/Building-MiniOS.md).
 
-MiniOS stellt leistungsstarke Werkzeuge bereit, um ISO-Abbilder direkt aus einem laufenden Live-System zu erstellen. Damit können Sie:
+## Grundlegende Verwendung
 
-- **Unerwünschte Software entfernen**, um schlankere Distributionen zu bauen
-- **Eigene Module hinzufügen** mit zusätzlicher Software
-- **Spezialisierte Versionen erstellen** für bestimmte Anwendungsfälle
-- **Angepasste Systeme verteilen** an andere Nutzer
-- **Installationsmedien erstellen** mit Ihrer aktuellen Konfiguration
-
-## Schnellstart
-
-Der einfachste Weg, ein ISO aus Ihrem aktuellen System zu erstellen:
+Erstellen Sie aus einer laufenden MiniOS-Live-Sitzung ein ISO mit der erkannten MiniOS-Quelle und `/etc/live/config.conf`:
 
 ```bash
-sudo sb2iso
+minios-image-compose --name ./custom-minios.iso
 ```
 
-Dies erzeugt `minios-YYYYMMDD_HHMM.iso` im aktuellen Verzeichnis mit allen geladenen Modulen.
+Präfixieren Sie den vollständigen Befehl nicht mit `sudo` oder `pkexec`. Zusammenstellung, Überprüfung und Veröffentlichung laufen als aktueller Benutzer. Nur die optionale Sitzungsaufzeichnung kann das vertrauenswürdige `/usr/bin/savechanges`-Backend über PolicyKit aufrufen.
 
-## Hauptwerkzeug: sb2iso
+Der Standard-Ausgabename ist `minios-YYYYMMDD_HHMM.iso`. Ein vorhandenes Ziel wird abgelehnt, es sei denn, `--overwrite` wird explizit angegeben.
 
-**sb2iso** ist das zentrale Tool zum Neuaufbau von ISO-Abbildern. Es liest Ihr aktuelles Live-System und verpackt es in eine bootfähige ISO-Datei.
+## Quelle auswählen
 
-### Grundlegende Nutzung
+Ohne `--source` erkennt der Befehl den MiniOS-Inhalt, der von der aktuellen LiveKit- oder dracut-Sitzung verwendet wird. Um einen anderen eingehängten MiniOS-Baum zu remastern, geben Sie das Verzeichnis an, das `boot/` und die MiniOS-Module enthält:
 
 ```bash
-# Create ISO with default name
-sudo sb2iso
-
-# Create ISO with custom name
-sudo sb2iso --name my_custom_minios.iso
-
-# Create ISO excluding specific modules
-sudo sb2iso --exclude 'firefox|libreoffice' --name minios_lite.iso
-
-# Add extra modules to the ISO
-sudo sb2iso extra_module.sb development_tools.sb --name minios_extended.iso
+minios-image-compose \
+  --source /media/minios \
+  --config ./config.conf \
+  --name ./custom-minios.iso
 ```
 
-### Befehlsoptionen
+Die Quelle ist eine schreibgeschützte Eingabe und wird niemals verändert. ISO-Dateien und optische Medien müssen eingehängt werden, bevor deren MiniOS-Inhaltsbaum mit der CLI verwendet werden kann. Der grafische Image Builder kann diese Quellen über `udisksctl` einhängen.
 
-| Option | Beschreibung | Beispiel |
-|--------|-------------|---------|
-| `-e, --exclude REGEX` | Schließt Dateien/Module aus, die dem Muster entsprechen | `--exclude 'firefox\|games'` |
-| `-n, --name NAME` | Gibt den Ausgabedateinamen an | `--name minios_custom.iso` |
-| `--menu TYPE` | Legt Menü-Sprache oder Typ fest | `--menu ru_RU` oder `--menu multilang` |
-| `--help` | Zeigt Hilfeinformationen an | `--help` |
-| `--version` | Zeigt die Version an | `--version` |
+## Module auswählen
 
-### Unterstützte Menütypen
-
-- **multilang** (Standard) – Mehrsprachiges Menü mit Sprachauswahl
-- **Sprachcodes** – Einsprachige Menüs: `en_US`, `ru_RU`, `de_DE`, `es_ES`, `it_IT`, `id_ID`, `pt_BR`, `pt_PT`, `fr_FR`
-
-## Praxisbeispiele
-
-### Erstellung schlanker Versionen
-
-**Schwere Anwendungen entfernen:**
-```bash
-sudo sb2iso --exclude 'firefox|libreoffice|gimp|thunderbird' --name minios_light.iso
-```
-
-**Nur Textmodus-System erstellen:**
-```bash
-sudo sb2iso --exclude 'desktop|xorg|apps|firefox' --name minios_minimal.iso
-```
-
-**Multimedia-Anwendungen entfernen:**
-```bash
-sudo sb2iso --exclude 'vlc|audacity|multimedia' --name minios_office.iso
-```
-
-### Eigene Software hinzufügen
-
-**Entwicklertools hinzufügen:**
-```bash
-# First create a development module (see Creating Modules guide)
-apt2sb install -l 5 gcc g++ make git python3-dev -n 06-development.sb
-
-# Then include it in the ISO
-sudo sb2iso 06-development.sb --name minios_dev.iso
-```
-
-**Spiele-Anwendungen hinzufügen:**
-```bash
-# Create and add a games module
-sudo sb2iso games.sb entertainment.sb --name minios_gaming.iso
-```
-
-### Sprachspezifische ISOs
-
-**Russisches ISO erstellen:**
-```bash
-sudo sb2iso --menu ru_RU --name minios_ru.iso
-```
-
-**Deutsches ISO erstellen:**
-```bash
-sudo sb2iso --menu de_DE --name minios_de.iso
-```
-
-### Professionelle/Bildungs-Distributionen
-
-**Bildungs-ISO mit Lernsoftware:**
-```bash
-sudo sb2iso educational_software.sb science_tools.sb --exclude 'games|entertainment' --name minios_education.iso
-```
-
-**Business-ISO:**
-```bash
-sudo sb2iso office_suite.sb accounting_tools.sb --exclude 'games|multimedia' --name minios_business.iso
-```
-
-## Erweiterter Anpassungs-Workflow
-
-### 1. System vorbereiten
-
-Starten Sie mit einem sauberen MiniOS-System und passen Sie es an:
+Zusätzliche `.sb`-Module sind Positionsargumente:
 
 ```bash
-# Install additional software
-sudo apt update
-sudo apt install your-packages
-
-# Configure settings
-# Edit configuration files
-# Set up user preferences
+minios-image-compose 06-development.sb 10-site-config.sb \
+  --name ./minios-development.iso
 ```
 
-### 2. Eigene Module erstellen
+Der Befehl prüft jedes Modul als lesbare, nicht-symlink SquashFS-Datei. Module, deren Namen mit zwei Ziffern und einem Bindestrich beginnen, werden auf der obersten Ebene von MiniOS platziert. Andere hinzugefügte Module werden in `minios/modules/` abgelegt. Doppelte oder kollidierende Basenamen (Groß-/Kleinschreibung ignoriert) werden abgelehnt.
 
-Speichern Sie Ihre Änderungen als Module:
+Schließen Sie Quellpfade mit einem POSIX Extended Regular Expression aus:
 
 ```bash
-# Save all system changes
-sudo savechanges my_customizations.sb
-
-# Or create specific modules
-sudo apt2sb install package1 package2 -n 05-extra-tools.sb
+minios-image-compose --exclude 'firefox|libreoffice|gimp' \
+  --name ./minios-lite.iso
 ```
 
-### 3. Module testen
+Erforderliche Bootdateien, Kernel- und Initramfs-Dateien, Kernmodule, das ausgewählte Bootmenü und die gewählte Konfiguration können nicht ausgeschlossen werden.
 
-Testen Sie Ihre Module, bevor Sie das finale ISO erstellen:
+Erstellen Sie wiederverwendbare Module, bevor Sie das ISO zusammenstellen. Siehe [Module erstellen](/development/Creating-Modules.md) und [MiniOS Module Manager](/administration/Module-Manager.md).
+
+## Konfiguration und Manifest
+
+`--config FILE` installiert die ausgewählte reguläre Datei als `minios/config.conf`. Standard ist `/etc/live/config.conf`.
 
 ```bash
-# Activate module to test
-sudo sb activate my_customizations.sb
-
-# Test functionality
-# If issues found, deactivate and fix
-sudo sb deactivate my_customizations.sb
+minios-image-compose --config ./config.conf \
+  --manifest ./build.json \
+  --volume-label 'MINIOS_LAB' \
+  --name ./minios-lab.iso
 ```
 
-### 4. Finale ISO erstellen
+Das optionale Manifest muss ein JSON-Objekt sein. Volumenbezeichnungen enthalten 1 bis 32 druckbare ASCII-Zeichen; Bezeichnungen außerhalb des strikten ISO-9660-Zeichensatzes (Großbuchstaben, Ziffern und Unterstrich) führen zu einer Warnung.
+
+## Sitzungsänderungen aufzeichnen
+
+Die Sitzungsaufzeichnung ist optional und bezieht sich auf die beschreibbare Ebene der aktuell laufenden MiniOS-Sitzung. Sie wird nur für eine explizite Quelle akzeptiert, wenn diese Quelle denselben Basismodul-Fingerprint wie das laufende System hat.
 
 ```bash
-# Create ISO with your customizations
-sudo sb2iso my_customizations.sb 05-extra-tools.sb --name my_distribution.iso
+minios-image-compose --capture-changes clean \
+  --name ./minios-with-software.iso
 ```
 
-## Arbeiten mit Modulen
+Verfügbare Profile sind:
 
-### Modulnummern verstehen
-
-Module werden in numerischer Reihenfolge geladen:
-- **00-core** – Basissystem (immer enthalten)
-- **01-kernel** – Kernel und Treiber
-- **02-firmware** – Hardware-Firmware
-- **03-gui-base** – Grundlegende GUI-Komponenten
-- **04-desktop** – Desktop-Umgebung
-- **05-apps** – Anwendungen
-- **06+** – Zusätzliche Module
-
-### Modulverwaltungsbefehle
+- `exact` erfasst jede darstellbare Änderung und kann Anmeldedaten, persönliche Daten, Protokolle, Browserstatus und Maschinenidentität enthalten.
+- `clean` verwendet eine enge, softwareorientierte Positivliste. Sie reduziert das Risiko, beweist aber nicht, dass keine Geheimnisse enthalten sind.
+- `selected` nutzt eine von einer kompatiblen Oberfläche oder einem `savechanges`-Workflow erzeugte Inventarauswahl.
 
 ```bash
-# List active modules
-sudo sb list
-
-# Examine module contents
-sudo sb2dir module.sb
-ls module.sb/
-sudo rmsbdir module.sb
-
-# Convert directory to module
-sudo dir2sb my_directory/ my_module.sb
-
-# Save current system changes
-sudo savechanges my_changes.sb
+minios-image-compose --capture-changes selected \
+  --capture-selection ./session-selection.json \
+  --capture-compression zstd \
+  --name ./selected-session.iso
 ```
 
-## Ausschluss von Inhalten
+Bevorzugen Sie Module und deklarative Konfiguration gegenüber der Sitzungsaufzeichnung, wenn das ISO weitergegeben werden soll. Siehe [MiniOS Image Builder](/development/Image-Builder.md) für das Datenschutzmodell und den Prüfungsablauf.
 
-Die Option `--exclude` verwendet reguläre Ausdrücke, um Dateipfade zu filtern. Häufige Muster:
+## Bootverhalten anpassen
 
-### Anwendungsausschlüsse
+Die CLI kann unterstützte GRUB- und SYSLINUX-Layouts ändern:
 
 ```bash
-# Web browsers
---exclude 'firefox|chromium|browser'
-
-# Office suites
---exclude 'libreoffice|office'
-
-# Multimedia
---exclude 'vlc|media|audio|video'
-
-# Games
---exclude 'games|play'
-
-# Development tools
---exclude 'gcc|development|ide'
+minios-image-compose \
+  --boot-timeout 5 \
+  --default-boot fresh \
+  --kernel-args 'audit=1 mitigations=auto' \
+  --menu multilang \
+  --name ./custom-boot.iso
 ```
 
-### Systemkomponenten ausschließen
+`--default-boot` akzeptiert `resume`, `new`, `choose`, `fresh` oder `toram`.
+`--menu` akzeptiert `multilang` oder eine unterstützte Sprache wie `en_US`, `ru_RU` oder `de_DE`. Kernel-Parameter werden validiert und ohne Shell-Auswertung angehängt. Nicht unterstützte oder mehrdeutige Bootmenü-Layouts werden abgelehnt, statt sie durch Raten zu verändern.
+
+## Artwork oder Dateisystem-Overlay hinzufügen
+
+Ersetzen Sie den Boot-Hintergrund durch eine validierte PNG-Datei:
 
 ```bash
-# GUI components
---exclude 'desktop|xorg|gui'
-
-# Firmware
---exclude 'firmware'
-
-# Documentation
---exclude 'doc|man|help'
-
-# Language packs
---exclude 'locale|lang'
+minios-image-compose --boot-background ./art/boot.png \
+  --name ./custom-art.iso
 ```
 
-### Kombinierte Ausschlüsse
+Packen Sie einen vorbereiteten Verzeichnisbaum als root-eigenes Image-Overlay-Modul:
 
 ```bash
-# Create minimal system
---exclude 'desktop|xorg|apps|firefox|firmware'
-
-# Remove multimedia and games
---exclude 'multimedia|games|vlc|audio|video'
-
-# Keep only core and basic tools
---exclude 'firefox|libreoffice|games|multimedia|development'
+minios-image-compose --overlay-directory "$PWD/image-overlay" \
+  --name ./custom-overlay.iso
 ```
 
-## Systemanforderungen
+Das Overlay wird relativ zum Image-Root interpretiert. Es führt keine Skripte aus, installiert keine Pakete und öffnet kein chroot. Unsichere Links, spezielle Dateien, Dateisystem-Grenzüberschreitungen und Zielkollisionen werden abgelehnt.
 
-### sb2iso ausführen
+## Verifikation und Veröffentlichung
 
-- **System**: Muss von einem MiniOS-Live-System ausgeführt werden
-- **Berechtigungen**: Root-Rechte erforderlich (`sudo`)
-- **Arbeitsspeicher**: Ausreichend RAM für temporäre Dateien
-- **Speicherplatz**: Freier Speicher für das Ausgabe-ISO (typischerweise 1–4 GB)
+Vor der Veröffentlichung prüft `minios-image-compose` das ISO-Dateisystem, das Volumenlabel, BIOS- und UEFI-Bootsektoren, Systembereich, Bootdateien, Module und angeforderte Anpassungen. Generierte Overlay- und aufgezeichnete Sitzungsmodule werden extrahiert und mit ihren gespeicherten Metadaten und Prüfsummen abgeglichen.
 
-### Bootdateien erforderlich
+Das ISO wird in einem privaten Verzeichnis auf dem Ziel-Dateisystem erstellt und erst nach erfolgreicher Verifikation atomar veröffentlicht. Änderungen an der Eingabe, Verifikationsfehler, Abbruch oder unzureichender Speicherplatz verhindern die Veröffentlichung. Ein vorheriges Ziel bleibt unverändert, es sei denn, ein explizit genehmigter `--overwrite`-Build erreicht die atomare Veröffentlichung.
 
-**sb2iso** benötigt verfügbare Bootdateien. Wenn Sie das System in den RAM geladen haben, verwenden Sie:
+Erstellen Sie nach einem erfolgreichen Build eine Prüfsumme und führen Sie einen separaten Boot-Test durch:
 
 ```bash
-# Boot with full RAM copy
-toram=full
+sha256sum custom-minios.iso > custom-minios.iso.sha256
+sha256sum --check custom-minios.iso.sha256
 ```
 
-Oder stellen Sie sicher, dass die Bootdateien auf dem Originalmedium zugänglich sind.
+Die Strukturprüfung ersetzt nicht das Testen der vorgesehenen BIOS- und UEFI-Pfade in einer entsorgbaren virtuellen Maschine oder auf geeigneter Hardware.
 
-## Fehlerbehebung
+## Befehlsreferenz
 
-### Häufige Probleme
-
-**"MiniOS-Quellverzeichnis nicht gefunden"**
-- Stellen Sie sicher, dass Sie auf einem Live-MiniOS-System arbeiten
-- Prüfen Sie, ob die Bootdateien verfügbar sind
-- Versuchen Sie den Boot-Parameter `toram=full`
-
-**"Erforderliche Datei nicht gefunden"**
-- Bootdateien könnten fehlen
-- Stellen Sie sicher, dass Sie ein vollständiges MiniOS-System verwenden
-
-**ISO-Erstellung schlägt fehl**
-- Prüfen Sie den verfügbaren Speicherplatz
-- Stellen Sie sicher, dass Sie Schreibrechte besitzen
-- Achten Sie darauf, dass keine Dateien während der Erstellung verwendet werden
-
-**Modul nicht enthalten**
-- Prüfen Sie, ob die Moduldatei existiert und lesbar ist
-- Überprüfen Sie das Modulformat (.sb-Dateien)
-- Stellen Sie sicher, dass genügend Speicherplatz für alle Module vorhanden ist
-
-### Debug-Informationen
-
-Für die Fehleranalyse den ausführlichen Modus aktivieren:
+Nutzen Sie das installierte Handbuch und die Hilfsausgabe für die genaue Backend-Version:
 
 ```bash
-# Check system status
-sudo sb list
-df -h
-ls -la /run/initramfs/memory/
-
-# Test module loading
-sudo sb activate test_module.sb
-sudo sb deactivate test_module.sb
+minios-image-compose --help
+man minios-image-compose
 ```
 
-## Best Practices
+Gängige Optionen sind:
 
-### ISO-Planung
+| Option | Zweck |
+|---|---|
+| `-n`, `--name FILE` | Legt den Ausgabepfad fest. |
+| `-e`, `--exclude REGEX` | Schließt passende Quellpfade aus. |
+| `--source DIR` | Wählt einen expliziten MiniOS-Inhaltsbaum. |
+| `--config FILE` | Wählt die im ISO eingebettete Live-Konfiguration. |
+| `--manifest FILE` | Fügt ein validiertes JSON-Build-Manifest hinzu. |
+| `--capture-changes MODE` | Zeichnet `exact`, `clean` oder `selected` Sitzungsänderungen auf. |
+| `--boot-timeout SECONDS` | Setzt ein Bootmenü-Timeout von 0 bis 300 Sekunden. |
+| `--default-boot MODE` | Wählt die Standardaktion der MiniOS-Sitzung. |
+| `--kernel-args TEXT` | Hängt validierte globale Kernel-Parameter an. |
+| `--boot-background PNG` | Ersetzt unterstütztes Boot-Artwork. |
+| `--overlay-directory DIR` | Fügt eine deklarative Dateisystemschicht hinzu. |
+| `--menu TYPE` | Wählt ein mehrsprachiges oder lokalisiertes Menü. |
+| `--overwrite` | Erlaubt explizit das Ersetzen einer bestehenden Ausgabe. |
 
-1. **Sauber starten**: Beginnen Sie mit einem frischen MiniOS-System
-2. **Gründlich testen**: Überprüfen Sie alle Anpassungen vor der ISO-Erstellung
-3. **Änderungen dokumentieren**: Halten Sie alle Modifikationen fest
-4. **Größe beachten**: Behalten Sie die ISO-Größe für den Verteilungszweck im Auge
-
-### Modulorganisation
-
-1. **Logische Gruppierung**: Verwandte Software in Modulen zusammenfassen
-2. **Korrekte Nummerierung**: Geeignete Modulnummern verwenden
-3. **Testen**: Jedes Modul einzeln testen
-4. **Abhängigkeiten**: Modulabhängigkeiten verstehen
-
-### Vorbereitung für die Verteilung
-
-1. **Namenskonvention**: Aussagekräftige ISO-Namen verwenden
-2. **Dokumentation**: Gebrauchsanleitung beilegen
-3. **Sprachunterstützung**: Internationale Nutzer berücksichtigen
-4. **Größenoptimierung**: Nicht benötigte Komponenten entfernen
-
-## Integration mit anderen Tools
-
-### Eigene Module erstellen
-
-Bevor Sie ein ISO neu bauen, können Sie eigene Module erstellen:
-
-- **apt2sb** – Module aus Paketinstallationen erstellen
-- **script2sb** – Module mit eigenen Skripten erstellen
-- **chroot2sb** – Module interaktiv erstellen
-- **savechanges** – Aktuelle Systemänderungen speichern
-
-Weitere Details finden Sie im Leitfaden [Module erstellen](/development/Creating-Modules.md).
-
-### Aus dem Quellcode bauen
-
-Für vollständige Anpassungen empfiehlt sich der Bau aus dem Quellcode:
-
-- **minios-live** – Komplette Systeme von Grund auf bauen
-- **minios-cmd** – Vereinfachte Build-Oberfläche
-
-Siehe den Leitfaden [MiniOS bauen](/development/Building-MiniOS.md) für Quellcode-Builds.
-
-## Fazit
-
-Die ISO-Tools von MiniOS bieten eine leistungsstarke Möglichkeit, Linux-Systeme individuell anzupassen und weiterzugeben. Egal, ob Sie spezialisierte Distributionen erstellen, unerwünschte Software entfernen oder eigene Funktionen hinzufügen – mit diesen Tools können Sie Ihr Live-System einfach in ein professionelles ISO-Abbild verpacken.
-
-Beginnen Sie mit einfachen Anpassungen und arbeiten Sie sich zu komplexeren Distributionen vor, sobald Sie mit dem Modulsystem und den verfügbaren Optionen vertraut sind.
+Der Befehl beendet sich mit einem Fehlercode, wenn Quell-, Modul-, Anpassungs-, Speicher-, Verifikations- oder Veröffentlichungsprüfungen fehlschlagen. Verteilen Sie ein Ergebnis nur, wenn der Befehl erfolgreich abgeschlossen wurde und die resultierende Prüfsumme sowie Bootpfade getestet wurden.

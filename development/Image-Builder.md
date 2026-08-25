@@ -143,4 +143,4 @@ A cancelled or failed build does not publish its private ISO. Any previous desti
 
 - [Building MiniOS](/development/Building-MiniOS.md)
 - [Creating modules](/development/Creating-Modules.md)
-- [Rebuilding ISO](/development/Rebuilding-ISO.md)
+- [Composing ISO images from the command line](/development/Rebuilding-ISO.md)

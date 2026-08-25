@@ -141,6 +141,6 @@ Ein abgebrochener oder fehlgeschlagener Build veröffentlicht sein privates ISO 
 
 ## Verwandte Dokumentation
 
-- [MiniOS bauen](/development/Building-MiniOS.md)
-- [Module erstellen](/development/Creating-Modules.md)
-- [ISO neu erstellen](/development/Rebuilding-ISO.md)
+- [Building MiniOS](/development/Building-MiniOS.md)
+- [Erstellen von Modulen](/development/Creating-Modules.md)
+- [Erstellen von ISO-Images über die Kommandozeile](/development/Rebuilding-ISO.md)

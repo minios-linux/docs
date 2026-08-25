@@ -61,5 +61,5 @@ minios-module-manager
 ## Связанная документация
 
 - [Создание модулей](/development/Creating-Modules.md)
-- [Пересборка ISO-образов](/development/Rebuilding-ISO.md)
+- [Сборка ISO-образов из командной строки](/development/Rebuilding-ISO.md)
 - [Параметры загрузки](/configuration/Boot-Parameters.md)

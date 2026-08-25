@@ -60,6 +60,6 @@ Menjatuhkan item tidak menjalankan kode atau mengubah Running Now maupun Next Bo
 
 ## Dokumentasi terkait
 
-- [Creating modules](/development/Creating-Modules.md)
-- [Rebuilding ISO images](/development/Rebuilding-ISO.md)
-- [Boot parameters](/configuration/Boot-Parameters.md)
+- [Membuat modul](/development/Creating-Modules.md)
+- [Menyusun citra ISO dari command line](/development/Rebuilding-ISO.md)
+- [Parameter boot](/configuration/Boot-Parameters.md)

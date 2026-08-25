@@ -141,6 +141,6 @@ Una build annullata o fallita non pubblica il suo ISO privato. Qualsiasi destina
 
 ## Documentazione correlata
 
-- [Building MiniOS](/development/Building-MiniOS.md)
-- [Creating modules](/development/Creating-Modules.md)
-- [Rebuilding ISO](/development/Rebuilding-ISO.md)
+- [Compilare MiniOS](/development/Building-MiniOS.md)
+- [Creare moduli](/development/Creating-Modules.md)
+- [Comporre immagini ISO da riga di comando](/development/Rebuilding-ISO.md)
