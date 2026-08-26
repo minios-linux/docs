@@ -1,12 +1,12 @@
-# Ursprüngliche Installationsmethode (Windows/Linux)
+# Ursprüngliche Installationsmethode (Windows/Linux, Legacy)
 
-Die ursprüngliche MiniOS-Installationsmethode beinhaltet das direkte Kopieren der Systemdateien auf das Laufwerk und die Installation des Bootloaders. Diese Methode bietet maximale Flexibilität bei der Konfiguration und Kompatibilität mit verschiedenen Medientypen.
+Diese veraltete MiniOS-Installationsmethode beinhaltet das direkte Kopieren der Systemdateien auf das Laufwerk und die Installation des Bootloaders. Bevorzugen Sie eine aktuelle Methode aus [MiniOS installieren](/installation/Installing-MiniOS.md), es sei denn, ein dateibasiertes Layout ist ausdrücklich erforderlich.
 
-⚠️ **Hinweis**: Diese Methode funktioniert nur unter Windows und Linux, da der SYSLINUX-Bootloader verwendet wird.
+**Hinweis:** Diese Methode funktioniert nur unter Windows und Linux, da der SYSLINUX-Bootloader verwendet wird.
 
 ## Wichtig
 
-⚠️ **Warnung:** Falsche Laufwerksauswahl führt zu Datenverlust! Überprüfen Sie immer das ausgewählte Laufwerk und sichern Sie wichtige Daten.
+**Warnung:** Eine falsche Laufwerksauswahl führt zu Datenverlust. Überprüfen Sie immer das ausgewählte Laufwerk sorgfältig und sichern Sie wichtige Daten.
 
 ## Laufwerksanforderungen
 
@@ -18,17 +18,17 @@ Siehe [Hardware-Kompatibilitätsleitfaden](/installation/Hardware-Compatibility.
 
 - **Dateisysteme**: FAT32, NTFS, ext2/3/4, Btrfs
 - **Partitionsschema**: MBR
-- ⚠️ **EFI-Boot**: Bei Verwendung von NTFS, exFAT oder ext2/3/4-Dateisystemen ist das Booten im EFI-Modus möglicherweise nicht verfügbar. Für EFI-Unterstützung wird FAT32 empfohlen.
+- **EFI-Boot**: Bei Verwendung von NTFS, exFAT oder ext2/3/4-Dateisystemen ist das Booten im EFI-Modus möglicherweise nicht verfügbar. Für EFI-Unterstützung wird FAT32 empfohlen.
 
-## Bootfähiges USB-Laufwerk erstellen
+## Erstellen eines bootfähigen USB-Laufwerks
 
 ### Schritt 1: Laufwerk vorbereiten
 
 **Windows:**
-1. Öffnen Sie die "Datenträgerverwaltung" (`Win+R` → `diskmgmt.msc`)
-2. USB-Laufwerk suchen → Rechtsklick → "Volume löschen"
-3. Rechtsklick auf nicht zugeordneten Speicherplatz → "Neues einfaches Volume"
-4. Dateisystem wählen: FAT32 (empfohlen) oder NTFS
+1. Öffnen Sie die "Datenträgerverwaltung" (`Win+R`, dann `diskmgmt.msc`)
+2. Suchen Sie das USB-Laufwerk, klicken Sie mit der rechten Maustaste darauf und wählen Sie "Volume löschen"
+3. Klicken Sie mit der rechten Maustaste auf den nicht zugeordneten Speicherplatz und wählen Sie "Neues einfaches Volume"
+4. Wählen Sie das Dateisystem: FAT32 (empfohlen) oder NTFS
 
 **Linux:**
 ```bash
@@ -44,12 +44,12 @@ sudo mkfs.vfat -F 32 /dev/sdX1  # For FAT32
 sudo mkfs.ext4 /dev/sdX1         # For ext4
 ```
 
-### Schritt 2: Dateien entpacken und kopieren
+### Schritt 2: Dateien extrahieren und kopieren
 
 **ISO einbinden:**
 
 *Windows:*
-- Rechtsklick auf die ISO-Datei → "Bereitstellen"
+- Klicken Sie mit der rechten Maustaste auf die ISO-Datei und wählen Sie "Bereitstellen"
 
 *Linux:*
 ```bash
@@ -58,38 +58,42 @@ sudo mount -o loop MiniOS.iso /mnt/minios-iso
 ```
 
 **Dateien kopieren:**
-1. **Suchen Sie den Ordner `/minios/`** in der eingebundenen ISO
+1. **Suchen Sie den Ordner `/minios/`** im eingebundenen ISO
 2. **Kopieren Sie den gesamten Ordner `/minios/`** in das Stammverzeichnis des USB-Laufwerks
 
 ### Schritt 3: Bootloader installieren
 
-Navigieren Sie zum Ordner `/minios/boot/` auf dem Laufwerk und führen Sie das Installationsprogramm aus:
+Navigieren Sie zum Ordner `/minios/boot/syslinux/` auf dem Laufwerk und führen Sie das Installationsprogramm aus:
 
 **Windows:**
 - Führen Sie `bootinst.bat` **als Administrator** aus
 
 **Linux:**
 ```bash
-cd /media/$USER/*/minios/boot/
+lsblk -o NAME,SIZE,FSTYPE,LABEL,MOUNTPOINTS,MODEL
+TARGET_MOUNT="/media/$USER/MINIOS"
+cd "$TARGET_MOUNT/minios/boot/syslinux"
 chmod +x bootinst.sh
 sudo ./bootinst.sh
 ```
 
+Ersetzen Sie `MINIOS` durch das genaue Einhängeverzeichnis, das Sie mit `lsblk` überprüft haben. Verwenden Sie kein Wildcard: Das Skript ermittelt das Ziellaufwerk anhand seines eigenen Speicherorts und schreibt den Boot-Code auf dieses Laufwerk.
+
 ## Automatische Änderungsspeicherung
 
-Beim ersten Start prüft MiniOS den Dateisystemtyp des Laufwerks und versucht, den optimalen Modus für die Änderungsspeicherung zu verwenden:
+Beim ersten Start prüft MiniOS den Typ des Dateisystems auf dem Laufwerk und versucht, den optimalen Modus für die Änderungsspeicherung zu verwenden:
 
-- **ext2/3/4, Btrfs**: versucht, den `native`-Modus (direktes Speichern) zu verwenden
+- **ext2/3/4, Btrfs**: versucht, den `native`-Modus (direktes Speichern) zu nutzen
 - **FAT32/NTFS**: verwendet den `dynfilefs`-Modus (dynamische Datei)
 - Wenn der native Modus nicht verfügbar ist, wird automatisch auf dynfilefs umgeschaltet
 
-### Parameterkonfiguration (für fortgeschrittene Nutzer)
+### Parameterkonfiguration für fortgeschrittene Nutzer
 
-Wenn eine präzise Konfiguration der Änderungsspeicherung erforderlich ist, können Boot-Parameter verwendet werden:
+Wenn eine präzise Persistenzkonfiguration erforderlich ist, können Boot-Parameter verwendet werden:
 
 - `perchmode=native` – Direktes Speichern auf der Partition (für ext4)
 - `perchmode=dynfilefs` – Dynamisch erweiterbare Datei
-- `perchmode=raw` – Datei mit fester Größe  
-- `perchsize=8000` – Speicherplatz für Daten in MB
+- `perchmode=raw` – Datei mit fester Größe
+- `perchsize=8000` – Größe des Speicherbereichs in MB
 
-Details unter [Boot-Parameter](/configuration/Boot-Parameters.md).
+Weitere Informationen unter [Boot-Parameter](/configuration/Boot-Parameters.md).

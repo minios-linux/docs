@@ -4,14 +4,14 @@ Le contenu des paquets MiniOS est généré à partir de listes sources conditio
 
 ## Héritage des éditions
 
-Les variantes de paquets forment une séquence additive :
+Les éditions publiques forment une séquence additive :
 
-1. **Minimum** fournit le système live commun et le plus petit bureau sélectionné.
-2. **Standard** hérite de Minimum et ajoute des outils d’administration générale, de gestion du bureau et de MiniOS.
+1. **Flux** fournit le système live commun et l'environnement Flux léger.
+2. **Standard** hérite de la base de paquets commune et ajoute des outils généraux d'administration, de gestion du bureau et de MiniOS.
 3. **Toolbox** hérite de Standard et ajoute des outils de récupération, de diagnostic, de stockage, de réseau et de virtualisation.
-4. **Ultra** hérite de Toolbox et ajoute des logiciels de station de travail, multimédia, bureautique et de conteneurisation plus larges.
+4. **Ultra** hérite de Toolbox et ajoute des logiciels plus larges pour station de travail, multimédia, bureautique et conteneurs.
 
-Des expressions conditionnelles peuvent sélectionner des alternatives ou omettre un paquet selon la suite, l’architecture, l’environnement ou l’option de compilation. Un paquet cité ci-dessous est donc représentatif des listes sources actuelles, sans garantie que le même nom de paquet binaire Debian existe dans chaque version de MiniOS.
+Des expressions conditionnelles peuvent sélectionner des alternatives ou omettre un paquet selon la suite, l'architecture, l'environnement ou l'option de compilation. Un paquet cité ci-dessous est donc représentatif des listes de sources actuelles, sans garantir que le même nom de paquet binaire Debian existe dans chaque version de MiniOS.
 
 ## Portée du bureau et de l’environnement
 
@@ -19,13 +19,14 @@ Les paquets de bureau proviennent de la chaîne de modules ordonnée de l’envi
 
 ## Contenus représentatifs
 
-### Minimum
+### Flux
 
-La composition Minimum commune inclut la configuration live MiniOS et les outils d’image, NetworkManager, SSH, la prise en charge du clavier et de la langue, le firmware sélectionné pour la cible, ainsi que des utilitaires pour l’inspection matérielle et les tâches de stockage courantes. Les paquets représentatifs incluent `minios-tools`, `minios-image-compose`, `minios-live-config`, `pciutils`, `usbutils`, `smartmontools`, `dosfstools`, `ntfs-3g`, `btrfs-progs`, `xorriso`, `squashfs-tools`, `zstd`, `rfkill` et `wpasupplicant`.
+La composition commune Flux inclut la configuration live MiniOS et les outils d'image, NetworkManager, SSH, la prise en charge du clavier et de la langue, le firmware sélectionné pour la cible, ainsi que des utilitaires pour l'inspection du matériel et les tâches courantes de stockage.
+Les paquets représentatifs incluent `minios-tools`, `minios-image-compose`, `minios-live-config`, `pciutils`, `usbutils`, `smartmontools`, `dosfstools`, `ntfs-3g`, `btrfs-progs`, `xorriso`, `squashfs-tools`, `zstd`, `rfkill` et `wpasupplicant`.
 
-La chaîne Minimum Xfce ajoute Xorg, Blackbox ou Openbox selon la liste source, Thunar, Mousepad, le panneau Xfce, la session, les paramètres, les composants du bureau et du gestionnaire de fenêtres, l’applet NetworkManager pour le bureau, les contrôles ALSA, Xarchiver, la gestion de la batterie, ainsi que Firefox ou Firefox ESR selon la famille de distribution.
+La chaîne de bureau Flux ajoute Fluxbox et les outils associés sélectionnés par les listes de sources. Elle n'inclut pas l'ensemble complet des applications Xfce et de l'interface graphique MiniOS décrites dans Standard.
 
-Les utilitaires MiniOS présents dans chaque édition, y compris Xfce Minimum, sont `minios-tools`, `minios-image-compose`, `minios-live-config`, l’intégration systemd ou SysV correspondante, `minios-live-config-doc` et `minios-welcome`.
+Les utilitaires MiniOS présents dans chaque édition, y compris Flux, sont `minios-tools`, `minios-image-compose`, `minios-live-config`, l'intégration correspondante systemd ou SysV init, `minios-live-config-doc` et `minios-welcome`.
 
 ### Standard
 
@@ -43,35 +44,37 @@ Le module d’applications Xfce ajoute des outils représentatifs tels que GPart
 
 Ultra conserve l’ensemble Toolbox et ajoute des logiciels de conteneurisation et de station de travail. Les ajouts partagés représentatifs incluent les paquets Docker sélectionnés pour le dépôt cible, la prise en charge de Compose, `lazydocker`, les outils iSCSI et les utilitaires de gestion des espaces de noms utilisateur. La liste actuelle des applications Xfce ajoute LibreOffice, GIMP, Inkscape, Blender, Audacity, OBS Studio, RawTherapee, Synaptic et les paquets d’intégration de bureau associés.
 
-## Inspecter le contenu exact d’une version
+## Inspecter le contenu exact de la version
 
-Le système en cours d’exécution fait autorité pour les paquets effectivement installés dans cette version. Listez les noms et versions des paquets avec :
+Le système en cours d'exécution fait autorité pour les paquets réellement installés dans cette version. Listez les noms et versions des paquets avec :
 
 ```bash
 dpkg-query -W -f='${binary:Package}\t${Version}\n' | sort
 ```
 
-Inspectez séparément les modules ordonnés composant la racine en cours d’exécution et les fichiers sélectionnés pour le prochain démarrage. Le gestionnaire de modules MiniOS les présente comme **En cours d’exécution** et **Prochain démarrage**. Depuis un terminal, les montages SquashFS actifs peuvent être listés avec :
+Inspectez séparément les modules ordonnés composant la racine active du système et les fichiers sélectionnés pour le prochain démarrage. Le gestionnaire de modules MiniOS les présente comme **En cours d'exécution** et **Prochain démarrage**. Depuis un shell, les montages SquashFS en cours peuvent être listés avec :
 
 ```bash
 findmnt -rn -t squashfs -o TARGET,SOURCE
 ```
 
-Pour un support hors ligne ou une image ISO montée, inventoriez directement les fichiers de modules sources :
+Pour un support hors ligne ou une ISO montée, inventoriez directement les fichiers de modules sources :
 
 ```bash
 find /path/to/media/minios -type f -name '*.sb' -printf '%P\n' | sort -n
 ```
 
-Pour une compilation source, les fichiers et répertoires suivants sont les manifestes sources et entrées de sélection faisant foi :
+Pour une compilation à partir des sources, les fichiers et répertoires suivants constituent les manifestes sources de référence et les entrées de sélection :
 
 - `linux-live/environments/<environment>/` pour la chaîne de modules ordonnée.
-- `linux-live/scripts/00-core/packages.list` pour la sélection partagée des éditions.
-- `linux-live/scripts/01-kernel/packages.list` et `02-firmware/packages.list` pour les ajouts conditionnels au noyau et au firmware.
-- `packages.list` de chaque module de bureau et d’application sélectionné.
-- `linux-live/build.conf` pour les valeurs de filtre de suite, architecture, environnement, variante de paquet, système d’initialisation, noyau, langue, etc.
-- `linux-live/condinapt.map` pour la signification des préfixes de filtre dans les listes de paquets.
+- `linux-live/scripts/00-core/packages.list` pour la sélection partagée d'édition.
+- `linux-live/scripts/01-kernel/packages.list` et `02-firmware/packages.list` pour les ajouts conditionnels de noyau et de firmware.
+- `packages.list` de chaque module bureau ou application sélectionné.
+- `linux-live/build.conf` pour la suite, l'architecture, l'environnement, la variante de paquet, le système d'init, le noyau, la langue et d'autres valeurs de filtrage.
+- `linux-live/condinapt.map` pour la signification des préfixes de filtre de liste de paquets.
 
-Les listes sources décrivent les paquets demandés et les alternatives. Seule l’image finalisée et `dpkg-query` montrent l’ensemble exact des dépendances résolues et leurs versions pour une version donnée. La disponibilité et les noms des paquets peuvent changer entre les suites Debian, Ubuntu et Devuan, ainsi qu’entre les environnements de bureau.
+Les listes de sources décrivent les paquets demandés et les alternatives. Seule l'image finalisée et `dpkg-query` montrent l'ensemble exact des dépendances résolues et les versions pour une version donnée. La disponibilité et les noms des paquets peuvent varier entre les suites Debian, Ubuntu et Devuan, ainsi qu'entre environnements de bureau.
 
-Voir [Architecture système](/about/System-Architecture.md) pour l’ordre des modules et [CondinAPT dans MiniOS](/development/CondinAPT-MiniOS.md) pour la sélection conditionnelle des paquets.
+Le système de compilation source nomme sa plus petite variante de paquet `minimum`. Il s'agit d'une valeur interne `PACKAGE_VARIANT` utilisée par les filtres CondinAPT, et non du nom d'une édition MiniOS publiée. L'édition publiée construite à partir de cette variante de paquet et de l'environnement Flux est **Flux**.
+
+Voir [Architecture système](/about/System-Architecture.md) pour l'ordre des modules et [CondinAPT dans MiniOS](/development/CondinAPT-MiniOS.md) pour la sélection conditionnelle des paquets.

@@ -80,7 +80,14 @@ function nav(locale = 'root') {
   const p = (path: string) => localePath(locale, path)
   return [
     { text: message(locale, 'nav.home'), link: p('/') },
-    { text: message(locale, 'nav.about'), link: p('/about/About-MiniOS') },
+    {
+      text: message(locale, 'nav.about'),
+      items: [
+        { text: message(locale, 'nav.overview'), link: p('/about/About-MiniOS') },
+        { text: message(locale, 'nav.miniosApplications'), link: p('/about/MiniOS-Applications') },
+        { text: message(locale, 'nav.faq'), link: p('/about/FAQ') }
+      ]
+    },
     { text: message(locale, 'nav.quickStart'), link: p('/installation/Quick-Start') },
     {
       text: message(locale, 'nav.install'),
@@ -109,6 +116,7 @@ function nav(locale = 'root') {
         { text: message(locale, 'nav.configurationFile'), link: p('/configuration/Configuration-File') },
         { text: message(locale, 'nav.miniosConfigurator'), link: p('/configuration/MiniOS-Configurator') },
         { text: message(locale, 'nav.liveConfigParameters'), link: p('/configuration/live-config') },
+        { text: message(locale, 'nav.networkConfiguration'), link: p('/configuration/Network-Configuration') },
         { text: message(locale, 'nav.sessionManagement'), link: p('/configuration/Session-Management') }
       ]
     },
@@ -123,6 +131,8 @@ function nav(locale = 'root') {
         { text: message(locale, 'nav.securityHardening'), link: p('/administration/Security-Hardening') },
         { text: message(locale, 'nav.performance'), link: p('/administration/Performance-Optimization') },
         { text: message(locale, 'nav.virtualization'), link: p('/administration/Virtualization') },
+        { text: message(locale, 'nav.backupRecovery'), link: p('/administration/Backup-Recovery') },
+        { text: message(locale, 'nav.bootRecovery'), link: p('/administration/Boot-Recovery') },
         { text: message(locale, 'nav.troubleshooting'), link: p('/administration/Troubleshooting') }
       ]
     },

@@ -105,9 +105,9 @@ sudo minios-session create squashfs --policy shutdown
 sudo minios-session create squashfs --policy manual --autosave 60
 ```
 
-`create` tanpa mode akan memilih native. Pembuatan SquashFS menangkap perubahan live saat ini dan tidak memiliki ukuran tetap. Kebijakan shutdown-nya secara default adalah `shutdown`; penyimpanan periodik secara default nonaktif.
+`create` tanpa mode akan memilih native. Pembuatan SquashFS menangkap perubahan langsung saat ini dan tidak memiliki ukuran tetap. Kebijakan shutdown secara default menggunakan `shutdown`; penyimpanan berkala secara default nonaktif.
 
-Simpan dan konfigurasikan sesi SquashFS:
+Simpan dan konfigurasi sesi SquashFS:
 
 ```bash
 sudo minios-session save <running-squashfs-id>
@@ -116,7 +116,7 @@ sudo minios-session settings <squashfs-id> --shutdown off --autosave 0
 sudo minios-session settings <squashfs-id> --shutdown on --autosave 60
 ```
 
-Interval periodik yang valid adalah `30`, `60`, `120`, `240`, dan `480` menit; `0` menonaktifkan penyimpanan periodik. Pengaturan shutdown dan periodik bersifat independen.
+Interval berkala yang valid adalah `30`, `60`, `120`, `240`, dan `480` menit; `0` menonaktifkan penyimpanan berkala. Pengaturan shutdown dan periodik bersifat independen.
 
 Ekspor dan impor arsip `.tar.zst`:
 
@@ -127,7 +127,7 @@ sudo minios-session import /path/to/session.tar.zst --auto-convert
 sudo minios-session import /path/to/session.tar.zst --force-mode dynfilefs
 ```
 
-Hanya impor `.tar.zst` yang diterima. Path dan anggota arsip divalidasi, dan ekstraksi dibatasi. `--auto-convert` memilih mode yang kompatibel untuk filesystem saat ini. `--force-mode <mode>` secara eksplisit memilih mode yang tersedia.
+Hanya impor `.tar.zst` yang diterima. Path dan anggota arsip akan divalidasi, dan ekstraksi dibatasi. `--auto-convert` memilih mode yang kompatibel untuk filesystem saat ini. `--force-mode <mode>` secara eksplisit memilih mode yang tersedia. Ekspor, salin, dan konversi tidak didukung untuk sesi SquashFS; simpan snapshot dan salin seluruh direktori sesi yang tidak aktif sebagai gantinya.
 
 Salin atau konversi sesi:
 
@@ -138,7 +138,7 @@ sudo minios-session convert <id> dynfilefs --size 4GB
 sudo minios-session convert <id> luks --size 4GB --new-session
 ```
 
-`copy` selalu memberikan ID sesi baru. `convert` secara default menggantikan sumber; gunakan `--new-session` untuk mempertahankan sumber. Ukuran hanya relevan untuk target kontainer.
+`copy` selalu memberikan ID sesi baru. `convert` secara default menggantikan sumber; gunakan `--new-session` untuk mempertahankan sumber. Ukuran hanya relevan untuk target container.
 
 Perbesar, hapus, atau bersihkan sesi:
 
@@ -149,7 +149,7 @@ sudo minios-session cleanup
 sudo minios-session cleanup --days 30
 ```
 
-Resize mendukung sesi DynFileFS, raw, dan LUKS dan membutuhkan ukuran lebih besar dari ukuran saat ini. Cleanup secara default membersihkan sesi yang lebih tua dari 30 hari.
+Resize mendukung sesi DynFileFS, raw, dan LUKS dan memerlukan ukuran lebih besar dari ukuran saat ini. Cleanup secara default untuk sesi yang lebih dari 30 hari.
 
 Semua perintah menerima `--json`, dan store sesi yang berbeda dapat dipilih dengan `--sessions-dir PATH`:
 
@@ -183,9 +183,9 @@ Ekspor LUKS berisi file sesi logis yang telah didekripsi, bukan `changes.luks`. 
 
 ## Cadangan dan pemulihan
 
-Gunakan `export` untuk cadangan, bukan menyalin direktori sesi yang sedang ter-mount. Simpan arsip yang dihasilkan di perangkat lain dan pastikan dapat didaftar atau diimpor sebelum mengandalkannya. Impor selalu membuat sesi baru yang bernomor; aktifkan secara eksplisit saat sudah siap digunakan.
+Untuk sesi native, DynFileFS, raw, dan LUKS, gunakan `export` untuk backup daripada menyalin direktori sesi yang sedang ter-mount. Simpan arsip hasilnya di perangkat lain dan pastikan arsip tersebut dapat dilihat atau diimpor sebelum mengandalkannya. Impor selalu membuat sesi baru dengan nomor; aktifkan secara eksplisit ketika sudah siap digunakan. Untuk prosedur backup SquashFS dan seluruh perangkat, lihat [Backup dan pemulihan](/administration/Backup-Recovery.md).
 
-Untuk pemulihan setelah perangkat penyimpanan penuh, penulisan yang terputus, atau pembuatan sesi kosong berulang kali, ikuti panduan khusus [Panduan pemulihan DynFileFS dan dynblk](./DynFileFS-Recovery.md).
+Untuk pemulihan setelah perangkat penyimpanan penuh, penulisan yang terputus, atau pembuatan sesi kosong berulang, ikuti panduan khusus [Pemulihan DynFileFS dan dynblk](./DynFileFS-Recovery.md).
 
 Mulai diagnosis tanpa memodifikasi data sesi:
 
@@ -197,4 +197,4 @@ sudo minios-session status
 sudo minios-session info
 ```
 
-Saat boot, filesystem kontainer akan diperiksa sebelum aktivasi writable. Kegagalan fsck yang serius akan mempertahankan kontainer untuk pemulihan daripada me-mount-nya secara writable. SquashFS mendeteksi status sebelumnya yang tidak bersih dan mengembalikan snapshot terakhir yang berhasil disimpan. Hapus sesi hanya melalui Session Manager atau `minios-session delete`; jangan menghapus direktori sesi secara manual.
+Saat boot, filesystem container akan diperiksa sebelum aktivasi writable. Kegagalan pemeriksaan filesystem yang serius akan mempertahankan container untuk pemulihan, bukan me-mount-nya dalam mode writable. SquashFS mendeteksi status sebelumnya yang tidak bersih dan mengembalikan snapshot terakhir yang berhasil disimpan. Hapus sesi hanya melalui Session Manager atau `minios-session delete`; jangan menghapus direktori sesi secara manual.

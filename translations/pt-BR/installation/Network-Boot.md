@@ -34,13 +34,13 @@ find_data()
 ## Requisitos
 
 | Requisito | Observações |
-|-----------|------------|
-| Ethernet cabeado (ou virtio/vmxnet em VMs) | Primeira interface utilizável não-loopback é usada; sem seleção `BOOTIF` / `ethdevice` no initrd |
-| Initrd com módulos de rede | Construído para variantes de pacotes diferentes do **minimum** (`--network`, geralmente `--cloud`) |
-| Sem dependência de Wi‑Fi | Wireless não é suportado no caminho de boot pela rede |
-| Prefira NICs sem blobs de firmware | Placas dependentes de firmware frequentemente falham no initrd |
-| Prefira imagens **standard+** | **minimum** omite módulos de NIC de rede → PXE / HTTP ISO ficam efetivamente sem suporte |
-| Apenas HTTP para URL do ISO | `from=http://…` funciona; **`https://` não é suportado** |
+|-------------|--------|
+| Ethernet com fio (ou virtio/vmxnet em VMs) | A primeira interface utilizável que não seja loopback é usada; sem seleção de `BOOTIF` / `ethdevice` no initrd |
+| Initrd com módulos de rede | Construído para variantes de pacote diferentes do valor interno `minimum` (`--network`, geralmente `--cloud`) |
+| Não depender de Wi‑Fi | Conexão sem fio não é suportada no caminho de boot pela rede |
+| Preferir NICs sem blobs de firmware | Placas que dependem de firmware costumam falhar no initrd |
+| Preferir imagens **Standard** ou maiores | A edição **Flux** não inclui módulos de NIC de rede, então PXE / HTTP ISO não é suportado na prática |
+| Somente HTTP para URL do ISO | `from=http://…` funciona; **`https://` não é suportado** |
 
 Ferramentas no initrd: busybox `ifconfig`, `route`, `udhcpc`, `wget`, `tftp` e `@mount.httpfs2`. Não há NetworkManager no initrd.
 
@@ -128,21 +128,21 @@ O **live-config** no userspace tardio pode ativar a rede brevemente apenas para 
 ## Erros comuns
 
 1. Colocar `ip=` na linha de comando do USB/ISO “para IP estático” → o sistema tenta baixar via PXE em vez de usar a mídia local.
-2. Usar `ip=dhcp` ou outra sintaxe de `ip=` do kernel → parser incorreto, configuração de endereço quebrada.
-3. Esperar suporte a Wi‑Fi ou seleção multi-NIC `BOOTIF` no initrd → não implementado.
-4. Usar imagem **minimum** para PXE/HTTP ISO → módulos de rede ausentes no initrd.
-5. Servir o ISO apenas via HTTPS → `from=http://…` não funcionará.
-6. Confundir isso com configuração estática do instalador/NetworkManager após login.
+2. Usar `ip=dhcp` ou outra sintaxe de kernel `ip=` → parser incorreto, configuração de endereço quebrada.
+3. Esperar seleção de Wi‑Fi ou multi-NIC `BOOTIF` no initrd → não implementado.
+4. Usar uma imagem **Flux** para PXE/HTTP ISO → módulos de rede ausentes no initrd.
+5. Servir o ISO apenas via HTTPS → `from=http://…` não será correspondido.
+6. Confundir isso com a configuração estática do instalador/NetworkManager após o login.
 
 ## Resumo de confiabilidade
 
 | Cenário | Avaliação |
-|---------|-----------|
+|----------|------------|
 | PXE + `ip=…` + lista HTTP na porta :7529 (ou TFTP), cabeado simples / virtio | Alvo suportado |
 | `from=http://…iso` + DHCP (ou `ip=`), mesma classe de NIC | Normalmente funciona |
-| Boot normal por USB/ISO | Rede do initrd não é usada |
+| Inicialização USB/ISO normal | Rede do initrd não utilizada |
 | Sessão estática via `ip=` | Não suportado |
-| Multi-NIC / NIC com firmware / Wi‑Fi / `https://` / edição minimum | Fraco ou sem suporte |
+| Multi-NIC / NIC de firmware / Wi‑Fi / `https://` / Flux edition | Fraco ou não suportado |
 
 ## Referência de implementação
 

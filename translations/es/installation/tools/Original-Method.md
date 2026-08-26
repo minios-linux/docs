@@ -1,34 +1,34 @@
-# Método de instalación original (Windows/Linux)
+# Método de instalación original (Windows/Linux, legado)
 
-El método de instalación original de MiniOS consiste en copiar los archivos del sistema directamente a la unidad e instalar el gestor de arranque. Este método ofrece la máxima flexibilidad de configuración y compatibilidad con varios tipos de medios.
+Este método de instalación legado de MiniOS consiste en copiar los archivos del sistema directamente a la unidad e instalar el gestor de arranque. Se recomienda utilizar un método actual de [Instalación de MiniOS](/installation/Installing-MiniOS.md) a menos que se requiera específicamente una disposición basada en archivos.
 
-⚠️ **Nota**: Este método solo funciona en Windows y Linux debido al uso del gestor de arranque SYSLINUX.
+**Nota:** Este método solo funciona en Windows y Linux debido al uso del gestor de arranque SYSLINUX.
 
 ## Importante
 
-⚠️ **Advertencia:** ¡La selección incorrecta del dispositivo resultará en la pérdida de datos! Verifica siempre dos veces la unidad seleccionada y haz una copia de seguridad de los datos importantes.
+**Advertencia:** Seleccionar el dispositivo incorrecto provocará la pérdida de datos. Verifica siempre la unidad seleccionada y haz una copia de seguridad de la información importante.
 
 ## Requisitos de la unidad
 
 ### Tamaño de la unidad
 
-Consulta la [Guía de compatibilidad de hardware](/installation/Hardware-Compatibility.md#system-requirements) para conocer los requisitos detallados del sistema y tamaños de unidad.
+Consulta la [Guía de compatibilidad de hardware](/installation/Hardware-Compatibility.md#system-requirements) para ver los requisitos de sistema y tamaños de unidad detallados.
 
 ### Requisitos técnicos
 
 - **Sistemas de archivos**: FAT32, NTFS, ext2/3/4, Btrfs
 - **Esquema de partición**: MBR
-- ⚠️ **Arranque EFI**: Al usar sistemas de archivos NTFS, exFAT o ext2/3/4, el arranque en modo EFI puede no estar disponible. Para soporte EFI, se recomienda FAT32.
+- **Arranque EFI**: Al usar sistemas de archivos NTFS, exFAT o ext2/3/4, el arranque en modo EFI puede no estar disponible. Para soporte EFI, se recomienda FAT32.
 
-## Creación de unidad USB booteable
+## Creación de una unidad USB booteable
 
 ### Paso 1: Preparar la unidad
 
 **Windows:**
-1. Abre "Administración de discos" (`Win+R` → `diskmgmt.msc`)
-2. Busca la unidad USB → clic derecho → "Eliminar volumen"
-3. Clic derecho en el espacio no asignado → "Nuevo volumen simple"
-4. Elige sistema de archivos: FAT32 (recomendado) o NTFS
+1. Abre "Administración de discos" (`Win+R`, luego `diskmgmt.msc`)
+2. Busca la unidad USB, haz clic derecho y selecciona "Eliminar volumen"
+3. Haz clic derecho sobre el espacio no asignado y selecciona "Nuevo volumen simple"
+4. Elige el sistema de archivos: FAT32 (recomendado) o NTFS
 
 **Linux:**
 ```bash
@@ -49,7 +49,7 @@ sudo mkfs.ext4 /dev/sdX1         # For ext4
 **Montar ISO:**
 
 *Windows:*
-- Clic derecho en el archivo ISO → "Montar"
+- Haz clic derecho en el archivo ISO y selecciona "Montar"
 
 *Linux:*
 ```bash
@@ -63,33 +63,39 @@ sudo mount -o loop MiniOS.iso /mnt/minios-iso
 
 ### Paso 3: Instalar el gestor de arranque
 
-Navega a la carpeta `/minios/boot/` en la unidad y ejecuta el instalador:
+Navega a la carpeta `/minios/boot/syslinux/` en la unidad y ejecuta el instalador:
 
 **Windows:**
 - Ejecuta `bootinst.bat` **como administrador**
 
 **Linux:**
 ```bash
-cd /media/$USER/*/minios/boot/
+lsblk -o NAME,SIZE,FSTYPE,LABEL,MOUNTPOINTS,MODEL
+TARGET_MOUNT="/media/$USER/MINIOS"
+cd "$TARGET_MOUNT/minios/boot/syslinux"
 chmod +x bootinst.sh
 sudo ./bootinst.sh
 ```
 
+Reemplaza `MINIOS` por el directorio de montaje exacto verificado con `lsblk`. No utilices
+comodines: el script detecta el disco de destino según su propia ubicación y
+escribe el código de arranque en ese disco.
+
 ## Persistencia automática de cambios
 
-En el primer arranque, MiniOS verificará el tipo de sistema de archivos de la unidad e intentará usar el modo de persistencia de cambios óptimo:
+En el primer arranque, MiniOS comprobará el tipo de sistema de archivos de la unidad e intentará utilizar el modo de persistencia de cambios más óptimo:
 
 - **ext2/3/4, Btrfs**: intenta usar el modo `native` (guardado directo)
-- **FAT32/NTFS**: usa el modo `dynfilefs` (archivo dinámico)
+- **FAT32/NTFS**: utiliza el modo `dynfilefs` (archivo dinámico)
 - Cuando el modo nativo no está disponible, cambia automáticamente a dynfilefs
 
-### Configuración de parámetros (para usuarios avanzados)
+### Configuración de parámetros para usuarios avanzados
 
-Cuando se requiere una configuración precisa de la persistencia, se pueden usar parámetros de arranque:
+Cuando se requiere una configuración de persistencia precisa, se pueden utilizar parámetros de arranque:
 
 - `perchmode=native` - Guardado directo en la partición (para ext4)
-- `perchmode=dynfilefs` - Archivo dinámico expandible
-- `perchmode=raw` - Archivo de tamaño fijo  
-- `perchsize=8000` - Espacio de almacenamiento de datos en MB
+- `perchmode=dynfilefs` - Archivo expandible dinámicamente
+- `perchmode=raw` - Archivo de tamaño fijo
+- `perchsize=8000` - Tamaño del espacio de almacenamiento de datos en MB
 
 Más detalles en [parámetros de arranque](/configuration/Boot-Parameters.md).

@@ -5,6 +5,10 @@ repair a filesystem, delete a session, or overwrite boot files until important
 data is backed up and the failing device has been identified by model, size,
 filesystem, and mount point.
 
+Use [Backup and recovery](/administration/Backup-Recovery.md) before destructive
+work and [Boot recovery](/administration/Boot-Recovery.md) when the firmware,
+bootloader, kernel, or installed boot files are involved.
+
 ## Initial checks
 
 1. Verify the downloaded ISO using
@@ -56,6 +60,9 @@ apply only to the Xfce environment. See
 [Virtualization](/administration/Virtualization.md) for guest-specific setup.
 
 ## Network problems
+
+For normal wired and Wi-Fi setup, persistence, and NetworkManager commands, see
+[Network configuration](/configuration/Network-Configuration.md).
 
 Determine whether the interface exists before changing configuration:
 

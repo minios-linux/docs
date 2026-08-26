@@ -8,10 +8,10 @@ package table.
 
 ## Edition inheritance
 
-The package variants form an additive sequence:
+The public editions form an additive sequence:
 
-1. **Minimum** provides the common live system and the smallest selected desktop.
-2. **Standard** inherits Minimum and adds general administration, desktop, and MiniOS management tools.
+1. **Flux** provides the common live system and the lightweight Flux environment.
+2. **Standard** inherits the common package base and adds general administration, desktop, and MiniOS management tools.
 3. **Toolbox** inherits Standard and adds recovery, diagnostics, storage, networking, and virtualization tools.
 4. **Ultra** inherits Toolbox and adds broader workstation, media, office, and container software.
 
@@ -30,9 +30,9 @@ must be inspected independently.
 
 ## Representative contents
 
-### Minimum
+### Flux
 
-The common Minimum composition includes MiniOS live configuration and image
+The common Flux composition includes MiniOS live configuration and image
 tools, NetworkManager, SSH, keyboard and locale support, firmware selected for
 the target, and utilities for hardware inspection and common storage tasks.
 Representative packages include `minios-tools`, `minios-image-compose`,
@@ -40,13 +40,11 @@ Representative packages include `minios-tools`, `minios-image-compose`,
 `ntfs-3g`, `btrfs-progs`, `xorriso`, `squashfs-tools`, `zstd`, `rfkill`, and
 `wpasupplicant`.
 
-The Xfce Minimum chain adds Xorg, Blackbox or Openbox as selected by the source
-list, Thunar, Mousepad, the Xfce panel, session, settings, desktop and window
-manager components, NetworkManager's desktop applet, ALSA controls, Xarchiver,
-battery support, and Firefox or Firefox ESR as selected for the distribution
-family.
+The Flux desktop chain adds Fluxbox and the supporting tools selected by the
+source lists. It does not include the complete Xfce application and MiniOS GUI
+set described under Standard.
 
-The MiniOS utilities present in every edition, including Xfce Minimum, are
+The MiniOS utilities present in every edition, including Flux, are
 `minios-tools`, `minios-image-compose`, `minios-live-config`, the matching
 systemd or SysV init integration, `minios-live-config-doc`, and
 `minios-welcome`.
@@ -126,6 +124,11 @@ Source lists describe requested packages and alternatives. Only the completed
 image and `dpkg-query` show the exact resolved dependency set and versions for a
 particular release. Package availability and package names can change between
 Debian, Ubuntu, and Devuan suites and between desktop environments.
+
+The source build system calls its smallest package variant `minimum`. This is an
+internal `PACKAGE_VARIANT` value used by CondinAPT filters, not the name of a
+published MiniOS edition. The published edition built from that package variant
+and the Flux environment is **Flux**.
 
 See [System architecture](/about/System-Architecture.md) for module ordering and
 [CondinAPT in MiniOS](/development/CondinAPT-MiniOS.md) for conditional package

@@ -12,6 +12,16 @@
         "key": "sidebar.systemArchitecture",
         "text": "System Architecture",
         "link": "/about/System-Architecture"
+      },
+      {
+        "key": "sidebar.miniosApplications",
+        "text": "MiniOS Applications",
+        "link": "/about/MiniOS-Applications"
+      },
+      {
+        "key": "sidebar.faq",
+        "text": "FAQ",
+        "link": "/about/FAQ"
       }
     ]
   },
@@ -124,6 +134,11 @@
         "link": "/configuration/live-config"
       },
       {
+        "key": "sidebar.networkConfiguration",
+        "text": "Network Configuration",
+        "link": "/configuration/Network-Configuration"
+      },
+      {
         "key": "sidebar.sessionManagement",
         "text": "Session Management",
         "link": "/configuration/Session-Management"
@@ -178,6 +193,16 @@
         "key": "sidebar.virtualization",
         "text": "Virtualization",
         "link": "/administration/Virtualization"
+      },
+      {
+        "key": "sidebar.backupRecovery",
+        "text": "Backup and Recovery",
+        "link": "/administration/Backup-Recovery"
+      },
+      {
+        "key": "sidebar.bootRecovery",
+        "text": "Boot Recovery",
+        "link": "/administration/Boot-Recovery"
       },
       {
         "key": "sidebar.troubleshooting",

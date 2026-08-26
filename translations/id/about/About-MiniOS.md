@@ -13,16 +13,18 @@ Lihat [Arsitektur sistem](/about/System-Architecture.md) untuk tata letak boot d
 
 ## Edisi
 
-Edisi yang tersedia tergantung pada rilis dan distribusi dasar:
+Edisi yang tersedia bergantung pada rilis dan distribusi dasar:
 
-- **Minimum** menggunakan lingkungan Flux dan paket yang lebih sedikit. Cocok untuk sistem yang membutuhkan pilihan perangkat lunak lebih ringkas.
+- **Flux** menggunakan lingkungan Flux dan paket yang lebih sedikit. Cocok untuk
+  sistem yang mengutamakan pilihan perangkat lunak yang lebih ringkas.
 - **Standard** adalah edisi serbaguna. Build Debian dan Ubuntu standar saat ini menggunakan Xfce.
 - **Toolbox** menambahkan alat administrasi sistem, penyimpanan, diagnostik, dan pemulihan.
 - **Ultra** menambahkan lebih banyak aplikasi di atas edisi lainnya.
 
-Xfce adalah desktop utama pada image Standard, Toolbox, dan Ultra, namun bukan satu-satunya lingkungan MiniOS. Minimum menggunakan Flux, dan konfigurasi build yang didukung dapat menawarkan lingkungan lain. Periksa deskripsi rilis sebelum mengunduh jika lingkungan desktop menjadi pertimbangan.
+Xfce biasanya menjadi desktop utama pada image Standard, Toolbox, dan Ultra, namun bukan satu-satunya lingkungan MiniOS. Edisi Flux menggunakan Fluxbox, dan konfigurasi build yang didukung dapat menawarkan lingkungan lain. Periksa deskripsi rilis sebelum mengunduh jika lingkungan desktop menjadi pertimbangan.
 
-Untuk perangkat lunak yang disertakan di setiap edisi, lihat [daftar paket](/administration/Packages.md).
+Untuk daftar perangkat lunak yang disertakan di setiap edisi, lihat
+[daftar paket](/administration/Packages.md) dan [aplikasi serta alat MiniOS](/about/MiniOS-Applications.md).
 
 ## Instalasi dan persistensi
 
@@ -35,3 +37,4 @@ Mulailah dengan [Quick start](/installation/Quick-Start.md) dan gunakan panduan 
 - [Situs web MiniOS](https://minios.dev)
 - [Kode sumber](https://github.com/minios-linux/minios-live)
 - [Pelacak isu](https://github.com/minios-linux/minios-live/issues)
+- [Pertanyaan yang sering diajukan](/about/FAQ.md)

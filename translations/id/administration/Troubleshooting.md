@@ -1,6 +1,8 @@
 # Pemecahan Masalah
 
-Mulailah dengan observasi dan pengujian yang dapat dibatalkan. Jangan melakukan repartisi, format ulang, perbaikan sistem berkas, menghapus sesi, atau menimpa berkas boot sebelum data penting dicadangkan dan perangkat yang bermasalah telah diidentifikasi berdasarkan model, ukuran, sistem berkas, dan titik mount.
+Mulailah dengan observasi dan pengujian yang dapat dibatalkan. Jangan melakukan repartisi, format ulang, perbaikan sistem berkas, menghapus sesi, atau menimpa file boot sebelum data penting dicadangkan dan perangkat yang bermasalah telah diidentifikasi berdasarkan model, ukuran, sistem berkas, dan titik mount.
+
+Gunakan [Backup dan pemulihan](/administration/Backup-Recovery.md) sebelum melakukan tindakan destruktif dan [Pemulihan boot](/administration/Boot-Recovery.md) jika firmware, bootloader, kernel, atau file boot yang terpasang terlibat.
 
 ## Pemeriksaan awal
 
@@ -43,9 +45,12 @@ Kontrol resolusi mesin virtual yang didokumentasikan sebagai `virtres` dan `novi
 hanya berlaku untuk lingkungan Xfce. Lihat
 [Virtualisasi](/administration/Virtualization.md) untuk pengaturan khusus guest.
 
-## Masalah jaringan
+## Masalah Jaringan
 
-Pastikan antarmuka ada sebelum mengubah konfigurasi:
+Untuk pengaturan kabel dan Wi-Fi normal, persistensi, dan perintah NetworkManager, lihat
+[Konfigurasi jaringan](/configuration/Network-Configuration.md).
+
+Tentukan apakah antarmuka tersedia sebelum mengubah konfigurasi:
 
 ```bash
 ip link
@@ -61,11 +66,11 @@ nmcli connection show
 systemctl status NetworkManager --no-pager
 ```
 
-- Jika tidak ada antarmuka yang muncul, catat output `lspci -nnk` atau `lsusb` dan periksa firmware yang hilang di `dmesg`.
-- Jika antarmuka ada tetapi tidak memiliki alamat, uji DHCP sebelum memasukkan nilai statis.
-- Jika sudah ada alamat, uji gateway, lalu alamat IP, lalu nama DNS untuk membedakan kegagalan link, routing, dan DNS.
+- Jika tidak ada antarmuka yang muncul, catat keluaran `lspci -nnk` atau `lsusb` dan periksa apakah ada firmware yang hilang di `dmesg`.
+- Jika antarmuka ada tetapi belum memiliki alamat, uji DHCP sebelum memasukkan nilai statis.
+- Jika alamat sudah ada, uji gateway, lalu alamat IP, lalu nama DNS untuk membedakan kegagalan link, routing, dan DNS.
 - Installer mengonfigurasi DHCP kabel atau IPv4 statis. Profil Wi-Fi yang sudah ada tidak diubah.
-- Parameter boot `ip=` mengatur unduhan PXE awal, bukan jaringan sesi persisten. Lihat [Network boot](/installation/Network-Boot.md).
+- Parameter boot `ip=` mengatur unduhan PXE awal, bukan jaringan sesi persisten. Lihat [Boot jaringan](/installation/Network-Boot.md).
 
 ## Masalah persistensi
 

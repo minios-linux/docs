@@ -35,14 +35,14 @@ find_data()
 
 | Persyaratan | Catatan |
 |-------------|--------|
-| Ethernet kabel (atau virtio/vmxnet di VM) | Antarmuka pertama yang dapat digunakan selain loopback yang dipakai; tidak ada pemilihan `BOOTIF` / `ethdevice` di initrd |
-| Initrd dengan modul jaringan | Dibangun untuk varian paket non-**minimum** (`--network`, seringkali `--cloud`) |
-| Tidak bergantung pada Wi‑Fi | Wireless tidak didukung pada jalur boot jaringan |
+| Ethernet kabel (atau virtio/vmxnet di VM) | Antarmuka non-loopback pertama yang dapat digunakan akan dipakai; tidak ada pemilihan `BOOTIF` / `ethdevice` di initrd |
+| Initrd dengan modul jaringan | Dibangun untuk varian paket selain nilai internal `minimum` (`--network`, seringkali `--cloud`) |
+| Tidak bergantung pada Wi‑Fi | Nirkabel tidak didukung pada jalur network-boot |
 | Disarankan NIC tanpa firmware blob | Kartu yang bergantung pada firmware sering gagal di initrd |
-| Disarankan image **standard+** | **minimum** tidak menyertakan modul NIC jaringan → PXE / HTTP ISO pada dasarnya tidak didukung |
+| Disarankan menggunakan image **Standard** atau lebih besar | Edisi **Flux** tidak menyertakan modul NIC jaringan, sehingga PXE / HTTP ISO pada dasarnya tidak didukung |
 | Hanya HTTP untuk URL ISO | `from=http://…` berfungsi; **`https://` tidak didukung** |
 
-Alat di initrd: busybox `ifconfig`, `route`, `udhcpc`, `wget`, `tftp`, dan `@mount.httpfs2`. Tidak ada NetworkManager di initrd.
+Tools di initrd: busybox `ifconfig`, `route`, `udhcpc`, `wget`, `tftp`, dan `@mount.httpfs2`. Tidak ada NetworkManager di initrd.
 
 ## Boot PXE
 
@@ -127,22 +127,22 @@ Jika root masih menggunakan **httpfs**, NetworkManager yang mengonfigurasi ulang
 
 ## Kesalahan umum
 
-1. Menambahkan `ip=` pada cmdline USB/ISO “untuk IP statis” → sistem mencoba unduh PXE, bukan dari media lokal.
-2. Menggunakan `ip=dhcp` atau sintaks `ip=` kernel lain → parser salah, pengaturan alamat gagal.
-3. Mengharapkan Wi‑Fi atau pemilihan multi-NIC `BOOTIF` di initrd → belum diimplementasikan.
-4. Menggunakan image **minimum** untuk PXE/HTTP ISO → modul jaringan tidak ada di initrd.
-5. Menyajikan ISO hanya lewat HTTPS → `from=http://…` tidak akan cocok.
+1. Menambahkan `ip=` pada cmdline USB/ISO “untuk IP statis” → sistem mencoba mengunduh PXE alih-alih dari media lokal.
+2. Menggunakan `ip=dhcp` atau sintaks kernel `ip=` lain → parser salah, pengaturan alamat gagal.
+3. Mengharapkan pemilihan Wi‑Fi atau multi-NIC `BOOTIF` di initrd → belum diimplementasikan.
+4. Menggunakan image **Flux** untuk PXE/HTTP ISO → modul jaringan tidak ada di initrd.
+5. Menyediakan ISO hanya melalui HTTPS → `from=http://…` tidak akan cocok.
 6. Mengira ini sama dengan konfigurasi statis installer/NetworkManager setelah login.
 
-## Ringkasan keandalan
+## Ringkasan Keandalan
 
 | Skenario | Penilaian |
-|----------|-----------|
-| PXE + `ip=…` + daftar HTTP di :7529 (atau TFTP), kabel sederhana / virtio | Target yang didukung |
-| `from=http://…iso` + DHCP (atau `ip=`), kelas NIC yang sama | Umumnya berfungsi |
+|----------|------------|
+| PXE + `ip=…` + daftar HTTP di :7529 (atau TFTP), kabel sederhana / virtio | Target didukung |
+| `from=http://…iso` + DHCP (atau `ip=`), kelas NIC yang sama | Biasanya berfungsi |
 | Boot USB/ISO normal | Jaringan initrd tidak digunakan |
 | Sesi statis via `ip=` | Tidak didukung |
-| Multi-NIC / NIC firmware / Wi‑Fi / `https://` / edisi minimum | Lemah atau tidak didukung |
+| Multi-NIC / firmware NIC / Wi‑Fi / `https://` / Flux edition | Lemah atau tidak didukung |
 
 ## Referensi implementasi
 

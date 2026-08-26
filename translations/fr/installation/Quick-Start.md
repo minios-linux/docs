@@ -2,10 +2,10 @@
 
 Ce guide explique comment télécharger, écrire, démarrer et effectuer la configuration initiale de MiniOS.
 
-## 1. Choisir une édition
+## 1. Choisissez une édition
 
-- **Minimum** propose un ensemble de paquets réduit et l’environnement Flux.
-- **Standard** est l’édition Xfce polyvalente.
+- **Flux** propose un ensemble de paquets réduit et l’environnement Flux.
+- **Standard** est l’édition Xfce à usage général.
 - **Toolbox** ajoute des outils d’administration, de diagnostic, de stockage et de récupération.
 - **Ultra** inclut le plus large éventail d’applications.
 
@@ -14,9 +14,9 @@ La disponibilité des éditions et des environnements de bureau varie selon la v
 [liste des paquets](/administration/Packages.md) avant de télécharger.
 
 Téléchargez une image ISO depuis [minios.dev](https://minios.dev) ou la
-[page des versions GitHub](https://github.com/minios-linux/minios-live/releases).
-Vérifiez son empreinte avant de l’utiliser ; voir
-[Vérification des téléchargements](/installation/Verifying-Downloads.md).
+[page des releases GitHub](https://github.com/minios-linux/minios-live/releases).
+Vérifiez son empreinte avant utilisation ; voir
+[Validation des téléchargements](/installation/Verifying-Downloads.md).
 
 ## 2. Préparer un périphérique cible
 
@@ -70,12 +70,19 @@ Ouvrez **Applications > Système > Configurer MiniOS**, ou exécutez :
 minios-configurator
 ```
 
-Le configurateur modifie `/etc/live/config.conf`. Il permet de définir l’identité utilisateur, les mots de passe, la langue, le fuseau horaire, le clavier, le nom d’hôte, les services, le stockage du dossier utilisateur et les contrôles de sécurité. Il ne modifie pas directement le système en cours d’exécution ; les paramètres enregistrés sont appliqués selon la pertinence de chaque réglage, généralement après un redémarrage ou lors de la création d’une nouvelle session.
+Le Configurateur modifie `/etc/live/config.conf`. Il permet de définir l’identité utilisateur,
+les mots de passe, la langue, le fuseau horaire, le clavier, le nom d’hôte, les services, le stockage du répertoire utilisateur et les contrôles de sécurité. Il ne modifie pas directement le système en cours d’exécution ;
+les paramètres enregistrés sont appliqués selon leur applicabilité, généralement
+après un redémarrage ou lors de la création d’une nouvelle session.
 
-Les profils de sécurité remplissent des paramètres concrets pour sudo, PolicyKit, SSH, XRDP, X11, les indices de mot de passe, le verrouillage d’écran et la connexion automatique. Vérifiez les contrôles résultants plutôt que de considérer le nom du profil comme un paramètre actif. Consultez
+Les profils de sécurité remplissent des paramètres concrets pour sudo, PolicyKit, SSH, XRDP, X11,
+les indices de mot de passe, le verrouillage d’écran et la connexion automatique. Vérifiez les contrôles résultants plutôt que de considérer le nom du profil comme un paramètre actif. Consultez
 [Renforcement de la sécurité](/administration/Security-Hardening.md) et le
-[guide du configurateur MiniOS](/configuration/MiniOS-Configurator.md). La
-[référence du fichier de configuration](/configuration/Configuration-File.md) documente les clés sous-jacentes.
+[guide du Configurateur MiniOS](/configuration/MiniOS-Configurator.md). La
+[référence du fichier de configuration](/configuration/Configuration-File.md) documente
+les clés sous-jacentes.
+
+Configurez les connexions filaires et Wi-Fi habituelles avec la [Configuration réseau](/configuration/Network-Configuration.md). Le paramètre de démarrage réseau `ip=` n’est pas un paramètre persistant de NetworkManager.
 
 ## 6. Installer des logiciels et sauvegarder son travail
 
@@ -87,9 +94,12 @@ Enregistrez les fichiers importants sur un support reconnu comme inscriptible et
 ## Obtenir de l’aide
 
 - [Optimisation des performances](/administration/Performance-Optimization.md)
+- [Applications et outils MiniOS](/about/MiniOS-Applications.md)
+- [Sauvegarde et récupération](/administration/Backup-Recovery.md)
+- [Foire aux questions](/about/FAQ.md)
 - [Gestion du noyau](/administration/Kernel-Management.md)
-- [Construire MiniOS](/development/Building-MiniOS.md)
+- [Compiler MiniOS](/development/Building-MiniOS.md)
 - [Reconstruire une ISO](/development/Rebuilding-ISO.md)
 - [Problèmes sur GitHub](https://github.com/minios-linux/minios-live/issues)
-- [Source MiniOS](https://github.com/minios-linux/minios-live)
+- [Source de MiniOS](https://github.com/minios-linux/minios-live)
 - [Documentation Debian](https://www.debian.org/doc/)

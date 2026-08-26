@@ -31,18 +31,18 @@ find_data()
 
 **Wichtig:** Jedes nicht-leere `ip=` wählt den **PXE-Datenpfad** und **überspringt lokale Medien**. Füge `ip=` bei einem normalen USB/ISO-Boot nicht hinzu, nur um „eine statische Adresse zu setzen“.
 
-## Voraussetzungen
+## Anforderungen
 
-| Voraussetzung | Hinweise |
-|---------------|---------|
-| Kabelgebundenes Ethernet (oder virtio/vmxnet in VMs) | Erstes nutzbares Nicht-Loopback-Interface wird verwendet; keine `BOOTIF`-/`ethdevice`-Auswahl im initrd |
-| Initrd mit Netzwerktreibern | Erstellt für Nicht-**minimum**-Paketvarianten (`--network`, oft `--cloud`) |
-| Kein WLAN | Drahtlos wird im Netzwerk-Boot-Pfad nicht unterstützt |
-| Bevorzugt NICs ohne Firmware-Blobs | Firmware-abhängige Karten funktionieren im initrd oft nicht |
-| Bevorzugt **standard+** Images | **minimum** enthält keine Netzwerk-NIC-Module → PXE / HTTP ISO de facto nicht unterstützt |
+| Anforderung | Hinweise |
+|-------------|---------|
+| Kabelgebundenes Ethernet (oder virtio/vmxnet in VMs) | Erstes nutzbares Nicht-Loopback-Interface wird verwendet; keine `BOOTIF` / `ethdevice` Auswahl im initrd |
+| Initrd mit Netzwerktreibern | Erstellt für Paketvarianten außer dem internen `minimum` Wert (`--network`, häufig `--cloud`) |
+| Keine Abhängigkeit von Wi‑Fi | Drahtlos wird im Netzwerk-Boot-Pfad nicht unterstützt |
+| Bevorzugt NICs ohne Firmware-Blobs | Firmware-abhängige Karten schlagen im initrd oft fehl |
+| Bevorzugt **Standard** oder größere Images | Die **Flux** Edition enthält keine Netzwerk-NIC-Module, daher ist PXE / HTTP ISO faktisch nicht unterstützt |
 | Nur HTTP für ISO-URL | `from=http://…` funktioniert; **`https://` wird nicht unterstützt** |
 
-Werkzeuge im initrd: busybox `ifconfig`, `route`, `udhcpc`, `wget`, `tftp` und `@mount.httpfs2`. Es gibt keinen NetworkManager im initrd.
+Tools im initrd: busybox `ifconfig`, `route`, `udhcpc`, `wget`, `tftp` und `@mount.httpfs2`. Es gibt keinen NetworkManager im initrd.
 
 ## PXE-Boot
 
@@ -127,22 +127,22 @@ Spätes Userspace **live-config** kann das Netzwerk kurz aktivieren, um entfernt
 
 ## Häufige Fehler
 
-1. `ip=` auf der USB/ISO-Cmdline setzen „für statische IP“ → System versucht PXE-Download statt lokaler Medien.
-2. `ip=dhcp` oder andere Kernel-`ip=`-Syntax verwenden → falscher Parser, fehlerhafte Adressierung.
-3. WLAN oder Multi-NIC-`BOOTIF`-Auswahl im initrd erwarten → nicht implementiert.
-4. **minimum**-Image für PXE/HTTP-ISO verwenden → Netzwerkmodule fehlen im initrd.
-5. ISO nur über HTTPS bereitstellen → `from=http://…` funktioniert dann nicht.
-6. Verwechslung mit Installer-/NetworkManager-Statikkonfiguration nach dem Login.
+1. `ip=` auf einer USB/ISO-Cmdline „für statische IP“ setzen → System versucht PXE-Download statt von lokalen Medien.
+2. `ip=dhcp` oder andere Kernel-`ip=`-Syntax verwenden → falscher Parser, fehlerhafte Adresskonfiguration.
+3. WLAN- oder Multi-NIC-`BOOTIF`-Auswahl im initrd erwarten → nicht implementiert.
+4. Ein **Flux**-Image für PXE/HTTP ISO verwenden → Netzwerk-Module fehlen im initrd.
+5. ISO nur über HTTPS bereitstellen → `from=http://…` wird nicht erkannt.
+6. Dies mit der statischen Konfiguration des Installers/NetworkManager nach dem Login verwechseln.
 
 ## Zuverlässigkeitsübersicht
 
 | Szenario | Bewertung |
-|----------|-----------|
-| PXE + `ip=…` + HTTP-Liste auf :7529 (oder TFTP), einfaches Kabelnetz / virtio | Unterstütztes Ziel |
+|----------|------------|
+| PXE + `ip=…` + HTTP-Liste auf :7529 (oder TFTP), einfaches kabelgebundenes / virtio | Unterstütztes Ziel |
 | `from=http://…iso` + DHCP (oder `ip=`), gleiche NIC-Klasse | Funktioniert meistens |
-| Normaler USB/ISO-Boot | Initrd-Netzwerk wird nicht verwendet |
-| Statische Sitzung via `ip=` | Nicht unterstützt |
-| Multi-NIC / Firmware-NIC / WLAN / `https://` / minimum Edition | Schwach oder nicht unterstützt |
+| Normales USB/ISO-Boot | Initrd-Netzwerk wird nicht verwendet |
+| Sitzung statisch über `ip=` | Nicht unterstützt |
+| Multi-NIC / Firmware-NIC / WLAN / `https://` / Flux Edition | Schwach oder nicht unterstützt |
 
 ## Implementierungsreferenz
 

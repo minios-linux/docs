@@ -4,12 +4,12 @@ Este guia aborda o download, gravação, inicialização e configuração inicia
 
 ## 1. Escolha uma edição
 
-- **Minimum** oferece um conjunto reduzido de pacotes e o ambiente Flux.
-- **Standard** é a edição Xfce para uso geral.
+- **Flux** oferece um conjunto reduzido de pacotes e o ambiente Flux.
+- **Standard** é a edição Xfce de uso geral.
 - **Toolbox** adiciona ferramentas de administração, diagnóstico, armazenamento e recuperação.
 - **Ultra** inclui o conjunto mais amplo de aplicativos.
 
-A disponibilidade de edições e ambientes gráficos varia conforme a versão. Consulte
+A disponibilidade de edições e ambientes varia conforme a versão. Consulte
 [Sobre o MiniOS](/about/About-MiniOS.md) e a
 [lista de pacotes](/administration/Packages.md) antes de baixar.
 
@@ -64,18 +64,27 @@ Se o dispositivo não aparecer na lista ou a área de trabalho não iniciar, con
 
 ## 5. Configure o sistema
 
-Abra **Aplicativos > Sistema > Configurar MiniOS** ou execute:
+Abra **Aplicativos > Sistema > Configurar MiniOS**, ou execute:
 
 ```bash
 minios-configurator
 ```
 
-O Configurador edita `/etc/live/config.conf`. Ele pode definir identidade do usuário, senhas, localidade, fuso horário, teclado, nome do host, serviços, armazenamento do diretório do usuário e controles de segurança. Não altera o sistema em execução diretamente; as configurações salvas são aplicadas conforme a aplicabilidade de cada item, normalmente após reinicialização ou ao criar uma nova sessão.
+O Configurador edita `/etc/live/config.conf`. Ele pode definir identidade do usuário,
+senhas, localidade, fuso horário, teclado, nome do host, serviços, armazenamento do diretório do usuário
+e controles de segurança. Não altera o sistema em execução diretamente;
+as configurações salvas são aplicadas conforme a aplicabilidade de cada ajuste, normalmente
+depois de reiniciar ou ao criar uma nova sessão.
 
-Perfis de segurança preenchem configurações concretas para sudo, PolicyKit, SSH, XRDP, X11, dicas de senha, bloqueio de tela e login automático. Revise os controles resultantes em vez de considerar apenas o nome do perfil como uma configuração em tempo de execução. Veja
+Perfis de segurança preenchem configurações concretas para sudo, PolicyKit, SSH, XRDP, X11,
+dicas de senha, bloqueio de tela e login automático. Revise os controles resultantes
+e não trate o nome do perfil como uma configuração dinâmica. Veja
 [Reforço de segurança](/administration/Security-Hardening.md) e o
-[guia do Configurador do MiniOS](/configuration/MiniOS-Configurator.md). A
-[referência do arquivo de configuração](/configuration/Configuration-File.md) documenta as chaves subjacentes.
+[guia do Configurador MiniOS](/configuration/MiniOS-Configurator.md). A
+[referência do arquivo de configuração](/configuration/Configuration-File.md) documenta
+as chaves subjacentes.
+
+Configure conexões cabeadas e Wi-Fi normalmente com a [Configuração de rede](/configuration/Network-Configuration.md). O parâmetro de boot de rede `ip=` não é uma configuração persistente do NetworkManager.
 
 ## 6. Instale softwares e salve seu trabalho
 
@@ -87,9 +96,12 @@ Salve arquivos importantes em um armazenamento conhecido como gravável e teste 
 ## Obtendo ajuda
 
 - [Otimização de desempenho](/administration/Performance-Optimization.md)
-- [Gerenciamento de kernel](/administration/Kernel-Management.md)
+- [Aplicativos e ferramentas do MiniOS](/about/MiniOS-Applications.md)
+- [Backup e recuperação](/administration/Backup-Recovery.md)
+- [Perguntas frequentes](/about/FAQ.md)
+- [Gerenciamento do kernel](/administration/Kernel-Management.md)
 - [Compilando o MiniOS](/development/Building-MiniOS.md)
 - [Reconstruindo uma ISO](/development/Rebuilding-ISO.md)
 - [Issues no GitHub](https://github.com/minios-linux/minios-live/issues)
-- [Fonte do MiniOS](https://github.com/minios-linux/minios-live)
+- [Código-fonte do MiniOS](https://github.com/minios-linux/minios-live)
 - [Documentação do Debian](https://www.debian.org/doc/)

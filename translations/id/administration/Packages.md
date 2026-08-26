@@ -4,14 +4,14 @@ Konten paket MiniOS dihasilkan dari daftar sumber bersyarat. Daftar ini dapat be
 
 ## Pewarisan edisi
 
-Varian paket membentuk urutan aditif:
+Edisi publik membentuk urutan aditif:
 
-1. **Minimum** menyediakan sistem live umum dan desktop terkecil yang dipilih.
-2. **Standard** mewarisi Minimum dan menambahkan alat administrasi umum, desktop, dan manajemen MiniOS.
+1. **Flux** menyediakan sistem live umum dan lingkungan Flux yang ringan.
+2. **Standard** mewarisi basis paket umum dan menambahkan alat administrasi umum, desktop, dan manajemen MiniOS.
 3. **Toolbox** mewarisi Standard dan menambahkan alat pemulihan, diagnostik, penyimpanan, jaringan, dan virtualisasi.
-4. **Ultra** mewarisi Toolbox dan menambahkan perangkat lunak workstation, media, perkantoran, dan kontainer yang lebih luas.
+4. **Ultra** mewarisi Toolbox dan menambahkan perangkat lunak workstation, media, perkantoran, dan container yang lebih luas.
 
-Ekspresi bersyarat dapat memilih alternatif atau menghilangkan paket untuk suite, arsitektur, lingkungan, atau opsi build tertentu. Nama paket yang disebutkan di bawah ini adalah representatif dari daftar sumber saat ini, bukan jaminan bahwa nama paket biner Debian yang sama tersedia di setiap rilis MiniOS.
+Ekspresi kondisional dapat memilih alternatif atau menghilangkan paket untuk suite, arsitektur, lingkungan, atau opsi build tertentu. Nama paket yang tercantum di bawah ini merupakan representasi dari daftar sumber saat ini, bukan janji bahwa nama paket biner Debian yang sama tersedia di setiap rilis MiniOS.
 
 ## Cakupan desktop dan lingkungan
 
@@ -19,13 +19,13 @@ Paket desktop berasal dari rantai modul berurutan lingkungan yang dipilih. Lingk
 
 ## Contoh isi representatif
 
-### Minimum
+### Flux
 
-Komposisi Minimum umum mencakup konfigurasi live MiniOS dan alat pembuatan image, NetworkManager, SSH, dukungan keyboard dan lokal, firmware yang dipilih untuk target, serta utilitas untuk inspeksi perangkat keras dan tugas penyimpanan umum. Paket representatif meliputi `minios-tools`, `minios-image-compose`, `minios-live-config`, `pciutils`, `usbutils`, `smartmontools`, `dosfstools`, `ntfs-3g`, `btrfs-progs`, `xorriso`, `squashfs-tools`, `zstd`, `rfkill`, dan `wpasupplicant`.
+Komposisi Flux umum mencakup konfigurasi live MiniOS dan alat pembuatan image, NetworkManager, SSH, dukungan keyboard dan lokal, firmware yang dipilih sesuai target, serta utilitas untuk inspeksi perangkat keras dan tugas penyimpanan umum. Paket representatif meliputi `minios-tools`, `minios-image-compose`, `minios-live-config`, `pciutils`, `usbutils`, `smartmontools`, `dosfstools`, `ntfs-3g`, `btrfs-progs`, `xorriso`, `squashfs-tools`, `zstd`, `rfkill`, dan `wpasupplicant`.
 
-Rantai Minimum Xfce menambahkan Xorg, Blackbox atau Openbox sesuai pilihan daftar sumber, Thunar, Mousepad, panel Xfce, sesi, pengaturan, komponen desktop dan window manager, applet desktop NetworkManager, kontrol ALSA, Xarchiver, dukungan baterai, serta Firefox atau Firefox ESR sesuai keluarga distribusi.
+Rangkaian desktop Flux menambahkan Fluxbox dan alat pendukung yang dipilih oleh daftar sumber. Tidak termasuk seluruh aplikasi Xfce dan set GUI MiniOS yang dijelaskan pada bagian Standard.
 
-Utilitas MiniOS yang ada di setiap edisi, termasuk Xfce Minimum, adalah `minios-tools`, `minios-image-compose`, `minios-live-config`, integrasi systemd atau SysV init yang sesuai, `minios-live-config-doc`, dan `minios-welcome`.
+Utilitas MiniOS yang tersedia di setiap edisi, termasuk Flux, adalah `minios-tools`, `minios-image-compose`, `minios-live-config`, integrasi systemd atau SysV init yang sesuai, `minios-live-config-doc`, dan `minios-welcome`.
 
 ### Standard
 
@@ -43,21 +43,21 @@ Modul aplikasi Xfce menambahkan alat representatif seperti GParted, GSmartContro
 
 Ultra mempertahankan set Toolbox dan menambahkan perangkat lunak kontainer serta workstation. Penambahan bersama yang representatif meliputi paket Docker yang dipilih untuk repositori target, dukungan Compose, `lazydocker`, alat iSCSI, dan utilitas user-namespace. Daftar aplikasi Xfce saat ini menambahkan LibreOffice, GIMP, Inkscape, Blender, Audacity, OBS Studio, RawTherapee, Synaptic, dan paket integrasi desktop terkait.
 
-## Periksa isi rilis secara tepat
+## Inspeksi isi rilis secara tepat
 
-Sistem yang sedang berjalan adalah referensi utama untuk paket yang benar-benar terpasang pada rilis tersebut. Daftar nama dan versi paket dengan:
+Sistem yang sedang berjalan adalah sumber utama untuk paket yang benar-benar terpasang pada rilis tersebut. Daftar nama dan versi paket dengan:
 
 ```bash
 dpkg-query -W -f='${binary:Package}\t${Version}\n' | sort
 ```
 
-Periksa modul berurutan yang membentuk root berjalan secara terpisah dari file yang dipilih untuk boot berikutnya. MiniOS Module Manager menampilkan ini sebagai **Sedang berjalan** dan **Boot berikutnya**. Dari shell, mount SquashFS runtime dapat dilihat dengan:
+Inspeksi modul berurutan yang membentuk root berjalan secara terpisah dari file yang dipilih untuk boot berikutnya. MiniOS Module Manager menampilkan ini sebagai **Running now** dan **Next boot**. Dari shell, mount SquashFS runtime dapat dilihat dengan:
 
 ```bash
 findmnt -rn -t squashfs -o TARGET,SOURCE
 ```
 
-Untuk media offline atau ISO yang sudah di-mount, inventarisasi file modul sumber secara langsung:
+Untuk media offline atau ISO yang di-mount, inventarisasi file modul sumber secara langsung:
 
 ```bash
 find /path/to/media/minios -type f -name '*.sb' -printf '%P\n' | sort -n
@@ -67,11 +67,13 @@ Untuk build sumber, file dan direktori berikut adalah manifest sumber dan input 
 
 - `linux-live/environments/<environment>/` untuk rantai modul berurutan.
 - `linux-live/scripts/00-core/packages.list` untuk seleksi edisi bersama.
-- `linux-live/scripts/01-kernel/packages.list` dan `02-firmware/packages.list` untuk penambahan kernel dan firmware bersyarat.
+- `linux-live/scripts/01-kernel/packages.list` dan `02-firmware/packages.list` untuk penambahan kernel dan firmware kondisional.
 - `packages.list` pada setiap modul desktop dan aplikasi yang dipilih.
 - `linux-live/build.conf` untuk suite, arsitektur, lingkungan, varian paket, sistem init, kernel, lokal, dan nilai filter lainnya.
-- `linux-live/condinapt.map` untuk arti prefiks filter daftar paket.
+- `linux-live/condinapt.map` untuk penjelasan awalan filter daftar paket.
 
-Daftar sumber menjelaskan paket dan alternatif yang diminta. Hanya image yang telah selesai dan `dpkg-query` yang menampilkan set dependensi dan versi yang telah ter-resolve secara pasti untuk rilis tertentu. Ketersediaan dan nama paket dapat berubah antara suite Debian, Ubuntu, dan Devuan serta antar lingkungan desktop.
+Daftar sumber mendeskripsikan paket yang diminta dan alternatifnya. Hanya image yang sudah selesai dan `dpkg-query` yang menunjukkan set dependensi dan versi yang telah diselesaikan secara tepat untuk rilis tertentu. Ketersediaan dan nama paket dapat berubah antara suite Debian, Ubuntu, dan Devuan serta antar lingkungan desktop.
 
-Lihat [Arsitektur sistem](/about/System-Architecture.md) untuk urutan modul dan [CondinAPT di MiniOS](/development/CondinAPT-MiniOS.md) untuk seleksi paket bersyarat.
+Sistem build sumber menyebut varian paket terkecilnya `minimum`. Ini adalah nilai internal `PACKAGE_VARIANT` yang digunakan oleh filter CondinAPT, bukan nama edisi MiniOS yang dipublikasikan. Edisi yang dipublikasikan dari varian paket tersebut dan lingkungan Flux adalah **Flux**.
+
+Lihat [Arsitektur sistem](/about/System-Architecture.md) untuk urutan modul dan [CondinAPT di MiniOS](/development/CondinAPT-MiniOS.md) untuk seleksi paket kondisional.

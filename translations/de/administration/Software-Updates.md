@@ -4,16 +4,16 @@ MiniOS kombiniert schreibgeschützte SquashFS-Imagemodule mit einem beschreibbar
 
 ## Pakete mit APT aktualisieren
 
-APT schreibt in das Laufzeit-Overlay. Aktivieren und nutzen Sie eine persistente Sitzung, bevor Sie Updates durchführen, wenn die Änderungen einen Neustart überstehen sollen:
+APT schreibt in das Laufzeit-Overlay. Aktivieren und verwenden Sie eine persistente Sitzung, bevor Sie Updates durchführen, wenn die Änderungen einen Neustart überstehen sollen:
 
 ```bash
 sudo apt update
 sudo apt upgrade
 ```
 
-Ohne Persistenz gehen Paketänderungen beim Herunterfahren verloren. Mit Persistenz bleiben aktualisierte Dateien und der APT-Status in dieser Sitzung erhalten, aber die zugrunde liegenden `.sb`-Imagemodule bleiben unverändert. Eine neue Sitzung verwendet weiterhin die Paketversionen aus dem Image.
+Ohne Persistenz gehen Paketänderungen beim Herunterfahren verloren. Mit Persistenz bleiben aktualisierte Dateien und der APT-Status in dieser Sitzung erhalten, aber die zugrunde liegenden `.sb`-Image-Module bleiben unverändert. Eine neue Sitzung verwendet weiterhin die Paketversionen aus dem Image.
 
-APT eignet sich zur Pflege einer persistenten Installation. Prüfen Sie zuerst den verfügbaren Speicherplatz, da aktualisierte Dateien zusätzlich zu den komprimierten Basismodulen gespeichert werden. Behandeln Sie ein Debian-Release-Upgrade vor Ort nicht als MiniOS-Image-Upgrade; verwenden Sie stattdessen ein für das Ziel-Release erstelltes Image.
+APT eignet sich zur Pflege einer persistenten Installation. Prüfen Sie vorher den verfügbaren Speicherplatz, da aktualisierte Dateien zusätzlich zu den komprimierten Basismodulen gespeichert werden. MiniOS unterstützt keine In-Place-Upgrades zwischen Releases. Behandeln Sie ein Debian-Release-Upgrade nicht als MiniOS-Image-Upgrade; sichern Sie Ihre Daten und verwenden Sie stattdessen ein für das Ziel-Release gebautes Image.
 
 ## Software mit Modulen aktualisieren
 
@@ -39,16 +39,16 @@ Für lokal gepackte Software kann `apt2sb upgrade` ein Update-Modul erstellen. D
 
 ## Imagemodule ersetzen
 
-Offizielle Image-Updates ersetzen Dateien auf dem MiniOS-Medium; `apt upgrade` aktualisiert diese nicht. Bevorzugen Sie das Ersetzen des gesamten Basismodul-Sets und der passenden Bootdateien einer MiniOS-Version oder installieren Sie das neue Image komplett neu. Mischen Sie keine Core-, Desktop-, Anwendungs-, Firmware- oder Bootdateien aus verschiedenen Releases, sofern deren Kompatibilität nicht dokumentiert ist.
+Offizielle Image-Updates ersetzen Dateien auf dem MiniOS-Medium; `apt upgrade` aktualisiert diese nicht. Bevorzugen Sie das Ersetzen des vollständigen Basismodul-Sets und der passenden Boot-Dateien aus einer MiniOS-Version oder eine Neuinstallation vom neuen Image. Mischen Sie keine Core-, Desktop-, Anwendungs-, Firmware- oder Boot-Dateien aus unterschiedlichen Releases, sofern deren Kompatibilität nicht dokumentiert ist.
 
 Vor dem Ersetzen:
 
-1. Sichern Sie die MiniOS-Konfiguration, Persistenzdaten, Benutzermodule und die aktuellen Basismodule.
+1. Sichern Sie die MiniOS-Konfiguration, Persistenzdaten, Benutzermodule und die aktuellen Basismodule wie in [Backup und Wiederherstellung](/administration/Backup-Recovery.md) beschrieben.
 2. Notieren Sie die aktiven und für den nächsten Start vorgesehenen Modullisten mit `sb list` und `sb next-boot`.
-3. Führen Sie das Ersetzen von einem anderen System oder von einem im RAM geladenen Boot durch, damit die Quelldateien nicht verwendet werden.
-4. Bewahren Sie die vorherigen Dateien auf, bis das neue Image startet und die benötigte Hardware und Anwendungen getestet wurden.
+3. Führen Sie das Ersetzen von einem anderen System oder von einem im RAM geladenen Boot aus, sodass die Quelldateien nicht in Benutzung sind.
+4. Bewahren Sie die bisherigen Dateien auf, bis das neue Image gebootet und die benötigte Hardware sowie Anwendungen getestet wurden.
 
-Behalten Sie Modul-Basisnamen und Reihenfolge bei, wenn ein Release den direkten Austausch vorschreibt. Eine spätere Quelle mit demselben Basisnamen ersetzt eine frühere Quelle in der Auswahl für den nächsten Start; unterschiedlich benannte Kopien können beide geladen werden und eine unerwünschte Ebenenreihenfolge verursachen.
+Behalten Sie Modul-Basename und Reihenfolge bei, wenn ein Release einen direkten Austausch vorsieht. Eine spätere Quelle mit demselben Basename ersetzt eine frühere Quelle in der Auswahl für den nächsten Start; unterschiedlich benannte Kopien können beide geladen werden und eine unbeabsichtigte Layer-Reihenfolge verursachen.
 
 ## Kernel aktualisieren
 

@@ -4,16 +4,24 @@ MiniOS combina módulos de imagen SquashFS de solo lectura con una superposició
 
 ## Actualizar paquetes con APT
 
-APT escribe en la superposición de ejecución. Habilita y utiliza una sesión persistente antes de actualizar si los cambios deben mantenerse después de reiniciar:
+APT escribe en la superposición de runtime. Habilita y utiliza una sesión persistente antes de
+actualizar si necesitas que los cambios sobrevivan a un reinicio:
 
 ```bash
 sudo apt update
 sudo apt upgrade
 ```
 
-Sin persistencia, los cambios en los paquetes se pierden al apagar. Con persistencia, los archivos actualizados y el estado de APT permanecen en esa sesión, pero los módulos de imagen `.sb` subyacentes no se modifican. Una sesión nueva seguirá usando las versiones de los paquetes incluidas en la imagen.
+Sin persistencia, los cambios en los paquetes desaparecen al apagar el sistema. Con persistencia,
+los archivos actualizados y el estado de APT permanecen en esa sesión, pero los módulos de imagen `.sb`
+subyacentes no se modifican. Una sesión nueva sigue utilizando las versiones de paquetes incluidas en
+la imagen.
 
-APT es adecuado para mantener una sola instalación persistente. Verifica primero el espacio disponible, ya que los archivos actualizados se almacenan además de los módulos base comprimidos. No consideres una actualización de versión de Debian en el lugar como una actualización de imagen de MiniOS; en su lugar, utiliza una imagen creada para la versión de destino.
+APT es adecuado para mantener una única instalación persistente. Verifica primero el espacio disponible,
+ya que los archivos actualizados se almacenan además de los módulos base comprimidos. MiniOS no admite
+actualizaciones in-place entre versiones. No trates una actualización de versión de Debian como una
+actualización de imagen de MiniOS; haz una copia de seguridad de tus datos y utiliza una imagen creada
+para la versión de destino.
 
 ## Actualizar software con módulos
 
@@ -39,16 +47,25 @@ Para software empaquetado localmente, `apt2sb upgrade` puede crear un módulo de
 
 ## Reemplazar módulos de imagen
 
-Las actualizaciones oficiales de imagen reemplazan archivos en el medio de MiniOS; `apt upgrade` no los actualiza. Es preferible reemplazar el conjunto completo de módulos base y los archivos de arranque correspondientes de una misma versión de MiniOS, o reinstalar desde la nueva imagen. No mezcles archivos principales, de escritorio, aplicaciones, firmware o de arranque de diferentes versiones a menos que su compatibilidad esté documentada.
+Las actualizaciones oficiales de imagen reemplazan archivos en el medio de MiniOS; `apt upgrade` no
+los actualiza. Es preferible reemplazar todo el conjunto de módulos base y los archivos de arranque correspondientes
+de una misma versión de MiniOS, o reinstalar desde la nueva imagen. No mezcles archivos de núcleo, escritorio,
+aplicaciones, firmware o arranque de diferentes versiones a menos que su compatibilidad esté documentada.
 
 Antes de reemplazar:
 
-1. Haz una copia de seguridad de la configuración de MiniOS, los datos de persistencia, los módulos de usuario y los módulos base actuales.
-2. Registra las listas de módulos activos y para el próximo arranque con `sb list` y `sb next-boot`.
-3. Realiza el reemplazo desde otro sistema o desde un arranque cargado en RAM para que los archivos de origen no estén en uso.
+1. Haz una copia de seguridad de la configuración de MiniOS, los datos de persistencia, los módulos de usuario y los
+   módulos base actuales como se describe en [Copia de seguridad y
+   recuperación](/administration/Backup-Recovery.md).
+2. Registra las listas de módulos activos y de arranque siguiente con `sb list` y
+   `sb next-boot`.
+3. Realiza el reemplazo desde otro sistema o desde un arranque cargado en RAM para que
+   los archivos fuente no estén en uso.
 4. Conserva los archivos anteriores hasta que la nueva imagen arranque y se hayan probado el hardware y las aplicaciones necesarias.
 
-Mantén los nombres base y el orden de los módulos cuando una versión indique un reemplazo directo. Una fuente posterior con el mismo nombre base reemplaza a una anterior en la selección para el próximo arranque; copias con nombres diferentes pueden cargarse ambas y producir un orden de capas no deseado.
+Conserva los nombres base y el orden de los módulos cuando una versión indique el reemplazo directo.
+Una fuente posterior con el mismo nombre base reemplaza a una anterior en la selección de arranque siguiente;
+copias con nombres diferentes pueden cargarse ambas y producir un orden de capas no deseado.
 
 ## Actualizar el kernel
 

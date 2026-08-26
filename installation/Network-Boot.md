@@ -36,10 +36,10 @@ find_data()
 | Requirement | Notes |
 |-------------|--------|
 | Wired Ethernet (or virtio/vmxnet in VMs) | First usable non-loopback interface is used; no `BOOTIF` / `ethdevice` selection in initrd |
-| Initrd with network modules | Built for non-**minimum** package variants (`--network`, often `--cloud`) |
+| Initrd with network modules | Built for package variants other than the internal `minimum` value (`--network`, often `--cloud`) |
 | No reliance on Wi‑Fi | Wireless is not supported in the network-boot path |
 | Prefer NICs without firmware blobs | Firmware-dependent cards often fail in initrd |
-| Prefer **standard+** images | **minimum** omits network NIC modules → PXE / HTTP ISO effectively unsupported |
+| Prefer **Standard** or larger images | The **Flux** edition omits network NIC modules, so PXE / HTTP ISO is effectively unsupported |
 | HTTP only for ISO URL | `from=http://…` works; **`https://` is not supported** |
 
 Tools in the initrd: busybox `ifconfig`, `route`, `udhcpc`, `wget`, `tftp`, and `@mount.httpfs2`. There is no NetworkManager in the initrd.
@@ -130,7 +130,7 @@ Late userspace **live-config** may briefly bring up networking only to download 
 1. Putting `ip=` on a USB/ISO cmdline “for static IP” → system tries PXE download instead of local media.
 2. Using `ip=dhcp` or other kernel `ip=` syntax → wrong parser, broken address setup.
 3. Expecting Wi‑Fi or multi-NIC `BOOTIF` selection in initrd → not implemented.
-4. Using a **minimum** image for PXE/HTTP ISO → network modules missing from initrd.
+4. Using a **Flux** image for PXE/HTTP ISO → network modules missing from initrd.
 5. Serving the ISO only over HTTPS → `from=http://…` will not match.
 6. Confusing this with installer/NetworkManager static configuration after login.
 
@@ -142,7 +142,7 @@ Late userspace **live-config** may briefly bring up networking only to download 
 | `from=http://…iso` + DHCP (or `ip=`), same NIC class | Usually works |
 | Normal USB/ISO boot | Initrd network not used |
 | Session static via `ip=` | Not supported |
-| Multi-NIC / firmware NIC / Wi‑Fi / `https://` / minimum edition | Weak or unsupported |
+| Multi-NIC / firmware NIC / Wi‑Fi / `https://` / Flux edition | Weak or unsupported |
 
 ## Implementation reference
 

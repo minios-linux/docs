@@ -105,7 +105,7 @@ sudo minios-session create squashfs --policy shutdown
 sudo minios-session create squashfs --policy manual --autosave 60
 ```
 
-`create` ohne Modus wählt Native. Die Erstellung von SquashFS erfasst die aktuellen Live-Änderungen und hat keine feste Größe. Die Abschalt-Strategie ist standardmäßig `shutdown`; periodisches Speichern ist standardmäßig deaktiviert.
+`create` ohne Modus wählt nativ aus. Die Erstellung von SquashFS erfasst die aktuellen Live-Änderungen und hat keine feste Größe. Die Abschaltpolitik ist standardmäßig `shutdown`; periodisches Speichern ist standardmäßig deaktiviert.
 
 SquashFS-Sitzung speichern und konfigurieren:
 
@@ -116,7 +116,7 @@ sudo minios-session settings <squashfs-id> --shutdown off --autosave 0
 sudo minios-session settings <squashfs-id> --shutdown on --autosave 60
 ```
 
-Gültige Intervalle für periodisches Speichern sind `30`, `60`, `120`, `240` und `480` Minuten; `0` deaktiviert das periodische Speichern. Die Einstellungen für Abschalten und Periodik sind unabhängig voneinander.
+Gültige Intervalle für periodisches Speichern sind `30`, `60`, `120`, `240` und `480` Minuten; `0` deaktiviert das periodische Speichern. Die Einstellungen für Abschaltung und periodisches Speichern sind unabhängig voneinander.
 
 `.tar.zst`-Archive exportieren und importieren:
 
@@ -127,7 +127,7 @@ sudo minios-session import /path/to/session.tar.zst --auto-convert
 sudo minios-session import /path/to/session.tar.zst --force-mode dynfilefs
 ```
 
-Es werden nur `.tar.zst`-Importe akzeptiert. Pfade und Archivmitglieder werden validiert und die Extraktion ist begrenzt. `--auto-convert` wählt einen kompatiblen Modus für das aktuelle Dateisystem. `--force-mode <mode>` wählt explizit einen verfügbaren Modus.
+Es werden nur `.tar.zst`-Importe akzeptiert. Pfade und Archivmitglieder werden validiert, und die Extraktion ist begrenzt. `--auto-convert` wählt einen kompatiblen Modus für das aktuelle Dateisystem. `--force-mode <mode>` wählt explizit einen verfügbaren Modus aus. Export, Kopieren und Konvertierung werden für SquashFS-Sitzungen nicht unterstützt; speichern Sie stattdessen den Snapshot und kopieren Sie das komplette inaktive Sitzungsverzeichnis.
 
 Sitzung kopieren oder konvertieren:
 
@@ -138,9 +138,9 @@ sudo minios-session convert <id> dynfilefs --size 4GB
 sudo minios-session convert <id> luks --size 4GB --new-session
 ```
 
-`copy` weist immer eine neue Sitzungs-ID zu. `convert` ersetzt die Quelle standardmäßig; mit `--new-session` bleibt die Quelle erhalten. Eine Größe ist nur für ein Container-Ziel relevant.
+`copy` weist immer eine neue Sitzungs-ID zu. `convert` ersetzt standardmäßig die Quelle; verwenden Sie `--new-session`, um die Quelle zu erhalten. Eine Größe ist nur für ein Container-Ziel relevant.
 
-Sitzungen vergrößern, löschen oder aufräumen:
+Sitzungen vergrößern, löschen oder bereinigen:
 
 ```bash
 sudo minios-session resize <id> 8GB
@@ -149,9 +149,9 @@ sudo minios-session cleanup
 sudo minios-session cleanup --days 30
 ```
 
-Resize unterstützt DynFileFS-, Raw- und LUKS-Sitzungen und erfordert eine größere Zielgröße als die aktuelle. Das Aufräumen betrifft standardmäßig Sitzungen, die älter als 30 Tage sind.
+Resize unterstützt DynFileFS-, raw- und LUKS-Sitzungen und erfordert eine größere Größe als die aktuelle. Bereinigen betrifft standardmäßig Sitzungen, die älter als 30 Tage sind.
 
-Alle Befehle akzeptieren `--json`, und ein anderer Sitzungsstore kann mit `--sessions-dir PATH` ausgewählt werden:
+Alle Befehle akzeptieren `--json`, und ein anderer Sitzungs-Store kann mit `--sessions-dir PATH` ausgewählt werden:
 
 ```bash
 sudo minios-session --json list
@@ -183,11 +183,11 @@ LUKS-Exporte enthalten entschlüsselte logische Sitzungsdateien, nicht `changes.
 
 ## Backups und Wiederherstellung
 
-Verwenden Sie für Backups `export` anstelle des Kopierens eines eingehängten Sitzungsverzeichnisses. Bewahren Sie das resultierende Archiv auf einem anderen Gerät auf und überprüfen Sie, dass es aufgelistet oder importiert werden kann, bevor Sie sich darauf verlassen. Der Import erstellt immer eine neue nummerierte Sitzung; aktivieren Sie diese explizit, sobald sie einsatzbereit ist.
+Für native, DynFileFS-, raw- und LUKS-Sitzungen verwenden Sie `export` für Backups, anstatt ein eingebundenes Sitzungsverzeichnis zu kopieren. Bewahren Sie das resultierende Archiv auf einem anderen Gerät auf und prüfen Sie, ob es aufgelistet oder importiert werden kann, bevor Sie sich darauf verlassen. Der Import erstellt immer eine neue nummerierte Sitzung; aktivieren Sie sie explizit, wenn sie einsatzbereit ist. Für SquashFS- und Whole-Device-Backup-Verfahren siehe [Backup und Wiederherstellung](/administration/Backup-Recovery.md).
 
 Für die Wiederherstellung nach einem vollen Speichermedium, einem unterbrochenen Schreibvorgang oder wiederholter Erstellung leerer Sitzungen folgen Sie der speziellen [DynFileFS- und dynblk-Wiederherstellungsanleitung](./DynFileFS-Recovery.md).
 
-Beginnen Sie die Diagnose, ohne Sitzungsdaten zu verändern:
+Diagnose starten, ohne Sitzungsdaten zu verändern:
 
 ```bash
 sudo minios-session list
@@ -197,4 +197,4 @@ sudo minios-session status
 sudo minios-session info
 ```
 
-Beim Booten werden Container-Dateisysteme vor der beschreibbaren Aktivierung geprüft. Schwere Fehler bei der Dateisystemprüfung bewahren den Container zur Wiederherstellung, anstatt ihn beschreibbar einzuhängen. SquashFS erkennt einen nicht sauberen vorherigen Zustand und stellt den zuletzt erfolgreich gespeicherten Snapshot wieder her. Löschen Sie Sitzungen nur über den Sitzungsmanager oder `minios-session delete`; entfernen Sie Sitzungsverzeichnisse nicht manuell.
+Beim Booten werden Container-Dateisysteme vor der schreibbaren Aktivierung geprüft. Schwere Fehler bei der Dateisystemprüfung bewahren den Container zur Wiederherstellung, anstatt ihn schreibbar einzubinden. SquashFS erkennt einen nicht bereinigten vorherigen Zustand und stellt den zuletzt erfolgreich gespeicherten Snapshot wieder her. Sitzungen nur über den Session Manager oder `minios-session delete` löschen; Sitzungsverzeichnisse nicht manuell entfernen.

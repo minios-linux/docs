@@ -4,12 +4,12 @@ Panduan ini mencakup proses mengunduh, menulis, booting, dan melakukan konfigura
 
 ## 1. Pilih edisi
 
-- **Minimum** menyediakan paket yang lebih sedikit dan lingkungan Flux.
-- **Standard** adalah edisi Xfce untuk penggunaan umum.
+- **Flux** menyediakan paket yang lebih ringkas dan lingkungan Flux.
+- **Standard** adalah edisi Xfce serbaguna.
 - **Toolbox** menambahkan alat administrasi, diagnostik, penyimpanan, dan pemulihan.
-- **Ultra** mencakup kumpulan aplikasi terlengkap.
+- **Ultra** mencakup set aplikasi terlengkap.
 
-Ketersediaan edisi dan desktop berbeda-beda di setiap rilis. Lihat
+Ketersediaan edisi dan desktop bervariasi tergantung rilis. Lihat
 [Tentang MiniOS](/about/About-MiniOS.md) dan
 [daftar paket](/administration/Packages.md) sebelum mengunduh.
 
@@ -68,9 +68,21 @@ Buka **Aplikasi > Sistem > Konfigurasi MiniOS**, atau jalankan:
 minios-configurator
 ```
 
-Configurator mengedit `/etc/live/config.conf`. Anda dapat mengatur identitas pengguna, sandi, lokal, zona waktu, keyboard, hostname, layanan, penyimpanan direktori pengguna, dan kontrol keamanan. Pengaturan ini tidak langsung mengubah sistem yang sedang berjalan; pengaturan yang disimpan akan diterapkan sesuai dengan relevansi masing-masing, biasanya setelah reboot atau saat sesi baru dibuat.
+Configurator mengedit `/etc/live/config.conf`. Anda dapat mengatur identitas pengguna,
+kata sandi, lokal, zona waktu, keyboard, hostname, layanan, penyimpanan direktori pengguna,
+dan kontrol keamanan. Perubahan tidak langsung diterapkan ke sistem yang sedang berjalan;
+pengaturan yang disimpan akan diterapkan sesuai dengan relevansi masing-masing pengaturan, biasanya
+setelah reboot atau saat sesi baru dibuat.
 
-Profil keamanan mengisi pengaturan konkret untuk sudo, PolicyKit, SSH, XRDP, X11, petunjuk sandi, penguncian layar, dan autologin. Tinjau kontrol yang dihasilkan, jangan hanya mengandalkan nama profil sebagai pengaturan runtime. Lihat [Penguatan keamanan](/administration/Security-Hardening.md) dan [panduan MiniOS Configurator](/configuration/MiniOS-Configurator.md). [Referensi file konfigurasi](/configuration/Configuration-File.md) mendokumentasikan kunci-kunci dasarnya.
+Profil keamanan mengisi pengaturan konkret untuk sudo, PolicyKit, SSH, XRDP, X11,
+petunjuk kata sandi, penguncian layar, dan autologin. Tinjau kontrol yang dihasilkan
+bukan hanya nama profil sebagai pengaturan runtime. Lihat
+[Pengerasan keamanan](/administration/Security-Hardening.md) dan
+[panduan MiniOS Configurator](/configuration/MiniOS-Configurator.md). Referensi
+[berkas konfigurasi](/configuration/Configuration-File.md) mendokumentasikan
+kunci-kunci dasarnya.
+
+Konfigurasikan koneksi kabel dan Wi-Fi biasa dengan [Konfigurasi Jaringan](/configuration/Network-Configuration.md). Parameter boot jaringan `ip=` bukan pengaturan NetworkManager yang persisten.
 
 ## 6. Instal perangkat lunak dan simpan pekerjaan
 
@@ -81,6 +93,9 @@ Simpan file penting di media penyimpanan yang sudah dipastikan dapat ditulis dan
 ## Mendapatkan bantuan
 
 - [Optimasi performa](/administration/Performance-Optimization.md)
+- [Aplikasi dan alat MiniOS](/about/MiniOS-Applications.md)
+- [Backup dan pemulihan](/administration/Backup-Recovery.md)
+- [Pertanyaan yang sering diajukan](/about/FAQ.md)
 - [Manajemen kernel](/administration/Kernel-Management.md)
 - [Membangun MiniOS](/development/Building-MiniOS.md)
 - [Membangun ulang ISO](/development/Rebuilding-ISO.md)

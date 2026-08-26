@@ -22,8 +22,9 @@ the image.
 
 APT is suitable for maintaining one persistent installation. Check available
 space first because updated files are stored in addition to the compressed base
-modules. Do not treat an in-place Debian release upgrade as a MiniOS image
-upgrade; use an image built for the target release instead.
+modules. MiniOS does not support in-place upgrades between releases. Do not
+treat a Debian release upgrade as a MiniOS image upgrade; back up your data and
+use an image built for the target release instead.
 
 ## Update software with modules
 
@@ -67,7 +68,8 @@ unless their compatibility is documented.
 Before replacement:
 
 1. Back up the MiniOS configuration, persistence data, user modules, and the
-   current base modules.
+   current base modules as described in [Backup and
+   recovery](/administration/Backup-Recovery.md).
 2. Record the active and next-boot module lists with `sb list` and
    `sb next-boot`.
 3. Perform the replacement from another system or from a RAM-loaded boot so the

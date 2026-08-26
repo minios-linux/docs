@@ -13,16 +13,16 @@ Siehe [Systemarchitektur](/about/System-Architecture.md) für den Boot- und Modu
 
 ## Editionen
 
-Die verfügbaren Editionen hängen von der Veröffentlichung und der Basisdistribution ab:
+Die verfügbaren Editionen hängen von der jeweiligen Veröffentlichung und der zugrunde liegenden Distribution ab:
 
-- **Minimum** verwendet die Flux-Umgebung und eine reduzierte Paketauswahl. Sie eignet sich für Systeme, bei denen eine kleinere Softwareauswahl bevorzugt wird.
-- **Standard** ist die Allzweck-Edition. Aktuelle Standard-Builds für Debian und Ubuntu nutzen Xfce.
-- **Toolbox** ergänzt Systemadministrations-, Speicher-, Diagnose- und Wiederherstellungswerkzeuge.
-- **Ultra** erweitert die anderen Editionen um ein breiteres Anwendungsspektrum.
+- **Flux** verwendet die Flux-Umgebung und ein reduziertes Paketangebot. Diese Edition eignet sich für Systeme, bei denen eine kleinere Softwareauswahl bevorzugt wird.
+- **Standard** ist die Allzweck-Edition. Aktuelle Standard-Builds von Debian und Ubuntu nutzen Xfce.
+- **Toolbox** ergänzt Systemverwaltungs-, Speicher-, Diagnose- und Wiederherstellungswerkzeuge.
+- **Ultra** erweitert die anderen Editionen um ein noch größeres Anwendungsspektrum.
 
-Xfce ist die übliche Desktop-Umgebung in den Standard-, Toolbox- und Ultra-Images, aber nicht die einzige Umgebung in MiniOS. Minimum verwendet Flux, und unterstützte Build-Konfigurationen können weitere Umgebungen bieten. Prüfen Sie die Release-Beschreibung vor dem Download, falls die Desktop-Umgebung entscheidend ist.
+Xfce ist die übliche Desktop-Umgebung in den Images Standard, Toolbox und Ultra, aber nicht die einzige Umgebung von MiniOS. Die Flux-Edition verwendet Fluxbox, und unterstützte Build-Konfigurationen können weitere Umgebungen anbieten. Prüfen Sie die Release-Beschreibung vor dem Download, falls die Desktop-Umgebung für Sie relevant ist.
 
-Die enthaltene Software jeder Edition finden Sie in der [Paketliste](/administration/Packages.md).
+Welche Software in den jeweiligen Editionen enthalten ist, finden Sie in der [Paketliste](/administration/Packages.md) sowie unter [MiniOS-Anwendungen und Tools](/about/MiniOS-Applications.md).
 
 ## Installation und Persistenz
 
@@ -34,4 +34,5 @@ Beginnen Sie mit dem [Schnellstart](/installation/Quick-Start.md) und nutzen Sie
 
 - [MiniOS-Website](https://minios.dev)
 - [Quellcode](https://github.com/minios-linux/minios-live)
-- [Issue Tracker](https://github.com/minios-linux/minios-live/issues)
+- [Issue-Tracker](https://github.com/minios-linux/minios-live/issues)
+- [Häufig gestellte Fragen](/about/FAQ.md)

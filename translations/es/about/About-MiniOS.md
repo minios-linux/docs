@@ -15,14 +15,19 @@ Consulta [Arquitectura del sistema](/about/System-Architecture.md) para el esque
 
 Las ediciones disponibles dependen de la versión y la distribución base:
 
-- **Minimum** utiliza el entorno Flux y un conjunto reducido de paquetes. Es adecuada para sistemas donde se prefiere una selección de software más pequeña.
-- **Standard** es la edición de propósito general. Las compilaciones actuales estándar de Debian y Ubuntu utilizan Xfce.
+- **Flux** utiliza el entorno Flux y un conjunto reducido de paquetes. Es adecuada
+  para sistemas donde se prefiere una selección de software más pequeña.
+- **Standard** es la edición de uso general. Las versiones actuales estándar de Debian y
+  Ubuntu utilizan Xfce.
 - **Toolbox** añade herramientas de administración del sistema, almacenamiento, diagnóstico y recuperación.
-- **Ultra** incorpora un conjunto de aplicaciones más amplio sobre las demás ediciones.
+- **Ultra** agrega un conjunto más amplio de aplicaciones sobre las demás ediciones.
 
-Xfce es el escritorio habitual en las imágenes Standard, Toolbox y Ultra, pero no es el único entorno disponible en MiniOS. Minimum utiliza Flux y las configuraciones de compilación compatibles pueden ofrecer otros entornos. Consulta la descripción de la versión antes de descargar si el entorno de escritorio es importante para ti.
+Xfce es el escritorio habitual en las imágenes Standard, Toolbox y Ultra, pero no es
+el único entorno de MiniOS. La edición Flux utiliza Fluxbox, y las configuraciones de compilación compatibles pueden ofrecer otros entornos. Consulta la descripción de la versión
+antes de descargar si el entorno de escritorio es importante para ti.
 
-Para conocer el software incluido en cada edición, consulta la [lista de paquetes](/administration/Packages.md).
+Para ver el software incluido en cada edición, consulta la
+[lista de paquetes](/administration/Packages.md) y [aplicaciones y herramientas de MiniOS](/about/MiniOS-Applications.md).
 
 ## Instalación y persistencia
 
@@ -35,3 +40,4 @@ Comienza con la [Guía rápida](/installation/Quick-Start.md) y utiliza la guía
 - [Sitio web de MiniOS](https://minios.dev)
 - [Código fuente](https://github.com/minios-linux/minios-live)
 - [Seguimiento de incidencias](https://github.com/minios-linux/minios-live/issues)
+- [Preguntas frecuentes](/about/FAQ.md)

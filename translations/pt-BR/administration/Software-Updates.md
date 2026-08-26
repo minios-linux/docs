@@ -2,18 +2,20 @@
 
 O MiniOS combina módulos de imagem SquashFS somente leitura com uma camada de execução gravável. O método de atualização deve corresponder à camada que está sendo alterada. Atualizar pacotes dentro de uma sessão em execução não é o mesmo que substituir os módulos no meio do MiniOS.
 
-## Atualize pacotes com o APT
+## Atualizar pacotes com o APT
 
-O APT grava na camada de execução. Ative e utilize uma sessão persistente antes de atualizar se as alterações precisarem ser mantidas após a reinicialização:
+O APT grava na sobreposição de runtime. Ative e utilize uma sessão persistente antes
+de atualizar, caso as alterações precisem ser mantidas após a reinicialização:
 
 ```bash
 sudo apt update
 sudo apt upgrade
 ```
 
-Sem persistência, as alterações de pacotes desaparecem ao desligar. Com persistência, os arquivos atualizados e o estado do APT permanecem naquela sessão, mas os módulos de imagem `.sb` subjacentes não são alterados. Uma nova sessão ainda usará as versões dos pacotes presentes na imagem.
+Sem persistência, as alterações nos pacotes desaparecem ao desligar. Com persistência,
+os arquivos atualizados e o estado do APT permanecem naquela sessão, mas os módulos de imagem `.sb` subjacentes não são alterados. Uma nova sessão ainda utiliza as versões dos pacotes presentes na imagem.
 
-O APT é adequado para manter uma instalação persistente. Verifique o espaço disponível antes, pois os arquivos atualizados são armazenados além dos módulos base compactados. Não trate uma atualização de release do Debian no local como uma atualização de imagem do MiniOS; utilize uma imagem criada para o release de destino.
+O APT é indicado para manter uma instalação persistente. Verifique o espaço disponível antes, pois os arquivos atualizados são armazenados além dos módulos base compactados. O MiniOS não suporta upgrades in-place entre versões. Não trate uma atualização de versão do Debian como uma atualização de imagem do MiniOS; faça backup dos seus dados e utilize uma imagem criada para a versão de destino.
 
 ## Atualize software com módulos
 
@@ -37,18 +39,18 @@ Módulos base e módulos em mídia somente leitura não podem ser removidos por 
 
 Para software empacotado localmente, o `apt2sb upgrade` pode criar um módulo de atualização. Veja [Criando módulos](/development/Creating-Modules.md) para detalhes sobre construção de módulos e níveis de dependência.
 
-## Substitua módulos de imagem
+## Substituir módulos de imagem
 
-Atualizações oficiais de imagem substituem arquivos no meio do MiniOS; o `apt upgrade` não os atualiza. Prefira substituir todo o conjunto de módulos base e os arquivos de boot correspondentes de uma versão do MiniOS, ou reinstalar a partir da nova imagem. Não misture arquivos de núcleo, desktop, aplicativos, firmware ou boot de versões diferentes, a menos que sua compatibilidade esteja documentada.
+Atualizações oficiais de imagem substituem arquivos no meio do MiniOS; `apt upgrade` não os atualiza. Prefira substituir todo o conjunto de módulos base e os arquivos de boot correspondentes de uma mesma versão do MiniOS, ou reinstale a partir da nova imagem. Não misture arquivos core, desktop, de aplicativos, firmware ou de boot de versões diferentes, a menos que sua compatibilidade esteja documentada.
 
 Antes da substituição:
 
-1. Faça backup da configuração do MiniOS, dados de persistência, módulos de usuário e dos módulos base atuais.
-2. Registre as listas de módulos ativos e do próximo boot com `sb list` e `sb next-boot`.
-3. Realize a substituição a partir de outro sistema ou de um boot carregado em RAM para que os arquivos de origem não estejam em uso.
-4. Mantenha os arquivos anteriores até que a nova imagem inicialize e o hardware e aplicativos necessários tenham sido testados.
+1. Faça backup da configuração do MiniOS, dados de persistência, módulos de usuário e dos módulos base atuais conforme descrito em [Backup e recuperação](/administration/Backup-Recovery.md).
+2. Registre as listas de módulos ativos e para o próximo boot com `sb list` e `sb next-boot`.
+3. Realize a substituição a partir de outro sistema ou de um boot carregado em RAM, para que os arquivos de origem não estejam em uso.
+4. Mantenha os arquivos anteriores até que a nova imagem inicie e o hardware e aplicativos necessários tenham sido testados.
 
-Preserve os nomes base dos módulos e a ordem quando uma versão instruir a substituição direta. Uma fonte posterior com o mesmo nome base substitui uma fonte anterior na seleção do próximo boot; cópias com nomes diferentes podem ser carregadas juntas e gerar uma ordem de camadas não intencional.
+Preserve os nomes-base dos módulos e a ordem quando a versão indicar substituição direta. Uma fonte posterior com o mesmo nome-base substitui uma fonte anterior na seleção do próximo boot; cópias com nomes diferentes podem ser carregadas juntas e causar uma ordem de camadas não intencional.
 
 ## Atualize o kernel
 

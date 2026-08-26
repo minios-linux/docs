@@ -4,8 +4,8 @@ Esta guía cubre la descarga, escritura, arranque y la configuración inicial de
 
 ## 1. Elige una edición
 
-- **Minimum** ofrece un conjunto reducido de paquetes y el entorno Flux.
-- **Standard** es la edición Xfce de uso general.
+- **Flux** ofrece un conjunto reducido de paquetes y el entorno Flux.
+- **Standard** es la edición Xfce de propósito general.
 - **Toolbox** añade herramientas de administración, diagnóstico, almacenamiento y recuperación.
 - **Ultra** incluye el conjunto de aplicaciones más amplio.
 
@@ -13,10 +13,10 @@ La disponibilidad de ediciones y escritorios varía según la versión. Consulta
 [Acerca de MiniOS](/about/About-MiniOS.md) y la
 [lista de paquetes](/administration/Packages.md) antes de descargar.
 
-Descarga un ISO desde [minios.dev](https://minios.dev) o la
+Descarga una ISO desde [minios.dev](https://minios.dev) o desde la
 [página de lanzamientos en GitHub](https://github.com/minios-linux/minios-live/releases).
-Verifica su suma de comprobación antes de usarlo; consulta
-[Verificando descargas](/installation/Verifying-Downloads.md).
+Verifica su suma de comprobación antes de usarla; consulta
+[Verificación de descargas](/installation/Verifying-Downloads.md).
 
 ## 2. Prepara un dispositivo de destino
 
@@ -68,9 +68,17 @@ Abre **Aplicaciones > Sistema > Configurar MiniOS**, o ejecuta:
 minios-configurator
 ```
 
-El Configurador edita `/etc/live/config.conf`. Puede establecer la identidad de usuario, contraseñas, idioma, zona horaria, teclado, nombre de host, servicios, almacenamiento del directorio de usuario y controles de seguridad. No modifica el sistema en ejecución directamente; los ajustes guardados se aplican según la aplicabilidad de cada configuración, normalmente después de reiniciar o al crear una nueva sesión.
+El Configurador edita `/etc/live/config.conf`. Permite establecer la identidad de usuario,
+contraseñas, configuración regional, zona horaria, teclado, nombre de host, servicios, almacenamiento de directorios de usuario y controles de seguridad. No modifica el sistema en ejecución directamente; los ajustes guardados se aplican según la aplicabilidad de cada configuración, normalmente después de reiniciar o al crear una nueva sesión.
 
-Los perfiles de seguridad rellenan configuraciones concretas para sudo, PolicyKit, SSH, XRDP, X11, sugerencias de contraseña, bloqueo de pantalla y acceso automático. Revisa los controles resultantes en vez de tomar el nombre del perfil como un ajuste en tiempo de ejecución. Consulta [Endurecimiento de seguridad](/administration/Security-Hardening.md) y la [guía del Configurador de MiniOS](/configuration/MiniOS-Configurator.md). La [referencia del archivo de configuración](/configuration/Configuration-File.md) documenta las claves subyacentes.
+Los perfiles de seguridad rellenan ajustes concretos para sudo, PolicyKit, SSH, XRDP, X11,
+pistas de contraseña, bloqueo de pantalla y acceso automático. Revisa los controles resultantes en lugar de considerar el nombre del perfil como una configuración activa. Consulta
+[Refuerzo de seguridad](/administration/Security-Hardening.md) y la
+guía del [Configurador de MiniOS](/configuration/MiniOS-Configurator.md). La
+[referencia del archivo de configuración](/configuration/Configuration-File.md) documenta
+las claves subyacentes.
+
+Configura conexiones normales por cable y Wi-Fi con la [Configuración de red](/configuration/Network-Configuration.md). El parámetro de arranque de red `ip=` no es una configuración persistente de NetworkManager.
 
 ## 6. Instala software y guarda tu trabajo
 
@@ -81,9 +89,12 @@ Guarda los archivos importantes en un almacenamiento conocido como escribible y 
 ## Obtener ayuda
 
 - [Optimización del rendimiento](/administration/Performance-Optimization.md)
-- [Gestión de kernel](/administration/Kernel-Management.md)
+- [Aplicaciones y herramientas de MiniOS](/about/MiniOS-Applications.md)
+- [Copia de seguridad y recuperación](/administration/Backup-Recovery.md)
+- [Preguntas frecuentes](/about/FAQ.md)
+- [Gestión del kernel](/administration/Kernel-Management.md)
 - [Compilando MiniOS](/development/Building-MiniOS.md)
-- [Reconstruyendo un ISO](/development/Rebuilding-ISO.md)
+- [Reconstrucción de una ISO](/development/Rebuilding-ISO.md)
 - [Incidencias en GitHub](https://github.com/minios-linux/minios-live/issues)
 - [Código fuente de MiniOS](https://github.com/minios-linux/minios-live)
 - [Documentación de Debian](https://www.debian.org/doc/)

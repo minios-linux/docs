@@ -1,6 +1,11 @@
 # Solución de problemas
 
-Comienza observando y realizando pruebas reversibles. No reparticiones, reformatees, repares un sistema de archivos, elimines una sesión ni sobrescribas archivos de arranque hasta que los datos importantes estén respaldados y el dispositivo con fallos haya sido identificado por modelo, tamaño, sistema de archivos y punto de montaje.
+Comience observando y realizando pruebas reversibles. No reparta, reformatee,
+repáre un sistema de archivos, elimine una sesión ni sobrescriba archivos de arranque hasta que los datos importantes estén respaldados y se haya identificado el dispositivo con fallas por modelo, tamaño,
+sistema de archivos y punto de montaje.
+
+Utilice [Respaldo y recuperación](/administration/Backup-Recovery.md) antes de realizar acciones destructivas y [Recuperación de arranque](/administration/Boot-Recovery.md) cuando estén involucrados el firmware,
+el gestor de arranque, el kernel o los archivos de arranque instalados.
 
 ## Comprobaciones iniciales
 
@@ -46,7 +51,10 @@ aplican solo al entorno Xfce. Consulta
 
 ## Problemas de red
 
-Verifica si la interfaz existe antes de cambiar la configuración:
+Para la configuración normal de red cableada y Wi-Fi, persistencia y comandos de NetworkManager, consulte
+[Configuración de red](/configuration/Network-Configuration.md).
+
+Determine si la interfaz existe antes de cambiar la configuración:
 
 ```bash
 ip link
@@ -54,7 +62,7 @@ ip address
 ip route
 ```
 
-Para la sesión normal en ejecución, revisa NetworkManager si está presente:
+Para la sesión en ejecución normal, inspeccione NetworkManager cuando esté presente:
 
 ```bash
 nmcli device status
@@ -62,11 +70,11 @@ nmcli connection show
 systemctl status NetworkManager --no-pager
 ```
 
-- Si no aparece ninguna interfaz, anota la salida de `lspci -nnk` o `lsusb` y revisa si falta firmware en `dmesg`.
-- Si la interfaz existe pero no tiene dirección, prueba DHCP antes de ingresar valores estáticos.
-- Si existe una dirección, prueba la puerta de enlace, luego una dirección IP y luego un nombre DNS para distinguir fallos de enlace, enrutamiento y DNS.
-- El instalador configura DHCP por cable o IPv4 estático. Deja los perfiles Wi-Fi existentes sin cambios.
-- El parámetro de arranque `ip=` configura la descarga PXE temprana, no la red de la sesión persistente. Consulta [Arranque por red](/installation/Network-Boot.md).
+- Si no aparece ninguna interfaz, registre la salida de `lspci -nnk` o `lsusb` y verifique si falta firmware en `dmesg`.
+- Si la interfaz existe pero no tiene dirección, pruebe DHCP antes de ingresar valores estáticos.
+- Si existe una dirección, pruebe la puerta de enlace, luego una dirección IP y después un nombre DNS para distinguir fallos de enlace, enrutamiento y DNS.
+- El instalador configura DHCP cableado o IPv4 estático. Deja los perfiles Wi-Fi existentes sin cambios.
+- El parámetro de arranque `ip=` configura la descarga PXE temprana, no la red de la sesión persistente. Consulte [Arranque por red](/installation/Network-Boot.md).
 
 ## Problemas de persistencia
 

@@ -4,16 +4,19 @@ MiniOS menggabungkan modul image SquashFS hanya-baca dengan overlay runtime yang
 
 ## Memperbarui paket dengan APT
 
-APT menulis ke overlay runtime. Aktifkan dan gunakan sesi persisten sebelum memperbarui jika perubahan harus bertahan setelah reboot:
+APT menulis ke overlay runtime. Aktifkan dan gunakan sesi persisten sebelum
+melakukan pembaruan jika perubahan harus tetap ada setelah reboot:
 
 ```bash
 sudo apt update
 sudo apt upgrade
 ```
 
-Tanpa persistensi, perubahan paket akan hilang saat shutdown. Dengan persistensi, file yang diperbarui dan status APT tetap ada di sesi tersebut, tetapi modul image `.sb` yang mendasarinya tidak berubah. Sesi baru tetap menggunakan versi paket yang ada di image.
+Tanpa persistensi, perubahan paket akan hilang saat shutdown. Dengan persistensi,
+file yang diperbarui dan status APT tetap ada di sesi tersebut, namun modul image `.sb`
+dasar tidak berubah. Sesi baru tetap menggunakan versi paket yang ada di image.
 
-APT cocok untuk memelihara satu instalasi persisten. Periksa ketersediaan ruang terlebih dahulu karena file yang diperbarui disimpan selain modul dasar yang terkompresi. Jangan perlakukan upgrade rilis Debian secara in-place sebagai upgrade image MiniOS; gunakan image yang dibangun untuk rilis target.
+APT cocok untuk memelihara satu instalasi persisten. Periksa ketersediaan ruang terlebih dahulu karena file yang diperbarui akan disimpan selain modul dasar yang terkompresi. MiniOS tidak mendukung upgrade in-place antar rilis. Jangan perlakukan upgrade rilis Debian sebagai upgrade image MiniOS; lakukan backup data Anda dan gunakan image yang dibuat untuk rilis target.
 
 ## Memperbarui perangkat lunak dengan modul
 
@@ -39,16 +42,20 @@ Untuk perangkat lunak yang dikemas secara lokal, `apt2sb upgrade` dapat membuat 
 
 ## Mengganti modul image
 
-Pembaruan image resmi menggantikan file pada media MiniOS; `apt upgrade` tidak memperbaruinya. Sebaiknya ganti seluruh set modul dasar dan file boot yang sesuai dari satu rilis MiniOS, atau lakukan instalasi ulang dari image baru. Jangan mencampur file core, desktop, aplikasi, firmware, atau boot dari rilis yang berbeda kecuali kompatibilitasnya sudah didokumentasikan.
+Pembaruan image resmi menggantikan file di media MiniOS; `apt upgrade` tidak
+memperbaruinya. Disarankan untuk mengganti seluruh set modul dasar dan file boot yang sesuai dari satu rilis MiniOS, atau melakukan instalasi ulang dari image baru. Jangan mencampur file core, desktop, aplikasi, firmware, atau boot dari rilis yang berbeda kecuali kompatibilitasnya sudah didokumentasikan.
 
 Sebelum penggantian:
 
-1. Cadangkan konfigurasi MiniOS, data persistensi, modul pengguna, dan modul dasar saat ini.
-2. Catat daftar modul aktif dan modul untuk boot berikutnya dengan `sb list` dan `sb next-boot`.
-3. Lakukan penggantian dari sistem lain atau dari boot yang dimuat di RAM agar file sumber tidak sedang digunakan.
+1. Cadangkan konfigurasi MiniOS, data persistensi, modul pengguna, dan modul dasar saat ini seperti dijelaskan di [Backup dan
+   pemulihan](/administration/Backup-Recovery.md).
+2. Catat daftar modul aktif dan modul untuk boot berikutnya dengan `sb list` dan
+   `sb next-boot`.
+3. Lakukan penggantian dari sistem lain atau dari boot yang dimuat ke RAM sehingga
+   file sumber tidak sedang digunakan.
 4. Simpan file sebelumnya hingga image baru berhasil boot dan perangkat keras serta aplikasi yang diperlukan sudah diuji.
 
-Pertahankan nama dasar dan urutan modul saat rilis menginstruksikan penggantian langsung. Sumber yang lebih baru dengan nama dasar yang sama akan menggantikan sumber sebelumnya pada seleksi boot berikutnya; salinan dengan nama berbeda bisa saja keduanya dimuat dan menghasilkan urutan lapisan yang tidak diinginkan.
+Pertahankan nama dasar modul dan urutannya jika rilis menginstruksikan penggantian langsung. Sumber yang lebih baru dengan nama dasar yang sama akan menggantikan sumber sebelumnya dalam seleksi boot berikutnya; salinan dengan nama berbeda dapat sama-sama dimuat dan menghasilkan urutan layer yang tidak diinginkan.
 
 ## Memperbarui kernel
 

@@ -105,7 +105,8 @@ sudo minios-session create squashfs --policy shutdown
 sudo minios-session create squashfs --policy manual --autosave 60
 ```
 
-`create` sem um modo seleciona o nativo. A criação de SquashFS captura as alterações atuais do sistema live e não tem tamanho fixo. Sua política de desligamento é `shutdown` por padrão; o salvamento periódico vem desativado por padrão.
+`create` sem um modo seleciona o modo nativo. A criação de SquashFS captura as alterações atuais em tempo real e não possui tamanho fixo. A política de desligamento padrão é `shutdown`;
+o salvamento periódico vem desativado por padrão.
 
 Salve e configure uma sessão SquashFS:
 
@@ -116,9 +117,10 @@ sudo minios-session settings <squashfs-id> --shutdown off --autosave 0
 sudo minios-session settings <squashfs-id> --shutdown on --autosave 60
 ```
 
-Intervalos periódicos válidos são `30`, `60`, `120`, `240` e `480` minutos; `0` desativa o salvamento periódico. As configurações de desligamento e periódicas são independentes.
+Os intervalos periódicos válidos são `30`, `60`, `120`, `240` e `480` minutos;
+`0` desativa o salvamento periódico. As configurações de desligamento e periódicas são independentes.
 
-Exporte e importe arquivos `.tar.zst`:
+Exporte e importe arquivos de backup `.tar.zst`:
 
 ```bash
 sudo minios-session export <id> /path/to/session.tar.zst
@@ -127,7 +129,8 @@ sudo minios-session import /path/to/session.tar.zst --auto-convert
 sudo minios-session import /path/to/session.tar.zst --force-mode dynfilefs
 ```
 
-Apenas importações `.tar.zst` são aceitas. Caminhos e membros do arquivo são validados e a extração é limitada. `--auto-convert` escolhe um modo compatível para o sistema de arquivos atual. `--force-mode <mode>` seleciona explicitamente um modo disponível.
+Somente importações `.tar.zst` são aceitas. Caminhos e membros do arquivo são validados, e a extração é limitada. `--auto-convert` escolhe um modo compatível para o sistema de arquivos atual. `--force-mode <mode>` seleciona explicitamente um modo disponível. Exportação, cópia e conversão não são suportadas para sessões SquashFS;
+salve o snapshot e copie todo o diretório da sessão inativa em vez disso.
 
 Copie ou converta uma sessão:
 
@@ -138,9 +141,9 @@ sudo minios-session convert <id> dynfilefs --size 4GB
 sudo minios-session convert <id> luks --size 4GB --new-session
 ```
 
-`copy` sempre atribui um novo ID de sessão. `convert` substitui a origem por padrão; use `--new-session` para preservar a origem. Um tamanho só é relevante para um destino container.
+`copy` sempre atribui um novo ID de sessão. `convert` substitui a origem por padrão; use `--new-session` para preservar a origem. O tamanho só é relevante para um destino do tipo container.
 
-Aumente, exclua ou limpe sessões:
+Expanda, exclua ou limpe sessões:
 
 ```bash
 sudo minios-session resize <id> 8GB
@@ -149,7 +152,7 @@ sudo minios-session cleanup
 sudo minios-session cleanup --days 30
 ```
 
-O redimensionamento é compatível com sessões DynFileFS, raw e LUKS e requer um tamanho maior que o atual. A limpeza é padrão para sessões com mais de 30 dias.
+O redimensionamento é compatível com sessões DynFileFS, raw e LUKS e requer um tamanho maior que o atual. A limpeza remove sessões com mais de 30 dias por padrão.
 
 Todos os comandos aceitam `--json`, e um repositório de sessões diferente pode ser selecionado com `--sessions-dir PATH`:
 
@@ -183,9 +186,9 @@ Exportações LUKS contêm arquivos lógicos de sessão descriptografados, não 
 
 ## Backups e recuperação
 
-Use `export` para backups em vez de copiar manualmente um diretório de sessão montado. Mantenha o arquivo gerado em outro dispositivo e verifique se ele pode ser listado ou importado antes de confiar nele. A importação sempre cria uma nova sessão numerada; ative-a explicitamente quando estiver pronta para uso.
+Para sessões nativas, DynFileFS, raw e LUKS, use `export` para backups em vez de copiar o diretório de uma sessão montada. Mantenha o arquivo de backup resultante em outro dispositivo e verifique se ele pode ser listado ou importado antes de confiar nele. A importação sempre cria uma nova sessão numerada; ative-a explicitamente quando estiver pronta para uso. Para procedimentos de backup de SquashFS e de dispositivo inteiro, consulte [Backup e recuperação](/administration/Backup-Recovery.md).
 
-Para recuperação após um dispositivo de armazenamento cheio, uma gravação interrompida ou criação repetida de sessões vazias, siga o guia dedicado de recuperação [DynFileFS e dynblk](./DynFileFS-Recovery.md).
+Para recuperação após falha total do dispositivo de armazenamento, gravação interrompida ou criação repetida de sessões vazias, siga o guia dedicado de [recuperação do DynFileFS e dynblk](./DynFileFS-Recovery.md).
 
 Inicie o diagnóstico sem modificar os dados da sessão:
 
@@ -197,4 +200,4 @@ sudo minios-session status
 sudo minios-session info
 ```
 
-No boot, os sistemas de arquivos dos containers são verificados antes da ativação gravável. Falhas graves na verificação do sistema de arquivos preservam o container para recuperação em vez de montá-lo como gravável. O SquashFS detecta um estado anterior não limpo e restaura o último snapshot salvo com sucesso. Exclua sessões apenas pelo Gerenciador de Sessões ou `minios-session delete`; não remova diretórios de sessão manualmente.
+Na inicialização, os sistemas de arquivos de containers são verificados antes da ativação como graváveis. Falhas graves na verificação do sistema de arquivos preservam o container para recuperação em vez de montá-lo como gravável. SquashFS detecta um estado anterior não limpo e restaura o último snapshot salvo com sucesso. Exclua sessões apenas pelo Gerenciador de Sessões ou `minios-session delete`; não remova diretórios de sessão manualmente.

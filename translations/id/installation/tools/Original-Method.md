@@ -1,33 +1,33 @@
-# Metode Instalasi Asli (Windows/Linux)
+# Metode instalasi asli (Windows/Linux, legacy)
 
-Metode instalasi MiniOS yang asli melibatkan penyalinan file sistem langsung ke drive dan pemasangan bootloader. Metode ini memberikan fleksibilitas konfigurasi maksimal dan kompatibilitas dengan berbagai jenis media.
+Metode instalasi MiniOS legacy ini melibatkan penyalinan file sistem secara langsung ke drive dan pemasangan bootloader. Disarankan menggunakan metode terbaru dari [Installing MiniOS](/installation/Installing-MiniOS.md) kecuali jika tata letak berbasis file memang diperlukan.
 
-⚠️ **Catatan**: Metode ini hanya berfungsi di Windows dan Linux karena menggunakan bootloader SYSLINUX.
+**Catatan:** Metode ini hanya berfungsi di Windows dan Linux karena menggunakan bootloader SYSLINUX.
 
 ## Penting
 
-⚠️ **Peringatan:** Pemilihan perangkat yang salah akan menyebabkan kehilangan data! Selalu periksa kembali drive yang dipilih dan lakukan backup data penting.
+**Peringatan:** Pemilihan perangkat yang salah akan menyebabkan kehilangan data. Selalu periksa ulang drive yang dipilih dan lakukan backup data penting.
 
-## Persyaratan Drive
+## Persyaratan drive
 
-### Ukuran Drive
+### Ukuran drive
 
-Lihat [Panduan Kompatibilitas Perangkat Keras](/installation/Hardware-Compatibility.md#system-requirements) untuk detail persyaratan sistem dan ukuran drive.
+Lihat [Panduan kompatibilitas perangkat keras](/installation/Hardware-Compatibility.md#system-requirements) untuk detail persyaratan sistem dan ukuran drive.
 
-### Persyaratan Teknis
+### Persyaratan teknis
 
 - **Sistem file**: FAT32, NTFS, ext2/3/4, Btrfs
 - **Skema partisi**: MBR
-- ⚠️ **Booting EFI**: Saat menggunakan sistem file NTFS, exFAT, atau ext2/3/4, mode booting EFI mungkin tidak tersedia. Untuk dukungan EFI, disarankan menggunakan FAT32.
+- **Booting EFI**: Saat menggunakan sistem file NTFS, exFAT, atau ext2/3/4, mode booting EFI mungkin tidak tersedia. Untuk dukungan EFI, disarankan menggunakan FAT32.
 
-## Membuat USB Drive Bootable
+## Membuat USB drive bootable
 
-### Langkah 1: Siapkan Drive
+### Langkah 1: Siapkan drive
 
 **Windows:**
-1. Buka "Disk Management" (`Win+R` → `diskmgmt.msc`)
-2. Temukan USB drive → klik kanan → "Delete Volume"
-3. Klik kanan pada ruang yang belum teralokasi → "New Simple Volume"
+1. Buka "Disk Management" (`Win+R`, lalu `diskmgmt.msc`)
+2. Temukan USB drive, klik kanan, lalu pilih "Delete Volume"
+3. Klik kanan pada ruang yang belum teralokasi dan pilih "New Simple Volume"
 4. Pilih sistem file: FAT32 (disarankan) atau NTFS
 
 **Linux:**
@@ -44,12 +44,12 @@ sudo mkfs.vfat -F 32 /dev/sdX1  # For FAT32
 sudo mkfs.ext4 /dev/sdX1         # For ext4
 ```
 
-### Langkah 2: Ekstrak dan Salin File
+### Langkah 2: Ekstrak dan salin file
 
 **Mounting ISO:**
 
 *Windows:*
-- Klik kanan file ISO → "Mount"
+- Klik kanan file ISO dan pilih "Mount"
 
 *Linux:*
 ```bash
@@ -58,38 +58,42 @@ sudo mount -o loop MiniOS.iso /mnt/minios-iso
 ```
 
 **Menyalin File:**
-1. **Cari folder `/minios/`** di ISO yang telah di-mount
+1. **Cari folder `/minios/`** di ISO yang sudah dimount
 2. **Salin seluruh folder `/minios/`** ke root USB drive
 
-### Langkah 3: Instal Bootloader
+### Langkah 3: Instal bootloader
 
-Arahkan ke folder `/minios/boot/` di drive dan jalankan installer:
+Arahkan ke folder `/minios/boot/syslinux/` di drive dan jalankan installer:
 
 **Windows:**
 - Jalankan `bootinst.bat` **sebagai administrator**
 
 **Linux:**
 ```bash
-cd /media/$USER/*/minios/boot/
+lsblk -o NAME,SIZE,FSTYPE,LABEL,MOUNTPOINTS,MODEL
+TARGET_MOUNT="/media/$USER/MINIOS"
+cd "$TARGET_MOUNT/minios/boot/syslinux"
 chmod +x bootinst.sh
 sudo ./bootinst.sh
 ```
 
-## Persistensi Perubahan Otomatis
+Ganti `MINIOS` dengan direktori mount yang sudah diverifikasi menggunakan `lsblk`. Jangan gunakan wildcard: skrip akan menentukan disk target dari lokasi skrip itu sendiri dan menulis kode boot ke disk tersebut.
+
+## Persistensi perubahan otomatis
 
 Pada boot pertama, MiniOS akan memeriksa tipe sistem file drive dan mencoba menggunakan mode persistensi perubahan yang optimal:
 
 - **ext2/3/4, Btrfs**: mencoba menggunakan mode `native` (penyimpanan langsung)
 - **FAT32/NTFS**: menggunakan mode `dynfilefs` (file dinamis)
-- Jika mode native tidak tersedia, akan otomatis beralih ke dynfilefs
+- Jika mode native tidak tersedia, otomatis beralih ke dynfilefs
 
-### Konfigurasi Parameter (untuk Pengguna Lanjutan)
+### Konfigurasi parameter untuk pengguna tingkat lanjut
 
-Jika diperlukan konfigurasi persistensi yang lebih spesifik, parameter boot dapat digunakan:
+Jika diperlukan konfigurasi persistensi yang lebih presisi, parameter boot dapat digunakan:
 
 - `perchmode=native` - Penyimpanan langsung ke partisi (untuk ext4)
 - `perchmode=dynfilefs` - File yang dapat diperluas secara dinamis
-- `perchmode=raw` - File dengan ukuran tetap  
+- `perchmode=raw` - File dengan ukuran tetap
 - `perchsize=8000` - Ukuran ruang penyimpanan data dalam MB
 
-Detail ada di [parameter boot](/configuration/Boot-Parameters.md).
+Detail selengkapnya di [parameter boot](/configuration/Boot-Parameters.md).

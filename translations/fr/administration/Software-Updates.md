@@ -4,16 +4,22 @@ MiniOS combine des modules d’image SquashFS en lecture seule avec une superpos
 
 ## Mettre à jour les paquets avec APT
 
-APT écrit sur la superposition d’exécution. Activez et utilisez une session persistante avant de procéder à la mise à jour si les modifications doivent être conservées après un redémarrage :
+APT écrit sur la superposition du runtime. Activez et utilisez une session persistante avant
+de procéder à la mise à jour si les modifications doivent survivre à un redémarrage :
 
 ```bash
 sudo apt update
 sudo apt upgrade
 ```
 
-Sans persistance, les modifications des paquets disparaissent à l’arrêt. Avec la persistance, les fichiers mis à jour et l’état d’APT restent dans cette session, mais les modules d’image `.sb` sous-jacents ne sont pas modifiés. Une nouvelle session utilise toujours les versions des paquets présentes dans l’image.
+Sans persistance, les modifications des paquets disparaissent à l’arrêt. Avec la persistance,
+les fichiers mis à jour et l’état d’APT restent dans cette session, mais les modules d’image `.sb`
+de base ne sont pas modifiés. Une nouvelle session utilise toujours les versions des paquets présentes dans
+l’image.
 
-APT convient pour maintenir une seule installation persistante. Vérifiez d’abord l’espace disponible, car les fichiers mis à jour s’ajoutent aux modules de base compressés. Ne considérez pas une mise à niveau Debian sur place comme une mise à jour d’image MiniOS ; utilisez plutôt une image construite pour la version cible.
+APT convient pour maintenir une seule installation persistante. Vérifiez d’abord l’espace disponible,
+car les fichiers mis à jour sont stockés en plus des modules de base compressés. MiniOS ne prend pas en charge
+les mises à niveau sur place entre versions. Ne considérez pas une mise à niveau de version Debian comme une mise à niveau d’image MiniOS ; sauvegardez vos données et utilisez plutôt une image construite pour la version cible.
 
 ## Mettre à jour les logiciels avec des modules
 
@@ -39,16 +45,17 @@ Pour les logiciels empaquetés localement, `apt2sb upgrade` peut créer un modul
 
 ## Remplacer les modules d’image
 
-Les mises à jour officielles d’image remplacent les fichiers sur le support MiniOS ; `apt upgrade` ne les met pas à jour. Il est préférable de remplacer l’ensemble complet des modules de base et les fichiers de démarrage correspondants issus d’une même version de MiniOS, ou de réinstaller à partir de la nouvelle image. N’associez pas les fichiers principaux, de bureau, d’application, de microprogramme ou de démarrage provenant de différentes versions, sauf si leur compatibilité est documentée.
+Les mises à jour officielles d’image remplacent les fichiers sur le support MiniOS ; `apt upgrade` ne les met pas à jour.
+Il est préférable de remplacer l’ensemble complet des modules de base et les fichiers de démarrage correspondants d’une même version de MiniOS, ou de réinstaller à partir de la nouvelle image. Ne mélangez pas les fichiers core, desktop, application, firmware ou boot de différentes versions sauf si leur compatibilité est documentée.
 
 Avant le remplacement :
 
-1. Sauvegardez la configuration MiniOS, les données de persistance, les modules utilisateur et les modules de base actuels.
-2. Notez les listes de modules actifs et prévus au prochain démarrage avec `sb list` et `sb next-boot`.
-3. Effectuez le remplacement depuis un autre système ou depuis un démarrage chargé en RAM afin que les fichiers sources ne soient pas utilisés.
-4. Conservez les fichiers précédents jusqu’à ce que la nouvelle image démarre et que le matériel et les applications nécessaires aient été testés.
+1. Sauvegardez la configuration MiniOS, les données de persistance, les modules utilisateur et les modules de base actuels comme décrit dans [Sauvegarde et restauration](/administration/Backup-Recovery.md).
+2. Notez les listes de modules actifs et de démarrage suivant avec `sb list` et `sb next-boot`.
+3. Effectuez le remplacement depuis un autre système ou à partir d’un démarrage chargé en RAM afin que les fichiers sources ne soient pas utilisés.
+4. Conservez les anciens fichiers jusqu’à ce que la nouvelle image démarre et que le matériel et les applications nécessaires aient été testés.
 
-Préservez les noms de base des modules et leur ordre lorsqu’une version demande un remplacement direct. Une source ultérieure portant le même nom de base remplace une source antérieure dans la sélection du prochain démarrage ; des copies portant des noms différents peuvent toutes deux être chargées et entraîner un ordre de couches inattendu.
+Préservez les noms de base et l’ordre des modules lorsqu’une version recommande un remplacement direct. Une source ultérieure avec le même nom de base remplace une source antérieure dans la sélection du prochain démarrage ; des copies portant des noms différents peuvent toutes deux être chargées et produire un ordre de couches non souhaité.
 
 ## Mettre à jour le noyau
 

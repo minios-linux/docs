@@ -1,9 +1,8 @@
 # Fehlerbehebung
 
-Beginnen Sie mit Beobachtung und reversiblen Tests. Partitionieren, formatieren,
-reparieren Sie kein Dateisystem, löschen Sie keine Sitzung und überschreiben Sie keine Boot-Dateien,
-bevor wichtige Daten gesichert und das fehlerhafte Gerät eindeutig anhand von Modell, Größe,
-Dateisystem und Einhängepunkt identifiziert wurden.
+Beginnen Sie mit Beobachtung und reversiblen Tests. Nehmen Sie keine Neu-Partitionierung, Neuformatierung, Reparatur eines Dateisystems, Löschung einer Sitzung oder Überschreibung von Boot-Dateien vor, bevor wichtige Daten gesichert wurden und das fehlerhafte Gerät anhand von Modell, Größe, Dateisystem und Einhängepunkt identifiziert ist.
+
+Verwenden Sie [Backup und Wiederherstellung](/administration/Backup-Recovery.md) vor destruktiven Maßnahmen und [Boot-Wiederherstellung](/administration/Boot-Recovery.md), wenn Firmware, Bootloader, Kernel oder installierte Boot-Dateien betroffen sind.
 
 ## Erste Überprüfungen
 
@@ -56,7 +55,10 @@ gelten nur für die Xfce-Umgebung. Siehe
 
 ## Netzwerkprobleme
 
-Stellen Sie fest, ob das Interface existiert, bevor Sie die Konfiguration ändern:
+Für normale kabelgebundene und WLAN-Einrichtung, Persistenz und NetworkManager-Befehle siehe
+[Netzwerkkonfiguration](/configuration/Network-Configuration.md).
+
+Prüfen Sie, ob das Interface existiert, bevor Sie die Konfiguration ändern:
 
 ```bash
 ip link
@@ -64,7 +66,7 @@ ip address
 ip route
 ```
 
-Für die normale laufende Sitzung prüfen Sie NetworkManager, sofern vorhanden:
+Für die normale laufende Sitzung inspizieren Sie den NetworkManager, sofern vorhanden:
 
 ```bash
 nmcli device status
@@ -72,16 +74,11 @@ nmcli connection show
 systemctl status NetworkManager --no-pager
 ```
 
-- Falls kein Interface erscheint, notieren Sie die Ausgabe von `lspci -nnk` oder `lsusb` und prüfen Sie auf
-  fehlende Firmware in `dmesg`.
-- Existiert das Interface, hat aber keine Adresse, testen Sie DHCP, bevor Sie statische
-  Werte eintragen.
-- Existiert eine Adresse, testen Sie das Gateway, dann eine IP-Adresse und dann einen DNS-Namen, um
-  Verbindungs-, Routing- und DNS-Fehler zu unterscheiden.
-- Der Installer konfiguriert kabelgebundenes DHCP oder statisches IPv4. Vorhandene WLAN-Profile
-  bleiben unverändert.
-- Der Boot-Parameter `ip=` konfiguriert den frühen PXE-Download, nicht das Netzwerk der persistierenden Sitzung.
-  Siehe [Netzwerk-Boot](/installation/Network-Boot.md).
+- Falls kein Interface erscheint, protokollieren Sie die Ausgaben von `lspci -nnk` oder `lsusb` und prüfen Sie auf fehlende Firmware in `dmesg`.
+- Wenn das Interface existiert, aber keine Adresse hat, testen Sie DHCP, bevor Sie statische Werte eingeben.
+- Wenn eine Adresse vorhanden ist, testen Sie das Gateway, dann eine IP-Adresse und schließlich einen DNS-Namen, um Verbindungs-, Routing- und DNS-Fehler zu unterscheiden.
+- Der Installer konfiguriert kabelgebundenes DHCP oder statisches IPv4. Vorhandene WLAN-Profile bleiben unverändert.
+- Der Boot-Parameter `ip=` konfiguriert den frühen PXE-Download, nicht das Netzwerk der persistenten Sitzung. Siehe [Netzwerk-Boot](/installation/Network-Boot.md).
 
 ## Persistenzprobleme
 

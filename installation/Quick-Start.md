@@ -5,7 +5,7 @@ configuration of MiniOS.
 
 ## 1. Choose an edition
 
-- **Minimum** provides a reduced package set and the Flux environment.
+- **Flux** provides a reduced package set and the Flux environment.
 - **Standard** is the general-purpose Xfce edition.
 - **Toolbox** adds administration, diagnostic, storage, and recovery tools.
 - **Ultra** includes the broadest application set.
@@ -100,6 +100,10 @@ rather than treating the profile name as a runtime setting. See
 [configuration file reference](/configuration/Configuration-File.md) documents
 the underlying keys.
 
+Configure normal wired and Wi-Fi connections with [Network
+configuration](/configuration/Network-Configuration.md). The network boot
+`ip=` parameter is not a persistent NetworkManager setting.
+
 ## 6. Install software and save work
 
 APT changes made in a live session survive reboot only when that session is
@@ -113,6 +117,9 @@ reboot before relying on a persistent session.
 ## Getting help
 
 - [Performance optimization](/administration/Performance-Optimization.md)
+- [MiniOS applications and tools](/about/MiniOS-Applications.md)
+- [Backup and recovery](/administration/Backup-Recovery.md)
+- [Frequently asked questions](/about/FAQ.md)
 - [Kernel management](/administration/Kernel-Management.md)
 - [Building MiniOS](/development/Building-MiniOS.md)
 - [Rebuilding an ISO](/development/Rebuilding-ISO.md)

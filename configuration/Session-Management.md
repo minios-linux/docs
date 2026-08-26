@@ -164,7 +164,8 @@ sudo minios-session import /path/to/session.tar.zst --force-mode dynfilefs
 Only `.tar.zst` imports are accepted. Paths and archive members are validated,
 and extraction is bounded. `--auto-convert` chooses a compatible mode for the
 current filesystem. `--force-mode <mode>` explicitly selects an available
-mode.
+mode. Export, copy, and conversion are not supported for SquashFS sessions;
+save the snapshot and copy the complete inactive session directory instead.
 
 Copy or convert a session:
 
@@ -243,10 +244,12 @@ Importing or converting into LUKS creates a new encrypted container.
 
 ## Backups and recovery
 
-Use `export` for backups rather than copying a mounted session directory. Keep
-the resulting archive on another device and verify that it can be listed or
-imported before relying on it. Import always creates a new numbered session;
-activate it explicitly when it is ready to use.
+For native, DynFileFS, raw, and LUKS sessions, use `export` for backups rather
+than copying a mounted session directory. Keep the resulting archive on another
+device and verify that it can be listed or imported before relying on it. Import
+always creates a new numbered session; activate it explicitly when it is ready
+to use. For SquashFS and whole-device backup procedures, see [Backup and
+recovery](/administration/Backup-Recovery.md).
 
 For recovery after a full storage device, an interrupted write, or repeated
 creation of empty sessions, follow the dedicated

@@ -34,13 +34,13 @@ find_data()
 ## Prérequis
 
 | Prérequis | Remarques |
-|-----------|-----------|
-| Ethernet filaire (ou virtio/vmxnet en VM) | La première interface utilisable non loopback est utilisée ; pas de sélection `BOOTIF` / `ethdevice` dans l’initrd |
-| Initrd avec modules réseau | Construit pour les variantes de paquets non **minimum** (`--network`, souvent `--cloud`) |
-| Pas de dépendance au Wi‑Fi | Le sans-fil n’est pas pris en charge dans le chemin de démarrage réseau |
-| Privilégier les cartes sans firmware propriétaire | Les cartes nécessitant un firmware échouent souvent dans l’initrd |
-| Privilégier les images **standard+** | **minimum** omet les modules NIC réseau → PXE / HTTP ISO effectivement non pris en charge |
-| HTTP uniquement pour l’URL ISO | `from=http://…` fonctionne ; **`https://` n’est pas pris en charge** |
+|-------------|----------|
+| Ethernet filaire (ou virtio/vmxnet dans les VM) | La première interface utilisable non-loopback est utilisée ; pas de sélection `BOOTIF` / `ethdevice` dans l’initrd |
+| Initrd avec modules réseau | Construit pour les variantes de paquets autres que la valeur interne `minimum` (`--network`, souvent `--cloud`) |
+| Pas de dépendance au Wi‑Fi | Le sans-fil n’est pas pris en charge dans le processus de démarrage réseau |
+| Privilégier les cartes réseau sans blobs de firmware | Les cartes dépendantes du firmware échouent souvent dans l’initrd |
+| Privilégier les images **Standard** ou plus grandes | L’édition **Flux** omet les modules NIC réseau, donc PXE / ISO HTTP n’est pas réellement pris en charge |
+| HTTP uniquement pour l’URL de l’ISO | `from=http://…` fonctionne ; **`https://` n’est pas pris en charge** |
 
 Outils dans l’initrd : busybox `ifconfig`, `route`, `udhcpc`, `wget`, `tftp` et `@mount.httpfs2`. Il n’y a pas de NetworkManager dans l’initrd.
 
@@ -127,22 +127,22 @@ L’espace utilisateur tardif **live-config** peut brièvement activer le résea
 
 ## Erreurs courantes
 
-1. Mettre `ip=` sur la ligne de commande USB/ISO “pour une IP statique” → le système tente un téléchargement PXE au lieu du support local.
-2. Utiliser `ip=dhcp` ou une autre syntaxe `ip=` du kernel → mauvais analyseur, configuration d’adresse incorrecte.
-3. Attendre du Wi‑Fi ou une sélection multi-NIC `BOOTIF` dans l’initrd → non implémenté.
-4. Utiliser une image **minimum** pour PXE/HTTP ISO → modules réseau absents de l’initrd.
-5. Servir l’ISO uniquement en HTTPS → `from=http://…` ne fonctionnera pas.
-6. Confondre ceci avec la configuration statique de l’installateur/NetworkManager après connexion.
+1. Mettre `ip=` sur la ligne de commande USB/ISO « pour IP statique » → le système tente un téléchargement PXE au lieu du média local.
+2. Utiliser `ip=dhcp` ou une autre syntaxe du noyau `ip=` → mauvais parseur, configuration d’adresse incorrecte.
+3. Attendre une sélection Wi‑Fi ou multi-NIC `BOOTIF` dans l’initrd → non implémenté.
+4. Utiliser une image **Flux** pour PXE/ISO HTTP → modules réseau absents de l’initrd.
+5. Servir l’ISO uniquement en HTTPS → `from=http://…` ne correspondra pas.
+6. Confondre cela avec la configuration statique de l’installateur/NetworkManager après connexion.
 
-## Résumé de fiabilité
+## Résumé de la fiabilité
 
 | Scénario | Évaluation |
 |----------|------------|
-| PXE + `ip=…` + liste HTTP sur :7529 (ou TFTP), filaire simple / virtio | Cible prise en charge |
-| `from=http://…iso` + DHCP (ou `ip=`), même type de carte | Fonctionne généralement |
-| Démarrage USB/ISO normal | Réseau de l’initrd non utilisé |
+| PXE + `ip=…` + liste HTTP sur :7529 (ou TFTP), connexion filaire simple / virtio | Cible prise en charge |
+| `from=http://…iso` + DHCP (ou `ip=`), même classe de carte réseau | Fonctionne généralement |
+| Démarrage USB/ISO classique | Réseau initrd non utilisé |
 | Session statique via `ip=` | Non pris en charge |
-| Multi-NIC / carte avec firmware / Wi‑Fi / `https://` / édition minimum | Faible ou non pris en charge |
+| Multi-NIC / carte réseau firmware / Wi‑Fi / `https://` / édition Flux | Faible ou non pris en charge |
 
 ## Référence d’implémentation
 

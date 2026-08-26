@@ -1,33 +1,33 @@
-# Méthode d'installation originale (Windows/Linux)
+# Méthode d’installation d’origine (Windows/Linux, héritée)
 
-La méthode d'installation originale de MiniOS consiste à copier directement les fichiers système sur le disque et à installer le programme de démarrage. Cette méthode offre une flexibilité maximale de configuration et une compatibilité étendue avec différents types de supports.
+Cette méthode d’installation héritée de MiniOS consiste à copier directement les fichiers système sur le disque et à installer le programme de démarrage. Privilégiez une méthode actuelle depuis [Installer MiniOS](/installation/Installing-MiniOS.md) sauf si une disposition basée sur les fichiers est spécifiquement requise.
 
-⚠️ **Remarque** : Cette méthode fonctionne uniquement sous Windows et Linux en raison de l'utilisation du programme de démarrage SYSLINUX.
+**Remarque :** Cette méthode ne fonctionne que sous Windows et Linux en raison de l’utilisation du programme de démarrage SYSLINUX.
 
 ## Important
 
-⚠️ **Avertissement :** Une mauvaise sélection du périphérique entraînera une perte de données ! Vérifiez toujours attentivement le disque sélectionné et sauvegardez vos données importantes.
+**Avertissement :** Une mauvaise sélection du périphérique entraînera une perte de données. Vérifiez toujours attentivement le lecteur sélectionné et sauvegardez vos données importantes.
 
-## Exigences pour le disque
+## Exigences pour le lecteur
 
-### Taille du disque
+### Taille du lecteur
 
-Consultez le [Guide de compatibilité matérielle](/installation/Hardware-Compatibility.md#system-requirements) pour les exigences système détaillées et les tailles de disque.
+Consultez le [Guide de compatibilité matérielle](/installation/Hardware-Compatibility.md#system-requirements) pour connaître les exigences système détaillées et les tailles de lecteur recommandées.
 
 ### Exigences techniques
 
 - **Systèmes de fichiers** : FAT32, NTFS, ext2/3/4, Btrfs
 - **Schéma de partition** : MBR
-- ⚠️ **Démarrage EFI** : Lors de l'utilisation des systèmes de fichiers NTFS, exFAT ou ext2/3/4, le démarrage en mode EFI peut ne pas être disponible. Pour la prise en charge EFI, il est recommandé d'utiliser FAT32.
+- **Démarrage EFI** : Lorsque vous utilisez les systèmes de fichiers NTFS, exFAT ou ext2/3/4, le démarrage en mode EFI peut ne pas être disponible. Pour la compatibilité EFI, il est recommandé d’utiliser FAT32.
 
-## Création d'une clé USB bootable
+## Création d’une clé USB amorçable
 
-### Étape 1 : Préparer le disque
+### Étape 1 : Préparer le lecteur
 
 **Windows :**
-1. Ouvrez "Gestion des disques" (`Win+R` → `diskmgmt.msc`)
-2. Trouvez la clé USB → clic droit → "Supprimer le volume"
-3. Clic droit sur l'espace non alloué → "Nouveau volume simple"
+1. Ouvrez "Gestion des disques" (`Win+R`, puis `diskmgmt.msc`)
+2. Trouvez la clé USB, faites un clic droit et sélectionnez "Supprimer le volume"
+3. Faites un clic droit sur l’espace non alloué et sélectionnez "Nouveau volume simple"
 4. Choisissez le système de fichiers : FAT32 (recommandé) ou NTFS
 
 **Linux :**
@@ -46,10 +46,10 @@ sudo mkfs.ext4 /dev/sdX1         # For ext4
 
 ### Étape 2 : Extraire et copier les fichiers
 
-**Montage de l'ISO :**
+**Montage de l’ISO :**
 
 *Windows :*
-- Clic droit sur le fichier ISO → "Monter"
+- Faites un clic droit sur le fichier ISO et sélectionnez "Monter"
 
 *Linux :*
 ```bash
@@ -58,38 +58,42 @@ sudo mount -o loop MiniOS.iso /mnt/minios-iso
 ```
 
 **Copie des fichiers :**
-1. **Trouvez le dossier `/minios/`** dans l'ISO monté
-2. **Copiez l'intégralité du dossier `/minios/`** à la racine de la clé USB
+1. **Trouvez le dossier `/minios/`** dans l’ISO monté
+2. **Copiez l’intégralité du dossier `/minios/`** à la racine de la clé USB
 
-### Étape 3 : Installer le programme de démarrage
+### Étape 3 : Installer le bootloader
 
-Accédez au dossier `/minios/boot/` sur le disque et lancez l'installateur :
+Accédez au dossier `/minios/boot/syslinux/` sur le lecteur et lancez l'installateur :
 
-**Windows :**
+**Windows :**
 - Exécutez `bootinst.bat` **en tant qu'administrateur**
 
-**Linux :**
+**Linux :**
 ```bash
-cd /media/$USER/*/minios/boot/
+lsblk -o NAME,SIZE,FSTYPE,LABEL,MOUNTPOINTS,MODEL
+TARGET_MOUNT="/media/$USER/MINIOS"
+cd "$TARGET_MOUNT/minios/boot/syslinux"
 chmod +x bootinst.sh
 sudo ./bootinst.sh
 ```
 
+Remplacez `MINIOS` par le répertoire de montage exact vérifié avec `lsblk`. N'utilisez pas de caractère générique : le script déduit le disque cible à partir de son propre emplacement et écrit le code d’amorçage sur ce disque.
+
 ## Persistance automatique des modifications
 
-Au premier démarrage, MiniOS vérifie le type de système de fichiers du disque et tente d'utiliser le mode de persistance des modifications optimal :
+Au premier démarrage, MiniOS vérifie le type de système de fichiers du lecteur et tente d’utiliser le mode de persistance optimal :
 
-- **ext2/3/4, Btrfs** : tente d'utiliser le mode `native` (sauvegarde directe)
+- **ext2/3/4, Btrfs** : tente d’utiliser le mode `native` (sauvegarde directe)
 - **FAT32/NTFS** : utilise le mode `dynfilefs` (fichier dynamique)
-- Si le mode natif n'est pas disponible, bascule automatiquement sur dynfilefs
+- Lorsque le mode natif n’est pas disponible, bascule automatiquement sur dynfilefs
 
-### Configuration des paramètres (pour utilisateurs avancés)
+### Configuration des paramètres pour utilisateurs avancés
 
-Lorsque vous avez besoin d'une configuration précise de la persistance, vous pouvez utiliser les paramètres de démarrage :
+Lorsque vous avez besoin d'une configuration de persistance précise, vous pouvez utiliser les paramètres de démarrage :
 
-- `perchmode=native` - Sauvegarde directe sur la partition (pour ext4)
-- `perchmode=dynfilefs` - Fichier extensible dynamiquement
-- `perchmode=raw` - Fichier de taille fixe  
-- `perchsize=8000` - Taille de l'espace de stockage des données en Mo
+- `perchmode=native` : sauvegarde directe sur la partition (pour ext4)
+- `perchmode=dynfilefs` : fichier extensible dynamiquement
+- `perchmode=raw` : fichier de taille fixe
+- `perchsize=8000` : taille de l’espace de stockage des données en Mo
 
-Détails dans [paramètres de démarrage](/configuration/Boot-Parameters.md).
+Plus de détails dans [paramètres de démarrage](/configuration/Boot-Parameters.md).

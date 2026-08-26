@@ -1,8 +1,12 @@
 # Solução de problemas
 
-Comece pela observação e testes reversíveis. Não reparticione, reformate,
+Comece com observação e testes reversíveis. Não reparticione, reformate,
 repare um sistema de arquivos, exclua uma sessão ou sobrescreva arquivos de boot antes de fazer backup dos dados importantes e identificar o dispositivo com falha pelo modelo, tamanho,
 sistema de arquivos e ponto de montagem.
+
+Use [Backup e recuperação](/administration/Backup-Recovery.md) antes de realizar ações destrutivas
+e [Recuperação de boot](/administration/Boot-Recovery.md) quando firmware,
+bootloader, kernel ou arquivos de boot instalados estiverem envolvidos.
 
 ## Verificações iniciais
 
@@ -55,6 +59,9 @@ se aplicam apenas ao ambiente Xfce. Veja
 
 ## Problemas de rede
 
+Para configuração normal de rede cabeada e Wi-Fi, persistência e comandos do NetworkManager, veja
+[Configuração de rede](/configuration/Network-Configuration.md).
+
 Verifique se a interface existe antes de alterar a configuração:
 
 ```bash
@@ -63,7 +70,7 @@ ip address
 ip route
 ```
 
-Na sessão normal em execução, inspecione o NetworkManager quando estiver presente:
+Para a sessão em execução normalmente, inspecione o NetworkManager quando estiver presente:
 
 ```bash
 nmcli device status
@@ -73,8 +80,8 @@ systemctl status NetworkManager --no-pager
 
 - Se nenhuma interface aparecer, registre a saída de `lspci -nnk` ou `lsusb` e verifique se há
   firmware ausente em `dmesg`.
-- Se a interface existir mas não tiver endereço, teste o DHCP antes de inserir valores estáticos.
-- Se houver endereço, teste o gateway, depois um endereço IP e depois um nome DNS para
+- Se a interface existir, mas não tiver endereço, teste o DHCP antes de inserir valores estáticos.
+- Se existir um endereço, teste o gateway, depois um endereço IP e, em seguida, um nome DNS para
 distinguir falhas de link, roteamento e DNS.
 - O instalador configura DHCP cabeado ou IPv4 estático. Perfis Wi-Fi existentes permanecem inalterados.
 - O parâmetro de boot `ip=` configura o download PXE inicial, não a rede da sessão persistente. Veja [Boot pela rede](/installation/Network-Boot.md).

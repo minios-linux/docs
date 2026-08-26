@@ -1,6 +1,8 @@
 # Dépannage
 
-Commencez par l’observation et des tests réversibles. N’effectuez pas de repartitionnement, de reformatage, de réparation de système de fichiers, de suppression de session ou d’écrasement de fichiers de démarrage tant que les données importantes ne sont pas sauvegardées et que le périphérique défaillant n’a pas été identifié par modèle, taille, système de fichiers et point de montage.
+Commencez par observer et effectuer des tests réversibles. Ne reconfigurez pas les partitions, ne reformatez pas, ne réparez pas un système de fichiers, ne supprimez pas une session et ne remplacez pas les fichiers de démarrage tant que les données importantes ne sont pas sauvegardées et que le périphérique défaillant n’a pas été identifié par modèle, taille, système de fichiers et point de montage.
+
+Utilisez [Sauvegarde et restauration](/administration/Backup-Recovery.md) avant toute opération destructive et [Récupération du démarrage](/administration/Boot-Recovery.md) lorsque le firmware, le bootloader, le noyau ou les fichiers de démarrage installés sont concernés.
 
 ## Vérifications initiales
 
@@ -43,9 +45,12 @@ Les contrôles de résolution en machine virtuelle documentés comme `virtres` e
 s’appliquent uniquement à l’environnement Xfce. Consultez
 [Virtualisation](/administration/Virtualization.md) pour la configuration spécifique aux invités.
 
-## Problèmes réseau
+## Problèmes de réseau
 
-Vérifiez d’abord si l’interface existe avant de modifier la configuration :
+Pour la configuration filaire et Wi-Fi standard, la persistance et les commandes NetworkManager, consultez
+[Configuration réseau](/configuration/Network-Configuration.md).
+
+Vérifiez si l’interface existe avant de modifier la configuration :
 
 ```bash
 ip link
@@ -53,7 +58,7 @@ ip address
 ip route
 ```
 
-Pour la session normale en cours, inspectez NetworkManager s’il est présent :
+Pour la session normale en cours, examinez NetworkManager s’il est présent :
 
 ```bash
 nmcli device status
@@ -61,11 +66,11 @@ nmcli connection show
 systemctl status NetworkManager --no-pager
 ```
 
-- Si aucune interface n’apparaît, relevez la sortie de `lspci -nnk` ou `lsusb` et vérifiez l’absence éventuelle de microprogramme dans `dmesg`.
+- Si aucune interface n’apparaît, enregistrez la sortie de `lspci -nnk` ou `lsusb` et vérifiez la présence du firmware manquant dans `dmesg`.
 - Si l’interface existe mais n’a pas d’adresse, testez le DHCP avant de saisir des valeurs statiques.
-- Si une adresse est présente, testez la passerelle, puis une adresse IP, puis un nom DNS pour distinguer les problèmes de liaison, de routage et de DNS.
+- Si une adresse existe, testez la passerelle, puis une adresse IP, puis un nom DNS pour distinguer les pannes de liaison, de routage et de DNS.
 - L’installateur configure le DHCP filaire ou une IPv4 statique. Il laisse les profils Wi-Fi existants inchangés.
-- Le paramètre de démarrage `ip=` configure le téléchargement PXE initial, pas le réseau de la session persistante. Voir [Boot réseau](/installation/Network-Boot.md).
+- Le paramètre de démarrage `ip=` configure le téléchargement PXE précoce, pas le réseau de session persistant. Voir [Démarrage réseau](/installation/Network-Boot.md).
 
 ## Problèmes de persistance
 

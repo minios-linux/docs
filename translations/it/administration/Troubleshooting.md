@@ -1,7 +1,12 @@
 # Risoluzione dei problemi
 
 Inizia con l’osservazione e test reversibili. Non ripartizionare, riformattare,
-risanare un filesystem, eliminare una sessione o sovrascrivere file di avvio finché i dati importanti non sono stati salvati e il dispositivo guasto identificato per modello, dimensione, filesystem e punto di mount.
+risanare un filesystem, eliminare una sessione o sovrascrivere file di boot finché
+i dati importanti non sono stati salvati e il dispositivo guasto identificato per modello, dimensione,
+filesystem e punto di mount.
+
+Utilizza [Backup e ripristino](/administration/Backup-Recovery.md) prima di operazioni distruttive e [Ripristino dell’avvio](/administration/Boot-Recovery.md) quando sono coinvolti firmware,
+bootloader, kernel o file di boot installati.
 
 ## Verifiche iniziali
 
@@ -46,6 +51,9 @@ valgono solo per l’ambiente Xfce. Consulta
 
 ## Problemi di rete
 
+Per la configurazione standard di rete cablata e Wi-Fi, la persistenza e i comandi di NetworkManager, consulta
+[Configurazione di rete](/configuration/Network-Configuration.md).
+
 Verifica che l’interfaccia esista prima di modificare la configurazione:
 
 ```bash
@@ -54,7 +62,7 @@ ip address
 ip route
 ```
 
-Per la sessione normale in esecuzione, controlla NetworkManager se presente:
+Per la sessione in esecuzione normalmente, controlla NetworkManager se presente:
 
 ```bash
 nmcli device status
@@ -62,11 +70,13 @@ nmcli connection show
 systemctl status NetworkManager --no-pager
 ```
 
-- Se nessuna interfaccia compare, annota l’output di `lspci -nnk` o `lsusb` e verifica la presenza di firmware mancante in `dmesg`.
-- Se l’interfaccia esiste ma non ha un indirizzo, prova DHCP prima di inserire valori statici.
-- Se un indirizzo è presente, testa il gateway, poi un indirizzo IP, poi un nome DNS per distinguere problemi di collegamento, routing e DNS.
-- L’installer configura DHCP cablato o IPv4 statico. I profili Wi-Fi esistenti non vengono modificati.
-- Il parametro di avvio `ip=` configura il download PXE iniziale, non la rete della sessione persistente. Consulta [Avvio da rete](/installation/Network-Boot.md).
+- Se nessuna interfaccia compare, registra l’output di `lspci -nnk` o `lsusb` e verifica la presenza
+di firmware mancanti in `dmesg`.
+- Se l’interfaccia esiste ma non ha indirizzo, prova il DHCP prima di inserire valori statici.
+- Se un indirizzo è presente, testa il gateway, poi un indirizzo IP, poi un nome DNS per
+distinguere problemi di collegamento, routing e DNS.
+- L’installer configura DHCP cablato o IPv4 statico. Lascia invariati i profili Wi-Fi esistenti.
+- Il parametro di boot `ip=` configura il download PXE iniziale, non la rete della sessione persistente. Consulta [Avvio da rete](/installation/Network-Boot.md).
 
 ## Problemi di persistenza
 

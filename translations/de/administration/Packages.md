@@ -2,16 +2,16 @@
 
 Die Inhalte der MiniOS-Pakete werden aus bedingten Quelllisten generiert. Sie variieren je nach Distributionssuite, Architektur, Init-System, Desktop-Umgebung, Spracheinstellung, Kernel-Optionen und Verfügbarkeit der Repositories. Diese Seite beschreibt die Vererbung der Editionen und repräsentative Inhalte; sie stellt keine vollständige Paketübersicht für alle Releases dar.
 
-## Editionsvererbung
+## Edition-Vererbung
 
-Die Paketvarianten bauen additiv aufeinander auf:
+Die öffentlichen Editionen bilden eine additive Abfolge:
 
-1. **Minimum** bietet das gemeinsame Live-System und die kleinste ausgewählte Desktop-Umgebung.
-2. **Standard** erbt Minimum und ergänzt allgemeine Verwaltungs-, Desktop- und MiniOS-Management-Tools.
-3. **Toolbox** erbt Standard und fügt Werkzeuge für Wiederherstellung, Diagnose, Speicher, Netzwerk und Virtualisierung hinzu.
-4. **Ultra** erbt Toolbox und erweitert um umfangreichere Workstation-, Medien-, Office- und Container-Software.
+1. **Flux** stellt das gemeinsame Live-System und die schlanke Flux-Umgebung bereit.
+2. **Standard** übernimmt die gemeinsame Paketbasis und ergänzt allgemeine Verwaltungs-, Desktop- und MiniOS-Management-Tools.
+3. **Toolbox** erbt von Standard und erweitert um Recovery-, Diagnose-, Speicher-, Netzwerk- und Virtualisierungstools.
+4. **Ultra** erbt von Toolbox und ergänzt umfangreichere Workstation-, Medien-, Office- und Container-Software.
 
-Bedingte Ausdrücke können Alternativen auswählen oder ein Paket für eine Suite, Architektur, Umgebung oder Build-Option auslassen. Ein unten genanntes Paket steht daher repräsentativ für die aktuellen Quelllisten und garantiert nicht, dass der gleiche Debian-Binärpaketname in jeder MiniOS-Version existiert.
+Mit bedingten Ausdrücken können Alternativen ausgewählt oder ein Paket für eine Suite, Architektur, Umgebung oder Build-Option ausgelassen werden. Ein unten aufgeführtes Paket steht daher exemplarisch für die aktuellen Quelllisten und ist keine Zusicherung, dass das gleiche Debian-Binärpaket in jeder MiniOS-Version existiert.
 
 ## Desktop- und Umgebungsscope
 
@@ -19,13 +19,13 @@ Desktop-Pakete stammen aus der geordneten Modulkette der gewählten Umgebung. Di
 
 ## Repräsentative Inhalte
 
-### Minimum
+### Flux
 
-Die gemeinsame Minimum-Zusammenstellung enthält MiniOS-Live-Konfiguration und Image-Tools, NetworkManager, SSH, Tastatur- und Sprachunterstützung, gezielt ausgewählte Firmware sowie Werkzeuge zur Hardware-Inspektion und für gängige Speicheraufgaben. Repräsentative Pakete sind `minios-tools`, `minios-image-compose`, `minios-live-config`, `pciutils`, `usbutils`, `smartmontools`, `dosfstools`, `ntfs-3g`, `btrfs-progs`, `xorriso`, `squashfs-tools`, `zstd`, `rfkill` und `wpasupplicant`.
+Die gemeinsame Flux-Zusammenstellung umfasst MiniOS-Live-Konfiguration und Image-Tools, NetworkManager, SSH, Unterstützung für Tastatur und Spracheinstellungen, zielgerichtet ausgewählte Firmware sowie Werkzeuge zur Hardware-Inspektion und für gängige Speicheraufgaben. Repräsentative Pakete sind `minios-tools`, `minios-image-compose`, `minios-live-config`, `pciutils`, `usbutils`, `smartmontools`, `dosfstools`, `ntfs-3g`, `btrfs-progs`, `xorriso`, `squashfs-tools`, `zstd`, `rfkill` und `wpasupplicant`.
 
-Die Xfce-Minimum-Kette ergänzt Xorg, Blackbox oder Openbox (je nach Quellliste), Thunar, Mousepad, das Xfce-Panel, Sitzungs-, Einstellungs-, Desktop- und Fenstermanager-Komponenten, das NetworkManager-Desktop-Applet, ALSA-Steuerung, Xarchiver, Akkuunterstützung sowie Firefox oder Firefox ESR (je nach Distributionsfamilie).
+Die Flux-Desktop-Kette ergänzt Fluxbox und die von den Quelllisten ausgewählten unterstützenden Tools. Sie enthält nicht das vollständige Xfce-Anwendungs- und MiniOS-GUI-Set, das unter Standard beschrieben wird.
 
-Die in jeder Edition enthaltenen MiniOS-Utilities, auch in Xfce Minimum, sind `minios-tools`, `minios-image-compose`, `minios-live-config`, die passende systemd- oder SysV-Init-Integration, `minios-live-config-doc` und `minios-welcome`.
+Die in jeder Edition, einschließlich Flux, enthaltenen MiniOS-Utilities sind `minios-tools`, `minios-image-compose`, `minios-live-config`, die passende systemd- oder SysV-init-Integration, `minios-live-config-doc` und `minios-welcome`.
 
 ### Standard
 
@@ -43,35 +43,37 @@ Das Xfce-Anwendungsmodul ergänzt repräsentative Tools wie GParted, GSmartContr
 
 Ultra behält das Toolbox-Set bei und ergänzt Container- und Workstation-Software. Repräsentative gemeinsame Ergänzungen sind Docker-Pakete (je nach Ziel-Repository), Compose-Unterstützung, `lazydocker`, iSCSI-Tools und Utilities für Benutzer-Namespaces. Die aktuelle Xfce-Anwendungsliste enthält LibreOffice, GIMP, Inkscape, Blender, Audacity, OBS Studio, RawTherapee, Synaptic und zugehörige Desktop-Integrationspakete.
 
-## Exakte Release-Inhalte prüfen
+## Exakte Release-Inhalte inspizieren
 
-Das laufende System ist maßgeblich für die tatsächlich in diesem Release installierten Pakete. Paketnamen und Versionen lassen sich anzeigen mit:
+Das laufende System ist maßgeblich für die tatsächlich in diesem Release installierten Pakete. Paketnamen und -versionen lassen sich auflisten mit:
 
 ```bash
 dpkg-query -W -f='${binary:Package}\t${Version}\n' | sort
 ```
 
-Die geordneten Module des laufenden Root-Systems sollten separat von den für den nächsten Start ausgewählten Dateien betrachtet werden. Der MiniOS-Modulmanager zeigt diese als **Jetzt aktiv** und **Nächster Start** an. Aus der Shell heraus können die aktuell eingebundenen SquashFS-Mounts gelistet werden mit:
+Die geordneten Module, die das laufende Root-System bilden, sollten separat von den für den nächsten Start ausgewählten Dateien betrachtet werden. Der MiniOS-Modulmanager stellt dies als **Aktuell laufend** und **Nächster Start** dar. Im Terminal können die zur Laufzeit eingebundenen SquashFS-Mounts mit folgendem Befehl angezeigt werden:
 
 ```bash
 findmnt -rn -t squashfs -o TARGET,SOURCE
 ```
 
-Für Offline-Medien oder ein eingebundenes ISO können die Quellmoduldateien direkt inventarisiert werden:
+Für Offline-Medien oder ein eingebundenes ISO kann man die Quellmoduldateien direkt inventarisieren:
 
 ```bash
 find /path/to/media/minios -type f -name '*.sb' -printf '%P\n' | sort -n
 ```
 
-Für einen Quell-Build sind folgende Dateien und Verzeichnisse die maßgeblichen Quellmanifeste und Auswahlinputs:
+Für einen Quell-Build sind die folgenden Dateien und Verzeichnisse die maßgeblichen Quell-Manifeste und Auswahlgrundlagen:
 
 - `linux-live/environments/<environment>/` für die geordnete Modulkette.
-- `linux-live/scripts/00-core/packages.list` für die gemeinsame Editionsauswahl.
-- `linux-live/scripts/01-kernel/packages.list` und `02-firmware/packages.list` für bedingte Kernel-Ergänzungen und Firmware.
-- Das `packages.list` jedes gewählten Desktop- und Anwendungsmoduls.
-- `linux-live/build.conf` für Suite, Architektur, Umgebung, Paketvariante, Init-System, Kernel, Spracheinstellung und andere Filterwerte.
+- `linux-live/scripts/00-core/packages.list` für die gemeinsame Edition-Auswahl.
+- `linux-live/scripts/01-kernel/packages.list` und `02-firmware/packages.list` für bedingte Kernel-Erweiterungen und Firmware.
+- Das `packages.list` jedes ausgewählten Desktop- und Anwendungsmoduls.
+- `linux-live/build.conf` für Suite, Architektur, Umgebung, Paketvariante, Init-System, Kernel, Sprache und weitere Filterwerte.
 - `linux-live/condinapt.map` für die Bedeutung der Präfixe in Paketlisten-Filtern.
 
-Quelllisten beschreiben angeforderte Pakete und Alternativen. Nur das fertige Abbild und `dpkg-query` zeigen die exakt aufgelöste Abhängigkeitsmenge und Versionen für ein bestimmtes Release. Paketverfügbarkeit und Paketnamen können sich zwischen Debian, Ubuntu und Devuan sowie zwischen Desktop-Umgebungen unterscheiden.
+Quelllisten beschreiben angeforderte Pakete und Alternativen. Nur das fertige Abbild und `dpkg-query` zeigen die exakt aufgelöste Abhängigkeitsmenge und Versionen für ein bestimmtes Release. Paketverfügbarkeit und Paketnamen können sich zwischen Debian-, Ubuntu- und Devuan-Suiten sowie zwischen Desktop-Umgebungen unterscheiden.
+
+Das Quell-Build-System bezeichnet seine kleinste Paketvariante als `minimum`. Dies ist ein interner `PACKAGE_VARIANT`-Wert, der von CondinAPT-Filtern verwendet wird, nicht der Name einer veröffentlichten MiniOS-Edition. Die veröffentlichte Edition, die aus dieser Paketvariante und der Flux-Umgebung gebaut wird, ist **Flux**.
 
 Siehe [Systemarchitektur](/about/System-Architecture.md) für die Modulreihenfolge und [CondinAPT in MiniOS](/development/CondinAPT-MiniOS.md) für die bedingte Paketauswahl.

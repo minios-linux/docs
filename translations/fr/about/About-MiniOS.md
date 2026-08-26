@@ -15,14 +15,14 @@ Consultez [Architecture du système](/about/System-Architecture.md) pour la stru
 
 Les éditions disponibles dépendent de la version et de la distribution de base :
 
-- **Minimum** utilise l’environnement Flux et un ensemble de paquets réduit. Elle convient aux systèmes où une sélection logicielle minimale est privilégiée.
-- **Standard** est l’édition polyvalente. Les versions Debian et Ubuntu standard actuelles utilisent Xfce.
+- **Flux** utilise l’environnement Flux et un ensemble de paquets réduit. Elle convient aux systèmes où une sélection logicielle plus restreinte est privilégiée.
+- **Standard** est l’édition polyvalente. Les versions actuelles standard de Debian et Ubuntu utilisent Xfce.
 - **Toolbox** ajoute des outils d’administration système, de stockage, de diagnostic et de récupération.
 - **Ultra** propose un ensemble d’applications plus large en complément des autres éditions.
 
-Xfce est l’environnement de bureau habituel dans les images Standard, Toolbox et Ultra, mais ce n’est pas le seul environnement proposé par MiniOS. Minimum utilise Flux, et certaines configurations de build peuvent offrir d’autres environnements. Consultez la description de la version avant de télécharger si l’environnement de bureau est important pour vous.
+Xfce est l’environnement de bureau habituel dans les images Standard, Toolbox et Ultra, mais ce n’est pas le seul environnement MiniOS. L’édition Flux utilise Fluxbox, et certaines configurations prises en charge peuvent proposer d’autres environnements. Consultez la description de la version avant de télécharger si le choix de l’environnement de bureau est important pour vous.
 
-Pour la liste des logiciels inclus dans chaque édition, consultez la [liste des paquets](/administration/Packages.md).
+Pour la liste des logiciels inclus dans chaque édition, consultez la [liste des paquets](/administration/Packages.md) et [Applications et outils MiniOS](/about/MiniOS-Applications.md).
 
 ## Installation et persistance
 
@@ -35,3 +35,4 @@ Commencez par le [Guide de démarrage rapide](/installation/Quick-Start.md) et s
 - [Site web MiniOS](https://minios.dev)
 - [Code source](https://github.com/minios-linux/minios-live)
 - [Gestionnaire de tickets](https://github.com/minios-linux/minios-live/issues)
+- [Foire aux questions](/about/FAQ.md)

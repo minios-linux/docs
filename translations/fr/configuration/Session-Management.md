@@ -83,7 +83,7 @@ La session active ne peut pas être supprimée ni convertie sur place. Une sessi
 
 ## Référence des commandes
 
-Lister les sessions et inspecter le stockage :
+Lister les sessions et inspecter le store :
 
 ```bash
 sudo minios-session list
@@ -105,7 +105,7 @@ sudo minios-session create squashfs --policy shutdown
 sudo minios-session create squashfs --policy manual --autosave 60
 ```
 
-`create` sans mode sélectionne natif. La création SquashFS capture les modifications live actuelles et n’a pas de taille fixe. Sa politique d’arrêt est par défaut `shutdown` ; la sauvegarde périodique est désactivée par défaut.
+`create` sans mode sélectionne le mode natif. La création SquashFS capture les modifications en cours et n’a pas de taille fixe. Sa politique d’arrêt est par défaut `shutdown` ; la sauvegarde périodique est désactivée par défaut.
 
 Sauvegarder et configurer une session SquashFS :
 
@@ -127,7 +127,7 @@ sudo minios-session import /path/to/session.tar.zst --auto-convert
 sudo minios-session import /path/to/session.tar.zst --force-mode dynfilefs
 ```
 
-Seuls les imports `.tar.zst` sont acceptés. Les chemins et membres d’archive sont validés, et l’extraction est limitée. `--auto-convert` choisit un mode compatible avec le système de fichiers actuel. `--force-mode <mode>` sélectionne explicitement un mode disponible.
+Seuls les imports `.tar.zst` sont acceptés. Les chemins et les membres d’archive sont validés, et l’extraction est limitée. `--auto-convert` choisit un mode compatible avec le système de fichiers actuel. `--force-mode <mode>` sélectionne explicitement un mode disponible. L’export, la copie et la conversion ne sont pas pris en charge pour les sessions SquashFS ; sauvegardez l’instantané et copiez le répertoire complet de la session inactive à la place.
 
 Copier ou convertir une session :
 
@@ -138,7 +138,7 @@ sudo minios-session convert <id> dynfilefs --size 4GB
 sudo minios-session convert <id> luks --size 4GB --new-session
 ```
 
-`copy` attribue toujours un nouvel identifiant de session. `convert` remplace la source par défaut ; utilisez `--new-session` pour préserver la source. Une taille n’est pertinente que pour une cible conteneur.
+`copy` attribue toujours un nouvel identifiant de session. `convert` remplace la source par défaut ; utilisez `--new-session` pour préserver la source. Une taille n’est pertinente que pour une cible de type conteneur.
 
 Agrandir, supprimer ou nettoyer des sessions :
 
@@ -151,7 +151,7 @@ sudo minios-session cleanup --days 30
 
 Le redimensionnement prend en charge les sessions DynFileFS, raw et LUKS et nécessite une taille supérieure à la taille actuelle. Le nettoyage concerne par défaut les sessions de plus de 30 jours.
 
-Toutes les commandes acceptent `--json`, et un autre stockage de sessions peut être sélectionné avec `--sessions-dir PATH` :
+Toutes les commandes acceptent `--json`, et un autre store de sessions peut être sélectionné avec `--sessions-dir PATH` :
 
 ```bash
 sudo minios-session --json list
@@ -181,13 +181,13 @@ La création interactive LUKS demande la phrase de passe deux fois. Les opérati
 
 Les exports LUKS contiennent les fichiers logiques de session déchiffrés, pas `changes.luks`. L’import ou la conversion vers LUKS crée un nouveau conteneur chiffré.
 
-## Sauvegardes et récupération
+## Sauvegardes et restauration
 
-Utilisez `export` pour les sauvegardes plutôt que de copier un répertoire de session monté. Conservez l’archive obtenue sur un autre périphérique et vérifiez qu’elle peut être lue ou importée avant de s’y fier. L’import crée toujours une nouvelle session numérotée ; activez-la explicitement lorsqu’elle est prête à l’emploi.
+Pour les sessions natives, DynFileFS, raw et LUKS, utilisez `export` pour les sauvegardes plutôt que de copier un répertoire de session monté. Conservez l’archive obtenue sur un autre périphérique et vérifiez qu’elle peut être lue ou importée avant de vous y fier. L’import crée toujours une nouvelle session numérotée ; activez-la explicitement lorsqu’elle est prête à être utilisée. Pour les procédures de sauvegarde SquashFS et de sauvegarde de périphérique complet, consultez [Sauvegarde et restauration](/administration/Backup-Recovery.md).
 
-Pour la récupération après un périphérique de stockage plein, une écriture interrompue ou la création répétée de sessions vides, suivez le guide dédié [DynFileFS et dynblk pour la récupération](./DynFileFS-Recovery.md).
+Pour la récupération après une panne complète du périphérique de stockage, une écriture interrompue ou la création répétée de sessions vides, suivez le guide dédié [Récupération DynFileFS et dynblk](./DynFileFS-Recovery.md).
 
-Commencez le diagnostic sans modifier les données de session :
+Démarrez le diagnostic sans modifier les données de session :
 
 ```bash
 sudo minios-session list
@@ -197,4 +197,4 @@ sudo minios-session status
 sudo minios-session info
 ```
 
-Au démarrage, les systèmes de fichiers conteneurs sont vérifiés avant l’activation writable. En cas d’échec sérieux du fsck, le conteneur est préservé pour récupération au lieu d’être monté en writable. SquashFS détecte un état précédent non propre et restaure le dernier snapshot sauvegardé avec succès. Supprimez les sessions uniquement via le Gestionnaire de sessions ou `minios-session delete` ; ne supprimez pas manuellement les répertoires de session.
+Au démarrage, les systèmes de fichiers des conteneurs sont vérifiés avant l’activation en écriture. En cas d’échec sérieux du contrôle du système de fichiers, le conteneur est préservé pour la récupération au lieu d’être monté en écriture. SquashFS détecte un état précédent non propre et restaure le dernier instantané sauvegardé avec succès. Supprimez les sessions uniquement via le Gestionnaire de sessions ou `minios-session delete` ; ne supprimez pas manuellement les répertoires de session.

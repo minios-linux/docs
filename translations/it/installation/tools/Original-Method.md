@@ -1,33 +1,33 @@
-# Metodo di Installazione Originale (Windows/Linux)
+# Metodo di installazione originale (Windows/Linux, legacy)
 
-Il metodo di installazione originale di MiniOS prevede la copia diretta dei file di sistema sull’unità e l’installazione del bootloader. Questo metodo offre la massima flessibilità di configurazione e compatibilità con diversi tipi di supporti.
+Questo metodo legacy di installazione di MiniOS prevede la copia diretta dei file di sistema sull’unità e l’installazione del bootloader. Si consiglia di utilizzare un metodo attuale dalla pagina [Installazione di MiniOS](/installation/Installing-MiniOS.md), a meno che non sia specificamente richiesto un layout basato su file.
 
-⚠️ **Nota**: Questo metodo funziona solo su Windows e Linux a causa dell’utilizzo del bootloader SYSLINUX.
+**Nota:** Questo metodo funziona solo su Windows e Linux a causa dell’utilizzo del bootloader SYSLINUX.
 
 ## Importante
 
-⚠️ **Attenzione:** La selezione errata del dispositivo comporterà la perdita dei dati! Controlla sempre con attenzione l’unità selezionata ed esegui il backup dei dati importanti.
+**Attenzione:** Una selezione errata del dispositivo comporta la perdita dei dati. Controlla sempre con attenzione l’unità selezionata ed esegui un backup dei dati importanti.
 
-## Requisiti dell’Unità
+## Requisiti dell’unità
 
-### Dimensione dell’Unità
+### Dimensione dell’unità
 
-Consulta la [Guida alla Compatibilità Hardware](/installation/Hardware-Compatibility.md#system-requirements) per i requisiti di sistema dettagliati e le dimensioni delle unità.
+Consulta la [Guida alla compatibilità hardware](/installation/Hardware-Compatibility.md#system-requirements) per i requisiti di sistema dettagliati e le dimensioni delle unità.
 
-### Requisiti Tecnici
+### Requisiti tecnici
 
 - **File system**: FAT32, NTFS, ext2/3/4, Btrfs
-- **Schema di partizionamento**: MBR
-- ⚠️ **Avvio EFI**: Quando si utilizzano file system NTFS, exFAT o ext2/3/4, l’avvio in modalità EFI potrebbe non essere disponibile. Per il supporto EFI, si consiglia FAT32.
+- **Schema delle partizioni**: MBR
+- **Avvio EFI**: Quando si utilizzano file system NTFS, exFAT o ext2/3/4, l’avvio in modalità EFI potrebbe non essere disponibile. Per il supporto EFI, si consiglia FAT32.
 
-## Creazione di una Chiavetta USB Avviabile
+## Creazione di una chiavetta USB avviabile
 
-### Passaggio 1: Preparare l’Unità
+### Passo 1: Preparare l’unità
 
 **Windows:**
-1. Apri "Gestione Disco" (`Win+R` → `diskmgmt.msc`)
-2. Trova la chiavetta USB → clic destro → "Elimina volume"
-3. Clic destro sullo spazio non allocato → "Nuovo volume semplice"
+1. Apri "Gestione disco" (`Win+R`, poi `diskmgmt.msc`)
+2. Trova la chiavetta USB, fai clic con il tasto destro e seleziona "Elimina volume"
+3. Fai clic con il tasto destro sullo spazio non allocato e seleziona "Nuovo volume semplice"
 4. Scegli il file system: FAT32 (consigliato) oppure NTFS
 
 **Linux:**
@@ -44,12 +44,12 @@ sudo mkfs.vfat -F 32 /dev/sdX1  # For FAT32
 sudo mkfs.ext4 /dev/sdX1         # For ext4
 ```
 
-### Passaggio 2: Estrai e Copia i File
+### Passo 2: Estrazione e copia dei file
 
 **Montaggio ISO:**
 
 *Windows:*
-- Clic destro sul file ISO → "Monta"
+- Fai clic con il tasto destro sul file ISO e seleziona "Monta"
 
 *Linux:*
 ```bash
@@ -57,39 +57,45 @@ sudo mkdir /mnt/minios-iso
 sudo mount -o loop MiniOS.iso /mnt/minios-iso
 ```
 
-**Copia dei File:**
+**Copia dei file:**
 1. **Trova la cartella `/minios/`** nell’ISO montata
 2. **Copia l’intera cartella `/minios/`** nella root della chiavetta USB
 
-### Passaggio 3: Installa il Bootloader
+### Passaggio 3: Installa il bootloader
 
-Vai nella cartella `/minios/boot/` sull’unità e avvia l’installer:
+Vai nella cartella `/minios/boot/syslinux/` sull'unità e avvia l'installer:
 
 **Windows:**
 - Esegui `bootinst.bat` **come amministratore**
 
 **Linux:**
 ```bash
-cd /media/$USER/*/minios/boot/
+lsblk -o NAME,SIZE,FSTYPE,LABEL,MOUNTPOINTS,MODEL
+TARGET_MOUNT="/media/$USER/MINIOS"
+cd "$TARGET_MOUNT/minios/boot/syslinux"
 chmod +x bootinst.sh
 sudo ./bootinst.sh
 ```
 
-## Persistenza Automatica delle Modifiche
+Sostituisci `MINIOS` con la directory di mount esatta verificata con `lsblk`. Non
+usare caratteri jolly: lo script rileva il disco di destinazione dalla propria posizione e
+scrive il codice di avvio su quel disco.
 
-Al primo avvio, MiniOS controllerà il tipo di file system dell’unità e tenterà di utilizzare la modalità di persistenza delle modifiche più ottimale:
+## Persistenza automatica delle modifiche
+
+Al primo avvio, MiniOS rileverà il tipo di file system dell’unità e tenterà di utilizzare la modalità di persistenza delle modifiche più ottimale:
 
 - **ext2/3/4, Btrfs**: tenta di usare la modalità `native` (salvataggio diretto)
 - **FAT32/NTFS**: utilizza la modalità `dynfilefs` (file dinamico)
-- Quando la modalità native non è disponibile, passa automaticamente a dynfilefs
+- Quando la modalità nativa non è disponibile, passa automaticamente a dynfilefs
 
-### Configurazione Parametri (per Utenti Avanzati)
+### Configurazione dei parametri per utenti avanzati
 
 Quando è necessaria una configurazione precisa della persistenza, è possibile utilizzare i parametri di avvio:
 
 - `perchmode=native` - Salvataggio diretto sulla partizione (per ext4)
 - `perchmode=dynfilefs` - File espandibile dinamicamente
-- `perchmode=raw` - File a dimensione fissa  
-- `perchsize=8000` - Dimensione dello spazio dati in MB
+- `perchmode=raw` - File a dimensione fissa
+- `perchsize=8000` - Dimensione dello spazio di archiviazione dati in MB
 
 Dettagli nei [parametri di avvio](/configuration/Boot-Parameters.md).

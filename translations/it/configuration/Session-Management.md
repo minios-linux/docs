@@ -107,9 +107,9 @@ La sessione attiva non può essere eliminata o convertita direttamente. Una sess
 di norma non può essere eliminata, esportata, copiata, ridimensionata o convertita. Anche la pulizia
 protegge entrambi gli ID.
 
-## Riferimento ai comandi
+## Riferimento comandi
 
-Elenca le sessioni e ispeziona lo store:
+Elenca le sessioni e ispeziona l'archivio:
 
 ```bash
 sudo minios-session list
@@ -131,7 +131,7 @@ sudo minios-session create squashfs --policy shutdown
 sudo minios-session create squashfs --policy manual --autosave 60
 ```
 
-`create` senza modalità seleziona quella nativa. La creazione di SquashFS cattura le modifiche live attuali e non ha una dimensione fissa. La sua politica di salvataggio allo spegnimento predefinita è `shutdown`;
+`create` senza una modalità seleziona quella nativa. La creazione di SquashFS cattura le modifiche attive correnti e non ha una dimensione fissa. La politica di spegnimento predefinita è `shutdown`;
 il salvataggio periodico è disattivato per impostazione predefinita.
 
 Salva e configura una sessione SquashFS:
@@ -144,8 +144,7 @@ sudo minios-session settings <squashfs-id> --shutdown on --autosave 60
 ```
 
 Gli intervalli periodici validi sono `30`, `60`, `120`, `240` e `480` minuti;
-`0` disattiva il salvataggio periodico. Le impostazioni di spegnimento e periodiche sono
-indipendenti.
+`0` disabilita il salvataggio periodico. Le impostazioni di spegnimento e salvataggio periodico sono indipendenti.
 
 Esporta e importa archivi `.tar.zst`:
 
@@ -156,10 +155,8 @@ sudo minios-session import /path/to/session.tar.zst --auto-convert
 sudo minios-session import /path/to/session.tar.zst --force-mode dynfilefs
 ```
 
-Sono accettate solo importazioni `.tar.zst`. Percorsi e membri degli archivi vengono validati
-e l'estrazione è limitata. `--auto-convert` sceglie una modalità compatibile per il
-filesystem corrente. `--force-mode <mode>` seleziona esplicitamente una modalità
-disponibile.
+Sono accettate solo importazioni `.tar.zst`. I percorsi e i membri dell'archivio vengono validati e l'estrazione è limitata. `--auto-convert` sceglie una modalità compatibile per il filesystem corrente. `--force-mode <mode>` seleziona esplicitamente una modalità disponibile. Esportazione, copia e conversione non sono supportate per le sessioni SquashFS;
+salva lo snapshot e copia invece l'intera directory della sessione inattiva.
 
 Copia o converti una sessione:
 
@@ -170,9 +167,7 @@ sudo minios-session convert <id> dynfilefs --size 4GB
 sudo minios-session convert <id> luks --size 4GB --new-session
 ```
 
-`copy` assegna sempre un nuovo ID sessione. `convert` sostituisce la sorgente per
-default; usa `--new-session` per preservare la sorgente. Una dimensione è rilevante solo
-per una destinazione contenitore.
+`copy` assegna sempre un nuovo ID sessione. `convert` sostituisce la sorgente per impostazione predefinita; usa `--new-session` per preservare la sorgente. Una dimensione è rilevante solo per un target container.
 
 Aumenta, elimina o pulisci le sessioni:
 
@@ -183,11 +178,9 @@ sudo minios-session cleanup
 sudo minios-session cleanup --days 30
 ```
 
-Il ridimensionamento è supportato per sessioni DynFileFS, raw e LUKS e richiede una dimensione maggiore
-dell'attuale. La pulizia predefinita riguarda le sessioni più vecchie di 30 giorni.
+La ridimensionamento supporta sessioni DynFileFS, raw e LUKS e richiede una dimensione maggiore di quella attuale. La pulizia predefinita riguarda le sessioni più vecchie di 30 giorni.
 
-Tutti i comandi accettano `--json` e uno store di sessioni diverso può essere selezionato
-con `--sessions-dir PATH`:
+Tutti i comandi accettano `--json`, e un archivio sessioni diverso può essere selezionato con `--sessions-dir PATH`:
 
 ```bash
 sudo minios-session --json list
@@ -234,14 +227,10 @@ L'importazione o la conversione in LUKS crea un nuovo contenitore cifrato.
 
 ## Backup e ripristino
 
-Utilizza `export` per i backup invece di copiare una directory di sessione montata. Conserva
-l'archivio risultante su un altro dispositivo e verifica che possa essere elencato o
-importato prima di farci affidamento. L'importazione crea sempre una nuova sessione numerata;
-attivala esplicitamente quando è pronta all'uso.
+Per le sessioni native, DynFileFS, raw e LUKS, utilizza `export` per i backup invece di copiare una directory di sessione montata. Conserva l'archivio risultante su un altro dispositivo e verifica che possa essere elencato o importato prima di farvi affidamento. L'importazione crea sempre una nuova sessione numerata; attivala esplicitamente quando è pronta all'uso. Per le procedure di backup di SquashFS e dell'intero dispositivo, vedi [Backup e ripristino](/administration/Backup-Recovery.md).
 
-Per il ripristino dopo un dispositivo di archiviazione pieno, una scrittura interrotta o la creazione ripetuta
-di sessioni vuote, segui la guida dedicata al
-[recupero DynFileFS e dynblk](./DynFileFS-Recovery.md).
+Per il ripristino dopo un dispositivo di archiviazione completo, una scrittura interrotta o la creazione ripetuta di sessioni vuote, segui la guida dedicata
+[Guida al ripristino DynFileFS e dynblk](./DynFileFS-Recovery.md).
 
 Avvia la diagnosi senza modificare i dati della sessione:
 
@@ -253,7 +242,4 @@ sudo minios-session status
 sudo minios-session info
 ```
 
-All'avvio, i filesystem dei contenitori vengono controllati prima dell'attivazione scrivibile. Errori gravi
-di controllo del filesystem preservano il contenitore per il recupero invece di
-montarlo in scrittura. SquashFS rileva uno stato precedente non pulito e ripristina
-l'ultimo snapshot salvato correttamente. Elimina le sessioni solo tramite Session Manager o `minios-session delete`; non rimuovere manualmente le directory delle sessioni.
+All'avvio, i filesystem dei container vengono controllati prima dell'attivazione in scrittura. Gravi errori di controllo del filesystem preservano il container per il ripristino invece di montarlo in scrittura. SquashFS rileva uno stato precedente non pulito e ripristina l'ultimo snapshot salvato con successo. Elimina le sessioni solo tramite Session Manager o `minios-session delete`; non rimuovere manualmente le directory delle sessioni.

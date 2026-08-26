@@ -24,7 +24,7 @@ persistent sessions.
 
 Available editions depend on the release and base distribution:
 
-- **Minimum** uses the Flux environment and a reduced package set. It is suited
+- **Flux** uses the Flux environment and a reduced package set. It is suited
   to systems where a smaller software selection is preferred.
 - **Standard** is the general-purpose edition. Current standard Debian and
   Ubuntu builds use Xfce.
@@ -33,12 +33,13 @@ Available editions depend on the release and base distribution:
 - **Ultra** adds a broader application set on top of the other editions.
 
 Xfce is the usual desktop in Standard, Toolbox, and Ultra images, but it is not
-the only MiniOS environment. Minimum uses Flux, and supported build
+the only MiniOS environment. The Flux edition uses Fluxbox, and supported build
 configurations may offer other environments. Check the release description
 before downloading if the desktop environment matters.
 
 For the software included in each edition, see the
-[package list](/administration/Packages.md).
+[package list](/administration/Packages.md) and [MiniOS applications and
+tools](/about/MiniOS-Applications.md).
 
 ## Installation and persistence
 
@@ -58,3 +59,4 @@ writable storage is available.
 - [MiniOS website](https://minios.dev)
 - [Source code](https://github.com/minios-linux/minios-live)
 - [Issue tracker](https://github.com/minios-linux/minios-live/issues)
+- [Frequently asked questions](/about/FAQ.md)
