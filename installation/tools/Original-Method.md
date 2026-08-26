@@ -7,13 +7,13 @@ This legacy MiniOS installation method involves copying system files directly to
 
 ## Important
 
-**Warning:** Incorrect device selection will result in data loss. Always double-check the selected drive and back up important data.
+**Warning:** This procedure repartitions and formats the selected device. It is destructive to the whole device, not just the files currently visible on it. Back up important data and verify the exact device path, model, capacity, partition, and mount point before running `fdisk`, `mkfs`, or `bootinst`. Disconnect other removable drives when possible.
 
 
 ## Drive requirements
 
 ### Drive size
-See [Hardware compatibility guide](/installation/Hardware-Compatibility.md#system-requirements) for detailed system requirements and drive sizes.
+See [Hardware compatibility guide](/installation/Hardware-Compatibility.md) for detailed system requirements and drive sizes.
 
 ### Technical requirements
 - **File systems**: FAT32, NTFS, ext2/3/4, Btrfs
@@ -26,22 +26,29 @@ See [Hardware compatibility guide](/installation/Hardware-Compatibility.md#syste
 
 **Windows:**
 1. Open "Disk Management" (`Win+R`, then `diskmgmt.msc`)
-2. Find the USB drive, right-click, and select "Delete Volume"
-3. Right-click on unallocated space and select "New Simple Volume"
-4. Choose file system: FAT32 (recommended) or NTFS
+2. Verify the USB device by its disk number, model, and capacity. Do not continue if any detail is uncertain.
+3. Right-click its volume and select "Delete Volume"
+4. Right-click on unallocated space and select "New Simple Volume"
+5. Choose file system: FAT32 (recommended) or NTFS
 
 **Linux:**
+
+Set `TARGET_DISK` and `TARGET_PARTITION` to exact paths only after matching the device model and capacity in `lsblk`. The `fdisk` write replaces the partition table on the entire target disk. Run only one `mkfs` command for the filesystem you want.
+
 ```bash
-# Identify the device
-lsblk
+lsblk -o NAME,PATH,SIZE,FSTYPE,LABEL,MOUNTPOINTS,MODEL
+TARGET_DISK=/dev/sdX
+TARGET_PARTITION=/dev/sdX1
+lsblk -o NAME,PATH,SIZE,FSTYPE,LABEL,MOUNTPOINTS,MODEL "$TARGET_DISK"
 
 # Create new MBR partition table
-sudo fdisk /dev/sdX
+sudo fdisk "$TARGET_DISK"
 # In fdisk: o (new table), n (new partition), p (primary), a (bootable), w (write)
 
-# Create file system
-sudo mkfs.vfat -F 32 /dev/sdX1  # For FAT32
-sudo mkfs.ext4 /dev/sdX1         # For ext4
+# Verify the new partition, then create one filesystem
+lsblk -o NAME,PATH,SIZE,FSTYPE,LABEL,MOUNTPOINTS,MODEL "$TARGET_DISK"
+sudo mkfs.vfat -F 32 "$TARGET_PARTITION"  # For FAT32
+# Or: sudo mkfs.ext4 "$TARGET_PARTITION"  # For ext4
 ```
 
 ### Step 2: Extract and copy files
@@ -55,47 +62,42 @@ sudo mkfs.ext4 /dev/sdX1         # For ext4
 ```bash
 sudo mkdir /mnt/minios-iso
 sudo mount -o loop MiniOS.iso /mnt/minios-iso
+
+TARGET_PARTITION=/dev/sdX1
+sudo mkdir /mnt/minios-target
+sudo mount "$TARGET_PARTITION" /mnt/minios-target
+findmnt --mountpoint /mnt/minios-target
 ```
 
 **Copying Files:**
 1. **Find the `/minios/` folder** in the mounted ISO
 2. **Copy the entire `/minios/` folder** to the root of the USB drive
 
+On Linux, the target root in the example above is `/mnt/minios-target`. Confirm that `findmnt --mountpoint /mnt/minios-target` reports the exact partition selected in Step 1 before copying files.
+
 ### Step 3: Install the bootloader
 
 Navigate to the `/minios/boot/syslinux/` folder on the drive and run the installer:
 
+`bootinst` writes boot code to the disk derived from the installer's location. Read [Boot recovery](/administration/Boot-Recovery.md) before changing boot code, and do not run the installer until its device and mount point have been verified.
+
 **Windows:**
-- Run `bootinst.bat` **as administrator**
+- Open the verified USB drive by its exact drive letter, navigate to `minios\boot\syslinux`, and run `bootinst.bat` **as administrator**.
 
 **Linux:**
 ```bash
-lsblk -o NAME,SIZE,FSTYPE,LABEL,MOUNTPOINTS,MODEL
-TARGET_MOUNT="/media/$USER/MINIOS"
+TARGET_MOUNT=/mnt/minios-target
+findmnt --mountpoint "$TARGET_MOUNT"
+lsblk -o NAME,PATH,SIZE,FSTYPE,LABEL,MOUNTPOINTS,MODEL
 cd "$TARGET_MOUNT/minios/boot/syslinux"
 chmod +x bootinst.sh
 sudo ./bootinst.sh
 ```
 
-Replace `MINIOS` with the exact mount directory verified with `lsblk`. Do not
-use a wildcard: the script derives the target disk from its own location and
-writes boot code to that disk.
+Do not substitute a wildcard for the mount point. The script derives the target disk from its own location and writes boot code to that disk.
 
-## Automatic change persistence
+## Result and persistence
 
-On first boot, MiniOS will check the drive's file system type and attempt to use the optimal change persistence mode:
+This procedure creates a file-based live installation by placing the `minios/` tree and bootloader on a normal filesystem. It is not a raw ISO write, an ISO-file multiboot setup, or a MiniOS Installer deployment.
 
-- **ext2/3/4, Btrfs**: attempts to use `native` mode (direct saving)
-- **FAT32/NTFS**: uses `dynfilefs` mode (dynamic file)
-- When native mode is unavailable, automatically switches to dynfilefs
-
-### Parameter configuration for advanced users
-
-When precise persistence configuration is needed, boot parameters can be used:
-
-- `perchmode=native` - Direct saving to partition (for ext4)
-- `perchmode=dynfilefs` - Dynamically expandable file
-- `perchmode=raw` - Fixed-size file
-- `perchsize=8000` - Data storage space size in MB
-
-Details in [boot parameters](/configuration/Boot-Parameters.md).
+The chosen filesystem affects which persistence backends can work, but it does not enable persistence or guarantee that a session will be created. Persistence is enabled only when a boot entry or kernel command line requests it, and activation still requires suitable writable storage. See [Boot modes](/configuration/Boot-Modes.md) and [Initrd persistence](/configuration/Initrd-Persistence.md) before relying on saved changes.

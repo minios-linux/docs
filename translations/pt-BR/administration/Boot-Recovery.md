@@ -1,6 +1,6 @@
 # Recuperação de boot
 
-O reparo do boot depende de como o MiniOS foi colocado no dispositivo e se o firmware o inicia em modo BIOS ou UEFI. Um procedimento para um layout pode danificar outro. Faça backup dos arquivos importantes antes de gravar um setor de boot, alterar uma flag de partição, substituir uma árvore EFI ou reinstalar o GRUB. Consulte [Backup e recuperação](/administration/Backup-Recovery.md).
+O reparo do boot depende de como o MiniOS foi colocado no dispositivo e se o firmware o inicia em modo BIOS ou UEFI. Um procedimento para uma configuração pode danificar outra. Faça backup dos arquivos importantes antes de gravar um setor de boot, alterar uma flag de partição, substituir uma árvore EFI ou reinstalar o GRUB. Consulte [Backup e recuperação](/administration/Backup-Recovery.md). Se o tipo de instalação for incerto, compare com [Modos de boot](/configuration/Boot-Modes.md) antes de escolher um fluxo de reparo.
 
 ## Identifique o layout
 
@@ -14,7 +14,7 @@ O reparo do boot depende de como o MiniOS foi colocado no dispositivo e se o fir
 
 Primeiro, confirme se a falha ocorre antes do menu do MiniOS, após o menu ou depois que o kernel inicia. Verifique o menu de boot único do firmware e registre se a entrada selecionada é UEFI ou BIOS legado. Teste outra porta e, quando possível, faça o boot do mesmo dispositivo em outro computador.
 
-A partir de uma mídia de resgate Linux funcional, apenas inspecione, não repare:
+A partir de uma mídia de resgate Linux funcional, inspecione ao invés de reparar:
 
 ```bash
 lsblk -o NAME,PATH,SIZE,TYPE,FSTYPE,LABEL,UUID,PARTTYPE,PARTFLAGS,MOUNTPOINTS,MODEL
@@ -23,15 +23,15 @@ sudo blkid
 sudo fdisk -l
 ```
 
-Em um sistema inicializado em modo UEFI, `sudo efibootmgr -v` pode listar as entradas do firmware. Sua ausência ou um erro não provam que os arquivos EFI estão ausentes. Não formate, reparticione, execute reparo de sistema de arquivos ou altere flags apenas para testar. Confirme cada dispositivo pelo modelo e capacidade e monte sistemas de arquivos como somente leitura ao apenas inspecioná-los.
+Em um sistema iniciado em modo UEFI, `sudo efibootmgr -v` pode listar as entradas do firmware. Sua ausência ou um erro não provam que os arquivos EFI estão faltando. Não formate, reparticione, execute reparo de sistema de arquivos ou altere flags apenas para testar. Confirme cada dispositivo pelo modelo e capacidade e monte os sistemas de arquivos como somente leitura ao inspecioná-los.
 
-Se o menu de boot aparecer, mas o MiniOS não encontrar seus módulos, edite temporariamente a entrada de boot e tente `from=askdisk`. Uma vez conhecido o sistema de arquivos correto, um rótulo de sistema de arquivos é mais estável do que um nome como `/dev/sdb1`:
+Se o menu de boot aparecer, mas o MiniOS não encontrar seus módulos, edite a entrada de boot temporariamente e tente `from=askdisk`. Uma vez conhecido o sistema de arquivos correto, um rótulo (label) é mais estável do que um nome como `/dev/sdb1`:
 
 ```text
 from=/dev/disk/by-label/MINIOS/minios
 ```
 
-O rótulo deve existir e identificar o sistema de arquivos pretendido; rótulos devem ser únicos. Adicione `debug timing` para mais informações de boot antecipado. Adicione `rd.break` apenas quando for necessário um shell do initramfs para inspeção avançada. Essas opções diagnosticam a descoberta de módulos; elas não reparam o bootloader. Consulte [Parâmetros de boot](/configuration/Boot-Parameters.md) e [Solução de problemas](/administration/Troubleshooting.md).
+O rótulo deve existir e identificar o sistema de arquivos pretendido; rótulos devem ser únicos. Adicione `debug timing` para mais informações no início do boot. Adicione `rd.break` apenas quando for necessário um shell do initramfs para inspeção avançada. Essas opções diagnosticam a descoberta de módulos; elas não reparam o bootloader. Consulte [Descoberta do sistema Initrd](/configuration/Initrd-System-Discovery.md) para os formatos suportados de `from=`, comportamento de `askdisk` e precedência de origem. Veja também [Parâmetros de boot](/configuration/Boot-Parameters.md) e [Solução de problemas](/administration/Troubleshooting.md).
 
 ## Mídia ISO gravada em modo bruto
 
@@ -108,9 +108,16 @@ A reconstrução manual do UEFI nativo não é segura para generalizar. Ela depe
 
 Prefira restaurar um backup exato e testado da raiz nativa, conteúdo da Partição do Sistema EFI e configuração de boot. Caso contrário, faça backup dos dados do usuário e reinstale o sistema nativo com o Instalador do MiniOS. Não adapte o procedimento de cópia live baseado em arquivos `EFI/boot` para uma instalação nativa.
 
-## Reversão de kernel modular
+## Reversão modular do kernel
 
-Para uma instalação live baseada em arquivos que parou de inicializar após uma alteração de kernel, use uma mídia de resgate da mesma versão e arquitetura do MiniOS. No menu de boot dela, use `from=askdisk` ou um caminho de rótulo estável para selecionar a árvore `minios/` instalada. Se essa combinação iniciar um sistema funcional e a árvore instalada for gravável, inspecione os conjuntos de kernel coordenados e ative um conhecido e funcional:
+Para uma instalação ao vivo baseada em arquivos que parou de inicializar após uma alteração no kernel,
+utilize uma mídia de resgate da mesma versão e arquitetura do MiniOS. No menu de inicialização,
+use `from=askdisk` ou um caminho de rótulo estável para selecionar a árvore instalada de
+`minios/`. A árvore selecionada deve conter um triplo completo que corresponda ao kernel já carregado pela mídia de resgate; o initrd não pode alternar o kernel em execução. Consulte
+[coordenação do kernel em execução](/configuration/Initrd-Module-Loading.md)
+para os caminhos e comportamentos exatos do módulo, imagem do kernel e initramfs.
+
+Se essa combinação resultar em um sistema funcional e a árvore instalada for gravável, inspecione os conjuntos de kernel coordenados e ative um que seja conhecido por funcionar:
 
 ```bash
 sudo minios-kernel list
@@ -118,9 +125,13 @@ sudo minios-kernel status
 sudo minios-kernel activate <working-version>
 ```
 
-A ativação deve restaurar um módulo de kernel coordenado, imagem de kernel, initramfs e configuração do bootloader. Não substitua apenas `vmlinuz`, apenas o initramfs ou apenas `01-kernel*.sb`. Mantenha o kernel empacotado anterior até que a substituição inicialize com sucesso. Consulte [Gerenciamento de kernel](/administration/Kernel-Management.md).
+A ativação deve restaurar um módulo de kernel coordenado, imagem do kernel, initramfs
+e configuração do bootloader. Não substitua apenas `vmlinuz`, apenas o initramfs
+ou apenas `01-kernel*.sb`. Mantenha o kernel empacotado anterior até que a substituição
+inicialize com sucesso. Consulte
+[Gerenciamento de Kernel](/administration/Kernel-Management.md).
 
-Esta reversão é para instalações live modulares. Instalações nativas usam seus próprios pacotes de kernel e GRUB e precisam de recuperação nativa ou reinstalação.
+Esta reversão é para instalações ao vivo modulares. Instalações nativas utilizam seus próprios pacotes de kernel instalados e GRUB, e precisam de recuperação nativa ou reinstalação.
 
 ## Quando reinstalar
 

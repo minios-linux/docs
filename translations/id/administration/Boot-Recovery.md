@@ -1,6 +1,6 @@
 # Pemulihan Boot
 
-Perbaikan boot tergantung pada bagaimana MiniOS ditempatkan di perangkat dan apakah firmware memulainya dalam mode BIOS atau UEFI. Prosedur untuk satu tata letak dapat merusak tata letak lain. Cadangkan file penting sebelum menulis sektor boot, mengubah flag partisi, mengganti pohon EFI, atau menginstal ulang GRUB. Lihat [Backup dan Pemulihan](/administration/Backup-Recovery.md).
+Perbaikan boot tergantung pada bagaimana MiniOS ditempatkan di perangkat dan apakah firmware memulainya dalam mode BIOS atau UEFI. Prosedur untuk satu tata letak dapat merusak tata letak lain. Cadangkan file penting sebelum menulis sektor boot, mengubah flag partisi, mengganti pohon EFI, atau menginstal ulang GRUB. Lihat [Backup dan pemulihan](/administration/Backup-Recovery.md). Jika jenis instalasi tidak pasti, bandingkan dengan [Mode Boot](/configuration/Boot-Modes.md) sebelum memilih alur kerja perbaikan.
 
 ## Identifikasi tata letak
 
@@ -10,11 +10,11 @@ Perbaikan boot tergantung pada bagaimana MiniOS ditempatkan di perangkat dan apa
 
 `Ventoy` biasanya menyimpan ISO sebagai file di bawah bootloader-nya sendiri. Perbaiki dengan prosedur di dokumentasi `Ventoy`; jangan instal sektor boot Syslinux MiniOS di atasnya.
 
-## Diagnosa tanpa mengubah disk
+## Diagnosis tanpa mengubah disk
 
-Pertama, pastikan apakah kegagalan terjadi sebelum menu MiniOS, setelah menu, atau setelah kernel mulai berjalan. Periksa menu boot satu kali pada firmware dan catat apakah entri yang dipilih adalah UEFI atau BIOS legacy. Coba port lain dan, jika memungkinkan, boot perangkat yang sama di komputer lain.
+Pertama, pastikan apakah kegagalan terjadi sebelum menu MiniOS, setelah menu, atau setelah kernel mulai berjalan. Periksa menu boot satu kali pada firmware dan catat apakah entri yang dipilih adalah UEFI atau BIOS lama (legacy). Coba port lain dan, jika memungkinkan, boot perangkat yang sama di komputer lain.
 
-Dari media rescue Linux yang berfungsi, lakukan inspeksi, bukan perbaikan:
+Dari media rescue Linux yang berfungsi, lakukan inspeksi tanpa memperbaiki:
 
 ```bash
 lsblk -o NAME,PATH,SIZE,TYPE,FSTYPE,LABEL,UUID,PARTTYPE,PARTFLAGS,MOUNTPOINTS,MODEL
@@ -23,15 +23,15 @@ sudo blkid
 sudo fdisk -l
 ```
 
-Pada sistem yang boot dalam mode UEFI, `sudo efibootmgr -v` dapat menampilkan entri firmware. Ketidakhadiran atau error tidak membuktikan file EFI hilang. Jangan format, partisi ulang, jalankan perbaikan filesystem, atau ubah flag hanya untuk pengujian. Pastikan setiap perangkat berdasarkan model dan kapasitas, dan mount filesystem dalam mode read-only saat hanya melakukan inspeksi.
+Pada sistem yang boot dalam mode UEFI, `sudo efibootmgr -v` dapat menampilkan daftar entri firmware. Tidak adanya atau munculnya error tidak membuktikan bahwa file EFI hilang. Jangan format, repartisi, jalankan perbaikan filesystem, atau ubah flag hanya untuk pengujian. Pastikan setiap perangkat berdasarkan model dan kapasitas serta mount filesystem dalam mode read-only saat hanya melakukan inspeksi.
 
-Jika menu boot muncul tetapi MiniOS tidak menemukan modulnya, edit entri boot sementara dan coba `from=askdisk`. Setelah filesystem yang benar diketahui, label filesystem lebih stabil daripada nama seperti `/dev/sdb1`:
+Jika menu boot muncul tetapi MiniOS tidak dapat menemukan modulnya, edit entri boot sementara dan coba `from=askdisk`. Setelah filesystem yang benar diketahui, label filesystem lebih stabil dibandingkan nama seperti `/dev/sdb1`:
 
 ```text
 from=/dev/disk/by-label/MINIOS/minios
 ```
 
-Label harus ada dan mengidentifikasi filesystem yang dimaksud; label sebaiknya unik. Tambahkan `debug timing` untuk output awal boot yang lebih detail. Tambahkan `rd.break` hanya jika shell initramfs diperlukan untuk inspeksi lanjutan. Opsi ini untuk diagnosa penemuan modul; bukan untuk memperbaiki bootloader. Lihat [Parameter Boot](/configuration/Boot-Parameters.md) dan [Troubleshooting](/administration/Troubleshooting.md).
+Label harus ada dan mengidentifikasi filesystem yang dimaksud; label sebaiknya unik. Tambahkan `debug timing` untuk output awal boot yang lebih detail. Tambahkan `rd.break` hanya jika shell initramfs diperlukan untuk inspeksi lanjutan. Opsi ini untuk diagnosis penemuan modul; tidak memperbaiki bootloader. Lihat [Penemuan sistem Initrd](/configuration/Initrd-System-Discovery.md) untuk bentuk `from=` yang didukung, perilaku `askdisk`, dan prioritas sumber. Lihat juga [Parameter boot](/configuration/Boot-Parameters.md) dan [Pemecahan masalah](/administration/Troubleshooting.md).
 
 ## Media ISO yang Ditulis Mentah
 
@@ -108,9 +108,15 @@ Rekonstruksi manual UEFI native tidak aman untuk digeneralisasi. Proses ini terg
 
 Lebih disarankan untuk memulihkan backup root native, konten EFI System Partition, dan konfigurasi boot yang sudah diuji dan sesuai. Jika tidak memungkinkan, cadangkan data pengguna dan instal ulang sistem native dengan MiniOS Installer. Jangan adaptasi prosedur penyalinan live berbasis file `EFI/boot` ke instalasi native.
 
-## Rollback Kernel Modular
+## Rollback kernel modular
 
-Untuk instalasi live berbasis file yang gagal boot setelah perubahan kernel, gunakan media rescue dari rilis dan arsitektur MiniOS yang sama. Pada menu boot-nya, gunakan `from=askdisk` atau path label yang stabil untuk memilih pohon `minios/` yang terinstal. Jika kombinasi tersebut berhasil boot dan pohon yang terinstal dapat ditulis, periksa set kernel yang terkoordinasi dan aktifkan salah satu yang sudah terbukti berfungsi:
+Untuk instalasi live berbasis file yang gagal booting setelah perubahan kernel,
+gunakan media rescue dari rilis dan arsitektur MiniOS yang sama. Pada menu boot-nya, gunakan `from=askdisk` atau path label stabil untuk memilih pohon `minios/` yang terpasang.
+Pohon yang dipilih harus berisi triplet lengkap yang cocok dengan kernel yang sudah dimuat dari media rescue; initrd tidak dapat mengganti kernel yang sedang berjalan. Lihat
+[koordinasi kernel yang berjalan](/configuration/Initrd-Module-Loading.md)
+untuk detail path modul, image kernel, dan initramfs serta perilakunya.
+
+Jika kombinasi tersebut berhasil mencapai sistem yang berjalan dan pohon yang terpasang dapat ditulis, periksa set kernel yang terkoordinasi dan aktifkan salah satu yang sudah terbukti berfungsi:
 
 ```bash
 sudo minios-kernel list
@@ -118,9 +124,10 @@ sudo minios-kernel status
 sudo minios-kernel activate <working-version>
 ```
 
-Aktivasi harus mengembalikan modul kernel, image kernel, initramfs, dan konfigurasi bootloader yang terkoordinasi. Jangan hanya mengganti `vmlinuz`, hanya initramfs, atau hanya `01-kernel*.sb`. Pertahankan kernel paket sebelumnya sampai pengganti berhasil boot. Lihat [Manajemen Kernel](/administration/Kernel-Management.md).
+Aktivasi harus mengembalikan modul kernel, image kernel, initramfs, dan konfigurasi bootloader yang terkoordinasi. Jangan hanya mengganti `vmlinuz`, hanya initramfs, atau hanya `01-kernel*.sb`. Pertahankan kernel paket sebelumnya sampai penggantiannya berhasil booting. Lihat
+[Manajemen Kernel](/administration/Kernel-Management.md).
 
-Rollback ini hanya untuk instalasi live modular. Instalasi native menggunakan paket kernel dan GRUB yang terinstal, serta membutuhkan pemulihan atau instalasi ulang native.
+Rollback ini hanya untuk instalasi live modular. Instalasi native menggunakan paket kernel dan GRUB yang sudah terpasang dan membutuhkan recovery native atau instalasi ulang.
 
 ## Kapan Harus Instal Ulang
 

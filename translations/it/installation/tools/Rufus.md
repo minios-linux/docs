@@ -8,9 +8,9 @@ Rufus è un'utility molto diffusa per Windows che consente di formattare e crear
 
 ## Requisiti dell'unità
 
-### Dimensione dell'unità
+### Dimensione del drive
 
-Consulta la [Guida alla compatibilità hardware](/installation/Hardware-Compatibility.md#system-requirements) per i requisiti di sistema dettagliati e le dimensioni delle unità.
+Consulta la [Guida alla compatibilità hardware](/installation/Hardware-Compatibility.md) per i requisiti di sistema dettagliati e le dimensioni dei drive.
 
 ## Installazione di Rufus
 
@@ -49,20 +49,8 @@ Rufus offre due metodi per scrivere MiniOS su una unità USB:
 6. **Avvia il processo**: clicca sul pulsante "AVVIA"
 7. **Conferma la formattazione** - tutti i dati sull'unità verranno eliminati
 
-## Persistenza automatica delle modifiche
+## Risultato e persistenza
 
-MiniOS rileva automaticamente il metodo di scrittura e configura la persistenza delle modifiche:
+La modalità DD esegue una scrittura raw dell'immagine e copia la struttura dell'ISO sull’intero dispositivo di destinazione. La modalità ISO formatta un filesystem ed estrae i contenuti dell’ISO per creare un supporto live basato su file. Nessuna delle due modalità rappresenta un deployment dell’installer di MiniOS, e Rufus non crea automaticamente una partizione ext4 o una sessione di persistenza.
 
-- **Modalità DD**: Se è disponibile spazio libero, verrà creata una partizione ext4 per massime prestazioni
-- **Modalità ISO**: Utilizza un file dinamico per il salvataggio delle modifiche
-
-### Configurazione dei parametri (per utenti avanzati)
-
-Quando è necessaria una configurazione precisa della persistenza, è possibile utilizzare i parametri di avvio:
-
-- `perchmode=native` - Salvataggio diretto sulla partizione (per modalità DD)
-- `perchmode=dynfilefs` - File dinamicamente espandibile
-- `perchmode=raw` - File a dimensione fissa
-- `perchsize=8000` - Dimensione dello spazio di archiviazione dati in MB
-
-Dettagli in [parametri di avvio](/configuration/Boot-Parameters.md).
+La persistenza viene abilitata solo quando una voce di avvio o una riga di comando del kernel la richiede, e richiede comunque uno spazio di archiviazione scrivibile adeguato. Consulta [Modalità di avvio](/configuration/Boot-Modes.md) e [Persistenza Initrd](/configuration/Initrd-Persistence.md) prima di fare affidamento sulle modifiche salvate.

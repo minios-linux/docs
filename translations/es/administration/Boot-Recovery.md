@@ -1,6 +1,6 @@
 # Recuperación de arranque
 
-La reparación del arranque depende de cómo se haya instalado MiniOS en el dispositivo y de si el firmware lo inicia en modo BIOS o UEFI. Un procedimiento adecuado para una configuración puede dañar otra. Haz una copia de seguridad de los archivos importantes antes de escribir un sector de arranque, cambiar una bandera de partición, reemplazar una estructura EFI o reinstalar GRUB. Consulta [Copia de seguridad y recuperación](/administration/Backup-Recovery.md).
+La reparación del arranque depende de cómo se haya instalado MiniOS en el dispositivo y de si el firmware lo inicia en modo BIOS o UEFI. Un procedimiento adecuado para una configuración puede dañar otra. Haz una copia de seguridad de los archivos importantes antes de escribir un sector de arranque, cambiar una bandera de partición, reemplazar un árbol EFI o reinstalar GRUB. Consulta [Copia de seguridad y recuperación](/administration/Backup-Recovery.md). Si no tienes claro el tipo de instalación, compáralo con [Modos de arranque](/configuration/Boot-Modes.md) antes de elegir un flujo de trabajo de reparación.
 
 ## Identificar la configuración
 
@@ -10,9 +10,9 @@ La reparación del arranque depende de cómo se haya instalado MiniOS en el disp
 
 `Ventoy` normalmente mantiene el ISO como un archivo bajo su propio gestor de arranque. Repáralo siguiendo el procedimiento de la documentación de `Ventoy`; no instales el sector de arranque Syslinux de MiniOS sobre él.
 
-## Diagnóstico sin modificar el disco
+## Diagnosticar sin modificar el disco
 
-Primero confirma si la falla ocurre antes del menú de MiniOS, después del menú o después de que arranca el kernel. Revisa el menú de arranque único del firmware y anota si la entrada seleccionada es UEFI o BIOS heredado. Prueba con otro puerto y, si es posible, inicia el mismo dispositivo en otra computadora.
+Primero confirma si la falla ocurre antes del menú de MiniOS, después del menú o después de que arranca el kernel. Revisa el menú de arranque único del firmware y anota si la entrada seleccionada es UEFI o BIOS heredado. Prueba otro puerto y, si es posible, inicia el mismo dispositivo en otro ordenador.
 
 Desde un medio de rescate Linux funcional, inspecciona en lugar de reparar:
 
@@ -23,15 +23,15 @@ sudo blkid
 sudo fdisk -l
 ```
 
-En un sistema iniciado en modo UEFI, `sudo efibootmgr -v` puede listar las entradas del firmware. Su ausencia o un error no prueban que los archivos EFI estén ausentes. No formatees, reparticiones, ejecutes una reparación de sistema de archivos ni cambies banderas solo como prueba. Confirma cada dispositivo por modelo y capacidad y monta los sistemas de archivos en modo solo lectura cuando solo los estés inspeccionando.
+En un sistema iniciado en modo UEFI, `sudo efibootmgr -v` puede listar las entradas del firmware. Su ausencia o un error no prueban que falten los archivos EFI. No formatees, reparticiones, ejecutes una reparación de sistema de archivos ni cambies banderas solo como prueba. Confirma cada dispositivo por modelo y capacidad y monta los sistemas de archivos en modo solo lectura cuando solo vayas a inspeccionarlos.
 
-Si aparece el menú de arranque pero MiniOS no encuentra sus módulos, edita temporalmente la entrada de arranque y prueba con `from=askdisk`. Una vez que se conozca el sistema de archivos correcto, una etiqueta de sistema de archivos es más estable que un nombre como `/dev/sdb1`:
+Si el menú de arranque aparece pero MiniOS no puede encontrar sus módulos, edita temporalmente la entrada de arranque y prueba `from=askdisk`. Una vez identificado el sistema de archivos correcto, una etiqueta de sistema de archivos es más estable que un nombre como `/dev/sdb1`:
 
 ```text
 from=/dev/disk/by-label/MINIOS/minios
 ```
 
-La etiqueta debe existir e identificar el sistema de archivos previsto; las etiquetas deben ser únicas. Añade `debug timing` para obtener más salida temprana de arranque. Añade `rd.break` solo si necesitas una shell de initramfs para inspección avanzada. Estas opciones diagnostican el descubrimiento de módulos; no reparan el gestor de arranque. Consulta [Parámetros de arranque](/configuration/Boot-Parameters.md) y [Resolución de problemas](/administration/Troubleshooting.md).
+La etiqueta debe existir e identificar el sistema de archivos deseado; las etiquetas deben ser únicas. Añade `debug timing` para obtener más salida durante el arranque temprano. Añade `rd.break` solo si necesitas una shell de initramfs para una inspección avanzada. Estas opciones diagnostican el descubrimiento de módulos; no reparan el gestor de arranque. Consulta [Descubrimiento del sistema Initrd](/configuration/Initrd-System-Discovery.md) para las formas soportadas de `from=`, el comportamiento de `askdisk` y la precedencia de origen. Consulta también [Parámetros de arranque](/configuration/Boot-Parameters.md) y [Solución de problemas](/administration/Troubleshooting.md).
 
 ## Medios ISO grabados en bruto
 
@@ -110,7 +110,16 @@ Es preferible restaurar una copia de seguridad exacta y probada de la raíz nati
 
 ## Reversión modular del kernel
 
-Para una instalación live basada en archivos que dejó de arrancar tras un cambio de kernel, utiliza un medio de rescate de la misma versión y arquitectura de MiniOS. En su menú de arranque, usa `from=askdisk` o una ruta de etiqueta estable para seleccionar el árbol `minios/` instalado. Si esa combinación inicia el sistema y el árbol instalado es escribible, inspecciona los conjuntos de kernel coordinados y activa uno conocido y funcional:
+Para una instalación en vivo basada en archivos que dejó de arrancar después de un cambio de kernel,
+utiliza un medio de rescate de la misma versión y arquitectura de MiniOS. En su menú de arranque,
+utiliza `from=askdisk` o una ruta de etiqueta estable para seleccionar el árbol de
+`minios/` instalado. El árbol seleccionado debe contener un triplete completo que coincida con
+el kernel ya cargado desde el medio de rescate; el initrd no puede cambiar el kernel en ejecución.
+Consulta
+[coordinación del kernel en ejecución](/configuration/Initrd-Module-Loading.md)
+para ver las rutas y el comportamiento exactos de los módulos, la imagen del kernel y el initramfs.
+
+Si esa combinación logra iniciar el sistema y el árbol instalado es escribible, inspecciona los conjuntos de kernels coordinados y activa uno que sepas que funciona:
 
 ```bash
 sudo minios-kernel list
@@ -118,9 +127,14 @@ sudo minios-kernel status
 sudo minios-kernel activate <working-version>
 ```
 
-La activación debe restaurar un módulo de kernel, imagen de kernel, initramfs y configuración del gestor de arranque coordinados. No reemplaces solo `vmlinuz`, solo el initramfs o solo `01-kernel*.sb`. Conserva el kernel empaquetado anterior hasta que el reemplazo haya arrancado correctamente. Consulta [Gestión de kernel](/administration/Kernel-Management.md).
+La activación debe restaurar un módulo de kernel coordinado, la imagen del kernel, el initramfs
+y la configuración del gestor de arranque. No reemplaces solo `vmlinuz`, solo el initramfs,
+ni solo `01-kernel*.sb`. Conserva el kernel empaquetado anterior hasta que el reemplazo
+haya arrancado correctamente. Consulta
+[Gestión del kernel](/administration/Kernel-Management.md).
 
-Esta reversión es para instalaciones live modulares. Las instalaciones nativas usan sus propios paquetes de kernel y GRUB y requieren recuperación o reinstalación nativa.
+Esta reversión es para instalaciones en vivo modulares. Las instalaciones nativas utilizan sus
+paquetes de kernel instalados y GRUB, y requieren recuperación nativa o reinstalación.
 
 ## Cuándo reinstalar
 

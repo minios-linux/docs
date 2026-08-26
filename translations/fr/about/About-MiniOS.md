@@ -4,12 +4,12 @@ MiniOS est une distribution Linux basée sur Debian, conçue pour fonctionner à
 
 ## Modèle système
 
-- Le système de base et les logiciels optionnels sont des modules séparés. Les modules peuvent être sélectionnés au démarrage ou ajoutés sans reconstruire l’ensemble du système.
-- Une nouvelle session live laisse les modules de base inchangés.
+- Le système de base et les logiciels optionnels sont des modules distincts. Les modules peuvent être sélectionnés au démarrage ou ajoutés sans devoir reconstruire l’ensemble du système.
+- Une session live fraîche laisse les modules de base inchangés.
 - La persistance peut enregistrer les modifications dans un répertoire natif, un conteneur DynFileFS extensible, une image brute de taille fixe ou un conteneur LUKS chiffré, selon l’installation et le système de fichiers cible.
 - L’installateur MiniOS peut réaliser une installation live modulaire ou, lorsque l’image le permet, déployer une installation Linux native classique.
 
-Consultez [Architecture du système](/about/System-Architecture.md) pour la structure de démarrage et des modules, et [Gestion des sessions](/configuration/Session-Management.md) pour les sessions persistantes.
+Consultez [Modes de démarrage](/configuration/Boot-Modes.md) pour le guide de référence du comportement en session live et [Architecture du système](/about/System-Architecture.md) pour la structure du démarrage et des modules. Les contrats détaillés du démarrage initial sont documentés dans [découverte du système initrd](/configuration/Initrd-System-Discovery.md), [chargement des modules initrd](/configuration/Initrd-Module-Loading.md) et [persistance initrd](/configuration/Initrd-Persistence.md).
 
 ## Éditions
 
@@ -26,9 +26,9 @@ Pour la liste des logiciels inclus dans chaque édition, consultez la [liste des
 
 ## Installation et persistance
 
-Une image ISO peut être écrite comme image amorçable, copiée sur un périphérique multiboot ou installée avec l’installateur MiniOS. Ces méthodes n’ont pas toutes le même comportement de stockage. Les outils d’écriture d’image comme `dd` et Etcher reproduisent la structure de l’ISO ; Ventoy démarre le fichier ISO ; l’installateur MiniOS peut allouer et configurer un espace de stockage pour les sessions en écriture. Ne supposez pas qu’une méthode d’écriture crée automatiquement la persistance.
+Une ISO peut être écrite comme image amorçable, copiée sur un périphérique multiboot ou installée avec MiniOS Installer. Ces méthodes n’ont pas toutes le même comportement de stockage. Les outils d’écriture d’image comme `dd` et Etcher reproduisent la structure de l’ISO ; Ventoy démarre le fichier ISO ; MiniOS Installer peut allouer et configurer un espace de stockage en écriture pour la session. Ne supposez pas qu’une méthode d’écriture active la persistance.
 
-Commencez par le [Guide de démarrage rapide](/installation/Quick-Start.md) et suivez le guide correspondant à la méthode d’installation choisie. La persistance peut aussi être sélectionnée depuis un menu de démarrage adapté ou configurée avec les paramètres de démarrage documentés lorsque le stockage en écriture est disponible.
+Commencez par le [Démarrage rapide](/installation/Quick-Start.md) et suivez le guide correspondant à la méthode d’installation choisie. La persistance peut aussi être sélectionnée depuis un menu de démarrage adapté ou configurée via les paramètres de démarrage documentés lorsque le stockage en écriture est disponible. Consultez [Modes de démarrage](/configuration/Boot-Modes.md) pour le comportement de la session live résultante et [Gestion de session](/configuration/Session-Management.md) pour les options de stockage.
 
 ## Ressources du projet
 

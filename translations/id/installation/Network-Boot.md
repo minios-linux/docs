@@ -14,35 +14,35 @@ Terkait: [Boot parameters](/configuration/Boot-Parameters.md) (`ip`, `from`, `ca
 
 ## Ikhtisar
 
-| Mode | Apa yang di-boot | Cara memperoleh data MiniOS |
-|------|------------------|------------------------------|
-| **PXE** | Kernel + initrd dari server boot jaringan | `ip=` tidak kosong → initrd mengunduh file MiniOS dari server data PXE (HTTP lebih disarankan, fallback ke TFTP) |
+| Mode | Apa yang di-boot | Cara data MiniOS didapatkan |
+|------|------------------|-----------------------------|
+| **PXE** | Kernel + initrd dari server boot jaringan | `ip=` tidak kosong tanpa `from=http://…` → initrd mengunduh file MiniOS dari server data PXE |
 | **HTTP ISO** | Kernel + initrd dari media lokal **atau** PXE | `from=http://…/minios.iso` → initrd mengaktifkan jaringan dan me-mount ISO dengan `httpfs2` |
-| **Media lokal** | USB / ISO / disk | Tidak ada jaringan di initrd; hanya pencarian lokal |
+| **Media lokal** | USB / ISO / disk | Tidak ada jaringan initrd; hanya pencarian lokal |
 
 Builder initramfs: **LiveKit** (`livekit-mos`) atau **dracut** (`dracut-mos`). Keduanya menggunakan helper jaringan LiveKit yang sama untuk pengambilan awal.
 
 ```text
 find_data()
-  ├─ from=http://…     → configure network → mount ISO (httpfs2)
+  ├─ from=http://…     → configure network (ip= static, otherwise DHCP) → mount ISO (httpfs2)
   ├─ ip=… (non-empty)  → configure network → PXE download of MiniOS data
   └─ else              → search local disks/ISO only (no network)
 ```
 
-**Penting:** setiap `ip=` yang tidak kosong akan memilih **jalur data PXE** dan **melewati media lokal**. Jangan tambahkan `ip=` pada boot USB/ISO normal hanya untuk “mengatur alamat statis.”
+`from=http://…` memiliki prioritas dibanding `ip=`. Dalam mode ini, `ip=` menyediakan pengalamatan statis untuk koneksi HTTP ISO. Jika tidak, setiap `ip=` yang tidak kosong akan memilih **jalur data PXE** dan melewati media lokal. Jangan tambahkan `ip=` pada boot USB/ISO normal hanya untuk "mengatur alamat statis." Kedua jalur jaringan tidak akan kembali ke media lokal jika proses penemuan atau pengunduhan gagal.
 
 ## Persyaratan
 
 | Persyaratan | Catatan |
 |-------------|--------|
-| Ethernet kabel (atau virtio/vmxnet di VM) | Antarmuka non-loopback pertama yang dapat digunakan akan dipakai; tidak ada pemilihan `BOOTIF` / `ethdevice` di initrd |
-| Initrd dengan modul jaringan | Dibangun untuk varian paket selain nilai internal `minimum` (`--network`, seringkali `--cloud`) |
-| Tidak bergantung pada Wi‑Fi | Nirkabel tidak didukung pada jalur network-boot |
-| Disarankan NIC tanpa firmware blob | Kartu yang bergantung pada firmware sering gagal di initrd |
-| Disarankan menggunakan image **Standard** atau lebih besar | Edisi **Flux** tidak menyertakan modul NIC jaringan, sehingga PXE / HTTP ISO pada dasarnya tidak didukung |
+| Ethernet kabel (atau virtio/vmxnet di VM) | Antarmuka non-loopback pertama yang terdeteksi akan digunakan; koneksi dan keterjangkauan tidak dicek, dan tidak ada pemilihan `BOOTIF` / `ethdevice` di initrd |
+| Initrd dengan modul jaringan | Dibangun untuk varian paket selain nilai internal `minimum` (`--network`, sering `--cloud`) |
+| Tidak bergantung pada Wi‑Fi | Nirkabel tidak didukung pada jalur boot jaringan |
+| Lebih disarankan NIC tanpa firmware blob | Kartu yang bergantung pada firmware sering gagal di initrd |
+| Disarankan gambar **Standard** atau lebih besar | Edisi **Flux** tidak menyertakan modul NIC jaringan, sehingga PXE / HTTP ISO pada dasarnya tidak didukung |
 | Hanya HTTP untuk URL ISO | `from=http://…` berfungsi; **`https://` tidak didukung** |
 
-Tools di initrd: busybox `ifconfig`, `route`, `udhcpc`, `wget`, `tftp`, dan `@mount.httpfs2`. Tidak ada NetworkManager di initrd.
+Alat di initrd: busybox `ifconfig`, `route`, `udhcpc`, `wget`, `tftp`, dan `@mount.httpfs2`. Tidak ada NetworkManager di initrd.
 
 ## Boot PXE
 
@@ -74,22 +74,24 @@ ip=192.168.1.10:192.168.1.1:192.168.1.1:255.255.255.0
 ip=192.168.1.10:192.168.1.1:192.168.1.1:255.255.255.0:8080
 ```
 
-### Cara file diambil
+### Cara pengambilan file
 
-1. **HTTP** (disarankan):  
-   `http://<server-ip>:<port>/PXEFILELIST?<kernel-release>:<machine>`  
-   lalu setiap path yang terdaftar di file tersebut dari host/port yang sama.
-2. **TFTP** (fallback jika HTTP gagal): busybox `tftp` untuk `PXEFILELIST` dan file yang terdaftar.
+1. **HTTP** (disarankan):
+   `http://<server-ip>:<port>/PXEFILELIST?<kernel-release>:<machine>`
+   lalu setiap path yang terdaftar di file tersebut diambil dari host/port yang sama.
+2. **TFTP**: busybox `tftp` dipilih hanya jika permintaan HTTP awal untuk
+   `PXEFILELIST` gagal. Kegagalan pengunduhan file HTTP berikutnya tidak akan
+   mengalihkan transfer ke TFTP.
 
 Port default adalah **7529** jika field kelima tidak diisi.
 
-### Apa yang **bukan** `ip=`
+### Apa itu `ip=` bukan
 
 | Ekspektasi | Realita |
 |------------|---------|
 | Bentuk kernel / dracut (`ip=dhcp`, `ip=:::::eth0:dhcp`, …) | **Tidak didukung** — salah parsing sebagai alamat klien |
-| IP statis untuk seluruh sesi live | **Tidak didukung** — setelah boot, NetworkManager (atau serupa) yang mengelola antarmuka |
-| IP statis saat masih boot dari USB/ISO | **Jangan gunakan** — memaksa unduh data PXE |
+| IP statis untuk seluruh sesi live | **Tidak didukung** — setelah boot, NetworkManager (atau sejenisnya) mengelola antarmuka |
+| IP statis saat memuat data MiniOS dari USB/ISO | **Jangan digunakan** — tanpa `from=http://…`, ini memaksa pengunduhan data PXE |
 | Daftar DNS khusus | Hanya gateway + server yang digunakan sebagai nameserver di initrd |
 
 ## Boot HTTP ISO (`from=http://…`)
@@ -127,22 +129,22 @@ Jika root masih menggunakan **httpfs**, NetworkManager yang mengonfigurasi ulang
 
 ## Kesalahan umum
 
-1. Menambahkan `ip=` pada cmdline USB/ISO “untuk IP statis” → sistem mencoba mengunduh PXE alih-alih dari media lokal.
-2. Menggunakan `ip=dhcp` atau sintaks kernel `ip=` lain → parser salah, pengaturan alamat gagal.
+1. Menambahkan `ip=` pada cmdline USB/ISO "untuk IP statis" → sistem mencoba mengunduh PXE alih-alih media lokal kecuali `from=http://…` memilih boot HTTP ISO terlebih dahulu.
+2. Menggunakan `ip=dhcp` atau sintaks kernel `ip=` lainnya → parser salah, pengaturan alamat gagal.
 3. Mengharapkan pemilihan Wi‑Fi atau multi-NIC `BOOTIF` di initrd → belum diimplementasikan.
 4. Menggunakan image **Flux** untuk PXE/HTTP ISO → modul jaringan tidak ada di initrd.
-5. Menyediakan ISO hanya melalui HTTPS → `from=http://…` tidak akan cocok.
+5. Menyajikan ISO hanya melalui HTTPS → `from=http://…` tidak akan cocok.
 6. Mengira ini sama dengan konfigurasi statis installer/NetworkManager setelah login.
 
-## Ringkasan Keandalan
+## Ringkasan keandalan
 
 | Skenario | Penilaian |
-|----------|------------|
-| PXE + `ip=…` + daftar HTTP di :7529 (atau TFTP), kabel sederhana / virtio | Target didukung |
+|----------|-----------|
+| PXE + `ip=…` + daftar HTTP di :7529 (atau TFTP setelah permintaan daftar HTTP gagal), kabel sederhana / virtio | Target didukung |
 | `from=http://…iso` + DHCP (atau `ip=`), kelas NIC yang sama | Biasanya berfungsi |
 | Boot USB/ISO normal | Jaringan initrd tidak digunakan |
 | Sesi statis via `ip=` | Tidak didukung |
-| Multi-NIC / firmware NIC / Wi‑Fi / `https://` / Flux edition | Lemah atau tidak didukung |
+| Multi-NIC / NIC firmware / Wi‑Fi / `https://` / edisi Flux | Lemah atau tidak didukung |
 
 ## Referensi implementasi
 
@@ -156,7 +158,8 @@ Jika root masih menggunakan **httpfs**, NetworkManager yang mengonfigurasi ulang
 
 ## Lihat juga
 
-- [Boot parameters](/configuration/Boot-Parameters.md) — tabel parameter lengkap (`ip`, `from`, `cache`, …)
+- [Parameter boot](/configuration/Boot-Parameters.md) — tabel parameter lengkap (`ip`, `from`, `cache`, …)
+- [Penemuan sistem initrd](/configuration/Initrd-System-Discovery.md) — prioritas sumber, penemuan lokal, dan perilaku kegagalan
 - [live-config](/configuration/live-config.md) — konfigurasi userspace tahap akhir (bukan boot jaringan)
-- [System architecture](/about/System-Architecture.md)
-- [Building MiniOS](/development/Building-MiniOS.md) — builder initramfs (`livekit` / `dracut`)
+- [Arsitektur sistem](/about/System-Architecture.md)
+- [Membangun MiniOS](/development/Building-MiniOS.md) — builder initramfs (`livekit` / `dracut`)

@@ -10,18 +10,24 @@ minios-module-manager
 
 Aplikasi ini berjalan sebagai pengguna desktop Anda. Permintaan autentikasi administrator hanya muncul jika operasi yang diminta membutuhkannya.
 
-## Running now and next boot
+## Sedang Berjalan dan Boot Berikutnya
 
-Ruang kerja Modules menyediakan dua tampilan terpisah:
+Workspace Modul memiliki dua tampilan terpisah:
 
-- **Running Now** adalah urutan modul yang saat ini membentuk sistem yang sedang berjalan.
-- **Next Boot** adalah urutan modul yang dipilih berdasarkan aturan boot MiniOS saat ini.
+- **Sedang Berjalan** adalah urutan modul yang saat ini membentuk sistem yang sedang aktif.
+- **Boot Berikutnya** adalah urutan modul yang dipilih berdasarkan aturan boot MiniOS saat ini.
 
-Mengubah satu tampilan tidak otomatis mengubah tampilan lainnya. Misalnya, **Activate for This Session** hanya memengaruhi sistem yang sedang berjalan, sedangkan **Add to Next Boot** menyalin modul ke penyimpanan modul yang persisten tanpa mengaktifkannya sekarang.
+Mengubah satu tampilan tidak secara diam-diam mengubah tampilan lainnya. Misalnya, **Aktifkan untuk Sesi Ini** hanya memengaruhi sistem yang sedang berjalan, sedangkan **Tambahkan ke Boot Berikutnya** menyalin modul ke penyimpanan modul yang tahan lama tanpa langsung mengaktifkannya.
 
-Aktivasi dan deaktivasi saat runtime hanya tersedia jika root filesystem saat ini menggunakan AUFS. Fitur ini tidak tersedia pada root OverlayFS, meskipun kernel mendukung AUFS. Modul dasar tidak dapat dinonaktifkan melalui aplikasi.
+Untuk aturan boot yang otoritatif, termasuk tingkat sumber kandidat,
+penggantian exact-basename, pengurutan numerik, dan penyaringan `load=`, `noload=`, serta
+`bext=`, lihat
+[Initrd module loading](/configuration/Initrd-Module-Loading.md). Panduan tersebut
+juga menjelaskan mengapa Sedang Berjalan dan Boot Berikutnya bisa berbeda.
 
-Perubahan Next-boot hanya tersedia jika MiniOS menemukan penyimpanan modul yang persisten, dapat ditulis, dan sesuai. Modul dasar serta modul pada penyimpanan read-only atau volatile tidak dapat dihapus. Filter boot seperti `load`, `noload`, dan `bext` tetap menentukan modul mana yang dipilih.
+Aktivasi dan deaktivasi runtime hanya tersedia jika root filesystem saat ini menggunakan AUFS. Fitur ini tidak tersedia pada root OverlayFS, meskipun kernel mendukung AUFS. Modul dasar tidak dapat dinonaktifkan melalui aplikasi.
+
+Perubahan boot berikutnya hanya tersedia jika MiniOS menemukan penyimpanan modul yang tahan lama dan dapat ditulis. Modul dasar serta modul pada penyimpanan read-only atau volatile tidak dapat dihapus. Filter boot seperti `load`, `noload`, dan `bext` tetap menentukan modul mana yang dipilih.
 
 ## Memeriksa sebuah modul
 
@@ -61,5 +67,7 @@ Menjatuhkan item tidak menjalankan kode atau mengubah Running Now maupun Next Bo
 ## Dokumentasi terkait
 
 - [Membuat modul](/development/Creating-Modules.md)
-- [Menyusun citra ISO dari command line](/development/Rebuilding-ISO.md)
+- [Initrd module loading](/configuration/Initrd-Module-Loading.md)
+- [Mode boot](/configuration/Boot-Modes.md)
+- [Menyusun image ISO dari command line](/development/Rebuilding-ISO.md)
 - [Parameter boot](/configuration/Boot-Parameters.md)

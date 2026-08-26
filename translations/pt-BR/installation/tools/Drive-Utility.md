@@ -10,14 +10,14 @@ O Drive Utility é uma ferramenta gráfica para gravar imagens ISO do MiniOS em 
 
 ## Requisitos da Unidade
 
-### Tamanho da Unidade (para gravação do MiniOS)
+### Tamanho do Drive (para gravação do MiniOS)
 
-Veja o [Guia de Compatibilidade de Hardware](/installation/Hardware-Compatibility.md#system-requirements) para requisitos detalhados de sistema e tamanhos de unidade.
+Consulte o [Guia de Compatibilidade de Hardware](/installation/Hardware-Compatibility.md) para requisitos detalhados de sistema e tamanhos de drive.
 
-### Sistemas de Arquivos Suportados
+### Sistemas de arquivos compatíveis
 
 - **FAT32**: máxima compatibilidade
-- **NTFS**: compatibilidade com Windows  
+- **NTFS**: compatibilidade com Windows
 - **EXT4**: recomendado para Linux
 
 ## Iniciando o Drive Utility
@@ -44,17 +44,8 @@ driveutility
    - Confirme a operação – todos os dados da unidade serão apagados
 5. **Aguarde a conclusão** – o processo levará alguns minutos
 
-## Persistência Automática de Alterações
+## Resultado e persistência
 
-Ao gravar o MiniOS pelo Drive Utility, uma cópia exata da imagem ISO é criada. O MiniOS detecta automaticamente o método de gravação e configura a persistência de alterações no primeiro boot.
+O modo de gravação realiza uma escrita de imagem bruta: ele copia o layout do ISO para todo o dispositivo de destino. Não cria uma partição ext4 no espaço não utilizado, não cria uma sessão de persistência e não executa uma implantação do Instalador do MiniOS. As opções de sistema de arquivos acima se aplicam às operações do Drive Utility que formatam um sistema de arquivos, não ao layout de partição copiado por uma gravação de ISO.
 
-### Configuração de Parâmetros (para usuários avançados)
-
-Para configuração precisa da persistência, é possível utilizar parâmetros de boot:
-
-- `perchmode=native` - Salvamento direto na partição (quando houver espaço livre)
-- `perchmode=dynfilefs` - Arquivo expansível dinamicamente
-- `perchmode=raw` - Arquivo de tamanho fixo
-- `perchsize=8000` - Espaço de armazenamento para dados em MB
-
-Detalhes em [parâmetros de boot](/configuration/Boot-Parameters.md).
+A persistência só é habilitada quando uma entrada de boot ou linha de comando do kernel solicita, e ainda assim requer um armazenamento gravável adequado. Consulte [Modos de Boot](/configuration/Boot-Modes.md) e [Persistência Initrd](/configuration/Initrd-Persistence.md) antes de confiar em alterações salvas.

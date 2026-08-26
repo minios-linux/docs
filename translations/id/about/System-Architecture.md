@@ -4,17 +4,26 @@ MiniOS melakukan boot sistem operasi hanya-baca yang dirakit dari modul-modul Sq
 
 ## Penemuan boot
 
-Bootloader BIOS atau UEFI memuat kernel Linux dan initramfs MiniOS dari `minios/boot/`. Initramfs kemudian mencari perangkat blok untuk direktori `minios` yang berisi modul-modul `.sb`. Parameter boot `from=` dapat juga menentukan nama direktori, perangkat blok dan path, file ISO lokal, atau pemilihan interaktif `askdisk`. ISO lokal akan di-mount secara loop sebelum direktori `minios` digunakan.
+Bootloader BIOS atau UEFI memuat kernel Linux dan initramfs MiniOS dari
+`minios/boot/`. Initramfs kemudian mendeteksi pohon data MiniOS yang berisi
+modul live. Sumber dapat berupa lokal, dipilih secara interaktif, atau diberikan
+dari jalur jaringan yang didukung; ISO lokal akan di-mount secara loop sebelum pohon datanya
+digunakan. Urutan prioritas dan bentuk `from=` yang diterima didokumentasikan di
+[Penemuan sistem Initrd](/configuration/Initrd-System-Discovery.md).
 
-Tahap penemuan yang sama mendukung sumber ISO HTTP dan PXE. Jaringan awal-boot opsional hanya untuk **memuat MiniOS melalui jaringan** (PXE / HTTP ISO). Ini bukan konfigurasi jaringan sesi yang permanen. Lihat [Network boot](/installation/Network-Boot.md).
+Tahap penemuan yang sama mendukung sumber ISO HTTP dan PXE. Jaringan awal opsional
+hanya untuk **memuat MiniOS melalui jaringan** (PXE / HTTP ISO). Ini bukan konfigurasi jaringan sesi yang permanen. Lihat
+[Boot jaringan](/installation/Network-Boot.md).
 
-Setelah penemuan, `toram=trim` dapat menyalin modul yang dipilih dan data yang diperlukan ke RAM, sementara `toram=full` menyalin pohon data media. Lihat [Boot parameters](/configuration/Boot-Parameters.md) untuk sumber, penyaringan, dan opsi penyalinan ke RAM.
+Setelah penemuan, MiniOS dapat menyiapkan salinan ke RAM secara opsional. Apakah sumber asli tetap diperlukan tergantung pada mode salin, persistensi, dan keberhasilan
+detachment. Lihat [Mode boot](/configuration/Boot-Modes.md) untuk model operasionalnya.
 
 ## Komposisi modul
 
-Setiap file `.sb` adalah filesystem SquashFS hanya-baca. Modul bawaan disimpan langsung di bawah `minios/`; modul tambahan dapat disimpan di bawah `minios/modules/`, termasuk penyimpanan modul tahan lama pada perangkat persistensi yang dapat ditulis. Initramfs menemukan kedua lokasi tersebut, menerapkan filter `load=` dan `noload=`, mengurutkan file yang dipilih berdasarkan awalan nama file numerik, dan me-mount-nya sebagai hanya-baca.
+Setiap file `.sb` adalah filesystem SquashFS hanya-baca. Modul bawaan disimpan langsung di bawah `minios/`; lokasi modul tambahan dapat berkontribusi pada urutan komposisi. Initramfs memilih, mengurutkan, dan me-mount lapisan hanya-baca yang dihasilkan. Kandidat tier, penggantian basename, filter, ekstensi bundle kustom, dan koordinasi kernel yang sedang berjalan dijelaskan di
+[Pemuatan modul Initrd](/configuration/Initrd-Module-Loading.md).
 
-Image Xfce yang umum berisi peran-peran berikut secara berurutan, meskipun nama dan nomor pastinya tergantung pada build dan modul yang dilewati untuk target tersebut:
+Citra Xfce yang umum berisi peran terurut berikut, meskipun nama dan jumlah pastinya bergantung pada build dan modul yang dilewati untuk target tersebut:
 
 ```text
 00-core-<arch>.sb
@@ -25,34 +34,38 @@ Image Xfce yang umum berisi peran-peran berikut secara berurutan, meskipun nama 
 05-apps-<arch>.sb or the next applicable module
 ```
 
-Modul yang lebih baru memiliki prioritas lebih tinggi dan dapat menggantikan path yang disediakan oleh modul sebelumnya. Sebuah modul dapat bergantung pada file di setiap modul bernomor lebih rendah, sehingga satu set file modul adalah komposisi berurutan, bukan kumpulan paket independen.
+Modul yang lebih akhir memiliki prioritas lebih tinggi dan dapat menggantikan path yang disediakan oleh modul sebelumnya. Sebuah modul dapat bergantung pada file di setiap modul bernomor lebih rendah, sehingga satu set file modul adalah komposisi berurutan, bukan kumpulan paket independen.
 
 ## AUFS dan OverlayFS
 
-MiniOS menggunakan union filesystem untuk menyajikan modul dan lapisan tulis sebagai satu root filesystem. Sistem akan memilih AUFS jika kernel yang berjalan mendukungnya dan akan menggunakan OverlayFS jika tidak. `union=aufs` meminta AUFS tetapi tetap akan menggunakan OverlayFS jika AUFS tidak tersedia; `union=overlayfs` memilih OverlayFS.
+MiniOS menggunakan filesystem union untuk menyajikan modul dan layer yang dapat ditulis sebagai satu filesystem root. Sistem akan memilih AUFS jika kernel yang berjalan mendukungnya dan akan menggunakan OverlayFS jika tidak. `union=aufs` meminta AUFS tetapi tetap akan menggunakan OverlayFS jika AUFS tidak tersedia; `union=overlayfs` memilih OverlayFS.
 
 Kedua implementasi ini memiliki perbedaan operasional penting:
 
-- AUFS dimulai dengan cabang yang dapat ditulis dan menambahkan modul yang di-mount sebagai cabang hanya-baca. MiniOS dapat mengaktifkan atau menonaktifkan modul pada root yang sedang berjalan jika mount AUFS mendukung operasi tersebut.
+- AUFS memulai dengan branch yang dapat ditulis dan menambahkan modul yang di-mount sebagai branch hanya-baca. MiniOS dapat mengaktifkan atau menonaktifkan modul di root yang sedang berjalan jika mount AUFS mendukung operasi tersebut.
 - OverlayFS menerima daftar `lowerdir` yang terurut lengkap saat root di-mount, ditambah `upperdir` dan `workdir`. Set modul bawahnya tidak dapat diubah secara langsung oleh Module Manager.
 
-Oleh karena itu, Module Manager memisahkan **Sedang berjalan sekarang**, yaitu set modul yang di-mount, dari **Boot berikutnya**, yaitu modul yang dipilih oleh media dan aturan boot saat ini. Menambah atau menghapus modul tahan lama biasanya hanya mengubah boot berikutnya. Membuat atau membuka modul tidak langsung mengaktifkannya. Aktivasi dan deaktivasi saat runtime hanya tersedia dengan AUFS.
+Karena itu, Module Manager memisahkan **Sedang berjalan sekarang**, yaitu set modul yang di-mount, dari **Boot berikutnya**, yaitu modul yang dipilih oleh media dan aturan boot saat ini. Menambah atau menghapus modul yang persisten biasanya hanya mengubah boot berikutnya. Membuat atau membuka modul tidak langsung mengaktifkannya. Aktivasi dan deaktivasi saat runtime hanya tersedia dengan AUFS.
 
-## Lapisan tulis dan sesi
+Setelah root dirakit dan setup awal selesai, initrd LiveKit menggunakan `pivot_root`, mempertahankan initrd lama untuk proses shutdown, dan mengeksekusi init root baru. Jalur dracut menyiapkan root yang sama, tetapi menyerahkan `switch_root` terakhir ke dracut. Lihat
+[Pemuatan modul Initrd](/configuration/Initrd-Module-Loading.md) untuk detail batas penyerahan.
 
-Tanpa persistensi, lapisan tulis didukung oleh memori dan akan hilang saat shutdown. Persistensi menempatkan lapisan tersebut dalam sesi bernomor di bawah `minios/changes/`. `session.conf` mencatat sesi default untuk boot berikutnya, sesi yang digunakan pada boot saat ini, metadata kompatibilitas, status, dan pengaturan khusus mode.
+## Layer dapat ditulis dan sesi
 
-| Mode | Penyimpanan yang dapat ditulis | Catatan |
-|------|-------------------------------|---------|
-| `native` | File disimpan langsung di direktori sesi | Membutuhkan filesystem POSIX yang dapat ditulis dan mempertahankan metadata Linux. |
-| `dynfilefs` | Filesystem ext4 yang dapat diperluas dan dibagi ke beberapa file pendukung | Mendukung filesystem POSIX serta media FAT32, NTFS, atau exFAT. |
+Tanpa persistensi, layer yang dapat ditulis menggunakan memori (RAM) dan akan hilang saat shutdown. Persistensi dapat mengaktifkan sesi bernomor dengan backend penyimpanan yang didukung. Pemilihan, kompatibilitas, kegagalan aktivasi, otoritas boot saat ini, dan daya tahan dijelaskan di
+[Persistensi Initrd](/configuration/Initrd-Persistence.md).
+
+| Mode | Penyimpanan dapat ditulis | Catatan |
+|------|--------------------------|---------|
+| `native` | File disimpan langsung di direktori sesi | Membutuhkan filesystem POSIX yang dapat ditulis dan dapat mempertahankan metadata Linux. |
+| `dynfilefs` | Filesystem ext4 yang dapat diperluas dan dibagi ke beberapa file backend | Mendukung filesystem POSIX serta media FAT32, NTFS, atau exFAT. |
 | `raw` | `changes.img` berukuran tetap berisi ext4 | Mendukung filesystem POSIX serta media FAT32, NTFS, atau exFAT. |
 | `luks` | LUKS2 `changes.luks` berisi ext4 | Membutuhkan cryptsetup dan initramfs yang dibangun dengan dukungan enkripsi MiniOS. Kata sandi akan diminta saat boot. |
-| `squashfs` | Snapshot `changes.sb` terkompresi | Diekstrak ke RAM untuk digunakan; saat disimpan, snapshot akan dibangun ulang dan diganti secara atomik. Filesystem persistensi harus mempertahankan metadata Linux saat penyimpanan. |
+| `squashfs` | Snapshot `changes.sb` terkompresi | Diekstrak ke RAM untuk digunakan; saat disimpan, snapshot akan dibangun ulang dan diganti secara atomik. Filesystem persistensi harus mempertahankan metadata Linux selama proses penyimpanan. |
 
-Sesi aktif menjadi default untuk boot berikutnya. Sesi yang berjalan adalah yang sudah di-mount ke root saat ini. Mengaktifkan sesi lain tidak akan menggantikan lapisan tulis yang sedang berjalan. Pemeriksaan kompatibilitas sesi meliputi versi MiniOS, edisi, union filesystem, dan mode persistensi.
+Sesi aktif yang dipilih untuk resume di masa depan dan layer yang dapat ditulis yang benar-benar diotorisasi untuk boot saat ini adalah dua status yang saling terkait namun berbeda. Mengubah pilihan untuk masa depan tidak akan menggantikan layer yang sedang berjalan.
 
-Lihat [Session management](/configuration/Session-Management.md) untuk perintah pembuatan, pemilihan, pengaturan ukuran, enkripsi, konversi, ekspor, dan pemulihan.
+Lihat [Manajemen sesi](/configuration/Session-Management.md) untuk perintah pembuatan, pemilihan, pengaturan ukuran, enkripsi, konversi, ekspor, dan pemulihan.
 
 ## Prioritas konfigurasi
 
@@ -97,9 +110,13 @@ Path yang di-boot di bawah `/run/initramfs/memory/` adalah mount implementasi, b
 
 ## Dokumentasi terkait
 
-- [Boot parameters](/configuration/Boot-Parameters.md)
-- [Boot menus](/configuration/Boot-Menus.md)
-- [Configuration file](/configuration/Configuration-File.md)
-- [Session management](/configuration/Session-Management.md)
-- [Network boot](/installation/Network-Boot.md)
-- [Creating modules](/development/Creating-Modules.md)
+- [Mode boot](/configuration/Boot-Modes.md)
+- [Penemuan sistem Initrd](/configuration/Initrd-System-Discovery.md)
+- [Pemuatan modul Initrd](/configuration/Initrd-Module-Loading.md)
+- [Persistensi Initrd](/configuration/Initrd-Persistence.md)
+- [Parameter boot](/configuration/Boot-Parameters.md)
+- [Menu boot](/configuration/Boot-Menus.md)
+- [Berkas konfigurasi](/configuration/Configuration-File.md)
+- [Manajemen sesi](/configuration/Session-Management.md)
+- [Boot jaringan](/installation/Network-Boot.md)
+- [Membuat modul](/development/Creating-Modules.md)

@@ -10,7 +10,7 @@ Rufus adalah utilitas populer untuk Windows yang membantu memformat dan membuat 
 
 ### Ukuran Drive
 
-Lihat [Panduan Kompatibilitas Hardware](/installation/Hardware-Compatibility.md#system-requirements) untuk persyaratan sistem dan ukuran drive secara detail.
+Lihat [Panduan Kompatibilitas Perangkat Keras](/installation/Hardware-Compatibility.md) untuk persyaratan sistem dan ukuran drive secara detail.
 
 ## Instalasi Rufus
 
@@ -49,20 +49,8 @@ Rufus menawarkan dua metode untuk menulis MiniOS ke USB drive:
 6. **Mulai proses**: Klik tombol "START"
 7. **Konfirmasi format** - semua data di drive akan dihapus
 
-## Persistensi Perubahan Otomatis
+## Hasil dan persistensi
 
-MiniOS akan otomatis mendeteksi metode penulisan dan mengatur persistensi perubahan:
+Mode DD melakukan penulisan image mentah dan menyalin tata letak ISO ke seluruh perangkat target. Mode ISO memformat filesystem dan mengekstrak isi ISO untuk membuat media live berbasis file. Kedua mode tersebut bukan deployment MiniOS Installer, dan Rufus tidak secara otomatis membuat partisi ext4 atau sesi persistensi.
 
-- **DD mode**: Jika ada ruang kosong, akan membuat partisi ext4 untuk performa maksimal
-- **ISO mode**: Menggunakan file dinamis untuk menyimpan perubahan
-
-### Konfigurasi Parameter (untuk Pengguna Lanjutan)
-
-Jika diperlukan konfigurasi persistensi yang lebih spesifik, parameter boot dapat digunakan:
-
-- `perchmode=native` - Menyimpan langsung ke partisi (untuk DD mode)
-- `perchmode=dynfilefs` - File yang dapat diperluas secara dinamis
-- `perchmode=raw` - File dengan ukuran tetap
-- `perchsize=8000` - Ukuran ruang penyimpanan data dalam MB
-
-Detail ada di [parameter boot](/configuration/Boot-Parameters.md).
+Persistensi hanya diaktifkan jika entri boot atau baris perintah kernel memintanya, dan tetap memerlukan media penyimpanan yang dapat ditulis. Lihat [Mode Boot](/configuration/Boot-Modes.md) dan [Persistensi Initrd](/configuration/Initrd-Persistence.md) sebelum mengandalkan perubahan yang disimpan.

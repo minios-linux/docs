@@ -6,13 +6,15 @@ O Instalador MiniOS é um assistente GTK com backend de linha de comando para im
 
 Uma escolha incorreta de destino ou particionamento pode destruir dados. Faça backup dos arquivos importantes, desconecte discos que não serão usados e identifique o destino pelo caminho do dispositivo, modelo e capacidade. A confirmação final é o último ponto em que a instalação pode ser cancelada com segurança.
 
-O disco que contém o sistema live do MiniOS em execução é excluído da seleção de destino. Para orientações gerais de capacidade, consulte o [Guia de compatibilidade de hardware](Hardware-Compatibility.md#system-requirements).
+O disco que contém o sistema MiniOS live em execução é excluído da seleção de destino. Para orientações gerais sobre capacidade, consulte o [Guia de compatibilidade de hardware](Hardware-Compatibility.md).
 
 ## Modos de instalação
 
-O modo Live copia os módulos MiniOS compactados selecionados e os arquivos de inicialização. O resultado mantém o layout modular do sistema live e pode usar persistência de sessão do MiniOS.
+O modo Live copia os módulos MiniOS compactados selecionados e os arquivos de inicialização. O resultado mantém a estrutura modular do sistema live e pode usar persistência de sessão do MiniOS.
 
-O modo Nativo expande os módulos selecionados em um sistema de arquivos raiz Linux convencional, configura o destino, instala os pacotes necessários, gera o initramfs e instala o bootloader. O instalador detecta o suporte nativo a partir da imagem inicializada. Se os metadados de kernel necessários e o contrato de arquitetura EFI estiverem ausentes, o modo de compatibilidade permite apenas a instalação live.
+O modo Nativo expande os módulos selecionados em um sistema de arquivos raiz Linux convencional, configura o destino, instala os pacotes necessários, gera o initramfs e instala o bootloader. O instalador detecta o suporte nativo a partir da imagem inicializada. Se os metadados necessários do kernel e o contrato de arquitetura EFI estiverem ausentes, o modo de compatibilidade permite apenas a instalação live.
+
+Essa implantação é diferente de uma gravação ISO bruta, de uma configuração multiboot de arquivo ISO com Ventoy ou de uma ferramenta de mídia live baseada em arquivos. Veja [Modos de inicialização](/configuration/Boot-Modes.md) para entender a diferença entre sistemas live e nativos.
 
 ## Iniciar o instalador gráfico
 
@@ -59,14 +61,14 @@ A configuração de rede abrange o nome da máquina e DHCP cabeado ou IPv4 está
 
 A persistência se aplica apenas a instalações live:
 
-- Persistência nativa armazena alterações diretamente em um sistema de arquivos de destino compatível com POSIX. Não é oferecida em FAT32 ou NTFS.
-- DynFileFS usa um contêiner expansível.
-- Raw usa uma imagem de tamanho fixo.
-- LUKS usa uma imagem criptografada criada pelo initrd no primeiro boot. A senha é solicitada na inicialização e nunca é recebida nem armazenada pelo instalador.
+- A persistência nativa armazena as alterações diretamente em um sistema de arquivos de destino compatível com POSIX. Não é oferecida em FAT32 ou NTFS.
+- DynFileFS utiliza um contêiner expansível.
+- Raw utiliza uma imagem de tamanho fixo.
+- LUKS utiliza uma imagem criptografada criada pelo initrd no primeiro boot. A senha é solicitada na inicialização e nunca é recebida ou armazenada pelo instalador.
 
-Os modos de contêiner têm padrão de 4000 MiB. Contêineres Raw e LUKS não podem exceder 4000 MiB em FAT32; DynFileFS não está sujeito a esse limite de arquivo único. LUKS só é oferecido quando tanto o initrd em execução quanto cada initrd de origem copiado anunciam o suporte criptográfico necessário.
+Os modos de contêiner têm padrão de 4000 MiB. Contêineres Raw e LUKS não podem exceder 4000 MiB em FAT32; o DynFileFS não está sujeito a esse limite de arquivo único. O LUKS só é oferecido quando tanto o initrd em execução quanto cada initrd de origem copiado anunciam o suporte criptográfico necessário.
 
-As opções de boot resultantes usam `perchmode` e `perchsize`. Veja [Parâmetros de boot](/configuration/Boot-Parameters.md) para o significado em tempo de execução.
+As opções de boot resultantes usam `perchmode` e `perchsize`. Veja [Persistência do initrd](/configuration/Initrd-Persistence.md) e [Parâmetros de boot](/configuration/Boot-Parameters.md) para o significado em tempo de execução e requisitos de ativação.
 
 ## Implantação via linha de comando
 

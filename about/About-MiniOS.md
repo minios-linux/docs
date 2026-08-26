@@ -16,9 +16,12 @@ MiniOS supports 64-bit x86 systems and can boot through UEFI or legacy BIOS.
 - The MiniOS Installer can make a modular live installation or, when the image
   supports it, deploy a conventional native Linux installation.
 
-See [System architecture](/about/System-Architecture.md) for the boot and module
-layout, and [Session management](/configuration/Session-Management.md) for
-persistent sessions.
+See [Boot modes](/configuration/Boot-Modes.md) for the canonical guide to live
+boot behavior and [System architecture](/about/System-Architecture.md) for the
+boot and module layout. The detailed early-boot contracts are documented in
+[initrd system discovery](/configuration/Initrd-System-Discovery.md),
+[initrd module loading](/configuration/Initrd-Module-Loading.md), and
+[initrd persistence](/configuration/Initrd-Persistence.md).
 
 ## Editions
 
@@ -52,7 +55,9 @@ session storage. Do not assume that a writing method creates persistence.
 Start with [Quick start](/installation/Quick-Start.md) and use the linked guide
 for the selected installation method. Persistence can also be selected from an
 appropriate boot menu or configured with the documented boot parameters when
-writable storage is available.
+writable storage is available. See [Boot modes](/configuration/Boot-Modes.md)
+for the resulting live-session behavior and
+[Session management](/configuration/Session-Management.md) for storage options.
 
 ## Project resources
 

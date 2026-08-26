@@ -4,15 +4,17 @@ MiniOS Installer è una procedura guidata GTK con backend a riga di comando per 
 
 ## Prima di iniziare
 
-Una scelta errata del disco di destinazione o della partizione può causare la perdita di dati. Esegui il backup dei file importanti, scollega i dischi non necessari e identifica il disco di destinazione tramite percorso dispositivo, modello e capacità. La conferma finale è l’ultimo punto in cui l’installazione può essere annullata in sicurezza.
+Una scelta errata del target o del partizionamento può causare la perdita dei dati. Esegui il backup dei file importanti, scollega i dischi non necessari e identifica il target tramite percorso del dispositivo, modello e capacità. La conferma finale è l’ultimo punto in cui è possibile annullare l’installazione in modo sicuro.
 
-Il disco che contiene il sistema live MiniOS in esecuzione viene escluso dalla selezione dei target. Per indicazioni sulla capacità generale, consulta la [Guida alla compatibilità hardware](Hardware-Compatibility.md#system-requirements).
+Il disco che contiene il sistema live MiniOS in esecuzione è escluso dalla selezione del target. Per indicazioni generali sulla capacità, consulta la [Guida alla compatibilità hardware](Hardware-Compatibility.md).
 
 ## Modalità di installazione
 
-La modalità Live copia i moduli MiniOS compressi selezionati e i file di avvio. Il risultato mantiene la struttura modulare del sistema live e può utilizzare la persistenza della sessione MiniOS.
+La modalità live copia i moduli MiniOS compressi selezionati e i file di avvio. Il risultato mantiene la struttura modulare del sistema live e può utilizzare la persistenza della sessione MiniOS.
 
-La modalità Nativa espande i moduli selezionati in un filesystem root Linux convenzionale, configura il target, installa i pacchetti necessari, genera l’initramfs e installa il bootloader. L’installer rileva il supporto nativo dall’immagine avviata. Se i metadati richiesti dal kernel e il contratto di architettura EFI sono assenti, la modalità compatibilità consente solo l’installazione live.
+La modalità nativa espande i moduli selezionati in un tradizionale filesystem root Linux, configura il target, installa i pacchetti necessari, genera l’initramfs e installa il bootloader. L’installer rileva il supporto nativo dall’immagine avviata. Se i metadati richiesti del kernel e il contratto di architettura EFI sono assenti, la modalità compatibilità consente solo l’installazione live.
+
+Questa modalità di distribuzione è diversa dalla semplice scrittura di una ISO grezza, da una configurazione multiboot di file ISO con Ventoy o da uno strumento live-media basato su file. Consulta [Modalità di avvio](/configuration/Boot-Modes.md) per il confine tra sistemi live e nativi.
 
 ## Avvio dell’installer grafico
 
@@ -59,14 +61,14 @@ La configurazione di rete copre hostname e DHCP cablato o IPv4 statico. L’inst
 
 La persistenza si applica solo alle installazioni live:
 
-- La persistenza nativa salva le modifiche direttamente su un filesystem di destinazione compatibile con POSIX. Non è disponibile su FAT32 o NTFS.
+- La persistenza nativa salva le modifiche direttamente su un filesystem di destinazione compatibile POSIX. Non è disponibile su FAT32 o NTFS.
 - DynFileFS utilizza un contenitore espandibile.
 - Raw utilizza un’immagine a dimensione fissa.
 - LUKS utilizza un’immagine cifrata creata dall’initrd al primo avvio. La passphrase viene richiesta all’avvio e non viene mai ricevuta o memorizzata dall’installer.
 
-Le modalità contenitore predefinite sono 4000 MiB. I contenitori Raw e LUKS non possono superare i 4000 MiB su FAT32; DynFileFS non è soggetto a questo limite di dimensione per singolo file. LUKS è disponibile solo se sia l’initrd in esecuzione che ogni initrd sorgente copiato pubblicizzano il supporto crypto richiesto.
+Le modalità contenitore predefinite sono di 4000 MiB. I contenitori Raw e LUKS non possono superare i 4000 MiB su FAT32; DynFileFS non è soggetto a questo limite di file singolo. LUKS è disponibile solo quando sia l’initrd in esecuzione sia ogni initrd sorgente copiato dichiarano il supporto crypto richiesto.
 
-Le opzioni di avvio risultanti utilizzano `perchmode` e `perchsize`. Consulta [Parametri di avvio](/configuration/Boot-Parameters.md) per il loro significato in fase di esecuzione.
+Le opzioni di avvio risultanti utilizzano `perchmode` e `perchsize`. Consulta [Persistenza initrd](/configuration/Initrd-Persistence.md) e [Parametri di avvio](/configuration/Boot-Parameters.md) per il loro significato a runtime e i requisiti di attivazione.
 
 ## Deployment da riga di comando
 

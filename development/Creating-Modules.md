@@ -1,6 +1,6 @@
 # Creating modules
 
-MiniOS modules are read-only SquashFS filesystem images, conventionally named with the `.sb` extension. At boot, MiniOS orders selected modules into a layered root filesystem. Files in a higher-priority layer can supplement or hide files from lower layers.
+MiniOS modules are read-only SquashFS filesystem images, conventionally named with the `.sb` extension. At boot, MiniOS orders selected modules into a layered root filesystem. Files in a higher-priority layer can supplement or hide files from lower layers. This is the modular live pipeline described in [Boot modes](/configuration/Boot-Modes.md), not the package layout of a native installation.
 
 This guide documents the current MiniOS Tools command-line workflows. For the graphical application, see [MiniOS Module Manager](/administration/Module-Manager.md). For the complete image build process and system architecture, see [Building MiniOS](/development/Building-MiniOS.md). Package lists used while building MiniOS are described in the [CondinAPT documentation](/development/CondinAPT.md).
 
@@ -27,6 +27,12 @@ Use each command's `--help` output as the installed-version reference. The stand
 ## Module names and filter levels
 
 Names commonly start with a number such as `06-browser.sb` because layer order affects conflict resolution. A module should contain paths relative to the system root, such as `usr/bin/example`, not an extra directory containing that tree.
+
+For the exact candidate source tiers, basename-collision behavior, numeric
+ordering, and `bext=`, `load=`, and `noload=` semantics, see
+[Initrd module loading](/configuration/Initrd-Module-Loading.md). In particular,
+use a unique basename unless the module is intended to replace the same-named
+slot from an earlier source tier.
 
 The `--level LEVEL` option on `apt2sb`, `script2sb`, and `chroot2sb` limits the base layers used to construct the build union. With `--level 3`, numbered layers through `03` are used and higher-numbered layers are filtered out. This can make a module less dependent on optional higher layers, at the cost of including more dependencies in the result.
 
@@ -157,7 +163,9 @@ Directories produced by current `sb2dir` are ordinary directories. `rmsbdir`, `s
 
 ## Manage running and next-boot modules
 
-Running Now and Next Boot are independent compositions.
+Running Now and Next Boot are independent compositions. See
+[union construction and runtime activation](/configuration/Initrd-Module-Loading.md)
+for the boot/runtime boundary and why the two lists can differ.
 
 List the modules actually composing the current AUFS or OverlayFS root, from lowest to highest priority:
 
@@ -166,14 +174,16 @@ sb list
 sb list --json
 ```
 
-List the modules selected by current boot rules, including `bext`, `load`, and `noload`:
+List the modules selected by the current boot rules:
 
 ```bash
 sb next-boot
 sb next-boot --json
 ```
 
-These queries are rootless. A next-boot module can come from the base data tree, its `modules/` directory, or separate persistence module storage. A later source with the same basename replaces the earlier selection.
+These queries are rootless. The canonical
+[candidate-tier and replacement rules](/configuration/Initrd-Module-Loading.md)
+determine which source supplies each Next Boot basename.
 
 To make a user module available at the next boot:
 
@@ -210,6 +220,8 @@ Direct `dir2sb` and `sb2dir` use is preferable because ordinary conversion can r
 ## Related documentation
 
 - [MiniOS Module Manager](/administration/Module-Manager.md)
+- [Initrd module loading](/configuration/Initrd-Module-Loading.md)
+- [Boot modes](/configuration/Boot-Modes.md)
 - [Rebuilding ISO images](/development/Rebuilding-ISO.md)
 - [Building MiniOS](/development/Building-MiniOS.md)
 - [Boot parameters](/configuration/Boot-Parameters.md)

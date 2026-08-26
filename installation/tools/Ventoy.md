@@ -13,7 +13,7 @@ Ventoy is a popular tool for creating bootable USB drives that allows you to sto
 ## Drive Requirements
 
 ### Drive Size
-See [Hardware Compatibility Guide](/installation/Hardware-Compatibility.md#system-requirements) for detailed system requirements and drive sizes.
+See [Hardware Compatibility Guide](/installation/Hardware-Compatibility.md) for detailed system requirements and drive sizes.
 
 ## Installing Ventoy
 
@@ -24,48 +24,27 @@ See [Hardware Compatibility Guide](/installation/Hardware-Compatibility.md#syste
 3. **Install Ventoy** on the drive (all data will be deleted)
 4. **Copy the MiniOS ISO file** to the root folder of the USB drive
 
-After installation, the drive will be ready to use. MiniOS will automatically create storage for saving changes.
+This creates ISO-file multiboot media: Ventoy keeps the ISO as a file on its data partition and presents it at boot. It is not a raw MiniOS image write or a MiniOS Installer deployment.
 
 ### Method 2: Installation with Separate Data Partition (Recommended)
 
 1. **Download Ventoy** from the [official website](https://www.ventoy.net/)
-2. **Run the Ventoy installer** and select your USB drive  
+2. **Run the Ventoy installer** and select your USB drive
 3. **Enable the "Reserve Space" option** during installation to create an additional partition
 4. **Install Ventoy** on the drive
 5. **Copy the MiniOS ISO file** to the root folder of the USB drive
 6. **Create an ext4 partition** in the reserved space with the label `persistence`
 
-This method provides faster data operation and greater control over storage.
+This supplies a possible persistence location, but creating the partition alone does not enable persistence or create a session.
 
 
 ## Integration with MiniOS
 
-MiniOS includes built-in Ventoy support and automatically detects when running in a Ventoy environment. The system automatically configures change persistence without additional user configuration.
+MiniOS includes support for discovering an ISO presented by Ventoy. Source discovery and persistence selection are separate; Ventoy does not itself enable MiniOS persistence.
 
-### Automatic Change Persistence
+### Persistence
 
-MiniOS automatically detects running in a Ventoy environment and configures change persistence:
-
-- **With separate `persistence` partition**: Uses it for direct data storage (native mode, maximum speed)
-- **With standard installation**: Creates a dynamic file in the main Ventoy partition (dynfilefs mode)
-
-### Parameter Configuration (for Advanced Users)
-
-When precise configuration is needed, boot parameters can be used:
-
-**For separate `persistence` partition (all modes available):**
-- `perchmode=native` - Direct saving to partition (fastest)
-- `perchmode=dynfilefs` - Dynamically expandable file
-- `perchmode=raw` - Fixed-size file
-
-**For standard Ventoy installation (two modes available):**
-- `perchmode=dynfilefs` - Dynamically expandable file (default, saves space)
-- `perchmode=raw` - Fixed-size file
-
-**Common parameters for files:**
-- `perchsize=8000` - Data storage space size in MB
-
-More details in [boot parameters](/configuration/Boot-Parameters.md).
+Persistence is enabled only when a boot entry or kernel command line requests it. Activation then depends on a compatible writable location and a usable session; a standard Ventoy installation does not guarantee that either will be created automatically. See [Boot modes](/configuration/Boot-Modes.md) and [Initrd persistence](/configuration/Initrd-Persistence.md) before relying on saved changes.
 
 
 ## Using MiniOS with Ventoy
@@ -77,7 +56,7 @@ After installing Ventoy and copying the MiniOS ISO file to the drive:
 1. **Boot from the USB drive** - select it in BIOS/UEFI
 2. **Select MiniOS** from the list of available ISO files in the Ventoy menu
 3. **⚠️ IMPORTANT: Select GRUB2 mode** when prompted by Ventoy
-4. **Wait for loading** - the system will automatically configure for operation
+4. **Wait for MiniOS to load**
 
 ### **Ventoy Boot Mode Requirements**
 

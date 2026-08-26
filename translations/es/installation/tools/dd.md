@@ -10,7 +10,7 @@
 
 ### Tamaño de la unidad
 
-Consulta la [Guía de compatibilidad de hardware](/installation/Hardware-Compatibility.md#system-requirements) para ver los requisitos detallados del sistema y tamaños de unidad.
+Consulta la [Guía de compatibilidad de hardware](/installation/Hardware-Compatibility.md) para ver los requisitos del sistema y tamaños de unidad detallados.
 
 ## Preparación
 
@@ -38,17 +38,8 @@ sudo dd if=MiniOS.iso of=/dev/diskX bs=4m
 - `MiniOS.iso` - ruta a tu archivo ISO
 - `/dev/sdX` - tu unidad USB (ejemplo: `/dev/sdb`)
 
-## Persistencia automática de cambios
+## Resultado y persistencia
 
-En el primer arranque, MiniOS comprobará el tipo de sistema de archivos de la unidad y seleccionará el modo de persistencia de cambios óptimo. Cuando haya espacio libre disponible, el sistema creará automáticamente una partición ext4 para máximo rendimiento.
+`dd` realiza una escritura de imagen en bruto: copia la estructura del ISO en todo el dispositivo de destino. No crea una partición ext4 en el espacio no utilizado, no crea una sesión de persistencia ni realiza una implementación del instalador de MiniOS.
 
-### Configuración de parámetros (para usuarios avanzados)
-
-Para una configuración precisa de la persistencia, se pueden usar parámetros de arranque:
-
-- `perchmode=native` - Guardado directo en partición (predeterminado, más rápido)
-- `perchmode=dynfilefs` - Archivo dinámicamente expandible
-- `perchmode=raw` - Archivo de tamaño fijo
-- `perchsize=8000` - Espacio de almacenamiento para datos en MB para archivos de imagen
-
-Más detalles en [parámetros de arranque](/configuration/Boot-Parameters.md).
+La persistencia solo se habilita cuando una entrada de arranque o una línea de comandos del kernel la solicita, y aún requiere un almacenamiento adecuado con capacidad de escritura. Consulta [Modos de arranque](/configuration/Boot-Modes.md) y [Persistencia Initrd](/configuration/Initrd-Persistence.md) antes de depender de los cambios guardados.

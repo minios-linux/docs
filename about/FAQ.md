@@ -32,15 +32,22 @@ write and boot method.
 
 ## What is the difference between the active and running session?
 
-The active session is selected for the next boot; the running session supplies
-persistence now. Activating a session does not switch the current system. See
-[Session management](/configuration/Session-Management.md).
+The active session is selected for the next boot; conceptually, the running
+session supplies persistence now. The persistent `running=` record can be stale
+after a crash, so protected current-boot state and the mounted writable layer
+are authoritative for runtime operations. Activating a session does not switch
+the current system. See [Session
+management](/configuration/Session-Management.md) and [Initrd
+persistence](/configuration/Initrd-Persistence.md).
 
 ## Why did my changes disappear after reboot?
 
-You may have booted a fresh session, used media without persistence, selected a
-different session, or shut down before changes were saved. Check the running and
-active session as described in
+You may have booted a fresh session, used media without persistence, or selected
+a different session. Native, DynFileFS, raw, and LUKS sessions receive writes
+while the system is running; they do not wait for a shutdown snapshot. Only
+SquashFS persistence requires the RAM-backed changes to be rebuilt into
+`changes.sb`, so an interrupted shutdown or disabled save policy can leave its
+latest changes unsaved. Check the running and active session as described in
 [Session management](/configuration/Session-Management.md) and
 [Troubleshooting](/administration/Troubleshooting.md).
 

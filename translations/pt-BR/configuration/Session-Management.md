@@ -15,44 +15,67 @@ A ferramenta equivalente na linha de comando é `minios-session`. Seus comandos 
 | Modo | Armazenamento | Principais restrições |
 |------|---------------|----------------------|
 | `native` | Alterações armazenadas diretamente no diretório da sessão | Requer um sistema de arquivos POSIX gravável, como ext2/3/4, Btrfs, XFS, F2FS ou ReiserFS. |
-| `dynfilefs` | Container ext4 expansível dividido em arquivos de apoio | Funciona em POSIX gravável, FAT32, NTFS e exFAT. Requer o backend DynFileFS. |
+| `dynfilefs` | Contêiner ext4 expansível dividido em arquivos de apoio | Funciona em POSIX gravável, FAT32, NTFS e exFAT. Requer o backend DynFileFS. |
 | `raw` | `changes.img` de tamanho fixo contendo ext4 | Funciona em POSIX gravável, FAT32, NTFS e exFAT. |
 | `luks` | `changes.luks` criptografado com LUKS2 contendo ext4 | Requer `cryptsetup`, suporte a loop e o hook LUKS do initrd do MiniOS. |
-| `squashfs` | Snapshot compactado em `changes.sb` | O salvamento requer um sistema de arquivos de persistência POSIX que possa preservar links, propriedade, modos, xattrs, ACLs, capabilities e whiteouts. |
+| `squashfs` | Snapshot compactado em `changes.sb` | O salvamento requer um sistema de arquivos de persistência POSIX capaz de preservar links, propriedade, permissões, xattrs, ACLs, capabilities e whiteouts. |
 
-`dynfilefs`, `raw` e `luks` criados com `minios-session` têm tamanho padrão de 4000 MB. Os tamanhos usam unidades decimais `MB`, `GB` ou `TB` e são limitados a 1 TB. Arquivos raw e LUKS são limitados a 4000 MB em FAT32. Operações de redimensionamento de container só podem aumentar uma sessão; redução não é suportada.
+`dynfilefs`, `raw` e `luks` criados com `minios-session` têm tamanho padrão de 4000
+MiB. Os valores de tamanho são alocados em MiB; os sufixos `GB` e `TB` convertem para 1000
+e 1.000.000 MiB. O Gerenciador de Sessões limita arquivos raw e LUKS a 4000 MiB em
+FAT32. Não confie nisso como uma
+garantia geral do initrd: um pedido de boot raw acima do limite pode chegar a alocar
+e falhar, em vez de ser reduzido. Operações de redimensionamento de contêiner só permitem aumentar
+a sessão; redução não é suportada.
 
-O modo nativo é a escolha mais simples e rápida em um sistema de arquivos compatível. Use DynFileFS quando o sistema de arquivos de persistência não puder representar metadados do Linux. Use raw quando for necessário alocação fixa, LUKS quando a sessão precisar ser criptografada e SquashFS para um snapshot compactado exato.
+O modo nativo é a escolha mais simples e rápida em um sistema de arquivos compatível.
+Use DynFileFS quando o sistema de arquivos de persistência não puder representar metadados do Linux.
+Use raw quando for necessário alocação fixa, LUKS quando a sessão precisar ser
+criptografada e SquashFS para um snapshot compactado exato.
 
-Execute os comandos a seguir para inspecionar o sistema de arquivos de persistência real e os modos disponíveis nele:
+Execute os comandos abaixo para inspecionar o sistema de arquivos de persistência real e
+os modos disponíveis nele:
 
 ```bash
 sudo minios-session info
 sudo minios-session status
 ```
 
-Nenhuma sessão pode ser criada em mídia somente leitura. A ativação do SquashFS em FAT32/NTFS/exFAT permanece desativada até que um workspace temporário que preserve metadados esteja disponível.
+Nenhuma sessão pode ser criada em mídia somente leitura. O initrd pode ler e ativar
+um snapshot SquashFS existente armazenado em FAT, exFAT ou NTFS gravável porque ele
+extrai o snapshot para um ext4 temporário. Criar ou salvar exatamente um
+snapshot é diferente: seu espaço de trabalho privado deve estar em um sistema de arquivos POSIX adequado que preserve metadados do Linux e whiteouts de união.
 
 ## Seleção de boot
 
-Qualquer parâmetro de persistência reconhecido habilita o gerenciamento de persistência. Os menus de boot do MiniOS normalmente oferecem opções de retomar, novo, seleção e entradas não persistentes.
+Qualquer parâmetro de persistência reconhecido habilita o gerenciamento de persistência. Os menus de boot do MiniOS normalmente oferecem opções de retomar, novo, seleção e entradas não persistentes. A descrição canônica dos comportamentos de seleção, compatibilidade, fallback e ativação está em [Persistência do Initrd](./Initrd-Persistence.md).
 
 | Parâmetro | Significado |
 |-----------|------------|
-| `perch` | Solicita persistência. |
-| `perchdir=resume` | Retoma a sessão padrão. É uma tentativa melhor possível e continua em memória se não houver sessão gravável e compatível disponível. |
+| `perch` | Usa o caminho legado de retomada best-effort. Tenta o padrão de metadados, mas não cria um substituto quando nenhum está utilizável. |
+| `perchdir=resume` | Retoma o padrão de metadados e, quando ausente ou incompatível, permite que o initrd crie um novo substituto compatível. Este é o comportamento atual de retomada do menu de boot. |
 | `perchdir=new` | Aloca uma nova sessão numerada. |
 | `perchdir=ask` | Seleciona uma sessão existente ou cria uma durante o boot. |
 | `perchdir=<id>` | Seleciona diretamente aquela sessão numerada. |
 | `perchdir=<device/path>` | Usa um local de persistência em um dispositivo, incluindo as formas `/dev/...` e `label:...` tratadas pelo initrd. |
 | `perchmode=<mode>` | Define `native`, `dynfilefs`, `raw`, `luks` ou `squashfs`. |
-| `perchsize=<size>` | Define um tamanho novo ou maior para o container; valores simples são MB e sufixos `MB`, `GB` e `TB` são aceitos. |
+| `perchsize=<size>` | Define um novo tamanho de contêiner ou aumenta o existente; valores simples são alocados em MiB e os sufixos `MB`, `GB` e `TB` são aceitos. |
 
-Se nenhum modo for especificado para uma nova sessão, o boot usa o modo nativo. Em FAT32/NTFS/exFAT, a criação nativa recai para DynFileFS. Um novo container raw ou LUKS no boot tem tamanho padrão de 4000 MB; uma nova sessão DynFileFS sem `perchsize` é dimensionada conforme o espaço disponível, mantendo uma reserva de segurança. Sessões SquashFS são capturadas do sistema em execução com o Gerenciador de Sessões ou `minios-session create squashfs`; `perchdir=new perchmode=squashfs` não cria um snapshot no initrd.
+Se nenhum modo for especificado para uma nova sessão, o boot usa o modo nativo. Em
+FAT32/NTFS/exFAT, a criação nativa de boot recai para DynFileFS. Um novo contêiner raw ou LUKS tem tamanho padrão de 4000 MiB; uma nova sessão DynFileFS de boot sem
+`perchsize` é dimensionada conforme o espaço disponível, mantendo uma reserva de segurança.
+Sessões SquashFS são capturadas do sistema em execução com o Gerenciador de Sessões ou
+`minios-session create squashfs`; `perchdir=new perchmode=squashfs` não
+cria um snapshot no initrd.
 
-Ao retomar, o MiniOS verifica a versão registrada, edição, sistema de arquivos union e modo. O caminho normal `resume` cria uma nova sessão em vez de substituir uma incompatível. A seleção interativa exibe um aviso antes de permitir uma sessão incompatível.
+Ao retomar, o MiniOS verifica a versão registrada, edição, sistema de arquivos de união
+e modo. `perchdir=resume` literal pode criar uma nova sessão em vez de usar um
+default ausente ou incompatível. `perch` simples, seleção numérica direta e
+outros pedidos de retomada legados não criam automaticamente esse substituto.
+A seleção interativa exibe um aviso antes de permitir uma sessão incompatível.
+Se a seleção ou ativação ainda falhar, o boot normalmente continua com um upper em RAM e um aviso de persistência.
 
-O repositório de sessões tem este formato:
+O armazenamento de sessões tem esta forma:
 
 ```text
 minios/changes/
@@ -62,14 +85,26 @@ minios/changes/
 `-- N/
 ```
 
-`session.conf` registra os IDs padrão e em execução e, por sessão, modo, versão, edição, sistema de arquivos union, tamanho, estado e configurações específicas do modo. É a configuração confirmada pela implementação de boot. Não edite nem mova dados de sessões numeradas enquanto uma sessão estiver montada; use o Gerenciador de Sessões ou `minios-session`.
+`session.conf` registra os IDs padrão e em execução e, por sessão, modo,
+versão, edição, sistema de arquivos de união, tamanho, estado e configurações específicas do modo.
+É metadado persistente comprometido pela implementação de boot, não sendo por si só
+prova do estado atual em tempo de execução. Não edite nem mova dados de sessões numeradas
+enquanto uma sessão estiver montada; use o Gerenciador de Sessões ou `minios-session`.
 
 ## Sessões ativas e em execução
 
 Esses termos descrevem estados diferentes:
 
-- A sessão **ativa** é a padrão selecionada para o próximo boot.
-- A sessão **em execução** fornece persistência para o boot atual.
+- A sessão **ativa** é a selecionada por padrão para o próximo boot.
+- Conceitualmente, a sessão **em execução** é aquela cuja camada gravável
+  realmente fornece persistência para o boot atual.
+
+O campo persistente `running=` registra esse relacionamento pretendido. Uma falha,
+construção de união malsucedida, armazenamento copiado ou desligamento interrompido pode deixá-lo
+desatualizado, mesmo quando o boot atual está usando RAM ou outra sessão. Operações
+como o salvamento SquashFS, portanto, exigem o estado protegido do initrd, vinculado ao ID do boot
+atual, e o upper verificado montado; elas não confiam apenas em `running=`.
+Veja [Estado ativo, em execução e de boot atual](./Initrd-Persistence.md).
 
 Ativar uma sessão altera o próximo boot e não troca o sistema de arquivos union atual:
 

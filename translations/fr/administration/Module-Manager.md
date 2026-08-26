@@ -10,18 +10,24 @@ minios-module-manager
 
 L’application s’exécute avec votre utilisateur de session. Elle demande une authentification administrateur uniquement lorsque l’opération le nécessite.
 
-## Exécution actuelle et au prochain démarrage
+## Exécution actuelle et prochain démarrage
 
-L’espace Modules propose deux vues distinctes :
+L’espace de travail Modules propose deux vues distinctes :
 
-- **En cours d’exécution** affiche l’ensemble ordonné des modules qui composent actuellement le système actif.
-- **Prochain démarrage** affiche l’ensemble ordonné sélectionné selon les règles de démarrage actuelles de MiniOS.
+- **En cours d’exécution** correspond à l’ensemble ordonné des modules qui composent actuellement le système en direct.
+- **Prochain démarrage** est l’ensemble ordonné sélectionné par les règles de démarrage actuelles de MiniOS.
 
-Modifier une vue n’affecte pas silencieusement l’autre. Par exemple, **Activer pour cette session** agit uniquement sur le système en cours, tandis que **Ajouter au prochain démarrage** copie un module dans le stockage persistant sans l’activer immédiatement.
+Modifier une vue n’entraîne pas de modification silencieuse de l’autre. Par exemple, **Activer pour cette session** affecte uniquement le système en cours d’exécution, tandis que **Ajouter au prochain démarrage** copie un module dans le stockage persistant des modules sans l’activer immédiatement.
 
-L’activation et la désactivation à chaud ne sont possibles que si le système de fichiers racine utilise actuellement AUFS. Elles ne sont pas disponibles sur un root OverlayFS, même si le noyau prend en charge AUFS. Les modules de base ne peuvent pas être désactivés via l’application.
+Pour les règles officielles appliquées au démarrage, y compris les niveaux de sources candidats,
+le remplacement exact du nom de base, l’ordre numérique, ainsi que le filtrage par `load=`, `noload=` et
+`bext=`, consultez
+[Chargement des modules Initrd](/configuration/Initrd-Module-Loading.md). Ce guide
+explique également pourquoi les vues En cours d’exécution et Prochain démarrage peuvent différer.
 
-Les modifications pour le prochain démarrage ne sont possibles que si MiniOS détecte un stockage de modules adapté, durable et accessible en écriture. Les modules de base et ceux présents sur un support en lecture seule ou volatile ne peuvent pas être supprimés. Les filtres de démarrage comme `load`, `noload` et `bext` déterminent toujours les modules sélectionnés.
+L’activation et la désactivation à chaud ne sont disponibles que lorsque le système de fichiers racine utilise actuellement AUFS. Elles ne sont pas disponibles sur un root OverlayFS, même si le noyau prend en charge AUFS. Les modules de base ne peuvent pas être désactivés via l’application.
+
+Les modifications du prochain démarrage ne sont possibles que si MiniOS détecte un stockage de modules adapté, persistant et inscriptible. Les modules de base et les modules sur un stockage en lecture seule ou volatil ne peuvent pas être supprimés. Les filtres de démarrage comme `load`, `noload` et `bext` déterminent toujours quels modules sont sélectionnés.
 
 ## Inspection d’un module
 
@@ -60,6 +66,8 @@ Déposer un élément n’exécute aucun code et ne modifie ni En cours d’exé
 
 ## Documentation associée
 
-- [Créer des modules](/development/Creating-Modules.md)
+- [Création de modules](/development/Creating-Modules.md)
+- [Chargement des modules Initrd](/configuration/Initrd-Module-Loading.md)
+- [Modes de démarrage](/configuration/Boot-Modes.md)
 - [Composer des images ISO en ligne de commande](/development/Rebuilding-ISO.md)
 - [Paramètres de démarrage](/configuration/Boot-Parameters.md)

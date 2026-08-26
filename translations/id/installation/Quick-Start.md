@@ -39,26 +39,24 @@ Metode lain yang terdokumentasi adalah [UNetbootin](/installation/tools/UNetboot
 
 ## 3. Pahami persistensi sebelum menulis
 
-Persistensi tidak selalu dibuat oleh setiap metode penulisan atau booting.
+Persistensi tidak otomatis dibuat oleh setiap metode penulisan atau boot.
 
-- Penulisan image mentah menggunakan `dd`, Etcher, atau alat serupa akan mereplikasi ISO. Ini tidak otomatis mengatur sesi persisten.
+- Penulisan image mentah dengan `dd`, Etcher, atau alat serupa hanya mereproduksi ISO. Ini tidak secara otomatis mengonfigurasi sesi persisten.
 - Ventoy biasanya melakukan boot ISO sebagai file. Persistensi MiniOS harus diatur secara terpisah.
 - MiniOS Installer dapat membuat instalasi live dan mengonfigurasi penyimpanan sesi native, DynFileFS, raw, atau terenkripsi LUKS.
-- Boot baru sengaja berjalan tanpa persistensi. Entri boot-menu MiniOS lainnya dapat melanjutkan, membuat, atau memilih sesi jika penyimpanan yang dapat ditulis tersedia.
-- Instalasi native adalah sistem yang diinstal secara konvensional dan tidak menggunakan persistensi sesi live dengan cara yang sama.
+- Boot baru sengaja berjalan tanpa persistensi. Entri menu boot MiniOS lainnya dapat melanjutkan, membuat, atau memilih sesi saat penyimpanan yang dapat ditulis tersedia.
+- Instalasi native adalah sistem terinstal konvensional dan tidak menggunakan persistensi sesi live dengan cara yang sama.
 
-Lihat [Manajemen sesi](/configuration/Session-Management.md) dan [Parameter boot](/configuration/Boot-Parameters.md) sebelum mengubah penyimpanan sesi. Selalu cadangkan file penting terlepas dari mode persistensi.
+Gunakan [Boot modes](/configuration/Boot-Modes.md) sebagai panduan utama untuk perilaku boot live yang terlihat oleh pengguna. Lihat [Session management](/configuration/Session-Management.md) untuk pilihan penyimpanan, [Initrd persistence](/configuration/Initrd-Persistence.md) untuk kontrak detail saat boot, dan [Boot parameters](/configuration/Boot-Parameters.md) sebelum mengubah opsi kernel. Selalu buat cadangan file penting terlepas dari mode persistensi.
 
 ## 4. Boot MiniOS
 
-1. Matikan komputer dan hubungkan perangkat yang sudah disiapkan.
+1. Matikan komputer dan pasang perangkat yang sudah dipersiapkan.
 2. Buka menu boot firmware dan pilih entri UEFI atau legacy dari perangkat tersebut.
 3. Pilih sesi baru untuk pengujian perangkat keras awal, atau sesi persisten hanya jika sudah dikonfigurasi sebelumnya.
 4. Pastikan grafis, keyboard, penyimpanan, dan jaringan berfungsi sebelum melakukan perubahan instalasi yang bersifat destruktif.
 
-Jika perangkat tidak terdaftar atau desktop tidak berjalan, lihat
-[Kompatibilitas perangkat keras](/installation/Hardware-Compatibility.md) dan
-[Pemecahan masalah](/administration/Troubleshooting.md).
+Jika perangkat tidak terdaftar atau desktop tidak berhasil dimulai, lihat [Hardware compatibility](/installation/Hardware-Compatibility.md) dan [Troubleshooting](/administration/Troubleshooting.md). Untuk kegagalan saat mencari sumber live, lihat [Initrd system discovery](/configuration/Initrd-System-Discovery.md).
 
 ## 5. Konfigurasi sistem
 
@@ -86,9 +84,9 @@ Konfigurasikan koneksi kabel dan Wi-Fi biasa dengan [Konfigurasi Jaringan](/conf
 
 ## 6. Instal perangkat lunak dan simpan pekerjaan
 
-Perubahan APT yang dilakukan di sesi live hanya akan bertahan setelah reboot jika sesi tersebut persisten. Modul SquashFS tetap terpisah dari sesi yang dapat ditulis dan dapat dimuat sebagai bagian dari sistem modular; lihat [Membuat modul](/development/Creating-Modules.md).
+Perubahan APT yang dilakukan dalam sesi live hanya akan bertahan setelah reboot jika sesi tersebut persisten. Modul SquashFS tetap terpisah dari sesi yang dapat ditulis dan dapat dimuat sebagai bagian dari sistem modular; lihat [Creating modules](/development/Creating-Modules.md) dan [Initrd module loading](/configuration/Initrd-Module-Loading.md).
 
-Simpan file penting di media penyimpanan yang sudah dipastikan dapat ditulis dan lakukan satu kali shutdown bersih serta reboot sebelum benar-benar mengandalkan sesi persisten.
+Simpan file penting di media penyimpanan yang sudah dipastikan dapat ditulis dan lakukan satu kali shutdown serta reboot bersih sebelum mengandalkan sesi persisten.
 
 ## Mendapatkan bantuan
 

@@ -4,7 +4,9 @@
 
 **live-config** berisi komponen yang mengonfigurasi sistem live selama proses booting (late userspace).
 
-**live-config** dapat dikonfigurasi melalui parameter boot atau berkas konfigurasi. Jika kedua mekanisme digunakan untuk opsi tertentu, parameter boot akan memiliki prioritas dibandingkan berkas konfigurasi. Saat menggunakan persistensi, komponen **live-config** hanya dijalankan satu kali.
+Boot jaringan di initramfs (`ip=`, PXE, `from=http://…`) merupakan lapisan LiveKit terpisah dan **tidak** dikelola oleh live-config. Lihat [Boot jaringan](/installation/Network-Boot.md).
+
+**live-config** dapat dikonfigurasi melalui parameter boot atau file konfigurasi runtime yang disiapkan oleh initramfs. Baris perintah kernel yang sebenarnya akan ditambahkan setelah nilai `LIVE_CONFIG_CMDLINE` yang disediakan oleh file, sehingga parameter boot yang cocok di akhir akan memiliki prioritas lebih tinggi. Saat menggunakan persistensi, komponen **live-config** biasanya hanya dijalankan sekali.
 
 Jika *live-build*(7) digunakan untuk membangun sistem live, parameter live-config yang digunakan secara default dapat diatur melalui opsi `--bootappend-live`, lihat halaman manual *lb_config*(1).
 
@@ -19,31 +21,33 @@ Jika *live-build*(7) digunakan untuk membangun sistem live, parameter live-confi
 
 ## Parameter Boot (opsi)
 
-Beberapa komponen individual dapat mengubah perilakunya melalui parameter boot.
+Beberapa komponen individual dapat mengubah perilakunya berdasarkan parameter boot.
 
-- **live-config.debconf-preseed=filesystem|medium|URL1|URL2|...|URLn | debconf-preseed=medium|filesystem|URL1|URL2|...|URLn**: Memungkinkan untuk mengambil dan menerapkan satu atau lebih file preseed debconf ke database debconf. Perhatikan bahwa URL harus dapat diakses oleh wget (http, ftp, atau file://). Jika file diletakkan di media live, file dapat diambil dengan `file:///run/initramfs/memory/data/FILE`, atau dengan `file:///FILE` jika berada di root filesystem sistem live itu sendiri. Semua file preseed di `/usr/lib/live/config-preseed/` pada root filesystem sistem live dapat diaktifkan otomatis dengan kata kunci `filesystem`. Semua file preseed di `/minios/config-preseed/` pada media live dapat diaktifkan otomatis dengan kata kunci `medium`. Jika beberapa mekanisme digabungkan, maka file preseed filesystem diterapkan terlebih dahulu, lalu file preseed medium, dan terakhir file preseed dari jaringan.
-- **live-config.hostname=HOSTNAME | hostname=HOSTNAME**: Memungkinkan untuk mengatur hostname sistem. Default-nya adalah `minios`.
-- **live-config.username=USERNAME | username=USERNAME**: Memungkinkan untuk mengatur username yang dibuat untuk autologin. Default-nya adalah `live`.
-- **live-config.user-default-groups=GROUP1,GROUP2,...GROUPn | user-default-groups=GROUP1,GROUP2,...GROUPn**: Memungkinkan untuk mengatur grup default untuk user yang dibuat untuk autologin. Default-nya adalah `audio cdrom dip floppy video plugdev netdev powerdev scanner bluetooth`.
-- **live-config.user-fullname="USER FULLNAME" | user-fullname="USER FULLNAME"**: Memungkinkan untuk mengatur nama lengkap user yang dibuat untuk autologin. Pada MiniOS, default-nya adalah `MiniOS Live user`.
-- **live-config.root-password=PASSWORD | root-password=PASSWORD**: Memungkinkan mengatur password root dalam bentuk teks biasa.
-- **live-config.root-password-crypted=PASSWORD | root-password-crypted=PASSWORD**: Memungkinkan mengatur password root dalam bentuk terenkripsi.
-- **live-config.user-password=PASSWORD | user-password=PASSWORD**: Memungkinkan mengatur password user dalam bentuk teks biasa.
-- **live-config.user-password-crypted=PASSWORD | user-password-crypted=PASSWORD**: Memungkinkan mengatur password user dalam bentuk terenkripsi.
-- **live-config.locales=LOCALE1,LOCALE2,...LOCALEn | locales=LOCALE1,LOCALE2,...LOCALEn**: Memungkinkan untuk mengatur locale sistem, misal `de_CH.UTF-8`. Default-nya adalah `en_US.UTF-8`. Jika locale yang dipilih belum tersedia di sistem, akan dibuat secara otomatis.
-- **live-config.timezone=TIMEZONE | timezone=TIMEZONE**: Memungkinkan untuk mengatur zona waktu sistem, misal `Europe/Zurich`. Default-nya adalah `UTC`.
-- **live-config.keyboard-model=KEYBOARD_MODEL | keyboard-model=KEYBOARD_MODEL**: Memungkinkan untuk mengubah model keyboard. Tidak ada nilai default.
-- **live-config.keyboard-layouts=KEYBOARD_LAYOUT1,KEYBOARD_LAYOUT2,...KEYBOARD_LAYOUTn | keyboard-layouts=KEYBOARD_LAYOUT1,KEYBOARD_LAYOUT2,...KEYBOARD_LAYOUTn**: Memungkinkan untuk mengubah layout keyboard. Jika lebih dari satu ditentukan, tools dari desktop environment akan memungkinkan untuk beralih di bawah X11. Tidak ada nilai default.
-- **live-config.keyboard-variants=KEYBOARD_VARIANT1,KEYBOARD_VARIANT2,...KEYBOARD_VARIANTn | keyboard-variants=KEYBOARD_VARIANT1,KEYBOARD_VARIANT2,...KEYBOARD_VARIANTn**: Memungkinkan untuk mengubah varian keyboard. Jika lebih dari satu ditentukan, jumlah nilai harus sama dengan jumlah keyboard-layouts karena akan dipasangkan satu per satu sesuai urutan. Nilai kosong diperbolehkan. Tools dari desktop environment akan memungkinkan beralih antar layout dan varian di bawah X11. Tidak ada nilai default.
-- **live-config.keyboard-options=KEYBOARD_OPTIONS | keyboard-options=KEYBOARD_OPTIONS**: Memungkinkan untuk mengubah opsi keyboard. Tidak ada nilai default.
-- **live-config.sysv-rc=SERVICE1,SERVICE2,...SERVICEn | sysv-rc=SERVICE1,SERVICE2,...SERVICEn**: Memungkinkan untuk menonaktifkan layanan sysv melalui update-rc.d.
-- **live-config.utc=yes|no | utc=yes|no**: Memungkinkan untuk mengatur apakah sistem mengasumsikan jam hardware diatur ke UTC atau tidak. Default-nya adalah `yes`.
-- **live-config.x-session-manager=X_SESSION_MANAGER | x-session-manager=X_SESSION_MANAGER**: Memungkinkan untuk mengatur x-session-manager melalui update-alternatives.
-- **live-config.xorg-driver=XORG_DRIVER | xorg-driver=XORG_DRIVER**: Memungkinkan untuk mengatur driver xorg secara manual, bukan autodetect. Jika PCI ID ditentukan di `/usr/share/live/config/xserver-xorg/*DRIVER*.ids` dalam sistem live, *DRIVER* akan dipaksakan untuk perangkat tersebut. Jika parameter boot dan override ditemukan, parameter boot akan diutamakan.
-- **live-config.xorg-resolution=XORG_RESOLUTION | xorg-resolution=XORG_RESOLUTION**: Memungkinkan untuk mengatur resolusi xorg secara manual, misal 1024x768.
-- **live-config.wlan-driver=WLAN_DRIVER | wlan-driver=WLAN_DRIVER**: Memungkinkan untuk mengatur driver WLAN secara manual, bukan autodetect. Jika PCI ID ditentukan di `/usr/share/live/config/broadcom-sta/*DRIVER*.ids` dalam sistem live, *DRIVER* akan dipaksakan untuk perangkat tersebut. Jika parameter boot dan override ditemukan, parameter boot akan diutamakan.
-- **live-config.module-mode=MODE | module-mode=MODE**: Memungkinkan Anda menentukan mode modul untuk konfigurasi live. Jika diatur ke "merged", sistem akan memperbarui akun user, membangun ulang cache, dan menyegarkan pengaturan paket sehingga perubahan konfigurasi terintegrasi secara dinamis ke sistem yang sedang berjalan.
-- **live-config.hooks=filesystem|medium|URL1|URL2|...|URLn | hooks=medium|filesystem|URL1|URL2|...|URLn**: Memungkinkan untuk mengambil dan mengeksekusi satu atau lebih file secara bebas. Perhatikan bahwa URL harus dapat diakses oleh wget (http, ftp, atau file://), file dieksekusi di /tmp dari sistem live yang berjalan, dan file harus memiliki dependensi yang diperlukan, misal jika skrip python ingin dijalankan maka python harus sudah terpasang. Beberapa hooks untuk kasus penggunaan umum tersedia di `/usr/share/doc/live-config/examples/hooks/`. Jika file diletakkan di media live, file dapat diambil dengan `file:///run/initramfs/memory/data/FILE`, atau dengan `file:///FILE` jika berada di root filesystem sistem live itu sendiri. Semua hooks di `/usr/lib/live/config-hooks/` pada root filesystem sistem live dapat diaktifkan otomatis dengan kata kunci `filesystem`. Semua hooks di `/minios/config-hooks/` pada media live dapat diaktifkan otomatis dengan kata kunci `medium`. Jika beberapa mekanisme digabungkan, maka hooks filesystem dijalankan terlebih dahulu, lalu hooks medium, dan terakhir hooks dari jaringan.
+- **live-config.debconf-preseed=filesystem|medium|URL1|URL2|...|URLn | debconf-preseed=medium|filesystem|URL1|URL2|...|URLn**: Mengambil dan menerapkan satu atau lebih file preseed debconf. URL ditangani oleh `wget` dan dapat menggunakan HTTP, FTP, atau `file://`. Kata kunci `filesystem` mengekstrak file di `/usr/lib/live/config-preseed/`; `medium` mengekstrak file di `minios/config-preseed/` pada media live yang terdeteksi. File lokal eksplisit dapat menggunakan path seperti `file:///run/initramfs/memory/data/minios/config-preseed/FILE` atau `file:///PATH` di root live. Entri yang dipisahkan dengan pipa akan diproses sesuai urutan yang ditentukan; file yang diekstrak berdasarkan kata kunci menggunakan urutan glob shell.
+- **live-config.hostname=HOSTNAME | hostname=HOSTNAME**: Memungkinkan Anda mengatur hostname sistem. Default-nya adalah `minios`.
+- **live-config.username=USERNAME | username=USERNAME**: Memungkinkan Anda mengatur username yang dibuat untuk autologin. Default-nya adalah `live`.
+- **live-config.user-default-groups=GROUP1,GROUP2,...GROUPn | user-default-groups=GROUP1,GROUP2,...GROUPn**: Memungkinkan Anda mengatur grup default untuk pengguna yang dibuat untuk autologin. Default-nya adalah `audio cdrom dip floppy video plugdev netdev powerdev scanner bluetooth`.
+- **live-config.user-fullname="USER FULLNAME" | user-fullname="USER FULLNAME"**: Memungkinkan Anda mengatur nama lengkap pengguna yang dibuat untuk autologin. Di MiniOS, default-nya adalah `MiniOS Live user`.
+- **live-config.root-password=PASSWORD | root-password=PASSWORD**: Memungkinkan pengaturan password root dalam bentuk teks biasa.
+- **live-config.root-password-crypted=PASSWORD | root-password-crypted=PASSWORD**: Memungkinkan pengaturan password root dalam bentuk terenkripsi.
+- **live-config.user-password=PASSWORD | user-password=PASSWORD**: Memungkinkan pengaturan password pengguna dalam bentuk teks biasa.
+- **live-config.user-password-crypted=PASSWORD | user-password-crypted=PASSWORD**: Memungkinkan pengaturan password pengguna dalam bentuk terenkripsi.
+- **live-config.locales=LOCALE1,LOCALE2,...LOCALEn | locales=LOCALE1,LOCALE2,...LOCALEn**: Memungkinkan Anda mengatur locale sistem, misalnya `de_CH.UTF-8`. Default-nya adalah `en_US.UTF-8`. Jika locale yang dipilih belum tersedia di sistem, maka akan dibuat secara otomatis saat itu juga.
+- **live-config.timezone=TIMEZONE | timezone=TIMEZONE**: Memungkinkan Anda mengatur zona waktu sistem, misalnya `Europe/Zurich`. Default-nya adalah `UTC`.
+- **live-config.keyboard-model=KEYBOARD_MODEL | keyboard-model=KEYBOARD_MODEL**: Memungkinkan Anda mengubah model keyboard. Tidak ada nilai default.
+- **live-config.keyboard-layouts=KEYBOARD_LAYOUT1,KEYBOARD_LAYOUT2,...KEYBOARD_LAYOUTn | keyboard-layouts=KEYBOARD_LAYOUT1,KEYBOARD_LAYOUT2,...KEYBOARD_LAYOUTn**: Memungkinkan Anda mengubah layout keyboard. Jika lebih dari satu ditentukan, tools dari desktop environment akan memungkinkan Anda untuk beralih di bawah X11. Tidak ada nilai default.
+- **live-config.keyboard-variants=KEYBOARD_VARIANT1,KEYBOARD_VARIANT2,...KEYBOARD_VARIANTn | keyboard-variants=KEYBOARD_VARIANT1,KEYBOARD_VARIANT2,...KEYBOARD_VARIANTn**: Memungkinkan Anda mengubah varian keyboard. Jika lebih dari satu ditentukan, jumlah nilainya harus sama dengan nilai keyboard-layouts karena akan dipasangkan satu-satu sesuai urutan yang ditentukan. Nilai kosong diperbolehkan. Tools desktop environment akan memungkinkan Anda beralih antar pasangan layout dan varian di bawah X11. Tidak ada nilai default.
+- **live-config.keyboard-options=KEYBOARD_OPTIONS | keyboard-options=KEYBOARD_OPTIONS**: Memungkinkan Anda mengubah opsi keyboard. Tidak ada nilai default.
+- **live-config.sysv-rc=SERVICE1,SERVICE2,...SERVICEn | sysv-rc=SERVICE1,SERVICE2,...SERVICEn**: Memungkinkan Anda menonaktifkan layanan sysv melalui update-rc.d.
+- **live-config.utc=yes|no | utc=yes|no**: Memungkinkan Anda mengatur apakah sistem mengasumsikan jam perangkat keras diatur ke UTC atau tidak. Default-nya adalah `yes`.
+- **live-config.x-session-manager=X_SESSION_MANAGER | x-session-manager=X_SESSION_MANAGER**: Memungkinkan Anda mengatur x-session-manager melalui update-alternatives.
+- **live-config.xorg-driver=XORG_DRIVER | xorg-driver=XORG_DRIVER**: Memungkinkan Anda mengatur driver xorg alih-alih mendeteksinya secara otomatis. Jika PCI ID ditentukan di `/usr/share/live/config/xserver-xorg/*DRIVER*.ids` dalam sistem live, *DRIVER* akan dipaksakan untuk perangkat tersebut. Jika ditemukan parameter boot dan override, parameter boot akan diutamakan.
+- **live-config.xorg-resolution=XORG_RESOLUTION | xorg-resolution=XORG_RESOLUTION**: Memungkinkan Anda mengatur resolusi xorg alih-alih mendeteksinya secara otomatis, misalnya 1024x768.
+- **live-config.wlan-driver=WLAN_DRIVER | wlan-driver=WLAN_DRIVER**: Memungkinkan Anda mengatur driver WLAN alih-alih mendeteksinya secara otomatis. Jika PCI ID ditentukan di `/usr/share/live/config/broadcom-sta/*DRIVER*.ids` dalam sistem live, *DRIVER* akan dipaksakan untuk perangkat tersebut. Jika ditemukan parameter boot dan override, parameter boot akan diutamakan.
+- **live-config.module-mode=MODE | module-mode=MODE**: Memungkinkan Anda menentukan mode modul untuk konfigurasi live. Jika diatur ke "merged", sistem akan memperbarui akun pengguna, membangun ulang cache, dan menyegarkan pengaturan paket sehingga perubahan konfigurasi dapat diintegrasikan secara dinamis ke dalam sistem yang sedang berjalan.
+- **live-config.hooks=filesystem|medium|URL1|URL2|...|URLn | hooks=medium|filesystem|URL1|URL2|...|URLn**: Mengambil dan menjalankan file arbitrer dari file sementara di sistem live yang sedang berjalan. URL ditangani oleh `wget` dan dapat menggunakan HTTP, FTP, atau `file://`; interpreter dan dependensi yang dibutuhkan harus sudah terpasang. Kata kunci `filesystem` mengekstrak file di `/usr/lib/live/config-hooks/`; `medium` mengekstrak file di `minios/config-hooks/` pada media live yang terdeteksi (dengan fallback ISO-path di komponen hook). File lokal eksplisit dapat menggunakan `file:///run/initramfs/memory/data/minios/config-hooks/FILE` atau `file:///PATH` di root live. Entri yang dipisahkan dengan pipa akan dieksekusi sesuai urutan yang ditentukan; file yang diekstrak berdasarkan kata kunci menggunakan urutan glob shell. Contoh terpasang di `/usr/share/doc/live-config/examples/hooks/`.
+
+> **Peringatan keamanan:** `live-config` dijalankan sebagai root. Hook dibuat executable dan dijalankan sebagai root, dan preseed mengubah database debconf sistem dengan hak akses root. HTTP dan FTP biasa tidak melakukan autentikasi konten yang diunduh dan tidak menyediakan perlindungan integritas. Sebaiknya gunakan file lokal yang sudah ditinjau atau transportasi terautentikasi yang tepercaya dengan verifikasi integritas independen; jangan gunakan hook atau preseed jarak jauh dari jaringan yang tidak tepercaya.
 
 ## Parameter Boot (shortcut)
 
@@ -62,15 +66,19 @@ Untuk kasus penggunaan khusus, terdapat beberapa parameter boot khusus.
 
 ## Berkas Konfigurasi
 
-**live-config** dapat dikonfigurasi (namun tidak diaktifkan) melalui berkas konfigurasi. Semua pengaturan, kecuali pintasan yang dapat dikonfigurasi melalui parameter boot, juga dapat diatur melalui satu atau beberapa berkas. Jika menggunakan berkas konfigurasi, parameter `boot=live` tetap diperlukan untuk mengaktifkan **live-config**.
+**live-config** dapat dikonfigurasi (namun tidak diaktifkan) melalui berkas konfigurasi. Semua hal selain pintasan yang dapat dikonfigurasi dengan parameter boot juga dapat dikonfigurasi secara alternatif melalui satu atau lebih berkas. Jika berkas konfigurasi digunakan, parameter `boot=live` tetap diperlukan untuk mengaktifkan **live-config**.
 
-**Catatan:** Jika menggunakan berkas konfigurasi, sebaiknya semua parameter boot dimasukkan ke dalam variabel **LIVE_CONFIG_CMDLINE**, atau variabel individual dapat diatur secara terpisah. Jika menggunakan variabel individual, pengguna harus memastikan semua variabel yang diperlukan sudah diatur agar konfigurasi valid.
+**Catatan:** Jika berkas konfigurasi digunakan, sebaiknya semua parameter boot dimasukkan ke dalam variabel **LIVE_CONFIG_CMDLINE**, atau variabel individual dapat diatur. Jika variabel individual digunakan, pengguna harus memastikan bahwa semua variabel yang diperlukan telah diatur untuk membuat konfigurasi yang valid.
 
-Berkas konfigurasi dapat ditempatkan di root filesystem (`/etc/live/config.conf`, `/etc/live/config.conf.d/*.conf`), atau pada media live (`minios/config.conf`, `minios/config.conf.d/*.conf`). Jika opsi tertentu ada di kedua lokasi, konfigurasi dari media live akan memiliki prioritas dibandingkan yang ada di root filesystem.
+`live-config` sendiri melakukan sourcing terhadap `/etc/live/config.conf` lalu `/etc/live/config.conf.d/*.conf` sesuai urutan glob shell. Fragmen yang muncul belakangan dapat menggantikan nilai dari berkas utama atau fragmen sebelumnya. Tidak ada sourcing terpisah untuk lapisan konfigurasi media kedua.
 
-Meskipun nama berkas konfigurasi di direktori konfigurasi tidak harus tertentu, demi konsistensi disarankan menggunakan skema penamaan `vendor.conf` atau `project.conf` (di mana `vendor` atau `project` diganti dengan nama sebenarnya, misal `progress-linux.conf`).
+Pada media MiniOS, berkas sumber adalah `minios/config.conf` dan `minios/config.conf.d/*.conf`. Sebelum `live-config` dimulai, initramfs MiniOS melakukan sinkronisasi berkas-berkas ini dengan berkas runtime `/etc/live/` berdasarkan waktu modifikasi. Berkas sumber yang lebih baru akan menggantikan berkas runtime-nya; berkas runtime yang lebih baru hanya akan disalin kembali jika direktori data MiniOS yang dipilih dapat ditulis. Jika timestamp sama, tidak ada penyalinan; berkas yang hilang akan diisi, dan berkas tidak dihapus. Ini adalah sinkronisasi saat boot, bukan pemantauan terus-menerus. Lihat [Berkas Konfigurasi](/configuration/Configuration-File.md) untuk aturan lengkap sinkronisasi dan prioritas command-line.
 
-Isi berkas konfigurasi terdiri dari satu atau beberapa variabel berikut.
+Sebagai cadangan untuk implementasi initramfs yang tidak menyiapkan berkas runtime, wrapper startup systemd dan SysV akan menyalin `minios/config.conf` dari media yang terdeteksi hanya jika `/etc/live/config.conf` tidak ada. Cadangan ini tidak menyalin fragmen `config.conf.d`. Initramfs MiniOS LiveKit standar saat ini melakukan sinkronisasi seperti dijelaskan sebelumnya.
+
+Berkas fragmen harus sesuai dengan `*.conf`. Nama seperti `vendor.conf` atau `project.conf` direkomendasikan; pilih nama leksikal dengan sengaja karena fragmen yang muncul belakangan akan menimpa yang sebelumnya.
+
+Isi sebenarnya dari berkas konfigurasi terdiri dari satu atau lebih variabel berikut.
 
 - **LIVE_CONFIG_CMDLINE=PARAMETER1 PARAMETER2...PARAMETERn**: Variabel ini sesuai dengan command line bootloader.
 - **LIVE_CONFIG_COMPONENTS=COMPONENT1,COMPONENT2,...COMPONENTn**: Variabel ini sesuai dengan parameter `**live-config.components**=*COMPONENT1*,*COMPONENT2*,...*COMPONENTn*`.
@@ -97,11 +105,11 @@ Isi berkas konfigurasi terdiri dari satu atau beberapa variabel berikut.
 - **LIVE_XORG_RESOLUTION=XORG_RESOLUTION**: Variabel ini sesuai dengan parameter `**live-config.xorg-resolution**=*XORG_RESOLUTION*`.
 - **LIVE_WLAN_DRIVER=WLAN_DRIVER**: Variabel ini sesuai dengan parameter `**live-config.wlan-driver**=*WLAN_DRIVER*`.
 - **LIVE_HOOKS=filesystem|medium|URL1|URL2|...|URLn**: Variabel ini sesuai dengan parameter `**live-config.hooks**=filesystem|medium|*URL1*\|*URL2*\|...|*URLn*`.
-- **LIVE_LINK_USER_DIRS=true|false**: Variabel ini sesuai dengan parameter `**live-config.link-user-dirs**=true|false`. Opsi ini menghubungkan direktori data standar pengguna ke drive MiniOS yang dapat ditulis. Tidak dapat digabungkan dengan mode bind atau mode `toram` apa pun.
-- **LIVE_BIND_USER_DIRS=true|false**: Variabel ini sesuai dengan parameter `**live-config.bind-user-dirs**=true|false`. Opsi ini melakukan bind-mount direktori data standar pengguna dari drive MiniOS yang dapat ditulis. Tidak dapat digabungkan dengan mode link atau mode `toram` apa pun.
-- **LIVE_USER_DIRS_PATH=PATH**: Variabel ini sesuai dengan parameter `**live-config.user-dirs-path**=*PATH*`. Ini menentukan path aman di dalam drive MiniOS FAT32, exFAT, atau NTFS. Default-nya adalah `/minios/userdata`; segmen dot dan parent-directory akan ditolak.
+- **LIVE_LINK_USER_DIRS=true|false**: Variabel ini sesuai dengan parameter `**live-config.link-user-dirs**=true|false`. Ini menghubungkan direktori data standar user ke drive MiniOS yang dapat ditulis. Tidak dapat digabungkan dengan mode bind atau mode `toram` mana pun.
+- **LIVE_BIND_USER_DIRS=true|false**: Variabel ini sesuai dengan parameter `**live-config.bind-user-dirs**=true|false`. Ini melakukan bind-mount direktori data standar user dari drive MiniOS yang dapat ditulis. Tidak dapat digabungkan dengan mode link atau mode `toram` mana pun.
+- **LIVE_USER_DIRS_PATH=PATH**: Variabel ini sesuai dengan parameter `**live-config.user-dirs-path**=*PATH*`. Ini menentukan path yang aman di dalam drive MiniOS FAT32, exFAT, atau NTFS. Default-nya adalah `/minios/userdata`; segmen titik dan direktori induk akan ditolak.
 
-Pengaturan media pengguna tidak pernah menggabungkan dua direktori non-kosong secara otomatis. Direktori lokal non-kosong hanya akan dimigrasikan jika tujuan media-nya kosong. Saat fitur ini dinonaktifkan, data media yang dikelola akan disalin kembali sebelum tautan dihapus. Jika validasi atau penyalinan gagal, direktori pengguna yang ada tetap dipertahankan dan alasan kegagalan dicatat di `/var/lib/live/config/user-media.status`.
+Pengaturan media user tidak pernah menggabungkan dua direktori non-kosong secara otomatis. Direktori lokal non-kosong hanya akan dimigrasikan jika tujuan media kosong. Jika fitur dinonaktifkan, data media yang dikelola akan disalin kembali sebelum link dihapus. Validasi atau penyalinan yang gagal akan membiarkan direktori user yang ada tetap dan mencatat alasan di `/var/lib/live/config/user-media.status`.
 - **LIVE_MODULE_MODE**: Variabel ini menyimpan status yang ditentukan oleh parameter `live-config.module-mode` (atau `module-mode`). Jika diatur ke "merged", sistem live akan menerapkan pembaruan (melalui minios-update-users, minios-update-cache, dan minios-update-dpkg) untuk menggabungkan konfigurasi kustom dengan lingkungan dasar.
 - **LIVE_CONFIG_DEBUG=true|false**: Variabel ini sesuai dengan parameter `**live-config.debug**`.
 
@@ -170,20 +178,22 @@ Berkas konfigurasi untuk sistem live itu sendiri paling baik ditempatkan dalam p
 - **config-module-mode**: mengonfigurasi mode modul sistem dan memperbarui cache, pengaturan user, dan dpkg.
 - **hooks**: memungkinkan menjalankan perintah bebas dari file yang diletakkan di media live atau server http/ftp.
 
-# BERKAS
+# FILES
 
+- `minios/config.conf` pada media data MiniOS yang dipilih (salinan sumber)
+- `minios/config.conf.d/*.conf` pada media data MiniOS yang dipilih (fragmen sumber)
 - `/etc/live/config.conf`
 - `/etc/live/config.conf.d/*.conf`
-- `minios/config.conf`
-- `minios/config.conf.d/*.conf`
 - `/lib/live/config.sh`
 - `/lib/live/config/`
 - `/var/lib/live/config/`
 - `/var/log/live/config.log`
-- `/minios/config-hooks/*`
-- `minios/config-hooks/*`
-- `/minios/config-preseed/*`
-- `minios/config-preseed/*`
+- `/var/log/minios/minios-boot.log`
+- `minios/log/YYYYMMDD_HHMMSS/` pada media data yang dipilih yang dapat ditulis saat ekspor log diaktifkan
+- `/usr/lib/live/config-hooks/*` (hook `filesystem`)
+- `minios/config-hooks/*` pada media live yang terdeteksi (hook `medium`)
+- `/usr/lib/live/config-preseed/*` (preseed `filesystem`)
+- `minios/config-preseed/*` pada media live yang terdeteksi (preseed `medium`)
 
 # LIHAT JUGA
 

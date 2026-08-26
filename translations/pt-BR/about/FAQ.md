@@ -31,17 +31,11 @@ de gravação e boot escolhido.
 
 ## Qual é a diferença entre a sessão ativa e a sessão em execução?
 
-A sessão ativa é selecionada para o próximo boot; a sessão em execução fornece
-persistência no momento. Ativar uma sessão não altera o sistema atual. Veja
-[Gerenciamento de sessões](/configuration/Session-Management.md).
+A sessão ativa é selecionada para o próximo boot; conceitualmente, a sessão em execução fornece persistência no momento. O registro persistente `running=` pode estar desatualizado após uma falha, portanto, o estado protegido do boot atual e a camada gravável montada são as referências para as operações em tempo de execução. Ativar uma sessão não altera o sistema atual. Veja [Gerenciamento de Sessão](/configuration/Session-Management.md) e [Persistência do Initrd](/configuration/Initrd-Persistence.md).
 
 ## Por que minhas alterações desapareceram após reiniciar?
 
-Você pode ter iniciado uma sessão nova, usado mídia sem persistência, selecionado
-uma sessão diferente ou desligado antes de salvar as alterações. Verifique as sessões
-em execução e ativa conforme descrito em
-[Gerenciamento de sessões](/configuration/Session-Management.md) e
-[Solução de problemas](/administration/Troubleshooting.md).
+Você pode ter iniciado uma sessão nova, usado mídia sem persistência ou selecionado uma sessão diferente. Sessões Native, DynFileFS, raw e LUKS recebem gravações enquanto o sistema está em execução; elas não aguardam um snapshot de desligamento. Somente a persistência SquashFS exige que as alterações mantidas em RAM sejam reconstruídas em `changes.sb`, portanto, um desligamento interrompido ou uma política de salvamento desativada pode deixar as últimas alterações não salvas. Verifique a sessão em execução e a ativa conforme descrito em [Gerenciamento de sessões](/configuration/Session-Management.md) e [Solução de problemas](/administration/Troubleshooting.md).
 
 ## LUKS e SquashFS são o mesmo tipo de persistência?
 

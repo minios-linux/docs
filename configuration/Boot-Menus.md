@@ -1,77 +1,35 @@
 # MiniOS Boot Menus Guide
 
-MiniOS provides a powerful boot menu system that allows you to choose how the system starts and operates. This guide explains the available boot options and how to customize them.
+MiniOS boot menus provide convenient entries for common live boot modes. This
+guide explains how to select and edit those entries.
 
 ## Overview
 
-MiniOS uses GRUB as the primary bootloader, providing a graphical interface with multilingual support. On older BIOS systems, SYSLINUX may be used as an alternative. Both bootloaders offer the same functionality with slightly different interfaces.
+MiniOS images can use GRUB or Syslinux depending on firmware, image layout, and
+build. Their menu graphs, editing keys, language handling, and available entries
+are not necessarily identical. The bootloader ultimately passes a kernel command
+line to the same initrd; see [Boot modes](/configuration/Boot-Modes.md) for the
+resulting source, persistence, RAM-copy, and media-dependency behavior.
 
 ## Boot Menu Options
 
-### 1. Resume Previous Session
-**What it does:** Attempts to continue from your last session, but adapts automatically based on available storage.
+The supplied image commonly presents these semantic choices, although titles,
+availability, order, and default selection can vary by image:
 
-- **When to use:** This is the default option - suitable for most users in most situations
-- **What happens:** 
-  - **On writable media with existing session:** Restores your saved files, applications, and settings
-  - **On writable media without session:** Automatically creates the first session (session #1)
-  - **On read-only media (DVD, CD):** Runs like "Fresh Start" since no storage is available
-  - **If session is incompatible:** Creates a new session (e.g., when using different MiniOS version)
-  - System automatically handles compatibility checks and storage limitations
-- **Result:** You always get a working system, optimized for your storage type
+| Menu choice | Typical initrd selector | Purpose |
+|---|---|---|
+| Resume Previous Session | `perchdir=resume` | Try the default compatible session and permit replacement creation under the documented conditions. |
+| Start a New Session | `perchdir=new` | Allocate a new numbered persistent session. |
+| Choose Session During Startup | `perchdir=ask` | Select an existing session or request a new one interactively. |
+| Fresh Start | no persistence selector | Use a temporary writable layer. |
+| Copy to RAM | `toram` | Request the full RAM-copy path. |
 
-### 2. Start a New Session
-**What it does:** Creates a fresh workspace while keeping all existing sessions available.
-
-- **When to use:** When you want a clean slate for different work or testing
-- **What happens:**
-  - Creates a new numbered session (e.g., if you had session 1, creates session 2)
-  - Starts with a clean desktop environment
-  - All new changes will be saved to the new session
-  - All existing sessions remain unchanged and available for switching
-- **Note:** You can switch between sessions using "Choose session during startup" option
-
-### 3. Choose Session During Startup
-**What it does:** Shows an interactive menu to select from existing sessions or create a new one.
-
-- **When to use:** When you have multiple sessions and want to choose which one to use
-- **What happens:**
-  - Shows a dialog box during startup with list of available sessions
-  - Displays session information (number, last access time, disk usage)
-  - Options to resume any existing session or start a new session
-  - Allows selection of different storage devices if multiple are available
-- **Benefits:** Full control over which session to use, perfect for users managing multiple workspaces
-
-### 4. Fresh Start
-**What it does:** Runs MiniOS without saving any changes.
-
-- **When to use:** 
-  - Testing the system on writable media without affecting existing sessions
-  - Troubleshooting without modifying saved data
-  - Maximum privacy (no data is saved)
-  - When you want to ensure no persistent changes are made
-- **What happens:**
-  - Fastest boot time
-  - Changes are lost when you shut down
-  - No storage device access for persistence
-- **Note:** When running from read-only media (DVD, CD), "Resume Previous Session" automatically behaves like "Fresh Start" since no storage is available for sessions
-
-### 5. Copy to RAM
-**What it does:** Loads the entire system into computer memory for maximum performance.
-
-- **When to use:**
-  - You have plenty of RAM (4GB+ recommended)
-  - Want the fastest possible performance
-  - Need to remove the USB drive after booting
-  - Working with intensive applications
-- **What happens:**
-  - Copies all system files to RAM during boot
-  - USB drive can be removed after loading completes
-  - System runs entirely from memory
-  - Fastest response times for all operations
-- **Requirements:** Sufficient RAM to hold the entire system
-
-For advanced `toram` options and memory optimization techniques, see **[Performance Optimization](/administration/Performance-Optimization.md)**.
+These are selectors, not guarantees that storage is writable, a session is
+compatible, RAM is sufficient, or source media has detached. See
+[Boot modes](/configuration/Boot-Modes.md) for behavior and combinations,
+[Initrd persistence](/configuration/Initrd-Persistence.md) for selector edge
+cases, and [Performance optimization](/administration/Performance-Optimization.md)
+for RAM and I/O tradeoffs.
 
 ## How to Use the Boot Menu
 
@@ -79,14 +37,14 @@ For advanced `toram` options and memory optimization techniques, see **[Performa
 - Use **arrow keys** to move between options
 - Press **Enter** to select an option
 - Press **Esc** to return to previous menu (in GRUB)
-- The menu will automatically select the default option after 10 seconds
+- Automatic selection and timeout duration depend on the active menu configuration; some menus may wait indefinitely
 
 ### Language Selection (GRUB)
 If your MiniOS USB drive supports multiple languages:
 1. The first screen will show language options
 2. Select your preferred language
 3. The boot menu will appear in the selected language
-4. All subsequent system messages will use this language
+4. The selection can also pass locale settings to later startup, but it does not guarantee that every boot or application message is translated
 
 ⚠️ **Important:** The multilingual menu overrides any locale settings specified in `config.conf`. The language selected in the boot menu takes precedence over pre-configured locale settings. See **[Configuration File](/configuration/Configuration-File.md)** and **[live-config](/configuration/live-config.md)** for details about system configuration files.
 
@@ -110,9 +68,9 @@ You can modify boot options for a single boot session:
 
 ### Common Boot Parameter Modifications
 - `debug` - Show detailed boot messages (useful for troubleshooting)
-- `toram=trim` - Copy only essential files to RAM (when full `toram` uses too much memory)
+- `toram=trim` - Copy the filtered module set and limited required data to RAM
 - `perchsize=2000` - Set session storage size to 2GB (adjust as needed)
-- `locale=ru_RU.UTF-8` - Force specific language/locale
+- `locales=ru_RU.UTF-8` - Request a specific language/locale
 
 For a complete list of available boot parameters, see **[Boot Parameters](/configuration/Boot-Parameters.md)**.
 
@@ -139,7 +97,6 @@ For a complete list of available boot parameters, see **[Boot Parameters](/confi
 4. Save and safely eject the USB drive
 
 **Common changes:**
-- Modify `set timeout=10` to change menu timeout
+- Modify the timeout directive used by the active GRUB or Syslinux menu
 - Change `set default=0` to change default menu option
 - Add custom menu entries
-

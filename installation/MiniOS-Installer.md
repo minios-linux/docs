@@ -6,13 +6,15 @@ MiniOS Installer is a GTK wizard and command-line backend for deploying MiniOS f
 
 An incorrect target or partitioning choice can destroy data. Back up important files, disconnect disks that are not needed, and identify the target by device path, model, and capacity. The final confirmation is the last point at which an installation can be cancelled safely.
 
-The disk containing the running MiniOS live system is excluded from target selection. For general capacity guidance, see the [Hardware compatibility guide](Hardware-Compatibility.md#system-requirements).
+The disk containing the running MiniOS live system is excluded from target selection. For general capacity guidance, see the [Hardware compatibility guide](Hardware-Compatibility.md).
 
 ## Installation modes
 
 Live mode copies the selected compressed MiniOS modules and boot assets. The result keeps the modular live-system layout and can use MiniOS session persistence.
 
 Native mode expands the selected modules into a conventional Linux root filesystem, configures the target, installs required packages, generates initramfs, and installs the bootloader. The installer detects native support from the booted image. If required kernel metadata and the EFI architecture contract are absent, compatibility mode permits only live installation.
+
+This deployment is different from a raw ISO write, a Ventoy ISO-file multiboot setup, or a file-based live-media tool. See [Boot modes](/configuration/Boot-Modes.md) for the boundary between live and native systems.
 
 ## Start the graphical installer
 
@@ -66,7 +68,7 @@ Persistence applies only to live installations:
 
 Container modes default to 4000 MiB. Raw and LUKS containers cannot exceed 4000 MiB on FAT32; DynFileFS is not subject to that single-file limit. LUKS is offered only when both the running initrd and each copied source initrd advertise the required crypto support.
 
-The resulting boot options use `perchmode` and `perchsize`. See [Boot parameters](/configuration/Boot-Parameters.md) for their runtime meaning.
+The resulting boot options use `perchmode` and `perchsize`. See [Initrd persistence](/configuration/Initrd-Persistence.md) and [Boot parameters](/configuration/Boot-Parameters.md) for their runtime meaning and activation requirements.
 
 ## Command-line deployment
 

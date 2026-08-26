@@ -9,29 +9,30 @@ init system.
 ## Boot discovery
 
 The BIOS or UEFI bootloader loads a Linux kernel and MiniOS initramfs from
-`minios/boot/`. The initramfs then searches block devices for a `minios`
-directory containing `.sb` modules. The `from=` boot parameter can instead name
-a directory, block device and path, local ISO file, or interactive `askdisk`
-selection. A local ISO is loop-mounted before its `minios` directory is used.
+`minios/boot/`. The initramfs then discovers the MiniOS data tree that contains
+the live modules. A source can be local, selected interactively, or supplied
+over a supported network path; a local ISO is loop-mounted before its data tree
+is used. Exact precedence and accepted `from=` forms are documented in
+[Initrd system discovery](/configuration/Initrd-System-Discovery.md).
 
 The same discovery stage supports HTTP ISO and PXE sources. Optional early-boot
 networking is only for **loading MiniOS over the network** (PXE / HTTP ISO). It
 is not durable session network configuration. See
 [Network boot](/installation/Network-Boot.md).
 
-After discovery, `toram=trim` can copy the selected modules and required data to
-RAM, while `toram=full` copies the media data tree. See
-[Boot parameters](/configuration/Boot-Parameters.md) for source, filtering, and
-RAM-copy options.
+After discovery, MiniOS can optionally prepare a RAM copy. Whether the original
+source remains required depends on copy mode, persistence, and successful
+detachment. See [Boot modes](/configuration/Boot-Modes.md) for the operational
+model.
 
 ## Module composition
 
 Each `.sb` file is a read-only SquashFS filesystem. Built-in modules are stored
-directly under `minios/`; additional modules can be stored under
-`minios/modules/`, including durable module storage on a writable persistence
-device. The initramfs discovers both locations, applies `load=` and `noload=`
-filters, sorts the selected files by their numeric filename prefix, and mounts
-them read-only.
+directly under `minios/`; additional module locations can contribute to the
+ordered composition. The initramfs selects, orders, and mounts the resulting
+read-only layers. Candidate tiers, basename replacement, filters, custom bundle
+extensions, and running-kernel coordination are specified in
+[Initrd module loading](/configuration/Initrd-Module-Loading.md).
 
 A typical Xfce image contains the following ordered roles, although exact names
 and numbers depend on the build and modules skipped for that target:
@@ -72,13 +73,20 @@ or removing a durable module normally changes the next boot only. Creating or
 opening a module does not activate it. Runtime activation and deactivation are
 available only with AUFS.
 
+After the root is assembled and early setup completes, the LiveKit initrd uses
+`pivot_root`, retains the old initrd for shutdown duties, and executes the new
+root's init. The dracut path prepares the same assembled root but leaves the
+final `switch_root` to dracut. See
+[Initrd module loading](/configuration/Initrd-Module-Loading.md) for the detailed
+handoff boundary.
+
 ## Writable layer and sessions
 
 Without persistence, the writable layer is memory-backed and disappears at
-shutdown. Persistence places that layer in a numbered session under
-`minios/changes/`. `session.conf` records the default session for the next boot,
-the session used by the current boot, compatibility metadata, state, and
-mode-specific settings.
+shutdown. Persistence can instead activate a numbered session with a supported
+storage backend. Selection, compatibility, activation failure, current-boot
+authority, and durability are defined in
+[Initrd persistence](/configuration/Initrd-Persistence.md).
 
 | Mode | Writable storage | Notes |
 |------|------------------|-------|
@@ -88,10 +96,9 @@ mode-specific settings.
 | `luks` | LUKS2 `changes.luks` containing ext4 | Requires cryptsetup and an initramfs built with MiniOS encryption support. The passphrase is requested during boot. |
 | `squashfs` | Compressed `changes.sb` snapshot | Unpacked into RAM for use; saving rebuilds and atomically replaces the snapshot. The persistence filesystem must preserve Linux metadata during the save. |
 
-The active session is the default for the next boot. The running session is the
-one already mounted into the current root. Activating another session does not
-replace the current writable layer. Session compatibility checks include the
-MiniOS version, edition, union filesystem, and persistence mode.
+The active session selected for a future resume and the writable layer actually
+authorized for the current boot are related but distinct state. Changing a
+future selection does not replace the running writable layer.
 
 See [Session management](/configuration/Session-Management.md) for creation,
 selection, sizing, encryption, conversion, export, and recovery commands.
@@ -162,6 +169,10 @@ second persistent copy of this tree.
 
 ## Related documentation
 
+- [Boot modes](/configuration/Boot-Modes.md)
+- [Initrd system discovery](/configuration/Initrd-System-Discovery.md)
+- [Initrd module loading](/configuration/Initrd-Module-Loading.md)
+- [Initrd persistence](/configuration/Initrd-Persistence.md)
 - [Boot parameters](/configuration/Boot-Parameters.md)
 - [Boot menus](/configuration/Boot-Menus.md)
 - [Configuration file](/configuration/Configuration-File.md)

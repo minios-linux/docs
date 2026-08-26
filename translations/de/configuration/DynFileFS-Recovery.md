@@ -16,12 +16,17 @@ Ursachen können ein unvollständiges Speichersegment, beschädigte Container-Me
 ## Sicherheitsregeln
 
 1. Reparieren Sie niemals die einzige Kopie eines Speicher-Containers.
-2. Überschreiben Sie keine aktiven `minios/changes` mit Quell-Sitzungen.
-3. Kopieren Sie das gesamte `changes`-Verzeichnis, bevor Sie eine Wiederherstellung versuchen.
+2. Überschreiben Sie keine Quell-Sitzungen auf einen laufenden oder eingehängten `minios/changes`-Store.
+3. Kopieren Sie das vollständige `changes`-Verzeichnis, bevor Sie eine Wiederherstellung versuchen.
 4. Führen Sie `e2fsck -y` nur auf einer zusätzlichen Kopie einer Sitzung aus.
-5. Legen Sie fehlende `changes.dat.N`-Dateien nicht manuell an.
+5. Erstellen Sie fehlende `changes.dat.N`-Dateien nicht manuell.
 
-Wenn MiniOS aktuell mit Persistenz läuft und das Quellgerät eingehängt ist, kann die erste Kopie gefahrlos erstellt werden. Ersetzen Sie `session.conf` erst, nachdem MiniOS ohne Persistenz gebootet wurde.
+Erstellen Sie die erste Kopie nicht, während die Quell-Sitzung läuft oder ihr
+DynFileFS-Container eingehängt ist. Dessen Metadaten und Segmentdateien können sich
+unabhängig ändern und so eine inkonsistente Kopie erzeugen. Starten Sie ohne Persistenz oder verwenden Sie
+ein anderes Linux-System. Halten Sie die DynFileFS/FUSE-Ansicht, das `virtual.dat`-Loop-Device
+und das innere ext4-Dateisystem inaktiv. Hängen Sie nur das äußere Speicherdateisystem ein,
+vorzugsweise im Nur-Lese-Modus, damit die zugehörigen Segmentdateien konsistent kopiert werden können.
 
 ## 1. Quelle und Ziel ermitteln
 
@@ -99,7 +104,8 @@ MiniOS verwendet `session.conf`, um Persistenzsitzungen auszuwählen und zu besc
 
 ## 4. DynFileFS- oder dynblk-Container einhängen
 
-Suchen Sie das installierte Hilfsprogramm. Je nach MiniOS-Image kann der offizielle Name `dynblk` oder der Kompatibilitätsname `@mount.dynfilefs` lauten:
+Suchen Sie das installierte Hilfsprogramm. Je nach MiniOS-Image kann der offizielle Name
+`dynblk` oder der Kompatibilitätsname `@mount.dynfilefs` lauten:
 
 ```bash
 DYN=""
@@ -122,7 +128,7 @@ E2FSCK=/run/initramfs/bin/e2fsck
 ls -l "$DYN" "$E2FSCK"
 ```
 
-Wählen Sie eine passende Sitzung, zum Beispiel Sitzung 3:
+Wählen Sie eine geeignete Sitzung, zum Beispiel Sitzung 3:
 
 ```bash
 SESSION=3
@@ -134,7 +140,10 @@ mkdir -p /tmp/dynfilefs-recovery /tmp/old-session
     -p 4000
 ```
 
-Geben Sie beim Wiederherstellen eines bestehenden Containers kein `-s` oder `perchsize` an. Die virtuelle Größe ist in den DynFileFS/dynblk-Metadaten gespeichert.
+Geben Sie während dieses manuellen Recovery-Mounts weder `-s` noch `perchsize` an. Der normale
+Boot-Prozess kann `-s` für eine gewünschte oder gespeicherte logische Größe übergeben, aber die Wiederherstellung
+verzichtet absichtlich auf eine Größenanpassung und liest die vorhandene Größe aus den
+DynFileFS/dynblk-Metadaten.
 
 Ein erfolgreicher Mount stellt `virtual.dat` bereit:
 
@@ -142,13 +151,13 @@ Ein erfolgreicher Mount stellt `virtual.dat` bereit:
 ls -lh /tmp/dynfilefs-recovery/virtual.dat
 ```
 
-Prüfen Sie das ext4-Dateisystem, ohne Änderungen vorzunehmen:
+Überprüfen Sie das ext4-Dateisystem, ohne Änderungen vorzunehmen:
 
 ```bash
 "$E2FSCK" -f -n /tmp/dynfilefs-recovery/virtual.dat
 ```
 
-Hängen Sie es anschließend schreibgeschützt ein:
+Hängen Sie es anschließend im Nur-Lese-Modus ein:
 
 ```bash
 mount -o ro,loop /tmp/dynfilefs-recovery/virtual.dat /tmp/old-session
@@ -156,7 +165,7 @@ ls -la /tmp/old-session
 ls -la /tmp/old-session/home
 ```
 
-Sind die erwarteten Dateien sichtbar, kann die Sitzung wiederhergestellt werden.
+Wenn die erwarteten Dateien sichtbar sind, kann die Sitzung wiederhergestellt werden.
 
 Hängen Sie in umgekehrter Reihenfolge aus:
 
@@ -190,71 +199,63 @@ fusermount -u /tmp/dynfilefs-repair
 
 Wiederholen Sie nach der Reparatur die schreibgeschützte Überprüfung aus dem vorherigen Abschnitt.
 
-## 6. Die Sitzung für den Bootvorgang wiederherstellen
+## 6. Wiederherstellung in eine neue kompatible Sitzung
 
-Führen Sie diesen Schritt durch, nachdem Sie die persistente Sitzung heruntergefahren und MiniOS ohne `perch`, `perchdir` oder `perchmode` gebootet haben. Alternativ kann dies auch von einem anderen Linux-System aus erfolgen.
-
-Kopieren Sie den wiederhergestellten Container in ein ungenutztes, numerisches Sitzungsverzeichnis. Durch die Verwendung einer neuen Nummer vermeiden Sie das Überschreiben einer aktuellen Sitzung:
-
-```bash
-NEW_CHANGES="$TARGET_MINIOS/changes"
-RESTORED=90
-
-test ! -e "$NEW_CHANGES/$RESTORED"
-mkdir -p "$NEW_CHANGES/$RESTORED"
-cp -a "$REPAIR/." "$NEW_CHANGES/$RESTORED/"
-```
-
-Falls keine Dateisystemreparatur nötig war, kopieren Sie aus `$RECOVERY/$SESSION` statt aus `$REPAIR`.
-
-Sichern und ersetzen Sie die Sitzungsmetadaten:
+Bevorzugen Sie die Wiederherstellung in eine neu erstellte Sitzung gegenüber der Rekonstruktion von Metadaten für
+die beschädigte Sitzung. Falls ein gültiger `.tar.zst`-Export vorhanden ist, starten Sie normal und importieren
+Sie ihn mit automatischer Konvertierung für das Ziel-Dateisystem:
 
 ```bash
-cp -a "$NEW_CHANGES/session.conf" \
-    "$NEW_CHANGES/session.conf.before-recovery" 2>/dev/null || true
-
-printf '%s\n' \
-    "default=$RESTORED" \
-    "session_mode[$RESTORED]=dynfilefs" \
-    >"$NEW_CHANGES/session.conf"
-sync
+sudo minios-session import /path/to/session.tar.zst --auto-convert
 ```
 
-Die minimalen Metadaten lassen absichtlich Version, Edition und Union-Felder weg, damit veraltete Kompatibilitätsdaten MiniOS nicht dazu zwingen, eine weitere Sitzung zu erstellen.
+Der Import erstellt eine neue nummerierte Sitzung. Überprüfen Sie diese und aktivieren Sie sie anschließend explizit.
 
-Starten Sie MiniOS mit:
-
-```text
-perchdir=resume perchmode=dynfilefs
-```
-
-Fügen Sie beim ersten Wiederherstellungs-Boot kein `perchdir=new` oder `perchsize` hinzu.
-
-## 7. Dateien wiederherstellen, ohne die Sitzung zu booten
-
-Wenn sich der Container manuell mounten lässt, aber nicht als Boot-Sitzung genutzt werden kann, kopieren Sie die wichtigen Dateien vom schreibgeschützten Mount in eine neue Arbeitssitzung:
+Wenn nur der eingehängte Container nutzbar ist, erstellen und starten Sie eine neue Sitzung in einem
+Modus, der mit dem Ziel-Dateisystem kompatibel ist. Hängen Sie die wiederhergestellte Kopie
+wie in Abschnitt 4 beschrieben schreibgeschützt ein und kopieren Sie die benötigten Dateien in die laufende
+Sitzung. Um beispielsweise Home-Verzeichnisse wiederherzustellen:
 
 ```bash
-mkdir -p "$TARGET_MINIOS/recovered-home"
-rsync -aHAX --info=progress2 \
+sudo rsync -aHAX --info=progress2 \
     /tmp/old-session/home/ \
-    "$TARGET_MINIOS/recovered-home/"
+    /home/
 sync
 ```
+
+Kopieren Sie nur die Daten und Konfigurationen, die Sie benötigen. So vermeiden Sie,
+unbekannte oder unvollständige Kompatibilitäts-Metadaten als bootfähige Sitzungsdefinition zu behandeln.
+
+## 7. Sitzungs-Metadaten nicht vor Ort rekonstruieren
+
+Ersetzen Sie `session.conf` nicht durch eine Minimaldatei und fügen Sie kein wiederhergestelltes Verzeichnis
+von Hand zu einem bestehenden Store hinzu. Die Metadaten beschreiben jede Sitzung in diesem
+Store; ein Ersetzen kann gesunde Sitzungen verwaisen lassen, Kompatibilitäts- und Speicher-
+Policy-Felder verwerfen und die Auswahl für den nächsten Start verändern.
+
+Wenn der Container schreibgeschützt eingehängt werden kann, stellen Sie die Dateien wie oben beschrieben in eine neu
+erstellte kompatible Sitzung wieder her. Falls er nicht eingehängt werden kann, bewahren Sie die vollständige Offline-Kopie
+für weitere Dateisystem- oder forensische Wiederherstellung auf. Ein Container ohne vertrauenswürdige Store-Metadaten ist ein wiederherstellbarer Input, aber keine bootfähige Sitzungsdefinition.
 
 ## Fehlerreferenz
 
-- `cannot open ... changes.dat.N`: Ein festgeschriebenes Segment fehlt. Kopieren Sie es erneut vom Quellgerät oder versuchen Sie eine andere Sitzung. Legen Sie kein leeres Segment an.
+- `cannot open ... changes.dat.N`: Ein bestätigtes Segment fehlt. Kopieren Sie es
+  erneut vom Quellgerät oder versuchen Sie eine andere Sitzung. Erstellen Sie kein leeres Segment.
 - `cannot read header`: Der DynFileFS/dynblk-Header ist beschädigt.
-- `incompatible data format`: Das Hilfsprogramm und das Containerformat passen nicht zusammen.
-- `virtual.dat` existiert, aber ext4 lässt sich nicht mounten: Überprüfen Sie eine Kopie mit `e2fsck`.
-- Der Container lässt sich mounten, aber MiniOS erstellt eine neue Sitzung: Prüfen Sie, ob `session.conf` auf die wiederhergestellte Nummer verweist und `session_mode[N]=dynfilefs` enthält.
+- `incompatible data format`: Das Hilfsprogramm und das Container-Format passen nicht zusammen.
+- `virtual.dat` existiert, aber ext4 lässt sich nicht einhängen: Überprüfen Sie eine Kopie mit `e2fsck`.
 
-## Wiederholungen vermeiden
+## Wiederholungen verhindern
 
-Die meisten Vorfälle beginnen, wenn das Persistenzgerät während der Nutzung voll läuft. Verringern Sie das Risiko mit folgenden Maßnahmen:
+Die meisten Vorfälle beginnen, wenn das Persistenzgerät während des Betriebs voll läuft. Verringern Sie das
+Risiko mit folgenden Maßnahmen:
 
-- Halten Sie mit dem Boot-Parameter `perchreserve` (Standard 256 MB) eine Reserve an freiem Speicherplatz vor. Neue und wachsende Container nutzen diesen Bereich nie, und MiniOS warnt beim Booten, wenn der freie Speicherplatz auf die Reserve sinkt. Erhöhen Sie den Wert auf kleinen oder stark genutzten Geräten, z. B. `perchreserve=1024`.
-- Löschen Sie alte oder ungenutzte Sitzungen, bevor das Gerät voll ist.
-- Bevorzugen Sie eine feste Größe (`raw`-Sitzung), wenn Sie einen vorhersehbaren Speicherbedarf benötigen, damit das Wachstum das Gerät nicht unerwartet erschöpft.
-- Fahren Sie das System sauber herunter. Ein abruptes Ausschalten bei vollem Gerät ist die häufigste Ursache für einen Container, der später nicht mehr gemountet werden kann.
+- Halten Sie eine freie Reserve mit dem `perchreserve`-Boot-Parameter vor (Standard:
+  256 MiB). Neue und wachsende Container verbrauchen diese Reserve nie, und MiniOS warnt beim Booten,
+  wenn der freie Speicher auf die Reserve sinkt. Erhöhen Sie diesen Wert auf kleinen oder stark genutzten
+  Geräten, zum Beispiel `perchreserve=1024`.
+- Löschen Sie alte oder ungenutzte Sitzungen, bevor das Gerät voll wird.
+- Bevorzugen Sie eine `raw`-Sitzung mit fester Größe, wenn Sie einen vorhersehbaren Speicherbedarf benötigen, damit
+das Wachstum das Gerät nicht unerwartet erschöpft.
+- Fahren Sie das System sauber herunter. Ein abruptes Ausschalten bei vollem Gerät ist die häufigste
+  Ursache dafür, dass ein Container später nicht mehr eingehängt werden kann.

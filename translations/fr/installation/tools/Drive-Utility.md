@@ -12,12 +12,12 @@ Drive Utility est un outil graphique permettant d’écrire des images ISO MiniO
 
 ### Taille du lecteur (pour l’écriture de MiniOS)
 
-Consultez le [Guide de compatibilité matérielle](/installation/Hardware-Compatibility.md#system-requirements) pour connaître les exigences système détaillées et les tailles de lecteur.
+Consultez le [Guide de compatibilité matérielle](/installation/Hardware-Compatibility.md) pour connaître en détail les exigences système et les tailles de lecteurs recommandées.
 
 ### Systèmes de fichiers pris en charge
 
 - **FAT32** : compatibilité maximale
-- **NTFS** : compatibilité Windows  
+- **NTFS** : compatibilité Windows
 - **EXT4** : recommandé pour Linux
 
 ## Lancement de Drive Utility
@@ -44,17 +44,8 @@ driveutility
    - Confirmez l’opération – toutes les données sur le lecteur seront supprimées
 5. **Patientez jusqu’à la fin** – le processus prendra plusieurs minutes
 
-## Persistance automatique des modifications
+## Résultat et persistance
 
-Lors de l’écriture de MiniOS avec Drive Utility, une copie exacte de l’image ISO est créée. MiniOS détectera automatiquement la méthode d’écriture et configurera la persistance des modifications au premier démarrage.
+Le mode écriture effectue une copie brute de l’image : il recopie la structure ISO sur l’ensemble du périphérique cible. Il ne crée pas de partition ext4 dans l’espace inutilisé, ne crée pas de session de persistance et n’effectue pas de déploiement de l’installateur MiniOS. Les choix de système de fichiers ci-dessus s’appliquent uniquement aux opérations de Drive Utility qui formatent un système de fichiers, et non à la structure de partition copiée lors de l’écriture d’une ISO.
 
-### Configuration des paramètres (pour utilisateurs avancés)
-
-Pour une configuration précise de la persistance, des paramètres de démarrage peuvent être utilisés :
-
-- `perchmode=native` – Sauvegarde directe sur la partition (si espace libre disponible)
-- `perchmode=dynfilefs` – Fichier extensible dynamiquement
-- `perchmode=raw` – Fichier de taille fixe
-- `perchsize=8000` – Taille de l’espace de stockage pour les données en Mo
-
-Détails dans [paramètres de démarrage](/configuration/Boot-Parameters.md).
+La persistance n’est activée que lorsqu’une entrée de démarrage ou une ligne de commande du noyau la demande, et elle nécessite toujours un support d’écriture adapté. Consultez [Modes de démarrage](/configuration/Boot-Modes.md) et [Persistance Initrd](/configuration/Initrd-Persistence.md) avant de compter sur la sauvegarde des modifications.

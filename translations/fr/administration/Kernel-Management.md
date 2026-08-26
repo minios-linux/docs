@@ -44,19 +44,23 @@ Debian propose plusieurs variantes de noyau optimisées pour différents cas d�
 
 ---
 
-## ⚙️ Présentation du gestionnaire de noyau MiniOS
+## ⚙️ Présentation du gestionnaire de noyaux MiniOS
 
 MiniOS propose deux outils pour la gestion des noyaux :
 
-1. **🖥️ MiniOS Kernel Manager (GUI) :** Une application graphique conviviale pour empaqueter, installer et gérer les noyaux
-2. **⌨️ minios-kernel (CLI) :** Un outil en ligne de commande pour les utilisateurs avancés et l’automatisation
+1. **🖥️ Gestionnaire de noyaux MiniOS (GUI) :** Une application graphique conviviale pour empaqueter, installer et gérer les noyaux
+2. **⌨️ minios-kernel (CLI) :** Un outil en ligne de commande destiné aux utilisateurs avancés et à l’automatisation
 
 Les deux outils gèrent automatiquement :
 - **L’empaquetage du noyau** au format SquashFS
 - **La génération de l’initramfs** avec les bons pilotes et scripts de démarrage
 - **L’installation** dans le dépôt de noyaux MiniOS
-- **La mise à jour** de la configuration du bootloader
+- **La mise à jour** de la configuration du chargeur d’amorçage
 - **L’activation** et le changement de noyau
+
+Cette page concerne les installations live modulaires. Les installations natives utilisent leurs propres paquets noyau installés, GRUB et initramfs ; voir
+[Modes de démarrage](/configuration/Boot-Modes.md). Pour le comportement coordonné exact du noyau avec l’initrd, consultez
+[Chargement des modules initrd](/configuration/Initrd-Module-Loading.md).
 
 ### ⚠️ **Points importants à prendre en compte :**
 
@@ -243,24 +247,23 @@ sudo minios-kernel delete --help        # Delete command help
 
 #### **📦 Échec de l’installation du paquet**
 
-- **Cause :** Paquet corrompu, problème réseau ou dépendances manquantes
-- **Solution :** 
-  - Vérifiez l’intégrité du fichier paquet
-  - Vérifiez la connectivité réseau pour les paquets du dépôt
+- **Cause :** Paquet corrompu, problèmes réseau ou dépendances manquantes
+- **Solution :**
+  - Vérifiez l’intégrité du fichier du paquet
+  - Contrôlez la connectivité réseau pour les paquets du dépôt
   - Mettez à jour la liste des paquets : `sudo apt update`
 
-#### **💥 Kernel panic après activation**
+#### **💥 Panique du noyau après activation**
 
 - **Cause :** Noyau incompatible ou pilotes manquants
-- **Solution :** 
-  - Démarrez en mode secours ou avec un noyau précédent
-  - Utilisez `sudo minios-kernel activate <working-version>` pour activer un noyau fonctionnel connu
+- **Solution :**
+  - Suivez [Récupération au démarrage](/administration/Boot-Recovery.md) pour démarrer sur un support de secours compatible et activer un ensemble de noyaux fonctionnel connu
   - Vérifiez la compatibilité du noyau avec votre matériel
 
 #### **🔄 Le système démarre sur l’ancien noyau**
 
-- **Cause :** La configuration du bootloader n’a pas été mise à jour correctement
-- **Solution :** 
+- **Cause :** La configuration du chargeur d’amorçage n’a pas été correctement mise à jour
+- **Solution :**
   - Relancez l’activation du noyau : `sudo minios-kernel activate <version>`
   - Vérifiez que le noyau a bien été empaqueté et installé
 
@@ -272,28 +275,11 @@ sudo minios-kernel delete --help        # Delete command help
   - Vérifiez si le nouveau noyau prend en charge votre matériel
   - Envisagez d’utiliser une autre variante de noyau
 
-#### **🚨 Récupération du noyau depuis l’image MiniOS d’origine**
+#### **🚨 Récupération du noyau à partir de l’image MiniOS d’origine**
 
-Si vous devez restaurer un noyau corrompu ou incompatible, vous pouvez démarrer depuis l’ISO/USB MiniOS d’origine :
-
-```bash
-# Boot from original MiniOS image with from= parameter
-# At boot prompt, specify your installed MiniOS device
-from=/dev/sda1  # Replace with your actual MiniOS device
-```
-
-**Procédure de récupération :**
-Lorsque vous démarrez depuis l’image ISO/USB MiniOS d’origine et que vous indiquez dans le paramètre `from=` le périphérique où MiniOS est installé, le système d’initialisation le détecte et vous permet d’accéder à votre installation MiniOS. La méthode de récupération dépend de la présence ou non des fichiers noyau d’origine :
-
-1. **Si le noyau d’origine existe encore :** 
-   - Le démarrage s’effectue normalement avec le noyau d’origine depuis l’ISO/USB
-   - Activez manuellement le noyau d’origine : `sudo minios-kernel activate <original-kernel-version>`
-
-2. **Si le noyau d’origine a été supprimé :** 
-   - Copiez manuellement les fichiers noyau depuis l’image MiniOS d’origine et restaurez-les aux emplacements appropriés sur votre installation MiniOS
-   - Activez manuellement le noyau restauré : `sudo minios-kernel activate <original-kernel-version>`
-
-Dans les deux cas, l’activation du noyau nécessite une intervention manuelle après la récupération.
+Ne récupérez pas en copiant une image de noyau individuelle, un initramfs ou un module `01-kernel-*.sb`. Une version amorçable nécessite le triplet coordonné, et l’activation doit mettre à jour la configuration du chargeur d’amorçage comme une opération prise en charge. Suivez la procédure
+[Retour arrière du noyau modulaire](/administration/Boot-Recovery.md)
+pour utiliser un support de secours compatible et activer un ensemble complet et fonctionnel connu. Si un ensemble complet correspondant n’est pas disponible, réinstallez plutôt que d’assembler des éléments de démarrage partiels.
 
 ### 🔍 **Commandes de diagnostic :**
 
@@ -312,7 +298,7 @@ ls -la /minios/kernels/     # List packaged kernels
 ls -la /minios/boot/        # List boot files
 ```
 
-**Vérifier la configuration du bootloader :**
+**Vérifier la configuration du chargeur d’amorçage :**
 ```bash
 grep -r "vmlinuz" /minios/boot/  # Find kernel references in boot configs
 ```
@@ -323,15 +309,16 @@ grep -r "vmlinuz" /minios/boot/  # Find kernel references in boot configs
 
 Le gestionnaire de noyau MiniOS gère automatiquement ces fichiers :
 
-### **Structure du dépôt Kernel :**
+### **Structure du dépôt de noyaux :**
 
 ```
 /minios/
-├── 01-kernel.sb                   # Active kernel module (standard location)
+├── 01-kernel-<version>.sb         # Active kernel module
 ├── kernels/                       # Repository of inactive/alternative kernels
-│   ├── 01-kernel-<version>.sb     # SquashFS kernel modules
-│   ├── vmlinuz-<version>          # Kernel binaries
-│   └── initrfs-<version>.img      # Initial RAM filesystems
+│   └── <version>/
+│       ├── 01-kernel-<version>.sb # SquashFS kernel module
+│       ├── vmlinuz-<version>      # Kernel image
+│       └── initrfs-<version>.img  # Initial RAM filesystem
 ├── boot/
 │   ├── vmlinuz-<version>          # Active kernel binary
 │   ├── initrfs-<version>.img      # Active initial RAM filesystem
@@ -341,7 +328,7 @@ Le gestionnaire de noyau MiniOS gère automatiquement ces fichiers :
 │       └── grub.cfg               # GRUB bootloader config
 ```
 
-**Remarque :** Le module standard `01-kernel.sb` fourni avec MiniOS contient des pilotes supplémentaires par rapport à ceux inclus dans les paquets kernel du dépôt d’origine. Ces pilotes additionnels offrent une meilleure compatibilité matérielle pour les adaptateurs sans fil et les périphériques de stockage.
+**Remarque :** Le module standard `01-kernel-<version>.sb` fourni avec MiniOS contient des pilotes supplémentaires par rapport à ceux inclus dans les paquets noyau du dépôt d’origine. Ces pilotes additionnels offrent une meilleure compatibilité matérielle pour les adaptateurs sans fil et les périphériques de stockage.
 
 ### **Indicateurs d’état :**
 
@@ -382,6 +369,6 @@ Le gestionnaire de noyau MiniOS gère automatiquement ces fichiers :
 
 ### **Planification de la récupération :**
 
-- Gardez toujours une sauvegarde d’un kernel fonctionnel
-- Sachez comment démarrer depuis un média de secours si nécessaire
-- Documentez les kernels compatibles avec votre configuration matérielle
+- Conservez toujours un triplet de noyau complet et fonctionnel connu
+- Sachez comment démarrer depuis un support de secours si nécessaire
+- Documentez quels noyaux fonctionnent avec votre configuration matérielle

@@ -1,6 +1,8 @@
 # Configuration file
 
-MiniOS differs from most classic flash distributions in that some parameters can be set before boot in a fairly simple configuration file `config/config.conf`, which minimizes the amount of work required when creating your own modules to create embedded systems. Optionally, some of the parameters can be set in the boot parameters. Boot options take precedence over the configuration file. Some parameters in this file are service ones and it is better not to change them. Below is an example of a standard configuration file:
+MiniOS boot media store the main configuration at `minios/config.conf`. During boot, the initramfs synchronizes it to `/etc/live/config.conf` in the assembled live root. Scripts in the running system should therefore read `/etc/live/config.conf`; `/etc/minios/config.conf` and `config/config.conf` are not configuration paths used by the current boot code.
+
+Boot parameters can override corresponding file settings. The following is an example of a standard `config.conf`:
 
 ```
 # You can get information about minios-live-config and other options:
@@ -36,7 +38,7 @@ EXPORT_LOGS="false"
 ## Description of Parameters
 
 **Legend:**
-- 🔒 **One-time only** - Applied only on first boot, cannot be changed on subsequent boots  
+- 🔒 **One-time only** - Applied only on first boot, cannot be changed on subsequent boots
 - 🔄 **Reconfigurable** - Can be changed on every boot and reapplied
 
 | Parameter | Reconfigurable | Meaning | Example |
@@ -63,10 +65,10 @@ EXPORT_LOGS="false"
 | DEFAULT_TARGET | 🔄 | The systemd target to boot into. See `man systemd.special`. | DEFAULT_TARGET="graphical" |
 | ENABLE_SERVICES | 🔄 | Enable services on boot (comma-separated). | ENABLE_SERVICES="ssh" |
 | DISABLE_SERVICES | 🔄 | Turn off services on boot (comma-separated). | DISABLE_SERVICES="" |
-| EXPORT_LOGS | 🔄 | If true, when booting from a writable media, MiniOS logs are copied to the minios/logs folder during boot. | EXPORT_LOGS="false" |
+| EXPORT_LOGS | 🔄 | If true and the selected MiniOS data directory is writable, boot logs are copied to `minios/log/YYYYMMDD_HHMMSS/`. | EXPORT_LOGS="false" |
 
 
-**For more details on most parameters, see:**  
+**For more details on most parameters, see:**
 - `man 7 live-config` ([live-config](/configuration/live-config.md))
 - For systemd targets: `man systemd.special`
 
@@ -74,4 +76,26 @@ EXPORT_LOGS="false"
 
 * The SSH server is enabled by default for compatibility with 3rd party initrds, to disable it, you must not only remove it from `ENABLE_SERVICES`.
 
-What else can the `config.conf` file be useful for? You can use it to set your own parameters in your scripts when creating modules. On first boot, it is copied to the /etc/minios folder, then the `/etc/live/config.conf` file is automatically monitored and, when changes are made, overwrites the configuration file on the flash drive, if it is writable. Thus, you can put your variables in config.conf and get them from `/etc/live/config.conf` in your scripts regardless of the type of initrd used.
+## Source, runtime copy, and precedence
+
+The selected MiniOS data directory is normally the `minios/` directory on the boot medium. Its configuration paths and their runtime copies are:
+
+| Selected data directory | Running system |
+| --- | --- |
+| `config.conf` | `/etc/live/config.conf` |
+| `config.conf.d/*.conf` | `/etc/live/config.conf.d/*.conf` |
+
+For a normally mounted medium these source files are visible as `minios/config.conf` and `minios/config.conf.d/*.conf`, often below `/run/initramfs/memory/data/`. They are not loaded directly by `live-config`. The initramfs synchronizes them with the runtime paths before running `minios-boot`; see [Boot modes](/configuration/Boot-Modes.md) for where this occurs in the boot sequence.
+
+Synchronization is performed at boot, not by a file monitor:
+
+- The newer copy of `config.conf` wins by modification time. A newer source copy is copied into the live root. A newer runtime copy is copied back only when the selected data directory is writable.
+- Each `config.conf.d/*.conf` file is synchronized independently by basename using the same modification-time and writability rules. Files are not deleted from either side.
+- If the clock is earlier than the recorded last synchronization time, timestamp comparison is skipped and only missing destination files are filled.
+- `toram=trim` copies `config.conf` but omits `config.conf.d/`; see [Initrd module loading](/configuration/Initrd-Module-Loading.md). Full `toram` copies the data tree, but synchronization then targets the RAM copy rather than the detached medium.
+
+After synchronization, `live-config` reads `/etc/live/config.conf` first and then `/etc/live/config.conf.d/*.conf` in shell glob order, so a later fragment can replace an earlier value. It appends the actual kernel command line to `LIVE_CONFIG_CMDLINE`; for options repeated there, the later kernel command-line occurrence wins. `minios-boot` likewise reads `/etc/live/config.conf` for its supported early settings and gives its recognized kernel parameters precedence.
+
+You can add project-specific shell variables to these files and read them from `/etc/live/config.conf` or the fragments at runtime. Quote values as shell strings and do not put spaces around `=`.
+
+The early MiniOS log is `/var/log/minios/minios-boot.log`, while late `live-config` output is `/var/log/live/config.log`. With `EXPORT_LOGS="true"`, both trees are copied to `minios/log/YYYYMMDD_HHMMSS/{minios,live}/` when the selected data directory is writable.

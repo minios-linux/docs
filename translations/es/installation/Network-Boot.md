@@ -12,34 +12,34 @@ La red de la sesión después del arranque es independiente. Para una IP estáti
 
 Relacionado: [Parámetros de arranque](/configuration/Boot-Parameters.md) (`ip`, `from`, `cache`).
 
-## Resumen
+## Descripción general
 
-| Modo | Qué se arranca | Cómo se obtienen los datos de MiniOS |
+| Modo | Qué se inicia | Cómo se obtiene la data de MiniOS |
 |------|----------------|-----------------------------|
-| **PXE** | Kernel + initrd desde un servidor de arranque por red | `ip=` no vacío → el initrd descarga los archivos de MiniOS desde el servidor de datos PXE (HTTP preferido, TFTP como respaldo) |
+| **PXE** | Kernel + initrd desde un servidor de arranque por red | `ip=` no vacío sin `from=http://…` → el initrd descarga los archivos de MiniOS desde el servidor de datos PXE |
 | **HTTP ISO** | Kernel + initrd desde medio local **o** PXE | `from=http://…/minios.iso` → el initrd levanta la red y monta el ISO con `httpfs2` |
-| **Medio local** | USB / ISO / disco | No hay red en el initrd; solo búsqueda local |
+| **Medio local** | USB / ISO / disco | Sin red en initrd; solo búsqueda local |
 
 Constructores de initramfs: **LiveKit** (`livekit-mos`) o **dracut** (`dracut-mos`). Ambos usan los mismos asistentes de red de LiveKit para la descarga temprana.
 
 ```text
 find_data()
-  ├─ from=http://…     → configure network → mount ISO (httpfs2)
+  ├─ from=http://…     → configure network (ip= static, otherwise DHCP) → mount ISO (httpfs2)
   ├─ ip=… (non-empty)  → configure network → PXE download of MiniOS data
   └─ else              → search local disks/ISO only (no network)
 ```
 
-**Importante:** cualquier `ip=` no vacío selecciona la **ruta de datos PXE** y **omite los medios locales**. No agregues `ip=` en un arranque normal desde USB/ISO solo para “configurar una dirección estática”.
+`from=http://…` tiene prioridad sobre `ip=`. En ese modo, `ip=` provee direccionamiento estático para la conexión HTTP ISO. De lo contrario, cualquier `ip=` no vacío selecciona la **ruta de datos PXE** y omite medios locales. No agregues `ip=` en un arranque normal por USB/ISO solo para "configurar una dirección estática". Ninguna ruta de red recurre a medios locales si falla la detección o descarga.
 
 ## Requisitos
 
 | Requisito | Notas |
 |-------------|--------|
-| Ethernet por cable (o virtio/vmxnet en máquinas virtuales) | Se utiliza la primera interfaz utilizable que no sea loopback; no hay selección de `BOOTIF` / `ethdevice` en el initrd |
-| Initrd con módulos de red | Construido para variantes de paquetes distintas del valor interno `minimum` (`--network`, a menudo `--cloud`) |
-| Sin dependencia de Wi‑Fi | La conexión inalámbrica no es compatible en el proceso de arranque por red |
+| Ethernet cableada (o virtio/vmxnet en VMs) | Se utiliza la primera interfaz detectada que no sea loopback; no se verifica el enlace ni la conectividad, y no hay selección `BOOTIF` / `ethdevice` en el initrd |
+| Initrd con módulos de red | Construido para variantes de paquete distintas al valor interno `minimum` (`--network`, usualmente `--cloud`) |
+| Sin dependencia de Wi‑Fi | No se admite conexión inalámbrica en el arranque por red |
 | Preferir NICs sin blobs de firmware | Las tarjetas que dependen de firmware suelen fallar en el initrd |
-| Preferir imágenes **Standard** o más grandes | La edición **Flux** omite los módulos de NIC de red, por lo que PXE / HTTP ISO no está soportado efectivamente |
+| Preferir imágenes **Standard** o mayores | La edición **Flux** omite módulos de NIC de red, por lo que PXE / HTTP ISO no están soportados |
 | Solo HTTP para la URL del ISO | `from=http://…` funciona; **`https://` no está soportado** |
 
 Herramientas en el initrd: busybox `ifconfig`, `route`, `udhcpc`, `wget`, `tftp` y `@mount.httpfs2`. No hay NetworkManager en el initrd.
@@ -74,23 +74,25 @@ ip=192.168.1.10:192.168.1.1:192.168.1.1:255.255.255.0
 ip=192.168.1.10:192.168.1.1:192.168.1.1:255.255.255.0:8080
 ```
 
-### Cómo se descargan los archivos
+### Cómo se obtienen los archivos
 
-1. **HTTP** (preferido):  
-   `http://<server-ip>:<port>/PXEFILELIST?<kernel-release>:<machine>`  
+1. **HTTP** (preferido):
+   `http://<server-ip>:<port>/PXEFILELIST?<kernel-release>:<machine>`
    luego cada ruta listada en ese archivo desde el mismo host/puerto.
-2. **TFTP** (respaldo si falla HTTP): busybox `tftp` para `PXEFILELIST` y los archivos listados.
+2. **TFTP**: busybox `tftp` se selecciona solo si la solicitud HTTP inicial para
+   `PXEFILELIST` falla. Un fallo posterior en la descarga de archivos por HTTP no cambia la
+   transferencia a TFTP.
 
-El puerto por defecto es **7529** cuando se omite el quinto campo.
+El puerto predeterminado es **7529** cuando se omite el quinto campo.
 
-### Lo que `ip=` no es
+### Qué no es `ip=`
 
 | Expectativa | Realidad |
 |-------------|---------|
-| Formatos de kernel / dracut (`ip=dhcp`, `ip=:::::eth0:dhcp`, …) | **No soportado** — se interpreta erróneamente como dirección de cliente |
-| IP estática para toda la sesión en vivo | **No soportado** — después del arranque, NetworkManager (o similar) gestiona la interfaz |
-| IP estática mientras aún se arranca desde USB/ISO | **No usar** — fuerza la descarga de datos PXE |
-| Lista DNS dedicada | Solo gateway + server se usan como servidores DNS en el initrd |
+| Formatos de kernel / dracut (`ip=dhcp`, `ip=:::::eth0:dhcp`, …) | **No soportado** — se interpreta erróneamente como una dirección de cliente |
+| IP estática para toda la sesión live | **No soportado** — después del arranque, NetworkManager (o similar) controla la interfaz |
+| IP estática al cargar datos de MiniOS desde USB/ISO | **No usar** — sin `from=http://…`, fuerza la descarga de datos por PXE |
+| Lista DNS dedicada | Solo gateway + servidor se usan como servidores DNS en el initrd |
 
 ## Arranque HTTP ISO (`from=http://…`)
 
@@ -127,22 +129,22 @@ El userspace tardío **live-config** puede levantar la red brevemente solo para 
 
 ## Errores comunes
 
-1. Colocar `ip=` en la línea de comandos USB/ISO “para IP estática” → el sistema intenta descargar por PXE en lugar de usar el medio local.
-2. Usar `ip=dhcp` u otra sintaxis del kernel `ip=` → parser incorrecto, configuración de dirección rota.
+1. Colocar `ip=` en la línea de comandos de USB/ISO "para IP estática" → el sistema intenta descargar por PXE en vez de usar el medio local a menos que `from=http://…` haya seleccionado primero el arranque HTTP ISO.
+2. Usar `ip=dhcp` u otra sintaxis de kernel `ip=` → parser incorrecto, configuración de dirección rota.
 3. Esperar selección de Wi‑Fi o multi-NIC `BOOTIF` en el initrd → no implementado.
-4. Usar una imagen **Flux** para PXE/HTTP ISO → faltan módulos de red en el initrd.
+4. Usar una imagen **Flux** para PXE/HTTP ISO → módulos de red ausentes en el initrd.
 5. Servir el ISO solo por HTTPS → `from=http://…` no coincidirá.
 6. Confundir esto con la configuración estática de NetworkManager/instalador después de iniciar sesión.
 
 ## Resumen de fiabilidad
 
 | Escenario | Evaluación |
-|-----------|------------|
-| PXE + `ip=…` + lista HTTP en :7529 (o TFTP), red cableada simple / virtio | Objetivo compatible |
+|----------|------------|
+| PXE + `ip=…` + lista HTTP en :7529 (o TFTP después de que falle la solicitud HTTP de la lista), cableado simple / virtio | Objetivo soportado |
 | `from=http://…iso` + DHCP (o `ip=`), misma clase de NIC | Suele funcionar |
-| Arranque normal por USB/ISO | Red Initrd no utilizada |
-| Sesión estática vía `ip=` | No compatible |
-| Multi-NIC / NIC de firmware / Wi‑Fi / `https://` / edición Flux | Débil o no compatible |
+| Arranque normal por USB/ISO | Red de initrd no utilizada |
+| Sesión estática vía `ip=` | No soportado |
+| Multi-NIC / NIC con firmware / Wi‑Fi / `https://` / edición Flux | Débil o no soportado |
 
 ## Referencia de implementación
 
@@ -157,6 +159,7 @@ El userspace tardío **live-config** puede levantar la red brevemente solo para 
 ## Ver también
 
 - [Parámetros de arranque](/configuration/Boot-Parameters.md) — tabla completa de parámetros (`ip`, `from`, `cache`, …)
-- [live-config](/configuration/live-config.md) — configuración de userspace tardío (no arranque por red)
+- [Descubrimiento del sistema en initrd](/configuration/Initrd-System-Discovery.md) — prioridad de fuentes, descubrimiento local y comportamiento ante fallos
+- [live-config](/configuration/live-config.md) — configuración tardía en userspace (no arranque por red)
 - [Arquitectura del sistema](/about/System-Architecture.md)
-- [Construyendo MiniOS](/development/Building-MiniOS.md) — constructor de initramfs (`livekit` / `dracut`)
+- [Compilación de MiniOS](/development/Building-MiniOS.md) — constructor de initramfs (`livekit` / `dracut`)

@@ -19,6 +19,12 @@ The Modules workspace keeps two separate views:
 
 Changing one view does not silently change the other. For example, **Activate for This Session** affects only the running system, while **Add to Next Boot** copies a module to durable module storage without activating it now.
 
+For the authoritative boot-time rules, including candidate source tiers,
+exact-basename replacement, numeric ordering, and `load=`, `noload=`, and
+`bext=` filtering, see
+[Initrd module loading](/configuration/Initrd-Module-Loading.md). That guide
+also explains why Running Now and Next Boot can differ.
+
 Runtime activation and deactivation are available only when the root filesystem is currently using AUFS. They are not available on an OverlayFS root, even if the kernel supports AUFS. Base modules cannot be deactivated through the application.
 
 Next-boot changes are available only when MiniOS finds suitable durable, writable module storage. Base modules and modules on read-only or volatile storage cannot be removed. Boot filters such as `load`, `noload`, and `bext` still determine which modules are selected.
@@ -61,5 +67,7 @@ Dropping an item does not execute code or change Running Now or Next Boot.
 ## Related documentation
 
 - [Creating modules](/development/Creating-Modules.md)
+- [Initrd module loading](/configuration/Initrd-Module-Loading.md)
+- [Boot modes](/configuration/Boot-Modes.md)
 - [Composing ISO images from the command line](/development/Rebuilding-ISO.md)
 - [Boot parameters](/configuration/Boot-Parameters.md)

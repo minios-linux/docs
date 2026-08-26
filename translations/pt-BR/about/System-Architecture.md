@@ -2,21 +2,33 @@
 
 O MiniOS inicializa um sistema operacional somente leitura montado a partir de módulos SquashFS e adiciona uma camada gravável para a sessão atual. O initramfs é responsável por localizar a mídia, selecionar módulos e persistência, construir o sistema de arquivos raiz, aplicar configurações iniciais e transferir o controle para o sistema de inicialização instalado.
 
-## Descoberta de boot
+## Descoberta do boot
 
-O bootloader do BIOS ou UEFI carrega um kernel Linux e o initramfs do MiniOS a partir de `minios/boot/`. O initramfs então procura dispositivos de bloco por um diretório `minios` contendo módulos `.sb`. O parâmetro de boot `from=` pode, alternativamente, indicar um diretório, dispositivo de bloco e caminho, arquivo ISO local ou seleção interativa `askdisk`. Um ISO local é montado em loop antes que seu diretório `minios` seja utilizado.
+O bootloader BIOS ou UEFI carrega um kernel Linux e o initramfs do MiniOS a partir de
+`minios/boot/`. O initramfs então descobre a árvore de dados do MiniOS que contém
+os módulos live. A origem pode ser local, selecionada interativamente ou fornecida
+por um caminho de rede compatível; um ISO local é montado em loop antes de sua árvore de dados
+ser utilizada. A precedência exata e os formatos aceitos de `from=` estão documentados em
+[Descoberta do sistema no Initrd](/configuration/Initrd-System-Discovery.md).
 
-A mesma etapa de descoberta suporta fontes ISO via HTTP e PXE. A configuração de rede opcional no início do boot serve apenas para **carregar o MiniOS pela rede** (PXE / ISO HTTP). Não é uma configuração de rede persistente para a sessão. Veja
+A mesma etapa de descoberta suporta fontes ISO HTTP e PXE. A configuração de rede opcional no início do boot
+serve apenas para **carregar o MiniOS pela rede** (PXE / ISO HTTP).
+Não é uma configuração de rede persistente para a sessão. Veja
 [Boot pela rede](/installation/Network-Boot.md).
 
-Após a descoberta, `toram=trim` pode copiar os módulos selecionados e dados necessários para a RAM, enquanto `toram=full` copia a árvore de dados da mídia. Veja
-[Parâmetros de boot](/configuration/Boot-Parameters.md) para opções de origem, filtragem e cópia para RAM.
+Após a descoberta, o MiniOS pode, opcionalmente, preparar uma cópia em RAM. Se a fonte original continuará sendo necessária depende do modo de cópia, persistência e do sucesso no desligamento. Consulte [Modos de boot](/configuration/Boot-Modes.md) para o modelo operacional.
 
 ## Composição de módulos
 
-Cada arquivo `.sb` é um sistema de arquivos SquashFS somente leitura. Módulos embutidos são armazenados diretamente em `minios/`; módulos adicionais podem ser armazenados em `minios/modules/`, incluindo armazenamento durável de módulos em um dispositivo de persistência gravável. O initramfs descobre ambos os locais, aplica os filtros `load=` e `noload=`, ordena os arquivos selecionados pelo prefixo numérico do nome e os monta como somente leitura.
+Cada arquivo `.sb` é um sistema de arquivos SquashFS somente leitura. Módulos internos são armazenados
+diretamente em `minios/`; locais adicionais de módulos podem contribuir para a
+composição ordenada. O initramfs seleciona, ordena e monta as camadas resultantes
+somente leitura. Níveis candidatos, substituição de basename, filtros, extensões de bundle personalizadas
+e coordenação com o kernel em execução são especificados em
+[Carregamento de módulos no Initrd](/configuration/Initrd-Module-Loading.md).
 
-Uma imagem típica do Xfce contém os seguintes papéis ordenados, embora nomes e números exatos dependam da build e dos módulos pulados para aquele alvo:
+Uma imagem típica do Xfce contém os seguintes papéis ordenados, embora os nomes
+exatos e quantidades dependam da build e dos módulos ignorados para aquele alvo:
 
 ```text
 00-core-<arch>.sb
@@ -27,34 +39,53 @@ Uma imagem típica do Xfce contém os seguintes papéis ordenados, embora nomes 
 05-apps-<arch>.sb or the next applicable module
 ```
 
-Módulos posteriores têm maior precedência e podem substituir caminhos fornecidos por módulos anteriores. Um módulo pode depender de arquivos em qualquer módulo de número inferior, então um conjunto de arquivos de módulo é uma composição ordenada, não apenas uma coleção de pacotes independentes.
+Módulos posteriores têm maior precedência e podem substituir caminhos fornecidos por módulos anteriores.
+Um módulo pode depender de arquivos em qualquer módulo de número inferior, então um conjunto
+de arquivos de módulo é uma composição ordenada, não apenas uma coleção de
+pacotes independentes.
 
 ## AUFS e OverlayFS
 
-O MiniOS utiliza um sistema de arquivos union para apresentar os módulos e a camada gravável como um único sistema de arquivos raiz. Ele seleciona AUFS quando o kernel em execução oferece suporte e recorre ao OverlayFS caso contrário. `union=aufs` solicita AUFS, mas ainda recorre ao OverlayFS se o AUFS não estiver disponível; `union=overlayfs` seleciona OverlayFS.
+O MiniOS utiliza um sistema de arquivos union para apresentar os módulos e a camada gravável como um único
+sistema de arquivos raiz. Ele seleciona AUFS quando o kernel em execução o suporta e recorre ao OverlayFS caso contrário. `union=aufs` solicita AUFS, mas ainda recorre ao OverlayFS quando AUFS não está disponível; `union=overlayfs` seleciona OverlayFS.
 
 As duas implementações têm uma diferença operacional importante:
 
-- AUFS começa com o ramo gravável e adiciona módulos montados como ramos somente leitura. O MiniOS pode ativar ou desativar um módulo no sistema raiz em execução quando o ponto de montagem AUFS suporta essa operação.
-- OverlayFS recebe sua lista completa e ordenada `lowerdir` quando o root é montado, além de um `upperdir` e `workdir`. O conjunto de módulos inferiores não pode ser alterado em tempo real pelo Gerenciador de Módulos.
+- AUFS começa com o branch gravável e adiciona os módulos montados como branches somente leitura. O MiniOS pode ativar ou desativar um módulo no root em execução quando
+a montagem AUFS suporta essa operação.
+- OverlayFS recebe sua lista completa e ordenada de `lowerdir` quando o root é
+montado, além de um `upperdir` e `workdir`. Seu conjunto de módulos inferiores não pode ser
+alterado em tempo real pelo Gerenciador de Módulos.
 
-Por isso, o Gerenciador de Módulos separa **Executando agora**, o conjunto de módulos montados, de **Próxima inicialização**, os módulos selecionados pela mídia atual e regras de boot. Adicionar ou remover um módulo durável normalmente altera apenas a próxima inicialização. Criar ou abrir um módulo não o ativa. Ativação e desativação em tempo real estão disponíveis apenas com AUFS.
+Por isso, o Gerenciador de Módulos separa **Executando agora**, o conjunto de módulos montados,
+de **Próximo boot**, os módulos selecionados pela mídia atual e regras de boot. Adicionar
+ou remover um módulo durável normalmente altera apenas o próximo boot. Criar ou
+abrir um módulo não o ativa. Ativação e desativação em tempo real estão disponíveis apenas com AUFS.
+
+Após a montagem do root e a conclusão da configuração inicial, o initrd do LiveKit usa
+`pivot_root`, mantém o initrd antigo para tarefas de desligamento e executa o init do novo root. O caminho do dracut prepara o mesmo root montado, mas deixa a etapa final de `switch_root` para o dracut. Veja
+[Carregamento de módulos no Initrd](/configuration/Initrd-Module-Loading.md) para detalhes
+sobre o limite de transição.
 
 ## Camada gravável e sessões
 
-Sem persistência, a camada gravável é mantida na memória e desaparece ao desligar. A persistência coloca essa camada em uma sessão numerada sob `minios/changes/`. `session.conf` registra a sessão padrão para o próximo boot, a sessão usada pelo boot atual, metadados de compatibilidade, estado e configurações específicas do modo.
+Sem persistência, a camada gravável é baseada em memória e desaparece ao desligar.
+A persistência pode, em vez disso, ativar uma sessão numerada com um backend de armazenamento compatível. Seleção, compatibilidade, falha na ativação, autoridade do boot atual e durabilidade estão definidos em
+[Persistência no Initrd](/configuration/Initrd-Persistence.md).
 
 | Modo | Armazenamento gravável | Observações |
 |------|-----------------------|-------------|
 | `native` | Arquivos armazenados diretamente no diretório da sessão | Requer um sistema de arquivos POSIX gravável que preserve metadados do Linux. |
 | `dynfilefs` | Sistema de arquivos ext4 expansível dividido em arquivos de apoio | Suporta sistemas de arquivos POSIX e mídias FAT32, NTFS ou exFAT. |
 | `raw` | `changes.img` de tamanho fixo contendo ext4 | Suporta sistemas de arquivos POSIX e mídias FAT32, NTFS ou exFAT. |
-| `luks` | LUKS2 `changes.luks` contendo ext4 | Requer cryptsetup e um initramfs construído com suporte a criptografia MiniOS. A senha é solicitada durante o boot. |
+| `luks` | LUKS2 `changes.luks` contendo ext4 | Requer cryptsetup e um initramfs construído com suporte a criptografia do MiniOS. A senha é solicitada durante o boot. |
 | `squashfs` | Snapshot `changes.sb` compactado | Descompactado na RAM para uso; ao salvar, reconstrói e substitui o snapshot de forma atômica. O sistema de arquivos de persistência deve preservar os metadados do Linux durante o salvamento. |
 
-A sessão ativa é o padrão para o próximo boot. A sessão em execução é aquela já montada no root atual. Ativar outra sessão não substitui a camada gravável atual. As verificações de compatibilidade da sessão incluem a versão do MiniOS, edição, sistema de arquivos union e modo de persistência.
+A sessão ativa selecionada para um futuro resume e a camada gravável realmente
+autorizada para o boot atual são estados relacionados, porém distintos. Alterar uma seleção futura não substitui a camada gravável em execução.
 
-Veja [Gerenciamento de sessões](/configuration/Session-Management.md) para comandos de criação, seleção, dimensionamento, criptografia, conversão, exportação e recuperação.
+Veja [Gerenciamento de sessões](/configuration/Session-Management.md) para comandos de criação,
+seleção, dimensionamento, criptografia, conversão, exportação e recuperação.
 
 ## Precedência de configuração
 
@@ -99,6 +130,10 @@ Os caminhos inicializados sob `/run/initramfs/memory/` são pontos de montagem d
 
 ## Documentação relacionada
 
+- [Modos de boot](/configuration/Boot-Modes.md)
+- [Descoberta do sistema no Initrd](/configuration/Initrd-System-Discovery.md)
+- [Carregamento de módulos no Initrd](/configuration/Initrd-Module-Loading.md)
+- [Persistência no Initrd](/configuration/Initrd-Persistence.md)
 - [Parâmetros de boot](/configuration/Boot-Parameters.md)
 - [Menus de boot](/configuration/Boot-Menus.md)
 - [Arquivo de configuração](/configuration/Configuration-File.md)

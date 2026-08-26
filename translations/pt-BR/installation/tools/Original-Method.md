@@ -6,13 +6,13 @@ Este método legado de instalação do MiniOS consiste em copiar os arquivos do 
 
 ## Importante
 
-**Atenção:** Selecionar o dispositivo incorreto resultará em perda de dados. Sempre confira o drive selecionado e faça backup dos dados importantes.
+**Atenção:** Este procedimento reparticiona e formata o dispositivo selecionado. Ele é destrutivo para todo o dispositivo, não apenas para os arquivos atualmente visíveis nele. Faça backup dos dados importantes e verifique o caminho exato do dispositivo, modelo, capacidade, partição e ponto de montagem antes de executar `fdisk`, `mkfs` ou `bootinst`. Sempre que possível, desconecte outros dispositivos removíveis.
 
 ## Requisitos do drive
 
 ### Tamanho do drive
 
-Consulte o [Guia de compatibilidade de hardware](/installation/Hardware-Compatibility.md#system-requirements) para requisitos detalhados de sistema e tamanhos de drive.
+Consulte o [Guia de compatibilidade de hardware](/installation/Hardware-Compatibility.md) para requisitos detalhados de sistema e tamanhos de drive.
 
 ### Requisitos técnicos
 
@@ -22,26 +22,33 @@ Consulte o [Guia de compatibilidade de hardware](/installation/Hardware-Compatib
 
 ## Criando um pendrive USB bootável
 
-### Passo 1: Preparar o drive
+### Passo 1: Prepare o drive
 
 **Windows:**
 1. Abra o "Gerenciamento de Disco" (`Win+R`, depois `diskmgmt.msc`)
-2. Localize o pendrive USB, clique com o botão direito e selecione "Excluir Volume"
-3. Clique com o botão direito no espaço não alocado e selecione "Novo Volume Simples"
-4. Escolha o sistema de arquivos: FAT32 (recomendado) ou NTFS
+2. Verifique o dispositivo USB pelo número do disco, modelo e capacidade. Não continue se houver qualquer dúvida.
+3. Clique com o botão direito no volume e selecione "Excluir Volume"
+4. Clique com o botão direito no espaço não alocado e selecione "Novo Volume Simples"
+5. Escolha o sistema de arquivos: FAT32 (recomendado) ou NTFS
 
 **Linux:**
+
+Defina `TARGET_DISK` e `TARGET_PARTITION` para os caminhos exatos somente após conferir o modelo e a capacidade do dispositivo em `lsblk`. O comando `fdisk` sobrescreve a tabela de partições em todo o disco de destino. Execute apenas um comando `mkfs` para o sistema de arquivos desejado.
+
 ```bash
-# Identify the device
-lsblk
+lsblk -o NAME,PATH,SIZE,FSTYPE,LABEL,MOUNTPOINTS,MODEL
+TARGET_DISK=/dev/sdX
+TARGET_PARTITION=/dev/sdX1
+lsblk -o NAME,PATH,SIZE,FSTYPE,LABEL,MOUNTPOINTS,MODEL "$TARGET_DISK"
 
 # Create new MBR partition table
-sudo fdisk /dev/sdX
+sudo fdisk "$TARGET_DISK"
 # In fdisk: o (new table), n (new partition), p (primary), a (bootable), w (write)
 
-# Create file system
-sudo mkfs.vfat -F 32 /dev/sdX1  # For FAT32
-sudo mkfs.ext4 /dev/sdX1         # For ext4
+# Verify the new partition, then create one filesystem
+lsblk -o NAME,PATH,SIZE,FSTYPE,LABEL,MOUNTPOINTS,MODEL "$TARGET_DISK"
+sudo mkfs.vfat -F 32 "$TARGET_PARTITION"  # For FAT32
+# Or: sudo mkfs.ext4 "$TARGET_PARTITION"  # For ext4
 ```
 
 ### Passo 2: Extraia e copie os arquivos
@@ -55,45 +62,42 @@ sudo mkfs.ext4 /dev/sdX1         # For ext4
 ```bash
 sudo mkdir /mnt/minios-iso
 sudo mount -o loop MiniOS.iso /mnt/minios-iso
+
+TARGET_PARTITION=/dev/sdX1
+sudo mkdir /mnt/minios-target
+sudo mount "$TARGET_PARTITION" /mnt/minios-target
+findmnt --mountpoint /mnt/minios-target
 ```
 
-**Copiando os arquivos:**
+**Copiando arquivos:**
 1. **Encontre a pasta `/minios/`** no ISO montado
-2. **Copie toda a pasta `/minios/`** para a raiz do pendrive USB
+2. **Copie toda a pasta `/minios/`** para a raiz do drive USB
 
-### Etapa 3: Instale o bootloader
+No Linux, o destino raiz no exemplo acima é `/mnt/minios-target`. Confirme que `findmnt --mountpoint /mnt/minios-target` mostra exatamente a partição selecionada no Passo 1 antes de copiar os arquivos.
 
-Navegue até a pasta `/minios/boot/syslinux/` na unidade e execute o instalador:
+### Passo 3: Instale o bootloader
+
+Acesse a pasta `/minios/boot/syslinux/` no drive e execute o instalador:
+
+`bootinst` grava o código de boot no disco a partir do local onde o instalador está. Leia [Recuperação de Boot](/administration/Boot-Recovery.md) antes de alterar o código de boot e não execute o instalador até verificar o dispositivo e o ponto de montagem.
 
 **Windows:**
-- Execute `bootinst.bat` **como administrador**
+- Abra o drive USB verificado pela letra exata, acesse `minios\boot\syslinux` e execute `bootinst.bat` **como administrador**.
 
 **Linux:**
 ```bash
-lsblk -o NAME,SIZE,FSTYPE,LABEL,MOUNTPOINTS,MODEL
-TARGET_MOUNT="/media/$USER/MINIOS"
+TARGET_MOUNT=/mnt/minios-target
+findmnt --mountpoint "$TARGET_MOUNT"
+lsblk -o NAME,PATH,SIZE,FSTYPE,LABEL,MOUNTPOINTS,MODEL
 cd "$TARGET_MOUNT/minios/boot/syslinux"
 chmod +x bootinst.sh
 sudo ./bootinst.sh
 ```
 
-Substitua `MINIOS` pelo diretório de montagem exato verificado com `lsblk`. Não utilize curingas: o script identifica o disco de destino a partir de sua própria localização e grava o código de boot nesse disco.
+Não substitua o ponto de montagem por um caractere curinga. O script identifica o disco de destino a partir do seu próprio local e grava o código de boot nesse disco.
 
-## Persistência automática de alterações
+## Resultado e persistência
 
-No primeiro boot, o MiniOS verificará o tipo de sistema de arquivos do drive e tentará usar o modo de persistência de alterações mais adequado:
+Este procedimento cria uma instalação live baseada em arquivos ao colocar a árvore `minios/` e o bootloader em um sistema de arquivos normal. Não se trata de uma gravação ISO bruta, de um multiboot com arquivo ISO, nem de uma implantação do instalador MiniOS.
 
-- **ext2/3/4, Btrfs**: tenta usar o modo `native` (salvamento direto)
-- **FAT32/NTFS**: usa o modo `dynfilefs` (arquivo dinâmico)
-- Quando o modo nativo não está disponível, alterna automaticamente para dynfilefs
-
-### Configuração de parâmetros para usuários avançados
-
-Quando é necessária uma configuração de persistência precisa, parâmetros de boot podem ser utilizados:
-
-- `perchmode=native` - Salvamento direto na partição (para ext4)
-- `perchmode=dynfilefs` - Arquivo expansível dinamicamente
-- `perchmode=raw` - Arquivo de tamanho fixo
-- `perchsize=8000` - Tamanho do espaço de armazenamento de dados em MB
-
-Mais detalhes em [parâmetros de boot](/configuration/Boot-Parameters.md).
+O sistema de arquivos escolhido afeta quais backends de persistência podem funcionar, mas não habilita a persistência nem garante que uma sessão será criada. A persistência só é ativada quando uma entrada de boot ou linha de comando do kernel solicita, e a ativação ainda requer armazenamento gravável adequado. Consulte [Modos de Boot](/configuration/Boot-Modes.md) e [Persistência Initrd](/configuration/Initrd-Persistence.md) antes de confiar em alterações salvas.

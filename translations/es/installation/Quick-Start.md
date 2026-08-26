@@ -37,28 +37,26 @@ Elige un método y lee su guía antes de seleccionar un dispositivo:
 Otros métodos documentados son [UNetbootin](/installation/tools/UNetbootin.md) y el [método original](/installation/tools/Original-Method.md). Consulta
 [Herramientas de creación USB](/installation/tools/USB-Creation-Tools.md) para una comparación y [Instalando MiniOS](/installation/Installing-MiniOS.md) para la visión general de la instalación.
 
-## 3. Entiende la persistencia antes de escribir
+## 3. Comprende la persistencia antes de escribir
 
 No todos los métodos de escritura o arranque crean persistencia.
 
-- Una escritura de imagen sin procesar con `dd`, Etcher u otra herramienta similar reproduce el ISO. Por sí sola, no configura una sesión persistente.
+- Una escritura de imagen en bruto con `dd`, Etcher u otra herramienta similar reproduce el ISO. Por sí sola, no configura una sesión persistente.
 - Ventoy normalmente arranca el ISO como un archivo. La persistencia de MiniOS debe configurarse por separado.
-- MiniOS Installer puede crear una instalación en vivo y configurar almacenamiento de sesión nativo, DynFileFS, sin procesar o cifrado con LUKS.
-- Un arranque nuevo se ejecuta deliberadamente sin persistencia. Otras entradas del menú de arranque de MiniOS pueden reanudar, crear o seleccionar sesiones cuando hay almacenamiento escribible disponible.
+- El instalador de MiniOS puede crear una instalación en vivo y configurar almacenamiento de sesión nativo, DynFileFS, en bruto o cifrado con LUKS.
+- Un arranque nuevo se ejecuta deliberadamente sin persistencia. Otras entradas del menú de arranque de MiniOS pueden reanudar, crear o seleccionar sesiones cuando haya almacenamiento escribible disponible.
 - Una instalación nativa es un sistema instalado convencional y no utiliza la persistencia de sesión en vivo de la misma manera.
 
-Consulta [Gestión de sesiones](/configuration/Session-Management.md) y [Parámetros de arranque](/configuration/Boot-Parameters.md) antes de modificar el almacenamiento de sesiones. Mantén una copia de seguridad de los archivos importantes, independientemente del modo de persistencia.
+Utiliza [Modos de arranque](/configuration/Boot-Modes.md) como la guía principal sobre el comportamiento visible para el usuario durante el arranque en vivo. Consulta [Gestión de sesiones](/configuration/Session-Management.md) para las opciones de almacenamiento, [Persistencia Initrd](/configuration/Initrd-Persistence.md) para el contrato detallado en el arranque y [Parámetros de arranque](/configuration/Boot-Parameters.md) antes de modificar opciones del kernel. Mantén siempre una copia de seguridad de los archivos importantes, independientemente del modo de persistencia.
 
-## 4. Arranca MiniOS
+## 4. Arrancar MiniOS
 
 1. Apaga el ordenador y conecta el dispositivo preparado.
 2. Abre el menú de arranque del firmware y selecciona la entrada UEFI o legacy del dispositivo.
 3. Selecciona una sesión nueva para una prueba inicial de hardware, o una sesión persistente solo si ya ha sido configurada.
-4. Confirma que gráficos, teclado, almacenamiento y red funcionan antes de realizar cambios de instalación destructivos.
+4. Confirma que la gráfica, el teclado, el almacenamiento y la red funcionan antes de realizar cambios de instalación destructivos.
 
-Si el dispositivo no aparece en la lista o el escritorio no inicia, consulta
-[Compatibilidad de hardware](/installation/Hardware-Compatibility.md) y
-[Solución de problemas](/administration/Troubleshooting.md).
+Si el dispositivo no aparece en la lista o el escritorio no inicia, consulta [Compatibilidad de hardware](/installation/Hardware-Compatibility.md) y [Solución de problemas](/administration/Troubleshooting.md). Para fallos al localizar la fuente en vivo, revisa [Descubrimiento del sistema Initrd](/configuration/Initrd-System-Discovery.md).
 
 ## 5. Configura el sistema
 
@@ -82,9 +80,9 @@ Configura conexiones normales por cable y Wi-Fi con la [Configuración de red](/
 
 ## 6. Instala software y guarda tu trabajo
 
-Los cambios realizados con APT en una sesión en vivo solo se conservan tras reiniciar si la sesión es persistente. Los módulos SquashFS permanecen separados de la sesión escribible y pueden cargarse como parte del sistema modular; consulta [Creación de módulos](/development/Creating-Modules.md).
+Los cambios realizados con APT en una sesión en vivo solo se conservan tras reiniciar si esa sesión es persistente. Los módulos SquashFS permanecen separados de la sesión escribible y pueden cargarse como parte del sistema modular; consulta [Creación de módulos](/development/Creating-Modules.md) y [Carga de módulos Initrd](/configuration/Initrd-Module-Loading.md).
 
-Guarda los archivos importantes en un almacenamiento conocido como escribible y prueba al menos un apagado y reinicio limpios antes de depender de una sesión persistente.
+Guarda los archivos importantes en un almacenamiento conocido como escribible y prueba al menos un apagado y reinicio limpios antes de confiar en una sesión persistente.
 
 ## Obtener ayuda
 

@@ -4,15 +4,25 @@ MiniOS avvia un sistema operativo in sola lettura assemblato da moduli SquashFS 
 
 ## Scoperta del boot
 
-Il bootloader BIOS o UEFI carica un kernel Linux e l'initramfs di MiniOS da `minios/boot/`. L'initramfs quindi cerca sui dispositivi a blocchi una directory `minios` contenente moduli `.sb`. Il parametro di boot `from=` può invece specificare una directory, un dispositivo a blocchi e percorso, un file ISO locale o una selezione interattiva `askdisk`. Un ISO locale viene montato in loop prima che la sua directory `minios` venga utilizzata.
+Il bootloader BIOS o UEFI carica un kernel Linux e l'initramfs di MiniOS da
+`minios/boot/`. L'initramfs quindi individua l'albero dati di MiniOS che contiene
+i moduli live. La sorgente può essere locale, selezionata interattivamente oppure fornita
+tramite un percorso di rete supportato; un ISO locale viene montato in loop prima che il suo albero dati
+venga utilizzato. La precedenza esatta e i formati accettati di `from=` sono documentati in
+[Scoperta del sistema Initrd](/configuration/Initrd-System-Discovery.md).
 
-La stessa fase di scoperta supporta sorgenti ISO HTTP e PXE. La rete opzionale all'avvio serve **solo per caricare MiniOS tramite rete** (PXE / ISO HTTP). Non è una configurazione di rete persistente per la sessione. Vedi [Avvio da rete](/installation/Network-Boot.md).
+La stessa fase di scoperta supporta sorgenti ISO HTTP e PXE. La rete opzionale in fase di early-boot
+serve solo per **caricare MiniOS tramite rete** (PXE / ISO HTTP). Non si tratta di una configurazione di rete persistente per la sessione. Vedi
+[Boot da rete](/installation/Network-Boot.md).
 
-Dopo la scoperta, `toram=trim` può copiare i moduli selezionati e i dati necessari in RAM, mentre `toram=full` copia l'albero dati del supporto. Consulta [Parametri di boot](/configuration/Boot-Parameters.md) per opzioni su sorgenti, filtri e copia in RAM.
+Dopo la scoperta, MiniOS può opzionalmente preparare una copia in RAM. Se la sorgente originale rimane necessaria dipende dalla modalità di copia, dalla persistenza e dal distacco riuscito. Consulta [Modalità di boot](/configuration/Boot-Modes.md) per il modello operativo.
 
 ## Composizione dei moduli
 
-Ogni file `.sb` è un filesystem SquashFS in sola lettura. I moduli integrati sono memorizzati direttamente sotto `minios/`; moduli aggiuntivi possono essere archiviati sotto `minios/modules/`, inclusa la memorizzazione durevole dei moduli su un dispositivo di persistenza scrivibile. L'initramfs rileva entrambe le posizioni, applica i filtri `load=` e `noload=`, ordina i file selezionati in base al prefisso numerico del nome file e li monta in sola lettura.
+Ogni file `.sb` è un filesystem SquashFS in sola lettura. I moduli integrati sono memorizzati
+direttamente sotto `minios/`; ulteriori percorsi di moduli possono contribuire alla
+composizione ordinata. L'initramfs seleziona, ordina e monta i layer risultanti in sola lettura. I livelli candidati, la sostituzione del basename, i filtri, le estensioni bundle personalizzate e il coordinamento con il kernel in esecuzione sono specificati in
+[Caricamento moduli Initrd](/configuration/Initrd-Module-Loading.md).
 
 Un'immagine tipica di Xfce contiene i seguenti ruoli ordinati, anche se nomi e numeri esatti dipendono dalla build e dai moduli saltati per quel target:
 
@@ -25,34 +35,39 @@ Un'immagine tipica di Xfce contiene i seguenti ruoli ordinati, anche se nomi e n
 05-apps-<arch>.sb or the next applicable module
 ```
 
-I moduli successivi hanno precedenza più alta e possono sostituire i percorsi forniti dai moduli precedenti. Un modulo può dipendere dai file di ogni modulo con numero inferiore, quindi un insieme di file modulo è una composizione ordinata e non una semplice raccolta di pacchetti indipendenti.
+I moduli successivi hanno precedenza più alta e possono sostituire i percorsi forniti dai moduli precedenti. Un modulo può dipendere da file presenti in ogni modulo con numero inferiore, quindi un insieme di file modulo è una composizione ordinata e non una semplice raccolta di pacchetti indipendenti.
 
 ## AUFS e OverlayFS
 
-MiniOS utilizza un filesystem unione per presentare i moduli e lo strato scrivibile come un unico filesystem root. Seleziona AUFS quando il kernel in esecuzione lo supporta e passa a OverlayFS in caso contrario. `union=aufs` richiede AUFS ma passa comunque a OverlayFS se AUFS non è disponibile; `union=overlayfs` seleziona OverlayFS.
+MiniOS utilizza un filesystem unione per presentare i moduli e il layer scrivibile come un unico filesystem root. Seleziona AUFS quando il kernel in esecuzione lo supporta e passa a OverlayFS in caso contrario. `union=aufs` richiede AUFS ma passa comunque a OverlayFS se AUFS non è disponibile; `union=overlayfs` seleziona OverlayFS.
 
-Le due implementazioni hanno una differenza operativa importante:
+Le due implementazioni presentano una differenza operativa importante:
 
-- AUFS parte dal ramo scrivibile e aggiunge i moduli montati come rami in sola lettura. MiniOS può attivare o disattivare un modulo nel root in esecuzione quando il mount AUFS lo consente.
-- OverlayFS riceve la sua lista `lowerdir` completa e ordinata al momento del mount del root, più un `upperdir` e `workdir`. L'insieme dei moduli inferiori non può essere modificato al volo dal Module Manager.
+- AUFS inizia con il ramo scrivibile e aggiunge i moduli montati come rami in sola lettura. MiniOS può attivare o disattivare un modulo nel root in esecuzione quando il mount AUFS supporta tale operazione.
+- OverlayFS riceve la sua lista `lowerdir` ordinata completa al momento del mount del root, più un `upperdir` e `workdir`. L'insieme dei moduli inferiori non può essere modificato in tempo reale dal Module Manager.
 
-Per questo motivo, Module Manager separa **Attivi ora**, l'insieme dei moduli montati, da **Prossimo avvio**, i moduli selezionati dai supporti e dalle regole di boot correnti. L'aggiunta o la rimozione di un modulo durevole normalmente modifica solo il prossimo avvio. Creare o aprire un modulo non lo attiva. L'attivazione e la disattivazione a runtime sono possibili solo con AUFS.
+Per questo motivo, Module Manager separa **In esecuzione ora**, cioè l'insieme dei moduli montati,
+da **Prossimo boot**, ovvero i moduli selezionati dai supporti e dalle regole di boot correnti. L'aggiunta o la rimozione di un modulo persistente normalmente modifica solo il prossimo boot. Creare o aprire un modulo non lo attiva. L'attivazione e la disattivazione a runtime sono disponibili solo con AUFS.
 
-## Strato scrivibile e sessioni
+Dopo che il root è stato assemblato e il setup iniziale completato, l'initrd LiveKit utilizza `pivot_root`, mantiene il vecchio initrd per le operazioni di spegnimento ed esegue l'init del nuovo root. Il percorso dracut prepara lo stesso root assemblato ma lascia la fase finale di `switch_root` a dracut. Consulta
+[Caricamento moduli Initrd](/configuration/Initrd-Module-Loading.md) per i dettagli sul passaggio di consegne.
 
-Senza persistenza, lo strato scrivibile è in RAM e viene perso allo spegnimento. La persistenza colloca quello strato in una sessione numerata sotto `minios/changes/`. `session.conf` registra la sessione predefinita per il prossimo avvio, la sessione usata dall'avvio corrente, i metadati di compatibilità, lo stato e le impostazioni specifiche della modalità.
+## Layer scrivibile e sessioni
 
-| Modalità | Archiviazione scrivibile | Note |
-|------|------------------|-------|
-| `native` | File archiviati direttamente nella directory della sessione | Richiede un filesystem POSIX scrivibile che preservi i metadati Linux. |
-| `dynfilefs` | Filesystem ext4 espandibile suddiviso tra file di appoggio | Supporta filesystem POSIX e supporti FAT32, NTFS o exFAT. |
+Senza persistenza, il layer scrivibile è supportato dalla memoria e scompare allo spegnimento. La persistenza può invece attivare una sessione numerata con un backend di storage supportato. Selezione, compatibilità, errori di attivazione, autorità del boot corrente e durabilità sono definiti in
+[Persistenza Initrd](/configuration/Initrd-Persistence.md).
+
+| Modalità | Storage scrivibile | Note |
+|------|---------------------|-------|
+| `native` | File memorizzati direttamente nella directory della sessione | Richiede un filesystem POSIX scrivibile che preservi i metadati Linux. |
+| `dynfilefs` | Filesystem ext4 espandibile suddiviso su file di supporto | Supporta filesystem POSIX e supporti FAT32, NTFS o exFAT. |
 | `raw` | `changes.img` a dimensione fissa contenente ext4 | Supporta filesystem POSIX e supporti FAT32, NTFS o exFAT. |
-| `luks` | LUKS2 `changes.luks` contenente ext4 | Richiede cryptsetup e un initramfs costruito con supporto crittografia MiniOS. La passphrase viene richiesta durante l'avvio. |
-| `squashfs` | Snapshot `changes.sb` compresso | Viene estratto in RAM per l'uso; il salvataggio ricostruisce e sostituisce atomicamente lo snapshot. Il filesystem di persistenza deve preservare i metadati Linux durante il salvataggio. |
+| `luks` | LUKS2 `changes.luks` contenente ext4 | Richiede cryptsetup e un initramfs costruito con il supporto alla cifratura di MiniOS. La passphrase viene richiesta durante il boot. |
+| `squashfs` | Snapshot `changes.sb` compresso | Decompresso in RAM per l'utilizzo; il salvataggio ricostruisce e sostituisce atomicamente lo snapshot. Il filesystem di persistenza deve preservare i metadati Linux durante il salvataggio. |
 
-La sessione attiva è quella predefinita per il prossimo avvio. La sessione in esecuzione è quella già montata nel root corrente. L'attivazione di un'altra sessione non sostituisce lo strato scrivibile attuale. I controlli di compatibilità della sessione includono versione MiniOS, edizione, filesystem unione e modalità di persistenza.
+La sessione attiva selezionata per un ripristino futuro e il layer scrivibile effettivamente autorizzato per il boot corrente sono stati correlati ma distinti. Cambiare una selezione futura non sostituisce il layer scrivibile in esecuzione.
 
-Consulta [Gestione delle sessioni](/configuration/Session-Management.md) per comandi di creazione, selezione, dimensionamento, crittografia, conversione, esportazione e recupero.
+Consulta [Gestione delle sessioni](/configuration/Session-Management.md) per i comandi di creazione, selezione, dimensionamento, cifratura, conversione, esportazione e recupero.
 
 ## Precedenza della configurazione
 
@@ -97,9 +112,13 @@ I percorsi avviati sotto `/run/initramfs/memory/` sono mount di implementazione,
 
 ## Documentazione correlata
 
+- [Modalità di boot](/configuration/Boot-Modes.md)
+- [Scoperta del sistema Initrd](/configuration/Initrd-System-Discovery.md)
+- [Caricamento moduli Initrd](/configuration/Initrd-Module-Loading.md)
+- [Persistenza Initrd](/configuration/Initrd-Persistence.md)
 - [Parametri di boot](/configuration/Boot-Parameters.md)
 - [Menu di boot](/configuration/Boot-Menus.md)
 - [File di configurazione](/configuration/Configuration-File.md)
 - [Gestione delle sessioni](/configuration/Session-Management.md)
-- [Avvio da rete](/installation/Network-Boot.md)
+- [Boot da rete](/installation/Network-Boot.md)
 - [Creazione dei moduli](/development/Creating-Modules.md)

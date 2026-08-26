@@ -1,8 +1,8 @@
 # Création de modules
 
-Les modules MiniOS sont des images de système de fichiers SquashFS en lecture seule, généralement nommées avec l’extension `.sb`. Au démarrage, MiniOS organise les modules sélectionnés en un système de fichiers racine superposé. Les fichiers d’une couche prioritaire peuvent compléter ou masquer ceux des couches inférieures.
+Les modules MiniOS sont des images de système de fichiers SquashFS en lecture seule, généralement nommées avec l’extension `.sb`. Au démarrage, MiniOS organise les modules sélectionnés en un système de fichiers racine superposé par couches. Les fichiers d’une couche prioritaire peuvent compléter ou masquer ceux des couches inférieures. Il s’agit du pipeline modulaire live décrit dans [Modes de démarrage](/configuration/Boot-Modes.md), qui diffère de la structure des paquets d’une installation native.
 
-Ce guide documente les flux de travail actuels en ligne de commande des outils MiniOS. Pour l’application graphique, consultez le [MiniOS Module Manager](/administration/Module-Manager.md). Pour le processus complet de création d’image et l’architecture du système, voir [Building MiniOS](/development/Building-MiniOS.md). Les listes de paquets utilisées lors de la construction de MiniOS sont décrites dans la [documentation CondinAPT](/development/CondinAPT.md).
+Ce guide documente les flux de travail actuels en ligne de commande avec les outils MiniOS. Pour l’application graphique, consultez le [Gestionnaire de modules MiniOS](/administration/Module-Manager.md). Pour le processus complet de construction d’image et l’architecture du système, voir [Construction de MiniOS](/development/Building-MiniOS.md). Les listes de paquets utilisées lors de la construction de MiniOS sont décrites dans la [documentation CondinAPT](/development/CondinAPT.md).
 
 ## Limites de sécurité et de privilèges
 
@@ -26,9 +26,14 @@ Utilisez la sortie `--help` de chaque commande comme référence de version inst
 
 ## Noms de modules et niveaux de filtrage
 
-Les noms commencent souvent par un numéro comme `06-browser.sb`, car l’ordre des couches influe sur la résolution des conflits. Un module doit contenir des chemins relatifs à la racine du système, comme `usr/bin/example`, et non un dossier supplémentaire contenant cet arbre.
+Les noms commencent souvent par un nombre comme `06-browser.sb`, car l’ordre des couches influence la résolution des conflits. Un module doit contenir des chemins relatifs à la racine du système, par exemple `usr/bin/example`, et non un dossier supplémentaire contenant cet arbre.
 
-L’option `--level LEVEL` sur `apt2sb`, `script2sb` et `chroot2sb` limite les couches de base utilisées pour construire l’union de construction. Avec `--level 3`, les couches numérotées jusqu’à `03` sont utilisées et les couches de numéro supérieur sont filtrées. Cela peut rendre un module moins dépendant des couches optionnelles supérieures, au prix d’inclure plus de dépendances dans le résultat.
+Pour connaître précisément les niveaux sources candidats, le comportement en cas de collision de noms de base, l’ordre numérique,
+et la sémantique de `bext=`, `load=` et `noload=`, consultez
+[Chargement des modules Initrd](/configuration/Initrd-Module-Loading.md). En particulier,
+utilisez un nom de base unique sauf si le module doit remplacer un emplacement du même nom provenant d’un niveau source antérieur.
+
+L’option `--level LEVEL` sur `apt2sb`, `script2sb` et `chroot2sb` limite les couches de base utilisées pour construire l’union de build. Avec `--level 3`, les couches numérotées jusqu’à `03` sont utilisées et les couches de numéro supérieur sont exclues. Cela peut rendre un module moins dépendant des couches optionnelles supérieures, au prix d’inclure davantage de dépendances dans le résultat.
 
 ## Créer un module à partir de paquets
 
@@ -155,61 +160,67 @@ L’extraction standard ne nécessite pas les droits root et ne modifie pas la s
 
 Les dossiers produits par les `sb2dir` actuels sont des dossiers ordinaires. `rmsbdir`, `sb rm` et `sb rmdir` sont d’anciennes commandes de compatibilité qui refusent toujours la suppression ; elles ne démontent ni ne suppriment récursivement quoi que ce soit. Vérifiez un chemin extrait et son contenu avant de le supprimer avec les outils standards du système de fichiers.
 
-## Gérer les modules actifs et au prochain démarrage
+## Gérer les modules en cours d’exécution et au prochain démarrage
 
-Les compositions « Actuellement en cours d’exécution » et « Prochain démarrage » sont indépendantes.
+Les compositions « En cours d’exécution » et « Prochain démarrage » sont indépendantes. Consultez
+[construction d’union et activation à l’exécution](/configuration/Initrd-Module-Loading.md)
+pour comprendre la frontière entre démarrage et exécution, et pourquoi les deux listes peuvent différer.
 
-Listez les modules réellement utilisés dans la racine AUFS ou OverlayFS actuelle, de la priorité la plus basse à la plus haute :
+Lister les modules qui composent effectivement la racine AUFS ou OverlayFS actuelle, de la priorité la plus basse à la plus haute :
 
 ```bash
 sb list
 sb list --json
 ```
 
-Listez les modules sélectionnés par les règles de démarrage actuelles, y compris `bext`, `load` et `noload` :
+Lister les modules sélectionnés par les règles de démarrage actuelles :
 
 ```bash
 sb next-boot
 sb next-boot --json
 ```
 
-Ces requêtes ne nécessitent pas les droits root. Un module pour le prochain démarrage peut provenir de l’arborescence de données de base, de son dossier `modules/` ou d’un stockage de modules persistant séparé. Une source ultérieure avec le même nom remplace la sélection précédente.
+Ces requêtes ne nécessitent pas les droits root. Les règles canoniques
+[de sélection de candidats et de remplacement](/configuration/Initrd-Module-Loading.md)
+déterminent quelle source fournit chaque nom de module pour le prochain démarrage.
 
-Pour rendre un module utilisateur disponible au prochain démarrage :
+Pour rendre un module utilisateur disponible au prochain démarrage :
 
 ```bash
 sudo sb next-boot add 50-extra.sb
 ```
 
-MiniOS utilise un stockage persistant adapté, prépare et valide la copie, puis la publie de façon atomique sans remplacer un module existant. Le nom de fichier doit satisfaire les filtres de démarrage actuels. Pour retirer un module utilisateur sélectionné, indiquez son nom exact :
+MiniOS utilise un stockage persistant adapté, prépare et valide la copie, puis la publie de manière atomique sans remplacer un module existant. Le nom de fichier doit respecter les filtres de démarrage actuels. Pour supprimer un module utilisateur sélectionné, utilisez son nom exact :
 
 ```bash
 sudo sb next-boot remove 50-extra.sb
 ```
 
-Le retrait est refusé pour les modules de base et ceux présents sur des sources en lecture seule ou volatiles.
+La suppression est refusée pour les modules de base et ceux présents sur des sources en lecture seule ou volatiles.
 
-L’activation à l’exécution est une opération distincte, valable uniquement pour la session en cours :
+L’activation à l’exécution est une opération distincte, valable uniquement pour la session en cours :
 
 ```bash
 sudo sb activate 50-extra.sb
 sudo sb deactivate 50-extra.sb
 ```
 
-L’activation et la désactivation ne fonctionnent que si `/` est actuellement une union AUFS. Elles ne sont pas disponibles sur OverlayFS, et le support AUFS du noyau seul ne suffit pas. Aucune de ces commandes ne modifie le prochain démarrage.
+L’activation et la désactivation ne fonctionnent que lorsque `/` est actuellement une union AUFS. Elles ne sont pas disponibles sur OverlayFS, et le support AUFS du noyau seul n’est pas suffisant. Aucune de ces commandes ne modifie le prochain démarrage.
 
-Le répartiteur de conversion de compatibilité exige les deux opérandes :
+Le répartiteur du convertisseur de compatibilité requiert les deux opérandes :
 
 ```bash
 sudo sb conv my-app-root 06-my-app.sb
 sudo sb conv 06-my-app.sb example-root
 ```
 
-L’utilisation directe de `dir2sb` et `sb2dir` est préférable car la conversion standard peut s’effectuer sans root.
+L’utilisation directe de `dir2sb` et `sb2dir` est préférable car la conversion ordinaire peut s’exécuter sans privilèges root.
 
 ## Documentation associée
 
-- [MiniOS Module Manager](/administration/Module-Manager.md)
+- [Gestionnaire de modules MiniOS](/administration/Module-Manager.md)
+- [Chargement des modules Initrd](/configuration/Initrd-Module-Loading.md)
+- [Modes de démarrage](/configuration/Boot-Modes.md)
 - [Reconstruire les images ISO](/development/Rebuilding-ISO.md)
-- [Building MiniOS](/development/Building-MiniOS.md)
+- [Construction de MiniOS](/development/Building-MiniOS.md)
 - [Paramètres de démarrage](/configuration/Boot-Parameters.md)

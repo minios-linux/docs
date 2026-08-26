@@ -38,29 +38,26 @@ D’autres méthodes documentées sont [UNetbootin](/installation/tools/UNetboot
 [Outils de création USB](/installation/tools/USB-Creation-Tools.md) pour une comparaison et
 [Installation de MiniOS](/installation/Installing-MiniOS.md) pour un aperçu de l’installation.
 
-## 3. Comprendre la persistance avant l’écriture
+## 3. Comprendre la persistance avant d’écrire
 
 La persistance n’est pas créée par chaque méthode d’écriture ou de démarrage.
 
-- Une écriture brute d’image avec `dd`, Etcher ou un outil similaire reproduit l’ISO. Cela ne configure pas une session persistante par défaut.
-- Ventoy démarre généralement l’ISO comme un fichier. La persistance MiniOS doit être configurée séparément.
-- MiniOS Installer peut créer une installation live et configurer un stockage de session natif, DynFileFS, brut ou chiffré LUKS.
-- Un démarrage neuf fonctionne volontairement sans persistance. D’autres entrées du menu de démarrage MiniOS permettent de reprendre, créer ou sélectionner des sessions lorsque du stockage inscriptible est disponible.
-- Une installation native est un système installé classique et n’utilise pas la persistance de session live de la même manière.
+- Une écriture d’image brute avec `dd`, Etcher ou un outil similaire reproduit l’ISO. Cela ne configure pas à lui seul une session persistante.
+- Ventoy démarre normalement l’ISO en tant que fichier. La persistance MiniOS doit être configurée séparément.
+- L’installateur MiniOS peut créer une installation live et configurer un stockage de session natif, DynFileFS, brut ou chiffré LUKS.
+- Un démarrage neuf s’effectue volontairement sans persistance. D’autres entrées du menu de démarrage MiniOS permettent de reprendre, créer ou sélectionner des sessions lorsque du stockage inscriptible est disponible.
+- Une installation native est un système installé de façon classique et n’utilise pas la persistance de session live de la même manière.
 
-Consultez [Gestion des sessions](/configuration/Session-Management.md) et
-[Paramètres de démarrage](/configuration/Boot-Parameters.md) avant de modifier le stockage des sessions. Conservez une sauvegarde de vos fichiers importants quel que soit le mode de persistance.
+Utilisez [Modes de démarrage](/configuration/Boot-Modes.md) comme guide de référence pour le comportement visible des sessions live. Consultez [Gestion des sessions](/configuration/Session-Management.md) pour les choix de stockage, [Persistance Initrd](/configuration/Initrd-Persistence.md) pour le contrat détaillé au démarrage, et [Paramètres de démarrage](/configuration/Boot-Parameters.md) avant de modifier les options du noyau. Conservez une sauvegarde de vos fichiers importants quel que soit le mode de persistance.
 
 ## 4. Démarrer MiniOS
 
-1. Éteignez l’ordinateur et branchez le périphérique préparé.
+1. Éteignez l’ordinateur et connectez le périphérique préparé.
 2. Ouvrez le menu de démarrage du firmware et sélectionnez l’entrée UEFI ou legacy du périphérique.
 3. Sélectionnez une session neuve pour un test matériel initial, ou une session persistante uniquement si elle a déjà été configurée.
-4. Vérifiez que l’affichage, le clavier, le stockage et le réseau fonctionnent avant d’effectuer des modifications d’installation destructrices.
+4. Vérifiez que l’affichage, le clavier, le stockage et le réseau fonctionnent avant d’effectuer des modifications d’installation irréversibles.
 
-Si le périphérique n’apparaît pas ou si le bureau ne démarre pas, consultez
-[Compatibilité matérielle](/installation/Hardware-Compatibility.md) et
-[Résolution des problèmes](/administration/Troubleshooting.md).
+Si le périphérique n’apparaît pas ou si le bureau ne démarre pas, consultez la page [Compatibilité matérielle](/installation/Hardware-Compatibility.md) et [Dépannage](/administration/Troubleshooting.md). En cas d’échec lors de la détection de la source live, consultez [Découverte du système Initrd](/configuration/Initrd-System-Discovery.md).
 
 ## 5. Configurer le système
 
@@ -86,10 +83,9 @@ Configurez les connexions filaires et Wi-Fi habituelles avec la [Configuration r
 
 ## 6. Installer des logiciels et sauvegarder son travail
 
-Les modifications APT effectuées lors d’une session live ne sont conservées au redémarrage que si cette session est persistante. Les modules SquashFS restent séparés de la session inscriptible et peuvent être chargés dans le cadre du système modulaire ; voir
-[Création de modules](/development/Creating-Modules.md).
+Les modifications APT effectuées dans une session live ne sont conservées après redémarrage que si la session est persistante. Les modules SquashFS restent séparés de la session inscriptible et peuvent être chargés dans le système modulaire ; voir [Création de modules](/development/Creating-Modules.md) et [Chargement de modules Initrd](/configuration/Initrd-Module-Loading.md).
 
-Enregistrez les fichiers importants sur un support reconnu comme inscriptible et testez un arrêt propre suivi d’un redémarrage avant de vous fier à une session persistante.
+Enregistrez les fichiers importants sur un support reconnu comme inscriptible et testez au moins un arrêt propre et un redémarrage avant de vous fier à une session persistante.
 
 ## Obtenir de l’aide
 

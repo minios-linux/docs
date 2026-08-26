@@ -24,14 +24,17 @@ dirty ext4 filesystem inside `virtual.dat`, or an incorrect `session.conf`.
 ## Safety Rules
 
 1. Do not repair the only copy of a storage container.
-2. Do not copy source sessions over the currently active `minios/changes`.
+2. Do not copy source sessions over a running or mounted `minios/changes` store.
 3. Copy the complete `changes` directory before attempting recovery.
 4. Run `e2fsck -y` only on an additional copy of a session.
 5. Do not create a missing `changes.dat.N` file manually.
 
-If MiniOS is currently running with persistence and the source device is
-mounted, it is safe to make the initial copy. Do not replace `session.conf`
-until MiniOS has been booted without persistence.
+Do not make the initial copy while the source session is running or its
+DynFileFS container is mounted. Its metadata and segment files can change
+independently and produce an inconsistent copy. Boot without persistence or use
+another Linux system. Keep the DynFileFS/FUSE view, `virtual.dat` loop device,
+and inner ext4 filesystem inactive. Mount only the outer storage filesystem,
+preferably read-only, so its backing segment files can be copied consistently.
 
 ## 1. Locate the Source and Destination
 
@@ -148,8 +151,10 @@ mkdir -p /tmp/dynfilefs-recovery /tmp/old-session
     -p 4000
 ```
 
-Do not specify `-s` or `perchsize` while recovering an existing container. Its
-virtual size is stored in the DynFileFS/dynblk metadata.
+Do not specify `-s` or `perchsize` during this manual recovery mount. The normal
+boot path may pass `-s` for a requested or recorded logical size, but recovery
+intentionally avoids a resize request and reads the existing size from the
+DynFileFS/dynblk metadata.
 
 A successful mount exposes `virtual.dat`:
 
@@ -206,63 +211,45 @@ fusermount -u /tmp/dynfilefs-repair
 
 Repeat the read-only check from the previous section after repairing it.
 
-## 6. Restore the Session for Boot
+## 6. Recover Into a New Compatible Session
 
-Perform this step after shutting down the persistent session and booting MiniOS
-without `perch`, `perchdir`, or `perchmode`. It can also be performed from
-another Linux system.
-
-Copy the recovered container into an unused numeric session directory. Using a
-new number avoids overwriting any current session:
+Prefer recovery into a newly created session over reconstructing metadata for
+the damaged one. If a valid `.tar.zst` export exists, boot normally and import
+it with automatic conversion for the destination filesystem:
 
 ```bash
-NEW_CHANGES="$TARGET_MINIOS/changes"
-RESTORED=90
-
-test ! -e "$NEW_CHANGES/$RESTORED"
-mkdir -p "$NEW_CHANGES/$RESTORED"
-cp -a "$REPAIR/." "$NEW_CHANGES/$RESTORED/"
+sudo minios-session import /path/to/session.tar.zst --auto-convert
 ```
 
-If no filesystem repair was needed, copy from `$RECOVERY/$SESSION` instead of
-`$REPAIR`.
+Import creates a new numbered session. Inspect it, then activate it explicitly.
 
-Back up and replace the session metadata:
+If only the mounted container is usable, create and boot a new session in a
+mode compatible with the destination filesystem. Mount the recovered copy
+read-only as in section 4, then copy the required files into that running
+session. For example, to recover home directories:
 
 ```bash
-cp -a "$NEW_CHANGES/session.conf" \
-    "$NEW_CHANGES/session.conf.before-recovery" 2>/dev/null || true
-
-printf '%s\n' \
-    "default=$RESTORED" \
-    "session_mode[$RESTORED]=dynfilefs" \
-    >"$NEW_CHANGES/session.conf"
-sync
-```
-
-The minimal metadata deliberately omits version, edition, and union fields so
-that stale compatibility data does not force MiniOS to create another session.
-
-Boot MiniOS with:
-
-```text
-perchdir=resume perchmode=dynfilefs
-```
-
-Do not add `perchdir=new` or `perchsize` during this first recovery boot.
-
-## 7. Recover Files Without Booting the Session
-
-If the container mounts manually but cannot be used as a boot session, copy
-the important files from the read-only mount into a new working session:
-
-```bash
-mkdir -p "$TARGET_MINIOS/recovered-home"
-rsync -aHAX --info=progress2 \
+sudo rsync -aHAX --info=progress2 \
     /tmp/old-session/home/ \
-    "$TARGET_MINIOS/recovered-home/"
+    /home/
 sync
 ```
+
+Copy only the data and configuration that you need. This avoids treating
+unknown or incomplete compatibility metadata as a bootable session definition.
+
+## 7. Do not reconstruct session metadata in place
+
+Do not replace `session.conf` with a minimal file or add a recovered directory
+to an existing store by hand. The metadata describes every session in that
+store; replacing it can orphan healthy sessions, discard compatibility and save
+policy fields, and change the next-boot selection.
+
+If the container can be mounted read-only, recover its files into a newly
+created compatible session as described above. If it cannot be mounted, retain
+the complete offline copy for further filesystem or forensic recovery. A
+container without trustworthy store metadata is recoverable input, not a
+bootable session definition.
 
 ## Error Reference
 
@@ -271,9 +258,6 @@ sync
 - `cannot read header`: the DynFileFS/dynblk header is damaged.
 - `incompatible data format`: the helper and container format do not match.
 - `virtual.dat` exists but ext4 does not mount: check a copy with `e2fsck`.
-- The container mounts but MiniOS creates a new session: verify that
-  `session.conf` points to the restored number and contains
-  `session_mode[N]=dynfilefs`.
 
 ## Preventing Recurrence
 
@@ -281,7 +265,7 @@ Most incidents start when the persistence device fills up during use. Reduce the
 risk with these measures:
 
 - Keep a free-space reserve with the `perchreserve` boot parameter (default
-  256 MB). New and growing containers never consume it, and MiniOS warns at boot
+  256 MiB). New and growing containers never consume it, and MiniOS warns at boot
   when free space drops to the reserve. Increase it on small or heavily used
   devices, for example `perchreserve=1024`.
 - Delete old or unused sessions before the device becomes full.

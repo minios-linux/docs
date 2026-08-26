@@ -17,21 +17,23 @@ requieren privilegios administrativos, por lo que los ejemplos a continuación u
 ## Modos de sesión
 
 | Modo | Almacenamiento | Restricciones principales |
-|------|---------------|--------------------------|
-| `native` | Los cambios se almacenan directamente en el directorio de la sesión | Requiere un sistema de archivos POSIX escribible como ext2/3/4, Btrfs, XFS, F2FS o ReiserFS. |
-| `dynfilefs` | Contenedor ext4 expandible dividido en archivos de respaldo | Funciona en sistemas de archivos POSIX escribibles, FAT32, NTFS y exFAT. Requiere el backend DynFileFS. |
-| `raw` | `changes.img` de tamaño fijo que contiene ext4 | Funciona en sistemas de archivos POSIX escribibles, FAT32, NTFS y exFAT. |
+|------|----------------|--------------------------|
+| `native` | Los cambios se almacenan directamente en el directorio de la sesión | Requiere un sistema de archivos POSIX con permisos de escritura, como ext2/3/4, Btrfs, XFS, F2FS o ReiserFS. |
+| `dynfilefs` | Contenedor ext4 expandible dividido en archivos de respaldo | Funciona en sistemas de archivos POSIX con escritura, FAT32, NTFS y exFAT. Requiere el backend DynFileFS. |
+| `raw` | `changes.img` de tamaño fijo que contiene ext4 | Funciona en sistemas de archivos POSIX con escritura, FAT32, NTFS y exFAT. |
 | `luks` | `changes.luks` cifrado con LUKS2 que contiene ext4 | Requiere `cryptsetup`, soporte de loop y el hook LUKS de initrd de MiniOS. |
 | `squashfs` | Instantánea comprimida en `changes.sb` | El guardado requiere un sistema de archivos de persistencia POSIX que pueda preservar enlaces, propiedad, modos, xattrs, ACLs, capacidades y whiteouts. |
 
-`dynfilefs`, `raw` y `luks` creados con `minios-session` tienen un tamaño predeterminado de 4000
-MB. Los tamaños usan unidades decimales `MB`, `GB` o `TB` y están limitados a 1 TB. Los archivos raw
-y LUKS están limitados a 4000 MB en FAT32. Las operaciones de redimensionamiento de contenedores solo
-pueden aumentar el tamaño de una sesión; no se admite la reducción.
+`dynfilefs`, `raw` y `luks` creados con `minios-session` tienen por defecto 4000
+MiB. Los valores de tamaño se asignan en MiB; los sufijos `GB` y `TB` convierten a 1000
+y 1.000.000 MiB. El Gestor de Sesiones limita los archivos raw y LUKS a 4000 MiB en
+FAT32. No confíes en esto como una garantía general de initrd: una solicitud de arranque raw sobredimensionada puede llegar a asignarse
+y fallar en vez de reducirse. Las operaciones de redimensionamiento de contenedores solo pueden aumentar el tamaño
+de una sesión; no se admite la reducción.
 
 El modo nativo es la opción más simple y rápida en un sistema de archivos compatible.
-Utiliza DynFileFS cuando el sistema de archivos de persistencia no puede representar metadatos de Linux.
-Utiliza raw cuando se requiere asignación fija, LUKS cuando la sesión debe estar
+Usa DynFileFS cuando el sistema de archivos de persistencia no puede representar metadatos de Linux.
+Usa raw cuando se requiere asignación fija, LUKS cuando la sesión debe estar
 encriptada y SquashFS para una instantánea comprimida exacta.
 
 Ejecuta los siguientes comandos para inspeccionar el sistema de archivos de persistencia real y
@@ -42,36 +44,32 @@ sudo minios-session info
 sudo minios-session status
 ```
 
-No se puede crear ninguna sesión en medios de solo lectura. La activación de SquashFS en
-FAT32/NTFS/exFAT permanece deshabilitada hasta que haya disponible un espacio de trabajo temporal que preserve metadatos.
+No se puede crear una sesión en medios de solo lectura. El initrd puede leer y activar
+una instantánea SquashFS existente almacenada en FAT, exFAT o NTFS con escritura porque
+extrae la instantánea en un upper temporal ext4. Crear o guardar exactamente una
+instantánea es diferente: su espacio de trabajo privado de preparación debe estar en un sistema
+de archivos POSIX adecuado que preserve los metadatos de Linux y los whiteouts de unión.
 
 ## Selección de arranque
 
-Cualquier parámetro de persistencia reconocido habilita la gestión de persistencia. Los menús de arranque de MiniOS normalmente ofrecen opciones para reanudar, crear nueva, seleccionar y entradas no persistentes.
+Cualquier parámetro de persistencia reconocido habilita el manejo de persistencia. Los menús de arranque de MiniOS normalmente ofrecen opciones para reanudar, crear nueva, seleccionar y entradas no persistentes. La descripción canónica de los selectores, compatibilidad, fallback y semánticas de activación está en [Persistencia de Initrd](./Initrd-Persistence.md).
 
 | Parámetro | Significado |
 |-----------|------------|
-| `perch` | Solicita persistencia. |
-| `perchdir=resume` | Reanuda la sesión predeterminada. Es una acción de mejor esfuerzo y continúa en memoria si no hay una sesión escribible y compatible disponible. |
+| `perch` | Utiliza la ruta de reanudación heredada de mejor esfuerzo. Intenta el valor predeterminado de metadatos pero no crea un reemplazo si no hay ninguno utilizable. |
+| `perchdir=resume` | Reanuda el valor predeterminado de metadatos y, si está ausente o es incompatible, permite que el initrd cree un reemplazo compatible. Este es el comportamiento actual de reanudar en el menú de arranque. |
 | `perchdir=new` | Asigna una nueva sesión numerada. |
 | `perchdir=ask` | Selecciona una sesión existente o crea una durante el arranque. |
 | `perchdir=<id>` | Selecciona directamente esa sesión numerada. |
-| `perchdir=<device/path>` | Usa una ubicación de persistencia en un dispositivo, incluyendo las formas `/dev/...` y `label:...` gestionadas por el initrd. |
+| `perchdir=<device/path>` | Usa una ubicación de persistencia en un dispositivo, incluidas las formas `/dev/...` y `label:...` gestionadas por el initrd. |
 | `perchmode=<mode>` | Establece `native`, `dynfilefs`, `raw`, `luks` o `squashfs`. |
-| `perchsize=<size>` | Establece un tamaño de contenedor nuevo o mayor; los valores simples son MB y se aceptan los sufijos `MB`, `GB` y `TB`. |
+| `perchsize=<size>` | Establece un tamaño de contenedor nuevo o mayor; los valores simples se asignan en MiB y se aceptan los sufijos `MB`, `GB` y `TB`. |
 
-Si no se especifica un modo para una nueva sesión, el arranque utiliza el modo nativo. En
-FAT32/NTFS/exFAT, la creación nativa de arranque recurre a DynFileFS. Un nuevo contenedor raw o
-LUKS en arranque tiene un tamaño predeterminado de 4000 MB; una nueva sesión DynFileFS de arranque sin
-`perchsize` se dimensiona según el espacio disponible, manteniendo una reserva de seguridad.
-Las sesiones SquashFS se capturan desde el sistema en ejecución con el Administrador de Sesiones o
-`minios-session create squashfs`; `perchdir=new perchmode=squashfs` no
-crea una instantánea en el initrd.
+Si no se especifica un modo para una nueva sesión, el arranque utiliza el modo nativo. En FAT32/NTFS/exFAT, la creación nativa de arranque recurre a DynFileFS. Un nuevo contenedor raw o LUKS de arranque tiene por defecto 4000 MiB; una nueva sesión DynFileFS de arranque sin `perchsize` se dimensiona según el espacio disponible manteniendo una reserva de seguridad.
+Las sesiones SquashFS se capturan desde el sistema en ejecución con el Gestor de Sesiones o `minios-session create squashfs`; `perchdir=new perchmode=squashfs` no crea una instantánea en el initrd.
 
-Al reanudar, MiniOS verifica la versión registrada, edición, sistema de archivos en unión
-y modo. La ruta normal `resume` crea una nueva sesión en lugar de reemplazar
-una incompatible. La selección interactiva muestra una advertencia antes de permitir
-una sesión incompatible.
+Al reanudar, MiniOS verifica la versión registrada, edición, sistema de archivos de unión y modo. Literal `perchdir=resume` puede crear una nueva sesión en vez de usar un valor predeterminado ausente o incompatible. `perch` solo, selección numérica directa y otras solicitudes de reanudación heredadas no crean automáticamente ese reemplazo.
+La selección interactiva muestra una advertencia antes de permitir una sesión incompatible. Si la selección o activación aún falla, el arranque normalmente continúa con un upper en RAM y una advertencia de persistencia.
 
 El almacén de sesiones tiene esta forma:
 
@@ -83,20 +81,26 @@ minios/changes/
 `-- N/
 ```
 
-`session.conf` registra los ID predeterminado y en ejecución y, por sesión, el modo,
-versión, edición, sistema de archivos en unión, tamaño, estado y configuraciones específicas del modo.
-Es la configuración confirmada por la implementación de arranque. No lo edites
-ni muevas datos de sesiones numeradas mientras una sesión esté montada; utiliza el Administrador de Sesiones
-o `minios-session`.
+`session.conf` registra los IDs predeterminado y en ejecución y, por sesión, el modo, versión, edición, sistema de archivos de unión, tamaño, estado y configuraciones específicas de modo.
+Es metadato persistente comprometido por la implementación de arranque, pero no prueba por sí mismo el estado actual en tiempo de ejecución. No lo edites ni muevas datos de sesiones numeradas mientras una sesión esté montada; usa el Gestor de Sesiones o `minios-session`.
 
 ## Sesiones activas y en ejecución
 
 Estos términos describen diferentes estados:
 
-- La sesión **activa** es la predeterminada seleccionada para el próximo arranque.
-- La sesión **en ejecución** proporciona persistencia al arranque actual.
+- La sesión **activa** es la que se selecciona por defecto para el próximo arranque.
+- Conceptualmente, la sesión **en ejecución** es la que cuya capa de escritura
+  realmente proporciona persistencia al arranque actual.
 
-Activar una sesión cambia el próximo arranque y no modifica el sistema de archivos en unión actual:
+El campo persistente `running=` registra esa relación prevista. Un fallo,
+construcción fallida de la unión, copia de almacenamiento o un apagado interrumpido pueden dejarlo
+desactualizado incluso cuando el arranque actual está usando RAM u otra sesión. Por lo tanto, operaciones
+como el guardado SquashFS requieren el estado actual protegido del initrd, vinculado al boot-ID,
+y la capa superior montada y verificada; no confían solo en `running=`.
+Consulta [Estado activo, en ejecución y de arranque actual](./Initrd-Persistence.md).
+
+Activar una sesión cambia el próximo arranque y no cambia el sistema de archivos
+unión actual:
 
 ```bash
 sudo minios-session active
@@ -104,7 +108,9 @@ sudo minios-session running
 sudo minios-session activate <id>
 ```
 
-No se puede eliminar ni convertir en el lugar la sesión activa. Una sesión en ejecución normalmente no puede eliminarse, exportarse, copiarse, redimensionarse ni convertirse. La limpieza también protege ambos ID.
+La sesión activa no puede eliminarse ni convertirse en el lugar. Una sesión en ejecución
+normalmente no puede eliminarse, exportarse, copiarse, redimensionarse ni convertirse. La limpieza
+también protege ambos IDs.
 
 ## Referencia de comandos
 

@@ -10,7 +10,7 @@ UNetbootin é uma ferramenta open source multiplataforma que permite criar pendr
 
 ### Tamanho do Drive
 
-Consulte o [Guia de Compatibilidade de Hardware](/installation/Hardware-Compatibility.md#system-requirements) para requisitos detalhados de sistema e tamanhos de drive.
+Consulte o [Guia de Compatibilidade de Hardware](/installation/Hardware-Compatibility.md) para requisitos detalhados de sistema e tamanhos de drives.
 
 ## Instalando o UNetbootin
 
@@ -32,16 +32,8 @@ Consulte o [Guia de Compatibilidade de Hardware](/installation/Hardware-Compatib
 4. **Inicie o processo:** Clique em "OK"
 5. **Aguarde a conclusão** – o processo pode levar de 10 a 20 minutos
 
-## Persistência Automática de Alterações
+## Resultado e persistência
 
-O UNetbootin formata automaticamente o drive em FAT32, então o MiniOS usará o modo dynfilefs para salvar alterações. Isso garante máxima compatibilidade com diversos sistemas, incluindo suporte para boot EFI.
+O UNetbootin extrai arquivos e instala arquivos de boot no sistema de arquivos selecionado, criando uma mídia live baseada em arquivos em vez de realizar uma gravação de imagem bruta ou uma implantação do Instalador do MiniOS. Seu uso não garante formatação FAT32, suporte a EFI ou persistência.
 
-### Configuração de Parâmetros (para Usuários Avançados)
-
-Quando for necessário configurar com precisão, é possível usar parâmetros de boot:
-
-- `perchmode=dynfilefs` - Arquivo expansível dinamicamente (padrão)
-- `perchmode=raw` - Arquivo de tamanho fixo
-- `perchsize=8000` - Espaço de armazenamento de dados em MB
-
-Mais detalhes em [parâmetros de boot](/configuration/Boot-Parameters.md).
+A persistência só é ativada quando uma entrada de boot ou linha de comando do kernel solicita, e ainda assim requer um armazenamento gravável adequado. Consulte [Modos de boot](/configuration/Boot-Modes.md) e [Persistência Initrd](/configuration/Initrd-Persistence.md) antes de depender de alterações salvas.

@@ -43,6 +43,73 @@ For PXE or HTTP ISO startup, use the focused
 [Network boot](/installation/Network-Boot.md) guide. Early boot networking is
 separate from NetworkManager in the running session.
 
+### MiniOS source failures
+
+Use [Initrd system discovery](/configuration/Initrd-System-Discovery.md) for the
+full source precedence and path rules. The details most useful during diagnosis
+are:
+
+- A literal `from=http://...` wins over `ip=`; `ip=` then supplies static HTTP
+  ISO addressing. Otherwise, any nonempty `ip=` selects PXE. Neither network
+  path falls back to local media.
+- Local discovery makes 45 passes and tests block-device names in sorted order.
+  It retains the first device containing a qualifying source, not necessarily
+  the intended device or a complete module set.
+- `/dev/disk/by-label/LABEL/path` is supported in `from=`. UUID, PARTUUID, and
+  by-id paths are not supported by this parser.
+- The exact custom-path syntax for the selector uses colons, for example
+  `from=askdisk:custom:dir`. Slash syntax silently tests the default `minios`
+  path instead.
+- If discovery enters the fatal initramfs shell, exiting does not repair the
+  source or provide a fallback. It can only let boot continue into a later,
+  less clear failure.
+
+At an initramfs shell, start with read-only inspection:
+
+```sh
+cat /proc/cmdline
+blkid
+cat /proc/net/dev
+findmnt
+cat /var/log/livedbg
+```
+
+Record the first source, mount, or download error. Do not run filesystem repair
+or remove media while it is mounted.
+
+### Module and root failures
+
+Use [Initrd module loading](/configuration/Initrd-Module-Loading.md) for the
+selection, ordering, and union rules. Check these common causes first:
+
+- `load=` and `noload=` are regular-expression filters. There is no protected
+  core or kernel set, so a filter can exclude `00-core` or the running kernel's
+  `01-kernel` module; `noload=` wins when both filters match.
+- Module paths are flattened to their basename. Two candidates with the same
+  basename occupy one replacement slot, so a later source tier can replace the
+  earlier candidate rather than add another layer.
+- A `.sb` suffix does not prove that a candidate is a valid SquashFS image.
+  Individual loop or module mount failures may allow boot to continue with a
+  missing layer. Capture the first mount error.
+- `toram=full` and `toram=trim` do not preflight available RAM. Copy or detach
+  failures can leave the original source mounted, so do not unplug media or
+  drop an HTTP connection merely because `toram` was specified.
+
+After a successful handoff, these commands inspect state without changing it:
+
+```bash
+cat /proc/cmdline
+sb next-boot
+sb list
+findmnt -no FSTYPE,OPTIONS /
+findmnt -R /run/initramfs 2>/dev/null
+```
+
+For writable-layer selection and failures, see
+[Initrd persistence](/configuration/Initrd-Persistence.md). Persistence can
+fall back to a temporary RAM upper after some activation failures, while failure
+to construct the root union enters the fatal initramfs shell.
+
 ## Display problems
 
 For a black screen, unreadable resolution, or a display-manager loop:
@@ -159,7 +226,8 @@ other sensitive data before sharing logs. `journalctl -b -1` can show the
 previous boot when the journal is persistent.
 
 For repeat boot failures on writable MiniOS media, set `EXPORT_LOGS=true` in
-the configuration file. MiniOS copies its boot logs to `minios/logs` when the
+the configuration file. MiniOS copies its boot logs to a timestamped directory
+under `minios/log/` when the
 media is writable. See [Configuration file](/configuration/Configuration-File.md).
 
 When reporting a reproducible defect, attach the relevant excerpts and open an

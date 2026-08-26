@@ -111,8 +111,17 @@ function nav(locale = 'root') {
     {
       text: message(locale, 'nav.configure'),
       items: [
-        { text: message(locale, 'nav.bootMenus'), link: p('/configuration/Boot-Menus') },
-        { text: message(locale, 'nav.bootParameters'), link: p('/configuration/Boot-Parameters') },
+        {
+          text: message(locale, 'nav.bootAndInitrd'),
+          items: [
+            { text: message(locale, 'nav.bootModes'), link: p('/configuration/Boot-Modes') },
+            { text: message(locale, 'nav.bootMenus'), link: p('/configuration/Boot-Menus') },
+            { text: message(locale, 'nav.bootParameters'), link: p('/configuration/Boot-Parameters') },
+            { text: message(locale, 'nav.initrdSystemDiscovery'), link: p('/configuration/Initrd-System-Discovery') },
+            { text: message(locale, 'nav.initrdModuleLoading'), link: p('/configuration/Initrd-Module-Loading') },
+            { text: message(locale, 'nav.initrdPersistence'), link: p('/configuration/Initrd-Persistence') }
+          ]
+        },
         { text: message(locale, 'nav.configurationFile'), link: p('/configuration/Configuration-File') },
         { text: message(locale, 'nav.miniosConfigurator'), link: p('/configuration/MiniOS-Configurator') },
         { text: message(locale, 'nav.liveConfigParameters'), link: p('/configuration/live-config') },

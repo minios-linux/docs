@@ -12,12 +12,12 @@ Drive Utility adalah alat grafis untuk menulis image ISO MiniOS ke USB drive.
 
 ### Ukuran Drive (untuk penulisan MiniOS)
 
-Lihat [Panduan Kompatibilitas Perangkat Keras](/installation/Hardware-Compatibility.md#system-requirements) untuk detail persyaratan sistem dan ukuran drive.
+Lihat [Panduan Kompatibilitas Hardware](/installation/Hardware-Compatibility.md) untuk persyaratan sistem dan ukuran drive secara detail.
 
-### Filesystem yang Didukung
+### Sistem Berkas yang Didukung
 
-- **FAT32**: kompatibilitas maksimal
-- **NTFS**: kompatibel dengan Windows  
+- **FAT32**: kompatibilitas maksimum
+- **NTFS**: kompatibel dengan Windows
 - **EXT4**: direkomendasikan untuk Linux
 
 ## Menjalankan Drive Utility
@@ -44,17 +44,8 @@ driveutility
    - Konfirmasi operasi - semua data di drive akan dihapus
 5. **Tunggu hingga selesai** - proses memerlukan beberapa menit
 
-## Persistensi Perubahan Otomatis
+## Hasil dan persistensi
 
-Saat menulis MiniOS melalui Drive Utility, salinan persis dari image ISO akan dibuat. MiniOS akan secara otomatis mendeteksi metode penulisan dan mengatur persistensi perubahan saat boot pertama.
+Mode tulis melakukan penulisan image secara mentah: menyalin tata letak ISO ke seluruh perangkat target. Mode ini tidak membuat partisi ext4 di ruang yang tidak terpakai, tidak membuat sesi persistensi, maupun melakukan deployment Installer MiniOS. Pilihan filesystem di atas hanya berlaku untuk operasi Drive Utility yang memformat filesystem, bukan untuk tata letak partisi yang disalin oleh penulisan ISO.
 
-### Konfigurasi Parameter (untuk pengguna tingkat lanjut)
-
-Untuk konfigurasi persistensi yang lebih presisi, parameter boot dapat digunakan:
-
-- `perchmode=native` - Penyimpanan langsung ke partisi (jika ada ruang kosong)
-- `perchmode=dynfilefs` - File yang dapat diperluas secara dinamis
-- `perchmode=raw` - File dengan ukuran tetap
-- `perchsize=8000` - Ukuran ruang penyimpanan untuk data dalam MB
-
-Detail di [parameter boot](/configuration/Boot-Parameters.md).
+Persistensi hanya diaktifkan jika entri boot atau baris perintah kernel memintanya, dan tetap memerlukan media penyimpanan yang dapat ditulis. Lihat [Mode Boot](/configuration/Boot-Modes.md) dan [Persistensi Initrd](/configuration/Initrd-Persistence.md) sebelum mengandalkan perubahan yang disimpan.

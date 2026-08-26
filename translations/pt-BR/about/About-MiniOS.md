@@ -4,12 +4,21 @@ O MiniOS é uma distribuição Linux baseada no Debian, projetada para rodar a p
 
 ## Modelo de sistema
 
-- O sistema base e os softwares opcionais são módulos separados. Os módulos podem ser selecionados na inicialização ou adicionados sem a necessidade de reconstruir todo o sistema.
+- O sistema base e os softwares opcionais são módulos separados. Os módulos podem ser
+  selecionados na inicialização ou adicionados sem a necessidade de reconstruir todo o sistema.
 - Uma sessão live nova mantém os módulos base inalterados.
-- A persistência pode armazenar alterações em um diretório nativo, em um contêiner DynFileFS expansível, em uma imagem bruta de tamanho fixo ou em um contêiner LUKS criptografado, dependendo da instalação e do sistema de arquivos de destino.
-- O Instalador do MiniOS pode fazer uma instalação live modular ou, quando a imagem oferece suporte, implantar uma instalação Linux nativa convencional.
+- A persistência pode armazenar alterações em um diretório nativo, em um contêiner
+  DynFileFS expansível, em uma imagem bruta de tamanho fixo ou em um contêiner LUKS criptografado,
+  dependendo da instalação e do sistema de arquivos de destino.
+- O Instalador do MiniOS pode realizar uma instalação live modular ou, quando a imagem
+  oferece suporte, implantar uma instalação Linux nativa convencional.
 
-Veja [Arquitetura do sistema](/about/System-Architecture.md) para o layout de inicialização e módulos, e [Gerenciamento de sessões](/configuration/Session-Management.md) para sessões persistentes.
+Consulte [Modos de boot](/configuration/Boot-Modes.md) para o guia oficial sobre o comportamento do boot
+live e [Arquitetura do sistema](/about/System-Architecture.md) para a estrutura de boot e módulos.
+Os contratos detalhados do início do boot estão documentados em
+[descoberta do sistema no initrd](/configuration/Initrd-System-Discovery.md),
+[carregamento de módulos no initrd](/configuration/Initrd-Module-Loading.md) e
+[persistência no initrd](/configuration/Initrd-Persistence.md).
 
 ## Edições
 
@@ -29,9 +38,17 @@ Para saber quais softwares estão incluídos em cada edição, consulte a
 
 ## Instalação e persistência
 
-Um ISO pode ser gravado como imagem inicializável, copiado para um dispositivo multiboot ou instalado com o Instalador do MiniOS. Esses métodos não apresentam o mesmo comportamento de armazenamento. Ferramentas de gravação de imagem como `dd` e Etcher reproduzem o layout do ISO; o Ventoy inicializa o arquivo ISO; o Instalador do MiniOS pode alocar e configurar o armazenamento de sessão gravável. Não presuma que um método de gravação cria persistência.
+Uma ISO pode ser gravada como imagem de boot, copiada para um dispositivo multiboot ou
+instalada com o Instalador do MiniOS. Esses métodos não apresentam o mesmo comportamento de armazenamento.
+Ferramentas de gravação de imagem como `dd` e Etcher reproduzem o layout da ISO;
+Ventoy inicializa o arquivo ISO; o Instalador do MiniOS pode alocar e configurar o armazenamento
+gravável da sessão. Não presuma que o método de gravação cria persistência.
 
-Comece pelo [Guia rápido](/installation/Quick-Start.md) e utilize o tutorial correspondente ao método de instalação escolhido. A persistência também pode ser selecionada em um menu de boot apropriado ou configurada com os parâmetros de inicialização documentados quando houver armazenamento gravável disponível.
+Comece pelo [Guia rápido](/installation/Quick-Start.md) e utilize o guia correspondente ao método de instalação escolhido.
+A persistência também pode ser selecionada a partir de um menu de boot apropriado ou configurada com os parâmetros de boot documentados quando houver armazenamento gravável disponível.
+Consulte [Modos de boot](/configuration/Boot-Modes.md)
+para o comportamento da sessão live resultante e
+[Gerenciamento de sessão](/configuration/Session-Management.md) para opções de armazenamento.
 
 ## Recursos do projeto
 

@@ -1,56 +1,76 @@
-# Hardware Compatibility Guide
+# Hardware compatibility guide
 
-This guide provides essential information about hardware compatibility for MiniOS. The system is based on Debian 13 "Trixie" with a Long-Term Support (LTS) Linux kernel, ensuring broad hardware support.
+Hardware support depends on the MiniOS release and image: its base distribution,
+kernel, firmware, included modules, and edition all matter. Check the release
+description for the image you downloaded, then test a fresh live session before
+changing disks or relying on the machine for persistent work.
 
-## System Requirements
+## System requirements
 
-MiniOS is built for the **amd64** (64-bit) architecture. The requirements vary by edition:
+Published MiniOS PC images target the **amd64** (64-bit x86) architecture unless
+their release description says otherwise. Resource needs vary with the image,
+edition, desktop, applications, and boot mode:
 
-**For Standard Variant:**
-- **CPU:** 1 GHz 64-bit processor
-- **RAM:** 1 GB minimum (2 GB recommended)
-- **Storage:** 2 GB to run the system (4 GB+ recommended for data storage)
-- **Graphics:** VGA-compatible display adapter
+- The CPU must support the image architecture and the selected firmware mode.
+- RAM must accommodate the selected edition and workload. `toram` modes need
+  additional memory for copied image data.
+- Boot media needs enough space for the downloaded image. Persistence, user
+  data, and a native installation require additional writable storage.
+- Graphics requirements depend on the desktop and applications in the selected
+  edition.
 
-**For Toolbox Variant:**
-- **CPU:** 1.2 GHz 64-bit processor
-- **RAM:** 2 GB minimum (4 GB recommended)
-- **Storage:** 2 GB to run the system (8 GB+ recommended for data storage)
-- **Graphics:** Graphics card with hardware acceleration support
+Writing an image to a larger device does not by itself create persistent
+storage. See [Boot modes](/configuration/Boot-Modes.md) for the canonical guide
+to live boot behavior and [Quick start](/installation/Quick-Start.md) for media
+preparation.
 
-**For Ultra Variant:**
-- **CPU:** 1.5 GHz 64-bit dual-core processor
-- **RAM:** 4 GB minimum (8 GB recommended)
-- **Storage:** 2 GB to run the system (8 GB+ recommended for data storage)
-- **Graphics:** Modern GPU with hardware acceleration
-
-## Component Compatibility
+## Component compatibility
 
 ### Processors
-A wide range of 64-bit x86 processors from Intel (Core i3/i5/i7/i9) and AMD (Ryzen 3/5/7/9) are supported.
+
+Compatibility depends on the architecture and kernel shipped in the selected
+image. Check the release notes when using a recent processor or CPU features
+that require newer kernel support.
 
 ### Graphics
-- **Intel:** Integrated graphics (UHD, Iris Xe, Arc) are well-supported.
-- **NVIDIA:** The open-source Nouveau driver is included. For modern cards, installing the proprietary driver is recommended for best performance.
-- **AMD:** Modern Radeon RX series graphics are fully supported by the open-source AMDGPU driver.
+
+Graphics support depends on the kernel driver, firmware, and userspace graphics
+stack in the image. A card may provide basic display output without supporting
+hardware acceleration or every connector. Some NVIDIA hardware may require a
+proprietary driver that is not included in a particular image.
 
 ### Network
-- **Ethernet:** Most wired controllers from Intel, Realtek, and Broadcom work out-of-the-box.
-- **Wi-Fi:** A vast range of Wi-Fi adapters are supported through included firmware and automatically built DKMS drivers, especially common models from Intel, Atheros, and Realtek.
+
+Ethernet and Wi-Fi support depends on the controller, kernel driver, and
+firmware included in the image. Test networking from a fresh session. For Wi-Fi,
+also check whether the device needs firmware or an out-of-tree driver absent
+from that release.
 
 ### Storage
-MiniOS is designed to boot from a variety of storage devices. The system's startup scripts automatically scan all available block devices, making it compatible with:
 
-- **USB Drives:** All generations of USB are supported.
-- **SATA/IDE Drives:** All standard internal hard drives and SSDs.
-- **NVMe Drives:** Full support for modern NVMe SSDs.
-- **SD/MMC Cards:** Supported if the card reader is recognized by the kernel.
+USB, SATA, NVMe, IDE, and SD/MMC devices work only when the selected image has a
+driver for the controller and the kernel can recognize the device. Initrd
+scanning does not make an unsupported controller compatible. See
+[Initrd system discovery](/configuration/Initrd-System-Discovery.md) for the
+exact live-source search behavior.
+
+Live mode and native mode have different boot paths. Live mode discovers the
+MiniOS data tree and assembles read-only modules in early userspace; native mode
+boots a conventional installed root. See
+[Initrd module loading](/configuration/Initrd-Module-Loading.md) for live module
+handling and [Installing MiniOS](/installation/Installing-MiniOS.md) for the
+layout distinction.
 
 ### Virtualization
-MiniOS is fully optimized for use as a guest operating system in all major virtualization environments. The build process includes all necessary drivers in the initial ramdisk (`initrd`) to ensure maximum performance out-of-the-box.
 
-- **High-Performance Drivers:** Support for paravirtualized storage controllers is built-in, including **VirtIO** (KVM/QEMU), **VMware Paravirtual SCSI**, and **Hyper-V Storvsc**. This allows for near-native disk I/O performance.
-- **Broad Compatibility:** The system can also boot from emulated **IDE** and **SATA** controllers, ensuring compatibility with any hypervisor configuration.
-- **Guest Tools:** For enhanced integration (such as seamless mouse, clipboard sharing, and dynamic resolution), the `toolbox` and `ultra` variants include `open-vm-tools` (for VMware) and `hyperv-daemons` (for Hyper-V).
+MiniOS can run as a guest when the selected image includes drivers for the VM's
+configured CPU, storage, network, and display devices. Support is not guaranteed
+for every hypervisor or controller model. VirtIO, VMware, Hyper-V, and emulated
+IDE or SATA support must be checked against the release and tested with the
+specific VM configuration.
 
-For detailed setup instructions and platform-specific configurations, see the [Virtualization Guide](/administration/Virtualization.md).
+Guest agents and desktop integration tools also vary by edition and image. See
+the [package list](/administration/Packages.md) and
+[Virtualization guide](/administration/Virtualization.md) before assuming that
+clipboard sharing, dynamic resolution, clean shutdown, or host communication is
+available.

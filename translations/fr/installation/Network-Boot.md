@@ -12,37 +12,37 @@ La connectivité réseau de session après le démarrage est indépendante. Pour
 
 À lire également : [Paramètres de démarrage](/configuration/Boot-Parameters.md) (`ip`, `from`, `cache`).
 
-## Vue d’ensemble
+## Vue d'ensemble
 
 | Mode | Ce que vous démarrez | Comment les données MiniOS sont obtenues |
-|------|---------------------|------------------------------------------|
-| **PXE** | Kernel + initrd depuis un serveur de démarrage réseau | `ip=` non vide → l’initrd télécharge les fichiers MiniOS depuis le serveur de données PXE (HTTP préféré, TFTP en secours) |
-| **HTTP ISO** | Kernel + initrd depuis un support local **ou** PXE | `from=http://…/minios.iso` → l’initrd active le réseau et monte l’ISO avec `httpfs2` |
-| **Support local** | USB / ISO / disque | Pas de réseau dans l’initrd ; recherche locale uniquement |
+|------|---------------------|-----------------------------------------|
+| **PXE** | Kernel + initrd depuis un serveur de démarrage réseau | `ip=` non vide sans `from=http://…` → l'initrd télécharge les fichiers MiniOS depuis le serveur de données PXE |
+| **HTTP ISO** | Kernel + initrd depuis un support local **ou** PXE | `from=http://…/minios.iso` → l'initrd active le réseau et monte l'ISO avec `httpfs2` |
+| **Support local** | USB / ISO / disque | Pas de réseau dans l'initrd ; recherche locale uniquement |
 
-Constructeurs d’initramfs : **LiveKit** (`livekit-mos`) ou **dracut** (`dracut-mos`). Les deux utilisent les mêmes utilitaires réseau LiveKit pour la récupération anticipée.
+Constructeurs d'initramfs : **LiveKit** (`livekit-mos`) ou **dracut** (`dracut-mos`). Les deux utilisent les mêmes assistants réseau LiveKit pour la récupération anticipée.
 
 ```text
 find_data()
-  ├─ from=http://…     → configure network → mount ISO (httpfs2)
+  ├─ from=http://…     → configure network (ip= static, otherwise DHCP) → mount ISO (httpfs2)
   ├─ ip=… (non-empty)  → configure network → PXE download of MiniOS data
   └─ else              → search local disks/ISO only (no network)
 ```
 
-**Important :** tout `ip=` non vide sélectionne le **chemin de données PXE** et **ignore les supports locaux**. N’ajoutez pas `ip=` lors d’un démarrage USB/ISO classique juste pour “définir une adresse statique”.
+`from=http://…` a priorité sur `ip=`. Dans ce mode, `ip=` fournit l'adressage statique pour la connexion HTTP ISO. Sinon, tout `ip=` non vide sélectionne le **chemin de données PXE** et ignore les supports locaux. N'ajoutez pas `ip=` lors d'un démarrage USB/ISO classique juste pour "définir une adresse statique". Aucun des chemins réseau ne bascule sur un support local en cas d'échec de découverte ou de téléchargement.
 
 ## Prérequis
 
 | Prérequis | Remarques |
-|-------------|----------|
-| Ethernet filaire (ou virtio/vmxnet dans les VM) | La première interface utilisable non-loopback est utilisée ; pas de sélection `BOOTIF` / `ethdevice` dans l’initrd |
-| Initrd avec modules réseau | Construit pour les variantes de paquets autres que la valeur interne `minimum` (`--network`, souvent `--cloud`) |
-| Pas de dépendance au Wi‑Fi | Le sans-fil n’est pas pris en charge dans le processus de démarrage réseau |
-| Privilégier les cartes réseau sans blobs de firmware | Les cartes dépendantes du firmware échouent souvent dans l’initrd |
-| Privilégier les images **Standard** ou plus grandes | L’édition **Flux** omet les modules NIC réseau, donc PXE / ISO HTTP n’est pas réellement pris en charge |
-| HTTP uniquement pour l’URL de l’ISO | `from=http://…` fonctionne ; **`https://` n’est pas pris en charge** |
+|-----------|-----------|
+| Ethernet filaire (ou virtio/vmxnet dans les VM) | La première interface détectée non loopback est utilisée ; la liaison et l'accessibilité ne sont pas vérifiées, et il n'y a pas de sélection `BOOTIF` / `ethdevice` dans l'initrd |
+| Initrd avec modules réseau | Construit pour des variantes de paquets autres que la valeur interne `minimum` (`--network`, souvent `--cloud`) |
+| Pas de dépendance au Wi‑Fi | Le sans-fil n'est pas pris en charge dans le démarrage réseau |
+| Privilégier les cartes réseau sans blobs firmware | Les cartes nécessitant un firmware échouent souvent dans l'initrd |
+| Privilégier les images **Standard** ou plus grandes | L'édition **Flux** omet les modules NIC réseau, donc PXE / HTTP ISO n'est effectivement pas pris en charge |
+| HTTP uniquement pour l'URL ISO | `from=http://…` fonctionne ; **`https://` n'est pas pris en charge** |
 
-Outils dans l’initrd : busybox `ifconfig`, `route`, `udhcpc`, `wget`, `tftp` et `@mount.httpfs2`. Il n’y a pas de NetworkManager dans l’initrd.
+Outils présents dans l'initrd : busybox `ifconfig`, `route`, `udhcpc`, `wget`, `tftp` et `@mount.httpfs2`. Il n'y a pas de NetworkManager dans l'initrd.
 
 ## Démarrage PXE
 
@@ -76,21 +76,23 @@ ip=192.168.1.10:192.168.1.1:192.168.1.1:255.255.255.0:8080
 
 ### Comment les fichiers sont récupérés
 
-1. **HTTP** (préféré) :  
-   `http://<server-ip>:<port>/PXEFILELIST?<kernel-release>:<machine>`  
+1. **HTTP** (préféré) :
+   `http://<server-ip>:<port>/PXEFILELIST?<kernel-release>:<machine>`
    puis chaque chemin listé dans ce fichier depuis le même hôte/port.
-2. **TFTP** (secours si HTTP échoue) : busybox `tftp` pour `PXEFILELIST` et les fichiers listés.
+2. **TFTP** : busybox `tftp` n'est sélectionné que si la requête HTTP initiale pour
+   `PXEFILELIST` échoue. Un échec ultérieur de téléchargement de fichier via HTTP ne bascule pas le
+   transfert vers TFTP.
 
-Le port par défaut est **7529** si le cinquième champ est omis.
+Le port par défaut est **7529** lorsque le cinquième champ est omis.
 
-### Ce que `ip=` n’est pas
+### Ce que `ip=` n'est pas
 
-| Attendu | Réalité |
+| Attente | Réalité |
 |---------|---------|
-| Formes kernel / dracut (`ip=dhcp`, `ip=:::::eth0:dhcp`, …) | **Non pris en charge** — interprété à tort comme une adresse client |
-| IP statique pour toute la session live | **Non pris en charge** — après le démarrage, NetworkManager (ou équivalent) gère l’interface |
-| IP statique lors du démarrage USB/ISO | **À ne pas utiliser** — force le téléchargement des données PXE |
-| Liste DNS dédiée | Seuls la passerelle et le serveur sont utilisés comme serveurs DNS dans l’initrd |
+| Formes Kernel / dracut (`ip=dhcp`, `ip=:::::eth0:dhcp`, …) | **Non pris en charge** — mal interprété comme une adresse client |
+| IP statique pour toute la session live | **Non pris en charge** — après le démarrage, NetworkManager (ou équivalent) gère l'interface |
+| IP statique lors du chargement des données MiniOS depuis USB/ISO | **À ne pas utiliser** — sans `from=http://…`, cela force le téléchargement des données PXE |
+| Liste DNS dédiée | Seule la passerelle + le serveur sont utilisés comme serveurs DNS dans l'initrd |
 
 ## Démarrage HTTP ISO (`from=http://…`)
 
@@ -127,22 +129,22 @@ L’espace utilisateur tardif **live-config** peut brièvement activer le résea
 
 ## Erreurs courantes
 
-1. Mettre `ip=` sur la ligne de commande USB/ISO « pour IP statique » → le système tente un téléchargement PXE au lieu du média local.
-2. Utiliser `ip=dhcp` ou une autre syntaxe du noyau `ip=` → mauvais parseur, configuration d’adresse incorrecte.
-3. Attendre une sélection Wi‑Fi ou multi-NIC `BOOTIF` dans l’initrd → non implémenté.
-4. Utiliser une image **Flux** pour PXE/ISO HTTP → modules réseau absents de l’initrd.
-5. Servir l’ISO uniquement en HTTPS → `from=http://…` ne correspondra pas.
-6. Confondre cela avec la configuration statique de l’installateur/NetworkManager après connexion.
+1. Mettre `ip=` sur une ligne de commande USB/ISO "pour une IP statique" → le système tente un téléchargement PXE au lieu d'utiliser le support local, sauf si `from=http://…` a d'abord sélectionné le démarrage HTTP ISO.
+2. Utiliser `ip=dhcp` ou une autre syntaxe kernel `ip=` → mauvais analyseur, configuration d'adresse incorrecte.
+3. Attendre une sélection Wi‑Fi ou multi-NIC `BOOTIF` dans l'initrd → non implémenté.
+4. Utiliser une image **Flux** pour PXE/HTTP ISO → modules réseau absents de l'initrd.
+5. Servir l'ISO uniquement via HTTPS → `from=http://…` ne correspondra pas.
+6. Confondre ceci avec la configuration statique de l'installateur/NetworkManager après connexion.
 
-## Résumé de la fiabilité
+## Résumé de fiabilité
 
 | Scénario | Évaluation |
 |----------|------------|
-| PXE + `ip=…` + liste HTTP sur :7529 (ou TFTP), connexion filaire simple / virtio | Cible prise en charge |
-| `from=http://…iso` + DHCP (ou `ip=`), même classe de carte réseau | Fonctionne généralement |
-| Démarrage USB/ISO classique | Réseau initrd non utilisé |
+| PXE + `ip=…` + liste HTTP sur :7529 (ou TFTP après échec de la requête HTTP), réseau filaire simple / virtio | Cible prise en charge |
+| `from=http://…iso` + DHCP (ou `ip=`), même type de carte réseau | Fonctionne généralement |
+| Démarrage USB/ISO classique | Réseau de l'initrd non utilisé |
 | Session statique via `ip=` | Non pris en charge |
-| Multi-NIC / carte réseau firmware / Wi‑Fi / `https://` / édition Flux | Faible ou non pris en charge |
+| Multi-NIC / carte réseau avec firmware / Wi‑Fi / `https://` / édition Flux | Faible ou non pris en charge |
 
 ## Référence d’implémentation
 
@@ -156,7 +158,8 @@ L’espace utilisateur tardif **live-config** peut brièvement activer le résea
 
 ## Voir aussi
 
-- [Paramètres de démarrage](/configuration/Boot-Parameters.md) — tableau complet des paramètres (`ip`, `from`, `cache`, …)
-- [live-config](/configuration/live-config.md) — configuration de l’espace utilisateur tardif (pas de démarrage réseau)
-- [Architecture du système](/about/System-Architecture.md)
-- [Construire MiniOS](/development/Building-MiniOS.md) — constructeur d’initramfs (`livekit` / `dracut`)
+- [Paramètres de démarrage](/configuration/Boot-Parameters.md) — table complète des paramètres (`ip`, `from`, `cache`, …)
+- [Découverte système dans l'initrd](/configuration/Initrd-System-Discovery.md) — priorités des sources, découverte locale et gestion des échecs
+- [live-config](/configuration/live-config.md) — configuration de l'espace utilisateur tardive (hors démarrage réseau)
+- [Architecture système](/about/System-Architecture.md)
+- [Construire MiniOS](/development/Building-MiniOS.md) — constructeur d'initramfs (`livekit` / `dracut`)

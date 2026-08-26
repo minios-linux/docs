@@ -4,12 +4,12 @@ MiniOS adalah distribusi Linux berbasis Debian yang dirancang untuk dijalankan d
 
 ## Model sistem
 
-- Sistem dasar dan perangkat lunak opsional merupakan modul terpisah. Modul dapat dipilih saat boot atau ditambahkan tanpa membangun ulang seluruh sistem.
+- Sistem dasar dan perangkat lunak opsional adalah modul terpisah. Modul dapat dipilih saat boot atau ditambahkan tanpa membangun ulang seluruh sistem.
 - Sesi live baru tidak mengubah modul dasar.
-- Persistensi dapat menyimpan perubahan di direktori native, kontainer DynFileFS yang dapat diperluas, image mentah berukuran tetap, atau kontainer LUKS terenkripsi, tergantung pada instalasi dan filesystem target.
+- Persistensi dapat menyimpan perubahan di direktori native, kontainer DynFileFS yang dapat diperluas, image raw berukuran tetap, atau kontainer LUKS terenkripsi, tergantung pada instalasi dan filesystem target.
 - MiniOS Installer dapat membuat instalasi live modular atau, jika image mendukungnya, melakukan instalasi Linux native konvensional.
 
-Lihat [Arsitektur sistem](/about/System-Architecture.md) untuk tata letak boot dan modul, serta [Manajemen sesi](/configuration/Session-Management.md) untuk sesi persisten.
+Lihat [Boot modes](/configuration/Boot-Modes.md) untuk panduan resmi perilaku boot live dan [System architecture](/about/System-Architecture.md) untuk tata letak boot dan modul. Kontrak detail early-boot didokumentasikan di [initrd system discovery](/configuration/Initrd-System-Discovery.md), [initrd module loading](/configuration/Initrd-Module-Loading.md), dan [initrd persistence](/configuration/Initrd-Persistence.md).
 
 ## Edisi
 
@@ -28,9 +28,9 @@ Untuk daftar perangkat lunak yang disertakan di setiap edisi, lihat
 
 ## Instalasi dan persistensi
 
-File ISO dapat ditulis sebagai image bootable, disalin ke perangkat multiboot, atau diinstal menggunakan MiniOS Installer. Metode ini memiliki perilaku penyimpanan yang berbeda. Alat penulisan image seperti `dd` dan Etcher mereplikasi tata letak ISO; Ventoy melakukan boot dari file ISO; MiniOS Installer dapat mengalokasikan dan mengonfigurasi penyimpanan sesi yang dapat ditulis. Jangan berasumsi bahwa metode penulisan otomatis membuat persistensi.
+Sebuah ISO dapat ditulis sebagai image bootable, disalin ke perangkat multiboot, atau diinstal dengan MiniOS Installer. Metode-metode ini memiliki perilaku penyimpanan yang tidak identik. Alat penulisan image seperti `dd` dan Etcher mereproduksi tata letak ISO; Ventoy melakukan boot dari file ISO; MiniOS Installer dapat mengalokasikan dan mengonfigurasi penyimpanan sesi yang dapat ditulis. Jangan berasumsi bahwa metode penulisan akan otomatis membuat persistensi.
 
-Mulailah dengan [Quick start](/installation/Quick-Start.md) dan gunakan panduan yang terhubung sesuai metode instalasi yang dipilih. Persistensi juga dapat dipilih dari menu boot yang sesuai atau dikonfigurasi dengan parameter boot yang didokumentasikan jika penyimpanan yang dapat ditulis tersedia.
+Mulailah dengan [Quick start](/installation/Quick-Start.md) dan gunakan panduan yang terhubung untuk metode instalasi yang dipilih. Persistensi juga dapat dipilih dari menu boot yang sesuai atau dikonfigurasi dengan parameter boot yang didokumentasikan jika penyimpanan yang dapat ditulis tersedia. Lihat [Boot modes](/configuration/Boot-Modes.md) untuk perilaku sesi live yang dihasilkan dan [Session management](/configuration/Session-Management.md) untuk opsi penyimpanan.
 
 ## Sumber daya proyek
 

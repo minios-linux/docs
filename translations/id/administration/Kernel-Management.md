@@ -48,15 +48,19 @@ Debian menyediakan beberapa varian kernel yang dioptimalkan untuk berbagai kebut
 
 MiniOS menyediakan dua alat untuk manajemen kernel:
 
-1. **🖥️ MiniOS Kernel Manager (GUI):** Aplikasi grafis yang ramah pengguna untuk memaketkan, menginstal, dan mengelola kernel
-2. **⌨️ minios-kernel (CLI):** Alat baris perintah untuk pengguna tingkat lanjut dan otomasi
+1. **🖥️ MiniOS Kernel Manager (GUI):** Aplikasi grafis yang ramah pengguna untuk melakukan packaging, instalasi, dan manajemen kernel
+2. **⌨️ minios-kernel (CLI):** Alat baris perintah untuk pengguna tingkat lanjut dan otomatisasi
 
 Kedua alat ini secara otomatis menangani:
-- **Pemaketan kernel** ke format SquashFS
+- **Packaging kernel** ke dalam format SquashFS
 - **Pembuatan initramfs** dengan driver dan skrip boot yang sesuai
 - **Instalasi** ke repositori kernel MiniOS
 - **Pembaruan konfigurasi bootloader**
-- **Aktivasi dan penggantian kernel**
+- **Aktivasi kernel** dan pengalihan
+
+Halaman ini membahas instalasi live modular. Instalasi native menggunakan paket kernel yang sudah terpasang, GRUB, dan initramfs mereka sendiri; lihat
+[Boot modes](/configuration/Boot-Modes.md). Untuk perilaku kernel terkoordinasi secara tepat pada initrd, lihat
+[Initrd module loading](/configuration/Initrd-Module-Loading.md).
 
 ### ⚠️ **Hal Penting yang Perlu Diperhatikan:**
 
@@ -243,26 +247,25 @@ sudo minios-kernel delete --help        # Delete command help
 
 #### **📦 Instalasi Paket Gagal**
 
-- **Penyebab:** File paket rusak, masalah jaringan, atau masalah dependensi
-- **Solusi:** 
+- **Penyebab:** Paket rusak, masalah jaringan, atau masalah dependensi
+- **Solusi:**
   - Verifikasi integritas file paket
   - Periksa koneksi jaringan untuk paket dari repositori
   - Perbarui daftar paket: `sudo apt update`
 
 #### **💥 Kernel Panic Setelah Aktivasi**
 
-- **Penyebab:** Kernel tidak kompatibel atau driver kurang
-- **Solusi:** 
-  - Boot dari mode rescue atau kernel lama
-  - Gunakan `sudo minios-kernel activate <working-version>` untuk mengaktifkan kernel yang sudah terbukti berjalan
+- **Penyebab:** Kernel tidak kompatibel atau driver tidak lengkap
+- **Solusi:**
+  - Ikuti [Boot recovery](/administration/Boot-Recovery.md) untuk memulai media rescue yang kompatibel dan aktifkan set kernel yang sudah terbukti berfungsi
   - Periksa kompatibilitas kernel dengan perangkat keras Anda
 
 #### **🔄 Sistem Boot ke Kernel Lama**
 
-- **Penyebab:** Konfigurasi bootloader tidak diperbarui dengan benar
-- **Solusi:** 
-  - Jalankan ulang aktivasi kernel: `sudo minios-kernel activate <version>`
-  - Pastikan kernel sudah dipaketkan dan diinstal dengan benar
+- **Penyebab:** Konfigurasi bootloader belum diperbarui dengan benar
+- **Solusi:**
+  - Jalankan kembali aktivasi kernel: `sudo minios-kernel activate <version>`
+  - Pastikan kernel sudah dipackaging dan diinstal dengan benar
 
 #### **⚠️ Perangkat Keras Tidak Berfungsi Setelah Ganti Kernel**
 
@@ -272,28 +275,11 @@ sudo minios-kernel delete --help        # Delete command help
   - Cek apakah kernel baru mendukung perangkat keras Anda
   - Pertimbangkan menggunakan varian kernel lain
 
-#### **🚨 Pemulihan Kernel dari MiniOS Image Asli**
+#### **🚨 Pemulihan Kernel dari Citra MiniOS Asli**
 
-Jika Anda perlu memulihkan dari kernel yang rusak atau tidak kompatibel, Anda bisa boot dari MiniOS ISO/USB asli:
-
-```bash
-# Boot from original MiniOS image with from= parameter
-# At boot prompt, specify your installed MiniOS device
-from=/dev/sda1  # Replace with your actual MiniOS device
-```
-
-**Proses Pemulihan:**
-Saat Anda boot dari image ISO/USB MiniOS asli dan menentukan parameter `from=` pada perangkat tempat MiniOS terinstal, sistem init akan mendeteksi dan memungkinkan Anda mengakses sistem MiniOS yang terinstal. Metode pemulihan tergantung apakah file kernel asli masih tersedia:
-
-1. **Jika kernel asli masih ada:** 
-   - Boot berjalan lancar dengan kernel asli dari ISO/USB
-   - Aktifkan kernel asli secara manual: `sudo minios-kernel activate <original-kernel-version>`
-
-2. **Jika kernel asli sudah terhapus:** 
-   - Salin file kernel dari image MiniOS asli dan pulihkan ke lokasi yang sesuai di instalasi MiniOS Anda
-   - Aktifkan kernel yang dipulihkan secara manual: `sudo minios-kernel activate <original-kernel-version>`
-
-Pada kedua kasus, aktivasi kernel memerlukan intervensi manual setelah proses pemulihan.
+Jangan melakukan pemulihan dengan menyalin satu gambar kernel, initramfs, atau modul `01-kernel-*.sb` secara individual. Versi yang dapat di-boot memerlukan triplet yang terkoordinasi, dan aktivasi harus memperbarui konfigurasi bootloader sebagai satu operasi yang didukung. Ikuti
+[Modular kernel rollback](/administration/Boot-Recovery.md)
+untuk menggunakan media rescue yang kompatibel dan mengaktifkan satu set lengkap yang sudah terbukti berfungsi. Jika satu set yang cocok tidak tersedia, lakukan instalasi ulang daripada merangkai aset boot parsial.
 
 ### 🔍 **Perintah Diagnostik:**
 
@@ -323,15 +309,16 @@ grep -r "vmlinuz" /minios/boot/  # Find kernel references in boot configs
 
 MiniOS Kernel Manager secara otomatis mengelola file-file berikut:
 
-### **Struktur Repository Kernel:**
+### **Struktur Repositori Kernel:**
 
 ```
 /minios/
-├── 01-kernel.sb                   # Active kernel module (standard location)
+├── 01-kernel-<version>.sb         # Active kernel module
 ├── kernels/                       # Repository of inactive/alternative kernels
-│   ├── 01-kernel-<version>.sb     # SquashFS kernel modules
-│   ├── vmlinuz-<version>          # Kernel binaries
-│   └── initrfs-<version>.img      # Initial RAM filesystems
+│   └── <version>/
+│       ├── 01-kernel-<version>.sb # SquashFS kernel module
+│       ├── vmlinuz-<version>      # Kernel image
+│       └── initrfs-<version>.img  # Initial RAM filesystem
 ├── boot/
 │   ├── vmlinuz-<version>          # Active kernel binary
 │   ├── initrfs-<version>.img      # Active initial RAM filesystem
@@ -341,7 +328,7 @@ MiniOS Kernel Manager secara otomatis mengelola file-file berikut:
 │       └── grub.cfg               # GRUB bootloader config
 ```
 
-**Catatan:** Modul standar `01-kernel.sb` yang disertakan dalam MiniOS berisi driver tambahan selain yang terdapat pada paket kernel repository asli. Driver tambahan ini memberikan kompatibilitas perangkat keras yang lebih baik untuk adaptor nirkabel dan perangkat penyimpanan.
+**Catatan:** Modul standar `01-kernel-<version>.sb` yang disertakan dengan MiniOS berisi driver tambahan di luar yang tersedia pada paket kernel repositori asli. Driver tambahan ini memberikan kompatibilitas perangkat keras yang lebih baik untuk adapter nirkabel dan perangkat penyimpanan.
 
 ### **Indikator Status:**
 
@@ -382,6 +369,6 @@ MiniOS Kernel Manager secara otomatis mengelola file-file berikut:
 
 ### **Perencanaan Pemulihan:**
 
-- Selalu simpan cadangan kernel yang berfungsi
+- Selalu simpan satu set triplet kernel yang lengkap dan sudah terbukti berfungsi
 - Ketahui cara boot dari media rescue jika diperlukan
 - Dokumentasikan kernel mana yang cocok dengan konfigurasi perangkat keras Anda

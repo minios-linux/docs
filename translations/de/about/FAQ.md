@@ -18,14 +18,11 @@ Nicht unbedingt. Das direkte Schreiben der ISO und das normale Booten mit Ventoy
 
 ## Was ist der Unterschied zwischen der aktiven und der laufenden Sitzung?
 
-Die aktive Sitzung ist für den nächsten Start ausgewählt; die laufende Sitzung stellt aktuell die Persistenz bereit. Das Aktivieren einer Sitzung wechselt nicht das aktuelle System. Weitere Informationen finden Sie unter
-[Sitzungsverwaltung](/configuration/Session-Management.md).
+Die aktive Sitzung ist für den nächsten Systemstart ausgewählt; konzeptionell sorgt die laufende Sitzung aktuell für Persistenz. Der persistente `running=`-Eintrag kann nach einem Absturz veraltet sein, daher sind der geschützte Status des aktuellen Systemstarts und das eingehängte beschreibbare Layer maßgeblich für Laufzeitoperationen. Das Aktivieren einer Sitzung wechselt das aktuelle System nicht. Siehe [Sitzungsverwaltung](/configuration/Session-Management.md) und [Initrd-Persistenz](/configuration/Initrd-Persistence.md).
 
 ## Warum sind meine Änderungen nach dem Neustart verschwunden?
 
-Möglicherweise haben Sie eine neue Sitzung gestartet, ein Medium ohne Persistenz verwendet, eine andere Sitzung ausgewählt oder das System heruntergefahren, bevor die Änderungen gespeichert wurden. Überprüfen Sie die laufende und aktive Sitzung wie beschrieben in
-[Sitzungsverwaltung](/configuration/Session-Management.md) und
-[Fehlerbehebung](/administration/Troubleshooting.md).
+Möglicherweise haben Sie eine neue Sitzung gestartet, ein Medium ohne Persistenz verwendet oder eine andere Sitzung ausgewählt. Native, DynFileFS-, Raw- und LUKS-Sitzungen nehmen während des laufenden Systems Schreibvorgänge entgegen; sie warten nicht auf einen Snapshot beim Herunterfahren. Nur bei SquashFS-Persistenz müssen die im RAM gespeicherten Änderungen in `changes.sb` neu eingebaut werden, sodass ein unterbrochener Shutdown oder eine deaktivierte Speicherpolitik dazu führen kann, dass die letzten Änderungen nicht gespeichert werden. Überprüfen Sie die laufende und aktive Sitzung wie in der [Sitzungsverwaltung](/configuration/Session-Management.md) und der [Fehlerbehebung](/administration/Troubleshooting.md) beschrieben.
 
 ## Sind LUKS und SquashFS die gleiche Art von Persistenz?
 

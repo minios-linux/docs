@@ -13,11 +13,11 @@ Drive Utility is a graphical tool for writing MiniOS ISO images to USB drives.
 ## Drive Requirements
 
 ### Drive Size (for MiniOS writing)
-See [Hardware Compatibility Guide](/installation/Hardware-Compatibility.md#system-requirements) for detailed system requirements and drive sizes.
+See [Hardware Compatibility Guide](/installation/Hardware-Compatibility.md) for detailed system requirements and drive sizes.
 
 ### Supported Filesystems
 - **FAT32**: maximum compatibility
-- **NTFS**: Windows compatibility  
+- **NTFS**: Windows compatibility
 - **EXT4**: recommended for Linux
 
 ## Launching Drive Utility
@@ -44,17 +44,8 @@ driveutility
    - Confirm operation - all data on the drive will be deleted
 5. **Wait for completion** - process will take several minutes
 
-## Automatic Change Persistence
+## Result and persistence
 
-When writing MiniOS through Drive Utility, an exact copy of the ISO image is created. MiniOS will automatically detect the writing method and configure change persistence on first boot.
+Write mode performs a raw image write: it copies the ISO layout to the whole target device. It does not create an ext4 partition in unused space, create a persistence session, or perform a MiniOS Installer deployment. The filesystem choices above apply to Drive Utility operations that format a filesystem, not to the partition layout copied by an ISO write.
 
-### Parameter Configuration (for advanced users)
-
-For precise persistence configuration, boot parameters can be used:
-
-- `perchmode=native` - Direct partition saving (when free space available)
-- `perchmode=dynfilefs` - Dynamically expandable file
-- `perchmode=raw` - Fixed-size file
-- `perchsize=8000` - Storage space size for data in MB
-
-Details in [boot parameters](/configuration/Boot-Parameters.md).
+Persistence is enabled only when a boot entry or kernel command line requests it, and it still requires suitable writable storage. See [Boot modes](/configuration/Boot-Modes.md) and [Initrd persistence](/configuration/Initrd-Persistence.md) before relying on saved changes.

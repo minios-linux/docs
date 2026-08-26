@@ -13,46 +13,57 @@ Alat baris perintah yang setara adalah `minios-session`. Perintah-perintah yang 
 ## Mode sesi
 
 | Mode | Penyimpanan | Kendala utama |
-|------|-------------|----------------|
-| `native` | Perubahan disimpan langsung di direktori sesi | Membutuhkan filesystem POSIX yang dapat ditulis seperti ext2/3/4, Btrfs, XFS, F2FS, atau ReiserFS. |
-| `dynfilefs` | Kontainer ext4 yang dapat diperluas, dibagi menjadi file-file pendukung | Berjalan di filesystem POSIX, FAT32, NTFS, dan exFAT yang dapat ditulis. Membutuhkan backend DynFileFS. |
-| `raw` | `changes.img` berukuran tetap yang berisi ext4 | Berjalan di filesystem POSIX, FAT32, NTFS, dan exFAT yang dapat ditulis. |
-| `luks` | `changes.luks` terenkripsi LUKS2 yang berisi ext4 | Membutuhkan `cryptsetup`, dukungan loop, dan MiniOS initrd LUKS hook. |
-| `squashfs` | Snapshot terkompresi dalam `changes.sb` | Penyimpanan membutuhkan filesystem persistensi POSIX yang dapat mempertahankan link, kepemilikan, mode, xattrs, ACL, kapabilitas, dan whiteouts. |
+|------|-------------|------------------|
+| `native` | Perubahan disimpan langsung di direktori sesi | Memerlukan filesystem POSIX yang dapat ditulis seperti ext2/3/4, Btrfs, XFS, F2FS, atau ReiserFS. |
+| `dynfilefs` | Kontainer ext4 yang dapat diperluas dan dibagi menjadi file pendukung | Berjalan di filesystem POSIX yang dapat ditulis, FAT32, NTFS, dan exFAT. Memerlukan backend DynFileFS. |
+| `raw` | `changes.img` berukuran tetap yang berisi ext4 | Berjalan di filesystem POSIX yang dapat ditulis, FAT32, NTFS, dan exFAT. |
+| `luks` | `changes.luks` terenkripsi LUKS2 yang berisi ext4 | Memerlukan `cryptsetup`, dukungan loop, dan hook LUKS initrd MiniOS. |
+| `squashfs` | Snapshot terkompresi di `changes.sb` | Penyimpanan memerlukan filesystem persisten POSIX yang dapat mempertahankan link, kepemilikan, mode, xattrs, ACL, capabilities, dan whiteout. |
 
-`dynfilefs`, `raw`, dan `luks` yang dibuat dengan `minios-session` secara default berukuran 4000 MB. Ukuran menggunakan satuan desimal `MB`, `GB`, atau `TB` dan dibatasi hingga 1 TB. File raw dan LUKS dibatasi hingga 4000 MB pada FAT32. Operasi resize kontainer hanya dapat memperbesar sesi; pengecilan tidak didukung.
+`dynfilefs`, `raw`, dan `luks` yang dibuat dengan `minios-session` secara default berukuran 4000
+MiB. Nilai ukuran dialokasikan dalam MiB; akhiran `GB` dan `TB` mengkonversi ke 1000
+dan 1.000.000 MiB. Session Manager membatasi file raw dan LUKS hingga 4000 MiB pada
+FAT32. Jangan mengandalkan hal itu sebagai jaminan umum initrd: permintaan boot raw yang terlalu besar bisa tetap dialokasikan
+dan gagal daripada diperkecil. Operasi resize kontainer hanya dapat memperbesar sesi;
+pengecilan tidak didukung.
 
-Mode native adalah pilihan paling sederhana dan tercepat pada filesystem yang kompatibel. Gunakan DynFileFS jika filesystem persistensi tidak dapat merepresentasikan metadata Linux. Gunakan raw jika diperlukan alokasi tetap, LUKS jika sesi harus dienkripsi, dan SquashFS untuk snapshot terkompresi yang persis.
+Mode native adalah pilihan paling sederhana dan tercepat pada filesystem yang kompatibel.
+Gunakan DynFileFS ketika filesystem persisten tidak dapat merepresentasikan metadata Linux.
+Gunakan raw saat alokasi tetap diperlukan, LUKS ketika sesi harus dienkripsi, dan SquashFS untuk snapshot terkompresi yang persis.
 
-Jalankan perintah berikut untuk memeriksa filesystem persistensi yang sebenarnya dan mode yang tersedia di dalamnya:
+Jalankan perintah berikut untuk memeriksa filesystem persisten yang sebenarnya dan mode yang tersedia di dalamnya:
 
 ```bash
 sudo minios-session info
 sudo minios-session status
 ```
 
-Tidak ada sesi yang dapat dibuat pada media hanya-baca. Aktivasi SquashFS pada FAT32/NTFS/exFAT tetap dinonaktifkan hingga workspace staging yang mempertahankan metadata tersedia.
+Tidak ada sesi yang dapat dibuat di media hanya-baca. Initrd dapat membaca dan mengaktifkan
+snapshot SquashFS yang sudah ada yang disimpan di FAT, exFAT, atau NTFS yang dapat ditulis karena
+snapshot tersebut diekstrak ke ext4 upper sementara. Membuat atau menyimpan snapshot secara persis berbeda: workspace staging privatnya harus berada di filesystem POSIX yang sesuai yang dapat mempertahankan metadata Linux dan union whiteout.
 
 ## Pemilihan boot
 
-Setiap parameter persistensi yang dikenali akan mengaktifkan penanganan persistensi. Menu boot MiniOS biasanya menyediakan entri resume, baru, pemilihan, dan non-persisten.
+Setiap parameter persistensi yang dikenali akan mengaktifkan penanganan persistensi. Menu boot MiniOS biasanya menyediakan entri resume, baru, pemilihan, dan non-persisten. Deskripsi kanonik tentang selektor, kompatibilitas, fallback, dan semantik aktivasi ada di [Initrd persistence](./Initrd-Persistence.md).
 
 | Parameter | Arti |
 |-----------|------|
-| `perch` | Meminta persistensi. |
-| `perchdir=resume` | Melanjutkan sesi default. Ini bersifat best-effort dan akan berjalan di memori jika tidak ada sesi yang dapat ditulis dan kompatibel. |
-| `perchdir=new` | Membuat sesi baru yang bernomor. |
-| `perchdir=ask` | Memilih sesi yang sudah ada atau membuatnya saat boot. |
-| `perchdir=<id>` | Memilih sesi bernomor tersebut secara langsung. |
-| `perchdir=<device/path>` | Menggunakan lokasi persistensi pada perangkat, termasuk bentuk `/dev/...` dan `label:...` yang ditangani oleh initrd. |
-| `perchmode=<mode>` | Mengatur `native`, `dynfilefs`, `raw`, `luks`, atau `squashfs`. |
-| `perchsize=<size>` | Mengatur ukuran kontainer baru atau yang lebih besar; nilai tanpa satuan adalah MB dan akhiran `MB`, `GB`, dan `TB` diterima. |
+| `perch` | Gunakan jalur resume best-effort lama. Mencoba default metadata tetapi tidak membuat pengganti jika tidak ada yang dapat digunakan. |
+| `perchdir=resume` | Melanjutkan default metadata dan, jika tidak ada atau tidak kompatibel, memungkinkan initrd membuat pengganti baru yang kompatibel. Ini adalah perilaku resume menu boot saat ini. |
+| `perchdir=new` | Alokasikan sesi baru dengan nomor urut. |
+| `perchdir=ask` | Pilih sesi yang sudah ada atau buat satu saat boot. |
+| `perchdir=<id>` | Pilih sesi bernomor tersebut secara langsung. |
+| `perchdir=<device/path>` | Gunakan lokasi persistensi pada perangkat, termasuk bentuk `/dev/...` dan `label:...` yang ditangani oleh initrd. |
+| `perchmode=<mode>` | Setel `native`, `dynfilefs`, `raw`, `luks`, atau `squashfs`. |
+| `perchsize=<size>` | Setel ukuran kontainer baru atau lebih besar; nilai tanpa akhiran dialokasikan dalam MiB dan akhiran `MB`, `GB`, dan `TB` diterima. |
 
-Jika tidak ada mode yang ditentukan untuk sesi baru, boot akan menggunakan mode native. Pada FAT32/NTFS/exFAT, pembuatan boot native akan beralih ke DynFileFS. Kontainer boot raw atau LUKS baru secara default berukuran 4000 MB; sesi boot DynFileFS baru tanpa `perchsize` akan disesuaikan dari ruang yang tersedia dengan tetap mempertahankan cadangan keamanan. Sesi SquashFS diambil dari sistem yang sedang berjalan menggunakan Session Manager atau `minios-session create squashfs`; `perchdir=new perchmode=squashfs` tidak membuat snapshot di initrd.
+Jika tidak ada mode yang ditentukan untuk sesi baru, boot akan menggunakan mode native. Pada FAT32/NTFS/exFAT, pembuatan boot native akan fallback ke DynFileFS. Kontainer boot raw atau LUKS baru secara default berukuran 4000 MiB; sesi boot DynFileFS baru tanpa `perchsize` akan disesuaikan dari ruang yang tersedia sambil mempertahankan cadangan keamanan.
+Sesi SquashFS diambil dari sistem yang sedang berjalan menggunakan Session Manager atau `minios-session create squashfs`; `perchdir=new perchmode=squashfs` tidak membuat snapshot di initrd.
 
-Saat melanjutkan, MiniOS akan memeriksa versi, edisi, union filesystem, dan mode yang tercatat. Jalur `resume` normal akan membuat sesi baru daripada menggantikan yang tidak kompatibel. Pemilihan interaktif akan menampilkan peringatan sebelum mengizinkan sesi yang tidak kompatibel.
+Saat resume, MiniOS memeriksa versi, edisi, union filesystem, dan mode yang tercatat. Literal `perchdir=resume` dapat membuat sesi baru alih-alih menggunakan default yang tidak ada atau tidak kompatibel. `perch` tanpa embel-embel, pemilihan numerik langsung, dan permintaan resume lama lainnya tidak secara otomatis membuat pengganti tersebut.
+Pemilihan interaktif akan menampilkan peringatan sebelum mengizinkan sesi yang tidak kompatibel. Jika pemilihan atau aktivasi tetap gagal, boot akan tetap berlanjut dengan RAM upper dan peringatan persistensi.
 
-Penyimpanan sesi berbentuk seperti ini:
+Penyimpanan sesi memiliki bentuk seperti berikut:
 
 ```text
 minios/changes/
@@ -62,16 +73,26 @@ minios/changes/
 `-- N/
 ```
 
-`session.conf` mencatat ID default dan yang sedang berjalan serta mode per sesi, versi, edisi, union filesystem, ukuran, status, dan pengaturan khusus mode. Ini adalah konfigurasi yang dikomit oleh implementasi boot. Jangan mengeditnya atau memindahkan data sesi bernomor saat sesi sedang ter-mount; gunakan Session Manager atau `minios-session`.
+`session.conf` mencatat ID default dan yang sedang berjalan serta mode per sesi, versi, edisi, union filesystem, ukuran, status, dan pengaturan khusus mode.
+Ini adalah metadata persisten yang dikomit oleh implementasi boot, bukan bukti keadaan runtime saat ini. Jangan mengedit atau memindahkan data sesi bernomor saat sesi sedang ter-mount; gunakan Session Manager atau `minios-session`.
 
 ## Sesi aktif dan berjalan
 
 Istilah-istilah ini menggambarkan status yang berbeda:
 
-- Sesi **aktif** adalah default yang dipilih untuk boot berikutnya.
-- Sesi **berjalan** menyediakan persistensi untuk boot saat ini.
+- **Sesi aktif** adalah sesi yang secara default akan dipilih untuk boot berikutnya.
+- Secara konsep, **sesi berjalan** adalah sesi yang lapisan writablenya
+  benar-benar menyediakan persistensi untuk boot saat ini.
 
-Mengaktifkan sesi akan mengubah boot berikutnya dan tidak akan mengganti union filesystem saat ini:
+Field persisten `running=` mencatat hubungan yang dimaksudkan tersebut. Crash,
+gagal membangun union, store yang disalin, atau shutdown yang terputus dapat membuatnya
+tidak sinkron meskipun boot saat ini menggunakan RAM atau sesi lain. Oleh karena itu, operasi
+seperti penyimpanan SquashFS memerlukan status current-boot yang dilindungi oleh initrd,
+terikat pada boot-ID, dan upper yang sudah terpasang serta terverifikasi; mereka tidak hanya
+mengandalkan `running=`. Lihat [Status aktif, berjalan, dan current-boot](./Initrd-Persistence.md).
+
+Mengaktifkan sesi akan mengubah boot berikutnya dan tidak akan mengganti
+filesystem union saat ini:
 
 ```bash
 sudo minios-session active
@@ -79,7 +100,9 @@ sudo minios-session running
 sudo minios-session activate <id>
 ```
 
-Sesi aktif tidak dapat dihapus atau dikonversi secara langsung. Sesi yang sedang berjalan biasanya tidak dapat dihapus, diekspor, disalin, di-resize, atau dikonversi. Proses cleanup juga melindungi kedua ID tersebut.
+Sesi aktif tidak dapat dihapus atau dikonversi secara langsung. Sesi berjalan
+biasanya tidak dapat dihapus, diekspor, disalin, diubah ukuran, atau dikonversi. Pembersihan
+juga melindungi kedua ID tersebut.
 
 ## Referensi perintah
 

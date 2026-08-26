@@ -39,29 +39,26 @@ e il [metodo originale](/installation/tools/Original-Method.md). Consulta
 [Strumenti per la creazione USB](/installation/tools/USB-Creation-Tools.md) per un confronto e
 [Installazione di MiniOS](/installation/Installing-MiniOS.md) per la panoramica dell'installazione.
 
-## 3. Comprendere la persistenza prima della scrittura
+## 3. Comprendere la persistenza prima di scrivere
 
-La persistenza non viene creata da ogni metodo di scrittura o avvio.
+La persistenza non viene creata da ogni metodo di scrittura o di avvio.
 
-- Una scrittura dell'immagine grezza con `dd`, Etcher o uno strumento simile riproduce la ISO. Non configura automaticamente una sessione persistente.
-- Ventoy normalmente avvia la ISO come file. La persistenza di MiniOS deve essere configurata separatamente.
-- MiniOS Installer può creare un'installazione live e configurare lo storage della sessione in modalità nativa, DynFileFS, raw o cifrata LUKS.
-- Un avvio "fresco" viene eseguito deliberatamente senza persistenza. Altre voci del menu di avvio di MiniOS possono riprendere, creare o selezionare sessioni quando è disponibile uno storage scrivibile.
-- Un'installazione nativa è un sistema installato convenzionalmente e non utilizza la persistenza della sessione live nello stesso modo.
+- Una scrittura dell’immagine raw con `dd`, Etcher o uno strumento simile riproduce l’ISO. Non configura di per sé una sessione persistente.
+- Ventoy normalmente avvia l’ISO come file. La persistenza di MiniOS deve essere configurata separatamente.
+- Il programma di installazione di MiniOS può creare un’installazione live e configurare uno storage di sessione nativo, DynFileFS, raw o cifrato LUKS.
+- Un avvio nuovo viene eseguito deliberatamente senza persistenza. Altre voci del menu di avvio di MiniOS possono riprendere, creare o selezionare sessioni quando è disponibile uno storage scrivibile.
+- Un’installazione nativa è un sistema installato convenzionale e non utilizza la persistenza della sessione live nello stesso modo.
 
-Consulta [Gestione delle sessioni](/configuration/Session-Management.md) e
-[Parametri di avvio](/configuration/Boot-Parameters.md) prima di modificare lo storage delle sessioni. Esegui sempre il backup dei file importanti, indipendentemente dalla modalità di persistenza.
+Utilizza [Modalità di avvio](/configuration/Boot-Modes.md) come guida di riferimento per il comportamento visibile all’utente durante l’avvio live. Consulta [Gestione delle sessioni](/configuration/Session-Management.md) per le opzioni di storage, [Persistenza Initrd](/configuration/Initrd-Persistence.md) per il contratto dettagliato all’avvio e [Parametri di avvio](/configuration/Boot-Parameters.md) prima di modificare le opzioni del kernel. Tieni sempre una copia di backup dei file importanti, indipendentemente dalla modalità di persistenza.
 
 ## 4. Avvia MiniOS
 
 1. Spegni il computer e collega il dispositivo preparato.
 2. Apri il menu di avvio del firmware e seleziona la voce UEFI o legacy del dispositivo.
-3. Seleziona una sessione "fresca" per un test iniziale dell'hardware, oppure una sessione persistente solo se già configurata.
-4. Verifica che grafica, tastiera, storage e rete funzionino prima di apportare modifiche di installazione che possono essere distruttive.
+3. Seleziona una sessione nuova per un test iniziale dell’hardware, oppure una sessione persistente solo se è già stata configurata.
+4. Verifica che grafica, tastiera, storage e rete funzionino prima di apportare modifiche di installazione potenzialmente distruttive.
 
-Se il dispositivo non è elencato o il desktop non si avvia, consulta
-[Compatibilità hardware](/installation/Hardware-Compatibility.md) e
-[Risoluzione dei problemi](/administration/Troubleshooting.md).
+Se il dispositivo non è elencato o il desktop non si avvia, consulta [Compatibilità hardware](/installation/Hardware-Compatibility.md) e [Risoluzione dei problemi](/administration/Troubleshooting.md). Per problemi nel rilevamento della sorgente live, vedi [Rilevamento sistema Initrd](/configuration/Initrd-System-Discovery.md).
 
 ## 5. Configura il sistema
 
@@ -88,10 +85,9 @@ Configura le normali connessioni cablate e Wi-Fi con la [Configurazione di rete]
 
 ## 6. Installa software e salva il lavoro
 
-Le modifiche APT effettuate in una sessione live vengono mantenute dopo il riavvio solo se la sessione è persistente. I moduli SquashFS restano separati dalla sessione scrivibile e possono essere caricati come parte del sistema modulare; vedi
-[Creazione dei moduli](/development/Creating-Modules.md).
+Le modifiche APT effettuate in una sessione live vengono mantenute dopo il riavvio solo se la sessione è persistente. I moduli SquashFS rimangono separati dalla sessione scrivibile e possono essere caricati come parte del sistema modulare; vedi [Creazione dei moduli](/development/Creating-Modules.md) e [Caricamento moduli Initrd](/configuration/Initrd-Module-Loading.md).
 
-Salva i file importanti su uno storage scrivibile noto e testa almeno uno spegnimento e riavvio pulito prima di affidarti a una sessione persistente.
+Salva i file importanti su uno storage scrivibile noto e testa almeno uno spegnimento e riavvio puliti prima di affidarti a una sessione persistente.
 
 ## Ottenere assistenza
 

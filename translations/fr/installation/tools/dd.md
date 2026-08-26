@@ -8,9 +8,9 @@
 
 ## Exigences pour le lecteur
 
-### Taille du lecteur
+### Taille du disque
 
-Consultez le [Guide de compatibilité matérielle](/installation/Hardware-Compatibility.md#system-requirements) pour les exigences système détaillées et les tailles de lecteurs.
+Consultez le [Guide de compatibilité matérielle](/installation/Hardware-Compatibility.md) pour connaître en détail les exigences système et les tailles de disque recommandées.
 
 ## Préparation
 
@@ -38,17 +38,8 @@ sudo dd if=MiniOS.iso of=/dev/diskX bs=4m
 - `MiniOS.iso` – chemin vers votre fichier ISO
 - `/dev/sdX` – votre clé USB (ex. : `/dev/sdb`)
 
-## Persistance automatique des modifications
+## Résultat et persistance
 
-Au premier démarrage, MiniOS vérifie le type de système de fichiers du lecteur et sélectionne le mode de persistance optimal. Si de l’espace libre est disponible, le système crée automatiquement une partition ext4 pour des performances maximales.
+`dd` effectue une écriture brute de l'image : il copie la structure de l'ISO sur l'ensemble du périphérique cible. Il ne crée pas de partition ext4 dans l'espace inutilisé, ne crée pas de session de persistance et ne réalise pas de déploiement de l'installateur MiniOS.
 
-### Configuration des paramètres (pour utilisateurs avancés)
-
-Pour une configuration précise de la persistance, il est possible d’utiliser des paramètres de démarrage :
-
-- `perchmode=native` – Sauvegarde directe sur la partition (par défaut, le plus rapide)
-- `perchmode=dynfilefs` – Fichier extensible dynamiquement
-- `perchmode=raw` – Fichier de taille fixe
-- `perchsize=8000` – Taille de l’espace de stockage pour les données en Mo pour les fichiers image
-
-Détails dans [paramètres de démarrage](/configuration/Boot-Parameters.md).
+La persistance n'est activée que lorsqu'une entrée de démarrage ou une ligne de commande du noyau la demande, et elle nécessite toujours un support d'écriture adapté. Consultez [Modes de démarrage](/configuration/Boot-Modes.md) et [Persistance Initrd](/configuration/Initrd-Persistence.md) avant de compter sur la sauvegarde des modifications.

@@ -11,7 +11,7 @@ Rufus is a popular utility for Windows that helps format and create bootable USB
 ## Drive Requirements
 
 ### Drive Size
-See [Hardware Compatibility Guide](/installation/Hardware-Compatibility.md#system-requirements) for detailed system requirements and drive sizes.
+See [Hardware Compatibility Guide](/installation/Hardware-Compatibility.md) for detailed system requirements and drive sizes.
 
 ## Installing Rufus
 
@@ -50,20 +50,8 @@ Rufus offers two methods for writing MiniOS to a USB drive:
 6. **Start the process**: Click the "START" button
 7. **Confirm formatting** - all data on the drive will be deleted
 
-## Automatic Change Persistence
+## Result and persistence
 
-MiniOS will automatically detect the writing method and configure change persistence:
+DD mode performs a raw image write and copies the ISO layout to the whole target device. ISO mode formats a filesystem and extracts the ISO contents to create file-based live media. Neither mode is a MiniOS Installer deployment, and Rufus does not automatically create an ext4 partition or a persistence session.
 
-- **DD mode**: If free space is available, will create an ext4 partition for maximum performance
-- **ISO mode**: Uses a dynamic file for saving changes
-
-### Parameter Configuration (for Advanced Users)
-
-When precise persistence configuration is needed, boot parameters can be used:
-
-- `perchmode=native` - Direct saving to partition (for DD mode)
-- `perchmode=dynfilefs` - Dynamically expandable file
-- `perchmode=raw` - Fixed-size file
-- `perchsize=8000` - Data storage space size in MB
-
-Details in [boot parameters](/configuration/Boot-Parameters.md).
+Persistence is enabled only when a boot entry or kernel command line requests it, and it still requires suitable writable storage. See [Boot modes](/configuration/Boot-Modes.md) and [Initrd persistence](/configuration/Initrd-Persistence.md) before relying on saved changes.

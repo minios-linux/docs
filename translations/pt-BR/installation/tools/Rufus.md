@@ -10,7 +10,7 @@ Rufus é uma ferramenta popular para Windows que auxilia na formatação e cria�
 
 ### Tamanho do Drive
 
-Consulte o [Guia de Compatibilidade de Hardware](/installation/Hardware-Compatibility.md#system-requirements) para requisitos detalhados de sistema e tamanhos de drive.
+Consulte o [Guia de Compatibilidade de Hardware](/installation/Hardware-Compatibility.md) para requisitos detalhados do sistema e tamanhos de drives.
 
 ## Instalando o Rufus
 
@@ -49,20 +49,8 @@ O Rufus oferece dois métodos para gravar o MiniOS em um pendrive USB:
 6. **Inicie o processo**: Clique no botão "INICIAR"
 7. **Confirme a formatação** - todos os dados do drive serão apagados
 
-## Persistência Automática de Alterações
+## Resultado e persistência
 
-O MiniOS detecta automaticamente o método de gravação e configura a persistência de alterações:
+O modo DD realiza uma gravação bruta da imagem e copia o layout do ISO para todo o dispositivo de destino. O modo ISO formata um sistema de arquivos e extrai o conteúdo do ISO para criar uma mídia live baseada em arquivos. Nenhum dos modos é uma implantação do instalador do MiniOS, e o Rufus não cria automaticamente uma partição ext4 ou uma sessão de persistência.
 
-- **Modo DD**: Se houver espaço livre, será criada uma partição ext4 para máximo desempenho
-- **Modo ISO**: Utiliza um arquivo dinâmico para salvar alterações
-
-### Configuração de Parâmetros (para Usuários Avançados)
-
-Quando for necessária uma configuração precisa de persistência, podem ser usados parâmetros de inicialização:
-
-- `perchmode=native` - Salvamento direto na partição (para modo DD)
-- `perchmode=dynfilefs` - Arquivo expansível dinamicamente
-- `perchmode=raw` - Arquivo de tamanho fixo
-- `perchsize=8000` - Tamanho do espaço de armazenamento de dados em MB
-
-Mais detalhes em [parâmetros de inicialização](/configuration/Boot-Parameters.md).
+A persistência só é ativada quando uma entrada de boot ou uma linha de comando do kernel solicita, e ainda assim requer um armazenamento gravável adequado. Veja [Modos de Boot](/configuration/Boot-Modes.md) e [Persistência Initrd](/configuration/Initrd-Persistence.md) antes de depender das alterações salvas.

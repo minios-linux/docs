@@ -10,7 +10,7 @@
 
 ### Laufwerksgröße
 
-Siehe [Hardware-Kompatibilitätsleitfaden](/installation/Hardware-Compatibility.md#system-requirements) für detaillierte Systemanforderungen und Laufwerksgrößen.
+Siehe [Hardware-Kompatibilitätsleitfaden](/installation/Hardware-Compatibility.md) für detaillierte Systemanforderungen und Laufwerksgrößen.
 
 ## Vorbereitung
 
@@ -38,17 +38,8 @@ sudo dd if=MiniOS.iso of=/dev/diskX bs=4m
 - `MiniOS.iso` – Pfad zu Ihrer ISO-Datei
 - `/dev/sdX` – Ihr USB-Stick (z. B. `/dev/sdb`)
 
-## Automatische Änderungspersistenz
+## Ergebnis und Persistenz
 
-Beim ersten Start prüft MiniOS den Dateisystemtyp des Laufwerks und wählt den optimalen Persistenzmodus für Änderungen. Wenn freier Speicherplatz vorhanden ist, erstellt das System automatisch eine ext4-Partition für maximale Performance.
+`dd` führt ein Raw-Image-Write durch: Das ISO-Layout wird auf das gesamte Zielgerät kopiert. Es wird keine ext4-Partition im ungenutzten Speicherbereich erstellt, keine Persistenz-Sitzung angelegt und keine MiniOS Installer-Installation durchgeführt.
 
-### Parameterkonfiguration (für fortgeschrittene Nutzer)
-
-Für eine präzise Persistenzkonfiguration können Boot-Parameter verwendet werden:
-
-- `perchmode=native` – Direktes Speichern auf Partition (Standard, am schnellsten)
-- `perchmode=dynfilefs` – Dynamisch erweiterbare Datei
-- `perchmode=raw` – Datei mit fester Größe
-- `perchsize=8000` – Speicherplatzgröße für Daten in MB bei Image-Dateien
-
-Details unter [Boot-Parameter](/configuration/Boot-Parameters.md).
+Persistenz wird nur aktiviert, wenn ein Boot-Eintrag oder eine Kernel-Befehlszeile dies anfordert, und es wird weiterhin ein geeignetes beschreibbares Speichermedium benötigt. Siehe [Boot-Modi](/configuration/Boot-Modes.md) und [Initrd-Persistenz](/configuration/Initrd-Persistence.md), bevor Sie sich auf gespeicherte Änderungen verlassen.

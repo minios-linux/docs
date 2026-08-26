@@ -12,12 +12,12 @@ Drive Utility ist ein grafisches Tool zum Schreiben von MiniOS-ISO-Abbildern auf
 
 ### Laufwerksgröße (für das Schreiben von MiniOS)
 
-Siehe [Hardware-Kompatibilitätsleitfaden](/installation/Hardware-Compatibility.md#system-requirements) für detaillierte Systemanforderungen und empfohlene Laufwerksgrößen.
+Siehe [Hardware-Kompatibilitätsleitfaden](/installation/Hardware-Compatibility.md) für detaillierte Systemanforderungen und Laufwerksgrößen.
 
 ### Unterstützte Dateisysteme
 
 - **FAT32**: maximale Kompatibilität
-- **NTFS**: Windows-Kompatibilität  
+- **NTFS**: Windows-Kompatibilität
 - **EXT4**: empfohlen für Linux
 
 ## Starten von Drive Utility
@@ -44,17 +44,8 @@ driveutility
    - Bestätigen Sie den Vorgang – alle Daten auf dem Laufwerk werden gelöscht
 5. **Warten Sie auf den Abschluss** – der Vorgang dauert einige Minuten
 
-## Automatische Änderungspersistenz
+## Ergebnis und Persistenz
 
-Beim Schreiben von MiniOS mit Drive Utility wird eine exakte Kopie des ISO-Abbilds erstellt. MiniOS erkennt die verwendete Methode automatisch und konfiguriert die Änderungspersistenz beim ersten Start.
+Der Schreibmodus führt ein Raw-Image-Schreiben durch: Das ISO-Layout wird auf das gesamte Zielgerät kopiert. Es wird keine ext4-Partition im ungenutzten Speicher erstellt, keine Persistenz-Session angelegt und keine MiniOS Installer-Installation durchgeführt. Die oben genannten Dateisystemoptionen gelten für Laufwerksdienstprogramme, die ein Dateisystem formatieren, nicht für das Partitionslayout, das durch ein ISO-Schreiben kopiert wird.
 
-### Parameterkonfiguration (für fortgeschrittene Nutzer)
-
-Für eine präzise Persistenzkonfiguration können Boot-Parameter verwendet werden:
-
-- `perchmode=native` – Direktes Speichern auf Partition (wenn freier Speicher vorhanden)
-- `perchmode=dynfilefs` – Dynamisch erweiterbare Datei
-- `perchmode=raw` – Datei mit fester Größe
-- `perchsize=8000` – Speicherplatzgröße für Daten in MB
-
-Details unter [Boot-Parameter](/configuration/Boot-Parameters.md).
+Persistenz wird nur aktiviert, wenn ein Boot-Eintrag oder eine Kernel-Befehlszeile dies anfordert, und es wird weiterhin ein geeignetes beschreibbares Speichermedium benötigt. Siehe [Boot-Modi](/configuration/Boot-Modes.md) und [Initrd-Persistenz](/configuration/Initrd-Persistence.md), bevor Sie sich auf gespeicherte Änderungen verlassen.

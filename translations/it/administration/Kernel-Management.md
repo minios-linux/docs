@@ -44,19 +44,23 @@ Debian offre diverse varianti di kernel ottimizzate per differenti casi d'uso:
 
 ---
 
-## ⚙️ Panoramica di MiniOS Kernel Manager
+## ⚙️ Panoramica del MiniOS Kernel Manager
 
-MiniOS mette a disposizione due strumenti per la gestione dei kernel:
+MiniOS offre due strumenti per la gestione del kernel:
 
-1. **🖥️ MiniOS Kernel Manager (GUI):** Un’applicazione grafica intuitiva per il packaging, l’installazione e la gestione dei kernel
-2. **⌨️ minios-kernel (CLI):** Uno strumento da linea di comando per utenti avanzati e automazione
+1. **🖥️ MiniOS Kernel Manager (GUI):** Un'applicazione grafica intuitiva per il packaging, l'installazione e la gestione dei kernel
+2. **⌨️ minios-kernel (CLI):** Uno strumento da riga di comando per utenti avanzati e automazione
 
 Entrambi gli strumenti gestiscono automaticamente:
-- **Packaging del kernel** in formato SquashFS
-- **Generazione dell’initramfs** con i driver e gli script di avvio corretti
+- **Packaging del kernel** nel formato SquashFS
+- **Generazione dell'initramfs** con i driver e gli script di avvio appropriati
 - **Installazione** nel repository kernel di MiniOS
-- **Aggiornamento della configurazione del bootloader**
+- **Aggiornamento** della configurazione del bootloader
 - **Attivazione** e cambio del kernel
+
+Questa pagina tratta le installazioni live modulari. Le installazioni native utilizzano invece i propri pacchetti kernel installati, GRUB e initramfs; vedi
+[Modalità di avvio](/configuration/Boot-Modes.md). Per il comportamento coordinato esatto del kernel tramite initrd, consulta
+[Caricamento moduli initrd](/configuration/Initrd-Module-Loading.md).
 
 ### ⚠️ **Considerazioni importanti:**
 
@@ -241,28 +245,27 @@ sudo minios-kernel delete --help        # Delete command help
 - **Soluzione:** Assicurati di avere privilegi amministrativi e che il filesystem sia scrivibile
 - **Verifica:** Controlla lo stato della directory MiniOS tramite GUI o CLI
 
-#### **📦 Installazione pacchetto fallita**
+#### **📦 Installazione del pacchetto non riuscita**
 
 - **Causa:** Pacchetto corrotto, problemi di rete o dipendenze mancanti
-- **Soluzione:** 
-  - Verifica l’integrità del file del pacchetto
-  - Controlla la connessione di rete per i pacchetti da repository
-  - Aggiorna le liste dei pacchetti: `sudo apt update`
+- **Soluzione:**
+  - Verifica l'integrità del file del pacchetto
+  - Controlla la connettività di rete per i pacchetti dal repository
+  - Aggiorna l'elenco dei pacchetti: `sudo apt update`
 
-#### **💥 Kernel panic dopo l’attivazione**
+#### **💥 Kernel Panic dopo l'attivazione**
 
 - **Causa:** Kernel incompatibile o driver mancanti
-- **Soluzione:** 
-  - Avvia in modalità di recupero o con un kernel precedente
-  - Usa `sudo minios-kernel activate <working-version>` per attivare un kernel funzionante
+- **Soluzione:**
+  - Segui [Recupero avvio](/administration/Boot-Recovery.md) per avviare un supporto di recupero compatibile e attivare un set di kernel funzionante noto
   - Verifica la compatibilità del kernel con il tuo hardware
 
 #### **🔄 Il sistema avvia il vecchio kernel**
 
 - **Causa:** La configurazione del bootloader non è stata aggiornata correttamente
-- **Soluzione:** 
-  - Ripeti l’attivazione del kernel: `sudo minios-kernel activate <version>`
-  - Verifica che il kernel sia stato pacchettizzato e installato correttamente
+- **Soluzione:**
+  - Esegui nuovamente l'attivazione del kernel: `sudo minios-kernel activate <version>`
+  - Controlla che il kernel sia stato correttamente impacchettato e installato
 
 #### **⚠️ Hardware non funzionante dopo il cambio kernel**
 
@@ -272,28 +275,11 @@ sudo minios-kernel delete --help        # Delete command help
   - Controlla se il nuovo kernel supporta il tuo hardware
   - Considera l’uso di una variante diversa del kernel
 
-#### **🚨 Recupero kernel dall’immagine originale di MiniOS**
+#### **🚨 Recupero del kernel dall'immagine originale MiniOS**
 
-Se hai bisogno di recuperare da un kernel corrotto o incompatibile, puoi avviare dal file ISO/USB originale di MiniOS:
-
-```bash
-# Boot from original MiniOS image with from= parameter
-# At boot prompt, specify your installed MiniOS device
-from=/dev/sda1  # Replace with your actual MiniOS device
-```
-
-**Procedura di recupero:**
-Quando avvii dal file ISO/USB originale di MiniOS e specifichi nel parametro `from=` il dispositivo dove MiniOS è installato, il sistema di init lo rileva e ti permette di accedere al tuo sistema MiniOS installato. Il metodo di recupero dipende dalla presenza dei file kernel originali:
-
-1. **Se il kernel originale è ancora presente:** 
-   - L’avvio avviene senza problemi con il kernel originale dall’ISO/USB
-   - Attiva manualmente il kernel originale: `sudo minios-kernel activate <original-kernel-version>`
-
-2. **Se il kernel originale è stato eliminato:** 
-   - Copia manualmente i file kernel dall’immagine originale di MiniOS e ripristinali nelle posizioni corrette sulla tua installazione MiniOS
-   - Attiva manualmente il kernel ripristinato: `sudo minios-kernel activate <original-kernel-version>`
-
-In entrambi i casi, l’attivazione del kernel richiede un intervento manuale dopo il recupero.
+Non recuperare copiando singolarmente un'immagine kernel, un initramfs o un modulo `01-kernel-*.sb`. Una versione avviabile richiede il tripletto coordinato, e l'attivazione deve aggiornare la configurazione del bootloader come operazione supportata. Segui
+[Rollback kernel modulare](/administration/Boot-Recovery.md)
+per utilizzare un supporto di recupero compatibile e attivare un set completo funzionante. Se non è disponibile un set completo corrispondente, reinstalla invece di assemblare asset di avvio parziali.
 
 ### 🔍 **Comandi diagnostici:**
 
@@ -306,7 +292,7 @@ cat /proc/version           # Kernel version details
 lsmod                       # Loaded kernel modules
 ```
 
-**Verifica i file kernel:**
+**Verifica i file del kernel:**
 ```bash
 ls -la /minios/kernels/     # List packaged kernels
 ls -la /minios/boot/        # List boot files
@@ -323,15 +309,16 @@ grep -r "vmlinuz" /minios/boot/  # Find kernel references in boot configs
 
 MiniOS Kernel Manager gestisce automaticamente questi file:
 
-### **Struttura del repository del kernel:**
+### **Struttura del repository kernel:**
 
 ```
 /minios/
-├── 01-kernel.sb                   # Active kernel module (standard location)
+├── 01-kernel-<version>.sb         # Active kernel module
 ├── kernels/                       # Repository of inactive/alternative kernels
-│   ├── 01-kernel-<version>.sb     # SquashFS kernel modules
-│   ├── vmlinuz-<version>          # Kernel binaries
-│   └── initrfs-<version>.img      # Initial RAM filesystems
+│   └── <version>/
+│       ├── 01-kernel-<version>.sb # SquashFS kernel module
+│       ├── vmlinuz-<version>      # Kernel image
+│       └── initrfs-<version>.img  # Initial RAM filesystem
 ├── boot/
 │   ├── vmlinuz-<version>          # Active kernel binary
 │   ├── initrfs-<version>.img      # Active initial RAM filesystem
@@ -341,7 +328,7 @@ MiniOS Kernel Manager gestisce automaticamente questi file:
 │       └── grub.cfg               # GRUB bootloader config
 ```
 
-**Nota:** Il modulo standard `01-kernel.sb` fornito con MiniOS include driver aggiuntivi rispetto a quelli presenti nei pacchetti kernel del repository originale. Questi driver extra garantiscono una compatibilità hardware superiore per adattatori wireless e dispositivi di archiviazione.
+**Nota:** Il modulo standard `01-kernel-<version>.sb` fornito con MiniOS contiene driver aggiuntivi rispetto a quelli inclusi nei pacchetti kernel originali del repository. Questi driver aggiuntivi garantiscono una maggiore compatibilità hardware per adattatori wireless e dispositivi di archiviazione.
 
 ### **Indicatori di stato:**
 
@@ -382,6 +369,6 @@ MiniOS Kernel Manager gestisce automaticamente questi file:
 
 ### **Pianificazione del ripristino:**
 
-- Mantieni sempre un backup di un kernel funzionante
+- Conserva sempre un tripletto kernel completo e funzionante
 - Sappi come avviare da un supporto di ripristino se necessario
-- Documenta quali kernel sono compatibili con la tua configurazione hardware
+- Documenta quali kernel funzionano con la tua configurazione hardware

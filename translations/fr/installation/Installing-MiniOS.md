@@ -9,7 +9,7 @@ Il existe deux opérations distinctes souvent appelées installation :
 
 Téléchargez une image ISO depuis le [site officiel](https://minios.dev) ou la page officielle des [releases GitHub](https://github.com/minios-linux/minios-live/releases). Vérifiez l’image avant de la copier sur un périphérique ; consultez [Vérification des téléchargements](/installation/Verifying-Downloads.md).
 
-## Créer un média amorçable
+## Créer un support amorçable
 
 Choisissez une méthode adaptée à votre système d’exploitation :
 
@@ -19,25 +19,29 @@ Choisissez une méthode adaptée à votre système d’exploitation :
 - [`dd`](/installation/tools/dd.md) sous Linux ou macOS
 - [Drive Utility](/installation/tools/Drive-Utility.md) sous Linux
 - [UNetbootin](/installation/tools/UNetbootin.md) sous Windows, Linux ou macOS
-- [Méthode originale](/installation/tools/Original-Method.md) pour une structure MiniOS basée sur des fichiers
+- [Méthode originale](/installation/tools/Original-Method.md) pour une disposition MiniOS basée sur des fichiers
 
-L’écriture d’une image avec Rufus, Etcher, `dd` ou Drive Utility est destructive. Vérifiez le chemin du périphérique, le modèle et la capacité avant de commencer. Ces outils créent un média amorçable ; ils ne réalisent pas de déploiement live ou natif avec MiniOS Installer.
+L’écriture d’une image avec Rufus, Etcher, `dd` ou Drive Utility est destructive. Vérifiez le chemin du périphérique, le modèle et la capacité avant de commencer. Une écriture brute de l’image reproduit la structure de l’image ; elle ne configure pas la persistance ni ne réalise une installation live ou native avec MiniOS Installer.
 
-Ventoy fonctionne différemment : installez Ventoy sur le périphérique, puis copiez l’ISO sur sa partition de données. Cela conserve la structure multiboot de Ventoy.
+Ventoy fonctionne différemment : installez Ventoy sur le périphérique, puis copiez l’ISO dans sa partition de données. Cela préserve la structure multiboot de Ventoy.
 
 ## Démarrer la session live
 
 1. Redémarrez l’ordinateur et ouvrez le menu de démarrage du firmware.
-2. Sélectionnez le périphérique USB ou un autre média amorçable.
-3. Lancez MiniOS et vérifiez que le stockage, le réseau et les périphériques d’entrée fonctionnent correctement.
+2. Sélectionnez le périphérique USB ou un autre support amorçable.
+3. Lancez MiniOS et vérifiez que le stockage, le réseau et les périphériques d’entrée fonctionnent comme prévu.
 
-Les paramètres du firmware varient selon l’ordinateur. Une image MiniOS peut démarrer en mode BIOS ou UEFI ; la cible d’un futur déploiement via MiniOS Installer n’est pas limitée au MBR.
+Les paramètres du firmware varient selon l’ordinateur. Une image MiniOS peut démarrer en mode BIOS ou UEFI ; la cible d’une installation ultérieure via MiniOS Installer n’est pas limitée au MBR.
 
-## Choisir un type d’installation
+Utilisez [Modes de démarrage](/configuration/Boot-Modes.md) comme guide de référence pour le comportement du démarrage live. Si le démarrage initial ne trouve pas l’image ou ses modules, consultez [Découverte système Initrd](/configuration/Initrd-System-Discovery.md).
 
-Depuis la session live, lancez le [MiniOS Installer](/installation/MiniOS-Installer.md) lorsque vous souhaitez installer MiniOS sur une autre clé USB, un SSD ou un disque dur.
+## Choisir une disposition installée
 
-- Le mode live conserve la pile de modules compressés et la structure de démarrage live. Il prend en charge la persistance de session en option et convient aux installations portables.
-- Le mode natif extrait les modules sélectionnés dans un système de fichiers racine Linux classique, génère l’initramfs et installe un chargeur d’amorçage compatible. Le mode natif n’est disponible que si l’image démarrée fournit les métadonnées d’installation requises.
+Depuis la session live, lancez [MiniOS Installer](/installation/MiniOS-Installer.md) lorsque vous souhaitez installer MiniOS sur un autre lecteur USB, SSD ou disque dur.
 
-L’installateur prend en charge les structures automatiques BIOS/MBR, UEFI/MBR et UEFI/GPT. Le BIOS sur GPT n’est pas pris en charge par l’installateur actuel. Consultez [Utiliser MiniOS Installer](/installation/MiniOS-Installer.md) pour les limites de placement, de système de fichiers, de persistance et de partitionnement.
+- Le mode live préserve la pile de modules compressés et la structure de démarrage live. Il prend en charge la persistance de session en option et convient aux installations portables.
+- Le mode natif déploie les modules sélectionnés dans un système de fichiers racine Linux classique, génère l’initramfs et installe un chargeur d’amorçage compatible. Le mode natif n’est disponible que si l’image démarrée fournit les métadonnées d’installation requises.
+
+La persistance live est préparée lors du démarrage initial ; le comportement détaillé est décrit dans [Persistance Initrd](/configuration/Initrd-Persistence.md). Elle ne s’applique pas au système de fichiers racine classique utilisé par le mode natif.
+
+L’installateur prend en charge les dispositions automatiques BIOS/MBR, UEFI/MBR et UEFI/GPT. Le BIOS sur GPT n’est pas pris en charge par l’installateur actuel. Consultez [Utiliser MiniOS Installer](/installation/MiniOS-Installer.md) pour les limites de placement, de système de fichiers, de persistance et de partitionnement.

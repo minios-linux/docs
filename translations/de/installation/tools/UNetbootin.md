@@ -10,7 +10,7 @@ UNetbootin ist ein plattformübergreifendes Open-Source-Tool, mit dem Sie bootf�
 
 ### Laufwerksgröße
 
-Siehe [Hardware-Kompatibilitätsleitfaden](/installation/Hardware-Compatibility.md#system-requirements) für detaillierte Systemanforderungen und empfohlene Laufwerksgrößen.
+Siehe [Hardware-Kompatibilitätsleitfaden](/installation/Hardware-Compatibility.md) für detaillierte Systemanforderungen und Laufwerksgrößen.
 
 ## Installation von UNetbootin
 
@@ -32,16 +32,8 @@ Siehe [Hardware-Kompatibilitätsleitfaden](/installation/Hardware-Compatibility.
 4. **Prozess starten:** Klicken Sie auf "OK"
 5. **Warten Sie auf den Abschluss** – der Vorgang kann 10–20 Minuten dauern
 
-## Automatische Änderungsspeicherung
+## Ergebnis und Persistenz
 
-UNetbootin formatiert das Laufwerk automatisch auf FAT32, sodass MiniOS den dynfilefs-Modus zum Speichern von Änderungen verwendet. Dies gewährleistet maximale Kompatibilität mit verschiedenen Systemen, einschließlich EFI-Boot-Unterstützung.
+UNetbootin extrahiert Dateien und installiert Boot-Dateien auf dem ausgewählten Dateisystem. Dadurch wird ein dateibasiertes Live-Medium erstellt, anstatt ein Rohabbild zu schreiben oder eine MiniOS Installer-Installation durchzuführen. Die Verwendung garantiert weder eine FAT32-Formatierung, EFI-Unterstützung noch Persistenz.
 
-### Parameterkonfiguration (für fortgeschrittene Nutzer)
-
-Wenn eine präzise Konfiguration erforderlich ist, können Boot-Parameter verwendet werden:
-
-- `perchmode=dynfilefs` – Dynamisch erweiterbare Datei (Standard)
-- `perchmode=raw` – Datei mit fester Größe
-- `perchsize=8000` – Speicherplatz für Daten in MB
-
-Details unter [Boot-Parameter](/configuration/Boot-Parameters.md).
+Persistenz wird nur aktiviert, wenn ein Boot-Eintrag oder eine Kernel-Befehlszeile dies anfordert, und es wird weiterhin ein geeignetes beschreibbares Speichermedium benötigt. Siehe [Boot-Modi](/configuration/Boot-Modes.md) und [Initrd-Persistenz](/configuration/Initrd-Persistence.md), bevor Sie sich auf gespeicherte Änderungen verlassen.

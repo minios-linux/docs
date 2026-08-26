@@ -48,15 +48,19 @@ O Debian oferece várias variantes de kernel otimizadas para diferentes casos de
 
 O MiniOS oferece duas ferramentas para gerenciamento de kernels:
 
-1. **🖥️ MiniOS Kernel Manager (GUI):** Um aplicativo gráfico amigável para empacotar, instalar e gerenciar kernels
+1. **🖥️ Gerenciador de Kernel do MiniOS (GUI):** Um aplicativo gráfico intuitivo para empacotar, instalar e gerenciar kernels
 2. **⌨️ minios-kernel (CLI):** Uma ferramenta de linha de comando para usuários avançados e automação
 
-Ambas as ferramentas gerenciam automaticamente:
+Ambas as ferramentas lidam automaticamente com:
 - **Empacotamento do kernel** no formato SquashFS
 - **Geração do initramfs** com os drivers e scripts de boot adequados
 - **Instalação** no repositório de kernels do MiniOS
 - **Atualizações da configuração do bootloader**
 - **Ativação e troca de kernel**
+
+Esta página aborda instalações ao vivo modulares. Instalações nativas utilizam seus próprios pacotes de kernel instalados, GRUB e initramfs; veja
+[Modos de boot](/configuration/Boot-Modes.md). Para o comportamento coordenado exato do kernel pelo initrd, consulte
+[Carregamento de módulos no initrd](/configuration/Initrd-Module-Loading.md).
 
 ### ⚠️ **Considerações Importantes:**
 
@@ -244,25 +248,24 @@ sudo minios-kernel delete --help        # Delete command help
 #### **📦 Falha na Instalação do Pacote**
 
 - **Causa:** Pacote corrompido, problemas de rede ou dependências
-- **Solução:** 
+- **Solução:**
   - Verifique a integridade do arquivo do pacote
-  - Verifique a conectividade de rede para pacotes do repositório
+  - Confira a conectividade de rede para pacotes do repositório
   - Atualize as listas de pacotes: `sudo apt update`
 
 #### **💥 Kernel Panic Após Ativação**
 
 - **Causa:** Kernel incompatível ou drivers ausentes
-- **Solução:** 
-  - Inicialize pelo modo de recuperação ou por um kernel antigo
-  - Use `sudo minios-kernel activate <versão-funcional>` para ativar um kernel conhecido
+- **Solução:**
+  - Siga [Recuperação de boot](/administration/Boot-Recovery.md) para iniciar uma mídia de resgate compatível e ativar um conjunto de kernel conhecido e funcional
   - Verifique a compatibilidade do kernel com seu hardware
 
-#### **🔄 Sistema Inicializa Kernel Antigo**
+#### **🔄 Sistema Inicializa com Kernel Antigo**
 
 - **Causa:** Configuração do bootloader não foi atualizada corretamente
-- **Solução:** 
-  - Refaça a ativação do kernel: `sudo minios-kernel activate <versão>`
-  - Verifique se o kernel foi empacotado e instalado corretamente
+- **Solução:**
+  - Execute novamente a ativação do kernel: `sudo minios-kernel activate <version>`
+  - Verifique se o kernel foi devidamente empacotado e instalado
 
 #### **⚠️ Hardware Não Funciona Após Troca de Kernel**
 
@@ -274,30 +277,11 @@ sudo minios-kernel delete --help        # Delete command help
 
 #### **🚨 Recuperação de Kernel a partir da Imagem Original do MiniOS**
 
-Se precisar recuperar de um kernel corrompido ou incompatível, você pode inicializar a partir do ISO/USB original do MiniOS:
-
-```bash
-# Boot from original MiniOS image with from= parameter
-# At boot prompt, specify your installed MiniOS device
-from=/dev/sda1  # Replace with your actual MiniOS device
-```
-
-**Processo de Recuperação:**
-Ao inicializar pelo ISO/USB original do MiniOS e especificar no parâmetro `from=` o dispositivo onde o MiniOS está instalado, o sistema init detecta isso e permite acessar seu sistema MiniOS instalado. O método de recuperação depende se os arquivos originais do kernel ainda estão presentes:
-
-1. **Se o kernel original ainda existir:** 
-   - A inicialização ocorre normalmente com o kernel original do ISO/USB
-   - Ative manualmente o kernel original: `sudo minios-kernel activate <versão-original-do-kernel>`
-
-2. **Se o kernel original foi excluído:** 
-   - Copie manualmente os arquivos do kernel da imagem original do MiniOS e restaure-os nos locais apropriados na sua instalação MiniOS
-   - Ative manualmente o kernel restaurado: `sudo minios-kernel activate <versão-original-do-kernel>`
-
-Em ambos os casos, a ativação do kernel exige intervenção manual após o processo de recuperação.
+Não recupere copiando apenas uma imagem de kernel individual, initramfs ou módulo `01-kernel-*.sb`. Uma versão inicializável exige o triplo coordenado, e a ativação deve atualizar a configuração do bootloader como uma operação suportada. Siga o procedimento de [rollback modular de kernel](/administration/Boot-Recovery.md) para utilizar uma mídia de resgate compatível e ativar um conjunto completo e funcional. Se não houver um conjunto completo correspondente disponível, reinstale em vez de tentar montar ativos de boot parciais.
 
 ### 🔍 **Comandos de Diagnóstico:**
 
-**Verifique o Status Atual do Sistema:**
+**Verificar o Status Atual do Sistema:**
 ```bash
 sudo minios-kernel status
 sudo minios-kernel info     # Current active kernel info
@@ -306,13 +290,13 @@ cat /proc/version           # Kernel version details
 lsmod                       # Loaded kernel modules
 ```
 
-**Verifique os Arquivos do Kernel:**
+**Verificar Arquivos do Kernel:**
 ```bash
 ls -la /minios/kernels/     # List packaged kernels
 ls -la /minios/boot/        # List boot files
 ```
 
-**Verifique a Configuração do Bootloader:**
+**Verificar Configuração do Bootloader:**
 ```bash
 grep -r "vmlinuz" /minios/boot/  # Find kernel references in boot configs
 ```
@@ -323,15 +307,16 @@ grep -r "vmlinuz" /minios/boot/  # Find kernel references in boot configs
 
 O MiniOS Kernel Manager gerencia automaticamente estes arquivos:
 
-### **Estrutura do Repositório do Kernel:**
+### **Estrutura do Repositório de Kernel:**
 
 ```
 /minios/
-├── 01-kernel.sb                   # Active kernel module (standard location)
+├── 01-kernel-<version>.sb         # Active kernel module
 ├── kernels/                       # Repository of inactive/alternative kernels
-│   ├── 01-kernel-<version>.sb     # SquashFS kernel modules
-│   ├── vmlinuz-<version>          # Kernel binaries
-│   └── initrfs-<version>.img      # Initial RAM filesystems
+│   └── <version>/
+│       ├── 01-kernel-<version>.sb # SquashFS kernel module
+│       ├── vmlinuz-<version>      # Kernel image
+│       └── initrfs-<version>.img  # Initial RAM filesystem
 ├── boot/
 │   ├── vmlinuz-<version>          # Active kernel binary
 │   ├── initrfs-<version>.img      # Active initial RAM filesystem
@@ -341,7 +326,7 @@ O MiniOS Kernel Manager gerencia automaticamente estes arquivos:
 │       └── grub.cfg               # GRUB bootloader config
 ```
 
-**Nota:** O módulo padrão `01-kernel.sb` que acompanha o MiniOS inclui drivers adicionais além dos presentes nos pacotes de kernel do repositório original. Esses drivers extras oferecem maior compatibilidade de hardware para adaptadores wireless e dispositivos de armazenamento.
+**Observação:** O módulo padrão `01-kernel-<version>.sb` que acompanha o MiniOS contém drivers adicionais além dos incluídos nos pacotes de kernel originais do repositório. Esses drivers extras oferecem maior compatibilidade de hardware para adaptadores sem fio e dispositivos de armazenamento.
 
 ### **Indicadores de Status:**
 
@@ -382,6 +367,6 @@ O MiniOS Kernel Manager gerencia automaticamente estes arquivos:
 
 ### **Planejamento de Recuperação:**
 
-- Sempre mantenha um backup de kernel funcional
+- Sempre mantenha um triplo de kernel completo e funcional conhecido
 - Saiba como inicializar a partir de uma mídia de resgate, se necessário
-- Documente quais kernels são compatíveis com a sua configuração de hardware
+- Documente quais kernels funcionam com a sua configuração de hardware

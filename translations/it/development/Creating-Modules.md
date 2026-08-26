@@ -1,8 +1,8 @@
 # Creazione dei moduli
 
-I moduli MiniOS sono immagini di filesystem SquashFS in sola lettura, convenzionalmente denominate con l'estensione `.sb`. All'avvio, MiniOS ordina i moduli selezionati in un filesystem root a livelli. I file in un livello con priorità superiore possono integrare o nascondere file dei livelli inferiori.
+I moduli MiniOS sono immagini di filesystem SquashFS in sola lettura, convenzionalmente denominate con l'estensione `.sb`. All'avvio, MiniOS ordina i moduli selezionati in un filesystem root a strati. I file in uno strato con priorità superiore possono integrare o nascondere file provenienti da strati inferiori. Questa è la pipeline live modulare descritta in [Modalità di avvio](/configuration/Boot-Modes.md), diversa dalla struttura dei pacchetti di un'installazione nativa.
 
-Questa guida documenta i flussi di lavoro attuali da riga di comando degli strumenti MiniOS. Per l'applicazione grafica, consulta [MiniOS Module Manager](/administration/Module-Manager.md). Per il processo completo di creazione delle immagini e l'architettura del sistema, vedi [Building MiniOS](/development/Building-MiniOS.md). Le liste di pacchetti utilizzate durante la creazione di MiniOS sono descritte nella [documentazione di CondinAPT](/development/CondinAPT.md).
+Questa guida documenta i flussi di lavoro attuali da riga di comando degli strumenti MiniOS. Per l'applicazione grafica, vedi [MiniOS Module Manager](/administration/Module-Manager.md). Per il processo completo di creazione delle immagini e l'architettura del sistema, consulta [Building MiniOS](/development/Building-MiniOS.md). Le liste dei pacchetti utilizzate durante la creazione di MiniOS sono descritte nella [documentazione di CondinAPT](/development/CondinAPT.md).
 
 ## Sicurezza e limiti di privilegio
 
@@ -26,9 +26,11 @@ Utilizza l'output `--help` di ciascun comando come riferimento per la versione i
 
 ## Nomi dei moduli e livelli di filtro
 
-I nomi iniziano spesso con un numero come `06-browser.sb` perché l'ordine dei livelli influisce sulla risoluzione dei conflitti. Un modulo dovrebbe contenere percorsi relativi alla root del sistema, come `usr/bin/example`, e non una directory aggiuntiva che contiene quell'albero.
+I nomi iniziano spesso con un numero come `06-browser.sb` perché l'ordine degli strati influisce sulla risoluzione dei conflitti. Un modulo dovrebbe contenere percorsi relativi alla root del sistema, come `usr/bin/example`, e non una directory aggiuntiva che contenga quell'albero.
 
-L'opzione `--level LEVEL` su `apt2sb`, `script2sb` e `chroot2sb` limita i livelli di base utilizzati per costruire la union di build. Con `--level 3`, vengono utilizzati i livelli numerati fino a `03` e quelli con numerazione superiore vengono esclusi. Questo può rendere un modulo meno dipendente da livelli opzionali più alti, al costo di includere più dipendenze nel risultato.
+Per informazioni precise sui livelli di origine candidati, comportamento in caso di collisione dei nomi base, ordinamento numerico e le semantiche di `bext=`, `load=` e `noload=`, consulta [Caricamento dei moduli Initrd](/configuration/Initrd-Module-Loading.md). In particolare, usa un nome base univoco a meno che il modulo non sia destinato a sostituire uno slot con lo stesso nome proveniente da un livello di origine precedente.
+
+L'opzione `--level LEVEL` su `apt2sb`, `script2sb` e `chroot2sb` limita gli strati di base utilizzati per costruire l'unione di build. Con `--level 3`, vengono usati gli strati numerati fino a `03` e quelli con numerazione superiore vengono filtrati. Questo può rendere un modulo meno dipendente da strati opzionali superiori, al costo di includere più dipendenze nel risultato.
 
 ## Crea un modulo da pacchetti
 
@@ -155,25 +157,29 @@ L'estrazione ordinaria non richiede root e non modifica la sorgente. La director
 
 Le directory prodotte dagli attuali `sb2dir` sono directory ordinarie. `rmsbdir`, `sb rm` e `sb rmdir` sono comandi di compatibilità ritirati che rifiutano sempre la rimozione; non smontano né eliminano ricorsivamente nulla. Rivedi un percorso estratto e il suo contenuto prima di rimuoverlo con i normali strumenti del filesystem.
 
-## Gestisci i moduli in esecuzione e al prossimo avvio
+## Gestione dei moduli in esecuzione e al prossimo avvio
 
-"In esecuzione ora" e "Prossimo avvio" sono composizioni indipendenti.
+Le composizioni "In esecuzione ora" e "Prossimo avvio" sono indipendenti. Consulta
+[union construction and runtime activation](/configuration/Initrd-Module-Loading.md)
+per i dettagli sul confine tra avvio/runtime e sul motivo per cui le due liste possono differire.
 
-Elenca i moduli che compongono effettivamente la root AUFS o OverlayFS corrente, dal livello più basso al più alto:
+Elenca i moduli che compongono effettivamente la root AUFS o OverlayFS corrente, dal livello più basso a quello più alto:
 
 ```bash
 sb list
 sb list --json
 ```
 
-Elenca i moduli selezionati dalle regole di avvio correnti, inclusi `bext`, `load` e `noload`:
+Elenca i moduli selezionati dalle regole di avvio attuali:
 
 ```bash
 sb next-boot
 sb next-boot --json
 ```
 
-Queste interrogazioni non richiedono root. Un modulo per il prossimo avvio può provenire dall'albero dati di base, dalla sua directory `modules/` o da uno storage separato per i moduli persistenti. Una sorgente successiva con lo stesso basename sostituisce la selezione precedente.
+Queste query non richiedono privilegi root. Le regole canoniche di
+[candidate-tier and replacement rules](/configuration/Initrd-Module-Loading.md)
+determinano quale sorgente fornisce ogni basename per il prossimo avvio.
 
 Per rendere disponibile un modulo utente al prossimo avvio:
 
@@ -181,35 +187,37 @@ Per rendere disponibile un modulo utente al prossimo avvio:
 sudo sb next-boot add 50-extra.sb
 ```
 
-MiniOS utilizza uno storage scrivibile adatto e durevole, prepara e valida la copia, e la pubblica in modo atomico senza sostituire un modulo esistente. Il nome file deve rispettare i filtri di avvio correnti. Rimuovi un modulo utente selezionato tramite il suo basename esatto:
+MiniOS utilizza uno storage scrivibile, durevole e adatto, prepara e valida la copia, e la pubblica in modo atomico senza sostituire un modulo esistente. Il nome file deve rispettare i filtri di avvio correnti. Rimuovi un modulo utente selezionato tramite il suo basename esatto:
 
 ```bash
 sudo sb next-boot remove 50-extra.sb
 ```
 
-La rimozione viene rifiutata per i moduli di base e per quelli su sorgenti di sola lettura o volatili.
+La rimozione viene rifiutata per i moduli di base e per i moduli su sorgenti di sola lettura o volatili.
 
-L'attivazione in runtime è un'operazione separata, valida solo per la sessione corrente:
+L'attivazione a runtime è un'operazione separata, valida solo per la sessione corrente:
 
 ```bash
 sudo sb activate 50-extra.sb
 sudo sb deactivate 50-extra.sb
 ```
 
-Attivazione e disattivazione funzionano solo quando `/` è attualmente una union AUFS. Non sono disponibili su OverlayFS e il solo supporto AUFS nel kernel non è sufficiente. Nessun comando modifica il prossimo avvio.
+Attivazione e disattivazione funzionano solo quando `/` è attualmente una union AUFS. Non sono disponibili su OverlayFS, e il solo supporto AUFS del kernel non è sufficiente. Nessun comando modifica il prossimo avvio.
 
-Il dispatcher di conversione di compatibilità richiede entrambi gli argomenti:
+Il dispatcher del convertitore di compatibilità richiede entrambi gli operandi:
 
 ```bash
 sudo sb conv my-app-root 06-my-app.sb
 sudo sb conv 06-my-app.sb example-root
 ```
 
-L'uso diretto di `dir2sb` e `sb2dir` è preferibile perché la conversione ordinaria può essere eseguita senza root.
+L'uso diretto di `dir2sb` e `sb2dir` è preferibile perché la conversione ordinaria può essere eseguita senza privilegi root.
 
 ## Documentazione correlata
 
 - [MiniOS Module Manager](/administration/Module-Manager.md)
+- [Caricamento dei moduli Initrd](/configuration/Initrd-Module-Loading.md)
+- [Modalità di avvio](/configuration/Boot-Modes.md)
 - [Ricostruzione delle immagini ISO](/development/Rebuilding-ISO.md)
 - [Building MiniOS](/development/Building-MiniOS.md)
 - [Parametri di avvio](/configuration/Boot-Parameters.md)

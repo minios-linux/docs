@@ -1,8 +1,8 @@
 # Criando módulos
 
-Os módulos do MiniOS são imagens de sistema de arquivos SquashFS somente leitura, normalmente nomeadas com a extensão `.sb`. Na inicialização, o MiniOS organiza os módulos selecionados em um sistema de arquivos raiz em camadas. Arquivos em uma camada de prioridade superior podem complementar ou ocultar arquivos das camadas inferiores.
+Os módulos do MiniOS são imagens de sistema de arquivos somente leitura no formato SquashFS, normalmente nomeadas com a extensão `.sb`. Na inicialização, o MiniOS organiza os módulos selecionados em um sistema de arquivos raiz em camadas. Arquivos em uma camada de prioridade superior podem complementar ou ocultar arquivos das camadas inferiores. Esse é o pipeline modular ao vivo descrito em [Modos de Boot](/configuration/Boot-Modes.md), diferente da estrutura de pacotes de uma instalação nativa.
 
-Este guia documenta os fluxos de trabalho atuais da linha de comando das Ferramentas MiniOS. Para o aplicativo gráfico, consulte o [MiniOS Module Manager](/administration/Module-Manager.md). Para o processo completo de construção de imagens e arquitetura do sistema, veja [Building MiniOS](/development/Building-MiniOS.md). As listas de pacotes utilizadas na construção do MiniOS estão descritas na [documentação do CondinAPT](/development/CondinAPT.md).
+Este guia documenta os fluxos de trabalho atuais da linha de comando das Ferramentas MiniOS. Para o aplicativo gráfico, consulte o [MiniOS Module Manager](/administration/Module-Manager.md). Para o processo completo de construção de imagens e arquitetura do sistema, veja [Building MiniOS](/development/Building-MiniOS.md). As listas de pacotes utilizadas durante a construção do MiniOS estão descritas na [documentação do CondinAPT](/development/CondinAPT.md).
 
 ## Limites de segurança e privilégios
 
@@ -26,9 +26,11 @@ Use a saída `--help` de cada comando como referência da versão instalada. As 
 
 ## Nomes de módulos e níveis de filtro
 
-Os nomes geralmente começam com um número como `06-browser.sb`, pois a ordem das camadas afeta a resolução de conflitos. Um módulo deve conter caminhos relativos à raiz do sistema, como `usr/bin/example`, e não um diretório extra contendo essa árvore.
+Os nomes geralmente começam com um número como `06-browser.sb` porque a ordem das camadas afeta a resolução de conflitos. Um módulo deve conter caminhos relativos à raiz do sistema, como `usr/bin/example`, e não um diretório extra contendo essa árvore.
 
-A opção `--level LEVEL` em `apt2sb`, `script2sb` e `chroot2sb` limita as camadas base usadas para construir a união de build. Com `--level 3`, as camadas numeradas até `03` são usadas e as de número superior são filtradas. Isso pode tornar o módulo menos dependente de camadas opcionais superiores, ao custo de incluir mais dependências no resultado.
+Para detalhes sobre os níveis exatos de origem dos candidatos, comportamento em caso de colisão de nomes, ordenação numérica e semântica de `bext=`, `load=` e `noload=`, consulte [Carregamento de módulos no Initrd](/configuration/Initrd-Module-Loading.md). Em especial, utilize um nome base único, a menos que o módulo tenha como objetivo substituir o slot de mesmo nome de um nível de origem anterior.
+
+A opção `--level LEVEL` em `apt2sb`, `script2sb` e `chroot2sb` limita as camadas base usadas para construir a união de build. Com `--level 3`, as camadas numeradas até `03` são usadas e as camadas de número superior são filtradas. Isso pode tornar o módulo menos dependente de camadas opcionais superiores, ao custo de incluir mais dependências no resultado.
 
 ## Criar um módulo a partir de pacotes
 
@@ -155,25 +157,29 @@ A extração comum não exige root e não modifica a fonte. O diretório de dest
 
 Os diretórios produzidos pelos atuais `sb2dir` são diretórios comuns. `rmsbdir`, `sb rm` e `sb rmdir` são comandos de compatibilidade obsoletos que sempre recusam remoção; eles não desmontam nem apagam nada recursivamente. Revise um caminho extraído e seu conteúdo antes de removê-lo com as ferramentas padrão do sistema de arquivos.
 
-## Gerenciar módulos em execução e para o próximo boot
+## Gerenciar módulos em execução e no próximo boot
 
-Running Now e Next Boot são composições independentes.
+Os estados "Em Execução Agora" e "Próximo Boot" são composições independentes. Consulte
+[construção de união e ativação em tempo de execução](/configuration/Initrd-Module-Loading.md)
+para entender o limite entre boot e runtime e por que as duas listas podem ser diferentes.
 
-Liste os módulos que realmente compõem o root AUFS ou OverlayFS atual, da menor para a maior prioridade:
+Liste os módulos que realmente compõem o root atual do AUFS ou OverlayFS, da menor para a maior prioridade:
 
 ```bash
 sb list
 sb list --json
 ```
 
-Liste os módulos selecionados pelas regras de boot atuais, incluindo `bext`, `load` e `noload`:
+Liste os módulos selecionados pelas regras de boot atuais:
 
 ```bash
 sb next-boot
 sb next-boot --json
 ```
 
-Essas consultas não exigem root. Um módulo de próximo boot pode vir da árvore de dados base, de seu diretório `modules/` ou de um armazenamento separado de módulos persistentes. Uma fonte posterior com o mesmo nome substitui a seleção anterior.
+Essas consultas não exigem privilégios de root. As regras canônicas de
+[candidatos e substituição](/configuration/Initrd-Module-Loading.md)
+determinam qual fonte fornece cada basename do Próximo Boot.
 
 Para disponibilizar um módulo de usuário no próximo boot:
 
@@ -181,7 +187,7 @@ Para disponibilizar um módulo de usuário no próximo boot:
 sudo sb next-boot add 50-extra.sb
 ```
 
-O MiniOS utiliza armazenamento gravável adequado e durável, prepara e valida a cópia, e publica de forma atômica sem substituir um módulo existente. O nome do arquivo deve atender aos filtros de boot atuais. Remova um módulo de usuário selecionado pelo nome exato do arquivo:
+O MiniOS utiliza armazenamento gravável durável adequado, prepara e valida a cópia, e publica de forma atômica sem substituir um módulo existente. O nome do arquivo deve atender aos filtros de boot atuais. Remova um módulo de usuário selecionado pelo seu basename exato:
 
 ```bash
 sudo sb next-boot remove 50-extra.sb
@@ -196,20 +202,22 @@ sudo sb activate 50-extra.sb
 sudo sb deactivate 50-extra.sb
 ```
 
-A ativação e desativação só funcionam quando `/` é atualmente uma união AUFS. Não estão disponíveis no OverlayFS, e apenas o suporte ao AUFS no kernel não é suficiente. Nenhum desses comandos altera o Next Boot.
+A ativação e desativação só funcionam quando `/` está atualmente em uma união AUFS. Elas não estão disponíveis no OverlayFS, e apenas o suporte AUFS do kernel não é suficiente. Nenhum dos comandos altera o Próximo Boot.
 
-O despachante de conversão de compatibilidade exige ambos os operandos:
+O despachante do conversor de compatibilidade exige ambos os operandos:
 
 ```bash
 sudo sb conv my-app-root 06-my-app.sb
 sudo sb conv 06-my-app.sb example-root
 ```
 
-O uso direto de `dir2sb` e `sb2dir` é preferível, pois a conversão comum pode ser feita sem root.
+O uso direto de `dir2sb` e `sb2dir` é preferível porque a conversão comum pode ser executada sem privilégios de root.
 
 ## Documentação relacionada
 
 - [MiniOS Module Manager](/administration/Module-Manager.md)
+- [Carregamento de módulos no Initrd](/configuration/Initrd-Module-Loading.md)
+- [Modos de Boot](/configuration/Boot-Modes.md)
 - [Reconstruindo imagens ISO](/development/Rebuilding-ISO.md)
 - [Building MiniOS](/development/Building-MiniOS.md)
-- [Parâmetros de boot](/configuration/Boot-Parameters.md)
+- [Parâmetros de Boot](/configuration/Boot-Parameters.md)

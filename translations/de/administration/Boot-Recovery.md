@@ -1,6 +1,6 @@
 # Boot-Wiederherstellung
 
-Die Reparatur des Bootvorgangs hängt davon ab, wie MiniOS auf das Gerät übertragen wurde und ob die Firmware es im BIOS- oder UEFI-Modus startet. Ein Verfahren für ein bestimmtes Layout kann ein anderes beschädigen. Sichern Sie wichtige Dateien, bevor Sie einen Bootsektor schreiben, ein Partitions-Flag ändern, einen EFI-Baum ersetzen oder GRUB neu installieren. Siehe [Backup und Wiederherstellung](/administration/Backup-Recovery.md).
+Die Reparatur des Bootvorgangs hängt davon ab, wie MiniOS auf das Gerät gebracht wurde und ob die Firmware es im BIOS- oder UEFI-Modus startet. Ein Verfahren, das für eine Konfiguration geeignet ist, kann eine andere beschädigen. Sichern Sie wichtige Dateien, bevor Sie einen Bootsektor überschreiben, ein Partitions-Flag ändern, einen EFI-Baum ersetzen oder GRUB neu installieren. Siehe [Backup und Wiederherstellung](/administration/Backup-Recovery.md). Wenn der Installationstyp unklar ist, vergleichen Sie ihn mit den [Boot-Modi](/configuration/Boot-Modes.md), bevor Sie einen Reparaturablauf wählen.
 
 ## Layout identifizieren
 
@@ -10,11 +10,11 @@ Die Reparatur des Bootvorgangs hängt davon ab, wie MiniOS auf das Gerät übert
 
 `Ventoy` behält das ISO normalerweise als Datei unter seinem eigenen Bootloader. Repariere es mit dem Verfahren in der `Ventoy`-Dokumentation; installiere nicht den MiniOS Syslinux-Bootsektor darüber.
 
-## Diagnose ohne Änderungen an der Festplatte
+## Diagnose ohne Änderungen am Datenträger
 
-Bestätigen Sie zuerst, ob der Fehler vor dem MiniOS-Menü, nach dem Menü oder nach dem Kernel-Start auftritt. Prüfen Sie das einmalige Bootmenü der Firmware und notieren Sie, ob der ausgewählte Eintrag UEFI oder Legacy BIOS ist. Testen Sie einen anderen Anschluss und, wenn möglich, booten Sie das gleiche Gerät an einem anderen Computer.
+Bestätigen Sie zunächst, ob der Fehler vor dem MiniOS-Menü, nach dem Menü oder nach dem Start des Kernels auftritt. Prüfen Sie das einmalige Boot-Menü der Firmware und notieren Sie, ob der gewählte Eintrag UEFI oder Legacy BIOS ist. Testen Sie einen anderen Anschluss und starten Sie das gleiche Gerät, wenn möglich, auf einem anderen Computer.
 
-Von funktionierenden Linux-Rettungsmedien aus sollten Sie inspizieren statt reparieren:
+Von einem funktionierenden Linux-Rescue-Medium aus sollten Sie inspizieren, nicht reparieren:
 
 ```bash
 lsblk -o NAME,PATH,SIZE,TYPE,FSTYPE,LABEL,UUID,PARTTYPE,PARTFLAGS,MOUNTPOINTS,MODEL
@@ -23,15 +23,15 @@ sudo blkid
 sudo fdisk -l
 ```
 
-Auf einem im UEFI-Modus gestarteten System kann `sudo efibootmgr -v` Firmware-Einträge auflisten. Dessen Fehlen oder ein Fehler beweist nicht, dass die EFI-Dateien fehlen. Formatieren, partitionieren, führen Sie keine Dateisystemreparatur durch und ändern Sie keine Flags nur zum Testen. Bestätigen Sie jedes Gerät anhand von Modell und Kapazität und mounten Sie Dateisysteme beim Inspizieren nur lesend.
+Auf einem im UEFI-Modus gestarteten System kann `sudo efibootmgr -v` Firmware-Einträge auflisten. Dessen Fehlen oder ein Fehler beweist nicht, dass die EFI-Dateien fehlen. Formatieren, partitionieren, führen Sie keine Dateisystemreparatur durch und ändern Sie keine Flags nur zum Testen. Überprüfen Sie jedes Gerät anhand von Modell und Kapazität und mounten Sie Dateisysteme beim Inspizieren nur lesend.
 
-Erscheint das Bootmenü, MiniOS findet aber seine Module nicht, bearbeiten Sie den Boot-Eintrag temporär und versuchen Sie `from=askdisk`. Sobald das richtige Dateisystem bekannt ist, ist ein Dateisystem-Label stabiler als ein Name wie `/dev/sdb1`:
+Erscheint das Boot-Menü, aber MiniOS findet seine Module nicht, bearbeiten Sie den Boot-Eintrag vorübergehend und versuchen Sie `from=askdisk`. Sobald das richtige Dateisystem bekannt ist, ist ein Dateisystem-Label stabiler als ein Name wie `/dev/sdb1`:
 
 ```text
 from=/dev/disk/by-label/MINIOS/minios
 ```
 
-Das Label muss existieren und das gewünschte Dateisystem eindeutig identifizieren; Labels sollten eindeutig sein. Fügen Sie `debug timing` für mehr Ausgaben beim frühen Booten hinzu. `rd.break` nur hinzufügen, wenn eine initramfs-Shell zur erweiterten Analyse benötigt wird. Diese Optionen diagnostizieren die Modulerkennung; sie reparieren nicht den Bootloader. Siehe [Boot-Parameter](/configuration/Boot-Parameters.md) und [Fehlerbehebung](/administration/Troubleshooting.md).
+Das Label muss existieren und das gewünschte Dateisystem eindeutig identifizieren; Labels sollten eindeutig sein. Fügen Sie `debug timing` für mehr Ausgaben beim frühen Booten hinzu. `rd.break` sollte nur hinzugefügt werden, wenn für eine erweiterte Analyse eine Initramfs-Shell benötigt wird. Diese Optionen dienen der Diagnose der Modulerkennung; sie reparieren den Bootloader nicht. Siehe [Initrd-Systemerkennung](/configuration/Initrd-System-Discovery.md) für die unterstützten `from=`-Formen, das Verhalten von `askdisk` und die Quell-Prioritäten. Siehe außerdem [Boot-Parameter](/configuration/Boot-Parameters.md) und [Fehlerbehebung](/administration/Troubleshooting.md).
 
 ## Raw-geschriebene ISO-Medien
 
@@ -110,7 +110,16 @@ Bevorzugen Sie die Wiederherstellung eines exakten, getesteten Backups des nativ
 
 ## Modularer Kernel-Rollback
 
-Für eine dateibasierte Live-Installation, die nach einer Kernel-Änderung nicht mehr bootet, verwenden Sie Rettungsmedien derselben MiniOS-Version und Architektur. Wählen Sie im Bootmenü `from=askdisk` oder einen stabilen Label-Pfad, um den installierten `minios/`-Baum auszuwählen. Wenn diese Kombination ein funktionierendes System startet und der installierte Baum beschreibbar ist, prüfen Sie die koordinierten Kernel-Sets und aktivieren Sie ein bekannt funktionierendes:
+Für eine dateibasierte Live-Installation, die nach einer Kernel-Änderung nicht mehr startet,
+verwenden Sie ein Rettungsmedium derselben MiniOS-Version und Architektur. Wählen Sie im Bootmenü
+`from=askdisk` oder einen stabilen Label-Pfad, um den installierten
+`minios/`-Baum auszuwählen. Der gewählte Baum muss ein vollständiges Triplet enthalten, das zum bereits vom Rettungsmedium geladenen Kernel passt; das initrd kann den
+laufenden Kernel nicht wechseln. Siehe
+[running kernel coordination](/configuration/Initrd-Module-Loading.md)
+für die genauen Pfade und das Verhalten von Modul, Kernel-Image und initramfs.
+
+Wenn diese Kombination ein funktionierendes System erreicht und der installierte Baum beschreibbar ist,
+überprüfen Sie die koordinierten Kernel-Sets und aktivieren Sie ein bekannt funktionierendes:
 
 ```bash
 sudo minios-kernel list
@@ -118,9 +127,12 @@ sudo minios-kernel status
 sudo minios-kernel activate <working-version>
 ```
 
-Die Aktivierung muss ein koordiniertes Kernel-Modul, Kernel-Image, initramfs und Bootloader-Konfiguration wiederherstellen. Ersetzen Sie nicht nur `vmlinuz`, nur das initramfs oder nur `01-kernel*.sb`. Behalten Sie den vorherigen Paket-Kernel, bis der Ersatz erfolgreich gebootet wurde. Siehe [Kernel-Verwaltung](/administration/Kernel-Management.md).
+Die Aktivierung muss ein koordiniertes Kernel-Modul, Kernel-Image, initramfs und die Bootloader-Konfiguration wiederherstellen. Ersetzen Sie nicht nur `vmlinuz`, nur das initramfs
+oder nur `01-kernel*.sb`. Behalten Sie den vorherigen Paket-Kernel, bis der Ersatz erfolgreich gebootet wurde. Siehe
+[Kernel management](/administration/Kernel-Management.md).
 
-Dieser Rollback gilt für modulare Live-Installationen. Native Installationen verwenden ihre installierten Kernel-Pakete und GRUB und benötigen native Wiederherstellung oder Neuinstallation.
+Dieser Rollback ist für modulare Live-Installationen gedacht. Native Installationen verwenden ihre
+eigenen installierten Kernel-Pakete und GRUB und benötigen eine native Wiederherstellung oder Neuinstallation.
 
 ## Wann neu installieren?
 

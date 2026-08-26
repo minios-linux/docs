@@ -12,7 +12,7 @@ Ventoy adalah alat populer untuk membuat USB bootable yang memungkinkan Anda men
 
 ### Ukuran Drive
 
-Lihat [Panduan Kompatibilitas Hardware](/installation/Hardware-Compatibility.md#system-requirements) untuk detail persyaratan sistem dan ukuran drive.
+Lihat [Panduan Kompatibilitas Hardware](/installation/Hardware-Compatibility.md) untuk persyaratan sistem dan ukuran drive secara detail.
 
 ## Instalasi Ventoy
 
@@ -20,50 +20,29 @@ Lihat [Panduan Kompatibilitas Hardware](/installation/Hardware-Compatibility.md#
 
 1. **Unduh Ventoy** dari [situs resmi](https://www.ventoy.net/)
 2. **Jalankan installer Ventoy** dan pilih USB drive Anda
-3. **Instal Ventoy** ke drive (semua data akan dihapus)
+3. **Instal Ventoy** ke drive tersebut (seluruh data akan terhapus)
 4. **Salin file ISO MiniOS** ke folder root USB drive
 
-Setelah instalasi, drive siap digunakan. MiniOS akan otomatis membuat penyimpanan untuk menyimpan perubahan.
+Ini akan membuat media multiboot berbasis file ISO: Ventoy menyimpan ISO sebagai file di partisi data dan menampilkannya saat boot. Ini bukan penulisan image MiniOS secara mentah maupun deployment Installer MiniOS.
 
 ### Metode 2: Instalasi dengan Partisi Data Terpisah (Direkomendasikan)
 
 1. **Unduh Ventoy** dari [situs resmi](https://www.ventoy.net/)
-2. **Jalankan installer Ventoy** dan pilih USB drive Anda  
+2. **Jalankan installer Ventoy** dan pilih drive USB Anda
 3. **Aktifkan opsi "Reserve Space"** saat instalasi untuk membuat partisi tambahan
-4. **Instal Ventoy** ke drive
-5. **Salin file ISO MiniOS** ke folder root USB drive
-6. **Buat partisi ext4** di ruang yang dicadangkan dengan label `persistence`
+4. **Instal Ventoy** ke drive tersebut
+5. **Salin file ISO MiniOS** ke folder root drive USB
+6. **Buat partisi ext4** di ruang yang telah dicadangkan dengan label `persistence`
 
-Metode ini memberikan operasi data yang lebih cepat dan kontrol penyimpanan yang lebih baik.
+Ini menyediakan lokasi kemungkinan untuk persistensi, namun membuat partisi saja tidak otomatis mengaktifkan persistensi atau membuat sesi.
 
 ## Integrasi dengan MiniOS
 
-MiniOS sudah mendukung Ventoy secara bawaan dan akan otomatis mendeteksi jika berjalan di lingkungan Ventoy. Sistem akan mengatur penyimpanan perubahan secara otomatis tanpa konfigurasi tambahan dari pengguna.
+MiniOS sudah mendukung deteksi ISO yang disajikan oleh Ventoy. Deteksi sumber dan pemilihan persistence adalah proses terpisah; Ventoy sendiri tidak mengaktifkan persistence MiniOS.
 
-### Penyimpanan Perubahan Otomatis
+### Persistence
 
-MiniOS secara otomatis mendeteksi jika berjalan di lingkungan Ventoy dan mengatur penyimpanan perubahan:
-
-- **Dengan partisi `persistence` terpisah**: Menggunakan partisi tersebut untuk penyimpanan data langsung (mode native, kecepatan maksimal)
-- **Dengan instalasi standar**: Membuat file dinamis di partisi utama Ventoy (mode dynfilefs)
-
-### Konfigurasi Parameter (untuk Pengguna Lanjutan)
-
-Jika diperlukan konfigurasi yang lebih spesifik, parameter boot dapat digunakan:
-
-**Untuk partisi `persistence` terpisah (semua mode tersedia):**
-- `perchmode=native` - Menyimpan langsung ke partisi (paling cepat)
-- `perchmode=dynfilefs` - File yang dapat berkembang secara dinamis
-- `perchmode=raw` - File dengan ukuran tetap
-
-**Untuk instalasi Ventoy standar (dua mode tersedia):**
-- `perchmode=dynfilefs` - File yang dapat berkembang secara dinamis (default, hemat ruang)
-- `perchmode=raw` - File dengan ukuran tetap
-
-**Parameter umum untuk file:**
-- `perchsize=8000` - Ukuran ruang penyimpanan data dalam MB
-
-Detail lebih lanjut di [parameter boot](/configuration/Boot-Parameters.md).
+Persistence hanya aktif jika entri boot atau kernel command line memintanya. Aktivasi kemudian tergantung pada lokasi yang dapat ditulis dan sesi yang dapat digunakan; instalasi Ventoy standar tidak menjamin keduanya akan dibuat secara otomatis. Lihat [Mode Boot](/configuration/Boot-Modes.md) dan [Initrd persistence](/configuration/Initrd-Persistence.md) sebelum mengandalkan perubahan yang tersimpan.
 
 ## Menggunakan MiniOS dengan Ventoy
 
@@ -74,7 +53,7 @@ Setelah menginstal Ventoy dan menyalin file ISO MiniOS ke drive:
 1. **Boot dari USB drive** - pilih di BIOS/UEFI
 2. **Pilih MiniOS** dari daftar file ISO yang tersedia di menu Ventoy
 3. **⚠️ PENTING: Pilih mode GRUB2** saat diminta oleh Ventoy
-4. **Tunggu proses loading** - sistem akan otomatis mengatur untuk operasi
+4. **Tunggu hingga MiniOS selesai dimuat**
 
 ### **Persyaratan Mode Boot Ventoy**
 
@@ -83,4 +62,4 @@ Setelah menginstal Ventoy dan menyalin file ISO MiniOS ke drive:
 
 **Solusi Alternatif:**
 - Tambahkan akhiran `VTGRUB2` pada nama file ISO (misal, `minios-5.0.0-standard-amd64_VTGRUB2.iso`)
-- Ini akan memaksa Ventoy otomatis menggunakan mode GRUB2 tanpa konfirmasi
+- Ini akan memaksa Ventoy secara otomatis menggunakan mode GRUB2 tanpa konfirmasi

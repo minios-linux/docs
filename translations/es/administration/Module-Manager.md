@@ -10,18 +10,21 @@ minios-module-manager
 
 La aplicación se ejecuta como tu usuario de escritorio. Solo solicita autenticación de administrador cuando una operación lo requiere.
 
-## Ejecución actual y en el próximo arranque
+## En ejecución ahora y en el próximo arranque
 
-El espacio de trabajo Módulos mantiene dos vistas separadas:
+El espacio de trabajo de Módulos mantiene dos vistas separadas:
 
-- **En ejecución** es el conjunto ordenado de módulos que actualmente componen el sistema en vivo.
-- **Próximo arranque** es el conjunto ordenado seleccionado por las reglas de arranque actuales de MiniOS.
+- **En Ejecución Ahora** es el conjunto ordenado de módulos que actualmente componen el sistema en vivo.
+- **Próximo Arranque** es el conjunto ordenado seleccionado por las reglas de arranque actuales de MiniOS.
 
-Cambiar una vista no modifica la otra de forma silenciosa. Por ejemplo, **Activar para esta sesión** solo afecta al sistema en ejecución, mientras que **Agregar al próximo arranque** copia un módulo al almacenamiento duradero de módulos sin activarlo ahora.
+Cambiar una vista no modifica silenciosamente la otra. Por ejemplo, **Activar para esta sesión** afecta solo al sistema en ejecución, mientras que **Agregar al próximo arranque** copia un módulo al almacenamiento duradero de módulos sin activarlo ahora.
 
-La activación y desactivación en tiempo real solo están disponibles cuando el sistema de archivos raíz utiliza actualmente AUFS. No están disponibles en un root OverlayFS, incluso si el kernel soporta AUFS. Los módulos base no pueden desactivarse desde la aplicación.
+Para conocer las reglas autorizadas de arranque, incluyendo los niveles de origen candidatos, reemplazo exacto de nombre base, ordenamiento numérico y filtrado por `load=`, `noload=` y `bext=`, consulta
+[Carga de módulos en Initrd](/configuration/Initrd-Module-Loading.md). Esa guía también explica por qué En Ejecución Ahora y Próximo Arranque pueden diferir.
 
-Los cambios para el próximo arranque solo están disponibles cuando MiniOS encuentra un almacenamiento de módulos adecuado, duradero y con permisos de escritura. Los módulos base y los módulos en almacenamiento de solo lectura o volátil no pueden eliminarse. Los filtros de arranque como `load`, `noload` y `bext` siguen determinando qué módulos se seleccionan.
+La activación y desactivación en tiempo de ejecución solo están disponibles cuando el sistema de archivos raíz está usando actualmente AUFS. No están disponibles en un root OverlayFS, incluso si el kernel soporta AUFS. Los módulos base no pueden desactivarse desde la aplicación.
+
+Los cambios para el próximo arranque solo están disponibles cuando MiniOS encuentra un almacenamiento de módulos duradero y escribible adecuado. Los módulos base y los módulos en almacenamiento de solo lectura o volátil no pueden eliminarse. Los filtros de arranque como `load`, `noload` y `bext` siguen determinando qué módulos se seleccionan.
 
 ## Inspeccionar un módulo
 
@@ -61,5 +64,7 @@ Soltar un elemento no ejecuta código ni modifica En ejecución ni Próximo arra
 ## Documentación relacionada
 
 - [Creación de módulos](/development/Creating-Modules.md)
+- [Carga de módulos en Initrd](/configuration/Initrd-Module-Loading.md)
+- [Modos de arranque](/configuration/Boot-Modes.md)
 - [Composición de imágenes ISO desde la línea de comandos](/development/Rebuilding-ISO.md)
 - [Parámetros de arranque](/configuration/Boot-Parameters.md)

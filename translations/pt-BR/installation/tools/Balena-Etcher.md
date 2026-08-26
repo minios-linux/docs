@@ -10,7 +10,7 @@ O Balena Etcher é um programa prático e multiplataforma para gravar imagens IS
 
 ### Tamanho do Drive
 
-Consulte o [Guia de Compatibilidade de Hardware](/installation/Hardware-Compatibility.md#system-requirements) para requisitos detalhados de sistema e tamanhos de drive.
+Consulte o [Guia de Compatibilidade de Hardware](/installation/Hardware-Compatibility.md) para requisitos detalhados do sistema e tamanhos de drives.
 
 ## Preparação
 
@@ -31,17 +31,8 @@ Consulte o [Guia de Compatibilidade de Hardware](/installation/Hardware-Compatib
    - Clique em "Flash!"
    - Aguarde o término do processo (5–15 minutos)
 
-## Persistência Automática de Alterações
+## Resultado e persistência
 
-No primeiro boot, o MiniOS verificará o tipo de sistema de arquivos do drive e escolherá o modo de persistência de alterações mais adequado. Se houver espaço livre disponível, o sistema criará automaticamente uma partição ext4 para máximo desempenho.
+O Etcher realiza uma gravação bruta da imagem: ele copia o layout do ISO para todo o dispositivo de destino. Não cria uma partição ext4 no espaço não utilizado, não cria uma sessão de persistência e não executa uma implantação do MiniOS Installer.
 
-### Configuração de Parâmetros (para Usuários Avançados)
-
-Quando for necessário configurar a persistência de forma precisa, é possível utilizar parâmetros de boot:
-
-- `perchmode=native` - Salvamento direto na partição (padrão, mais rápido)
-- `perchmode=dynfilefs` - Arquivo expansível dinamicamente
-- `perchmode=raw` - Arquivo de tamanho fixo
-- `perchsize=8000` - Espaço de armazenamento de dados em MB para arquivos de imagem
-
-Mais detalhes em [parâmetros de boot](/configuration/Boot-Parameters.md).
+A persistência só é ativada quando uma entrada de boot ou linha de comando do kernel solicita, e ainda assim requer um armazenamento gravável adequado. Consulte [Modos de boot](/configuration/Boot-Modes.md) e [Persistência Initrd](/configuration/Initrd-Persistence.md) antes de depender de alterações salvas.

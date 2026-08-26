@@ -6,7 +6,7 @@
 
 Network boot in the initramfs (`ip=`, PXE, `from=http://…`) is a separate LiveKit layer and is **not** managed by live-config. See [Network boot](/installation/Network-Boot.md).
 
-**live-config** can be configured through boot parameters or configuration files. If both mechanisms are used for a certain option, the boot parameters take precedence over the configuration files. When using persistency, **live-config** components are only run once.
+**live-config** can be configured through boot parameters or the runtime configuration files prepared by the initramfs. The actual kernel command line is appended after file-provided `LIVE_CONFIG_CMDLINE` values, so later matching boot parameters take precedence. When using persistency, **live-config** components are normally run only once.
 
 If *live-build*(7) is used to build the live system, the live-config parameters used by default can be set through the `--bootappend-live` option, see *lb_config*(1) manual page.
 
@@ -23,7 +23,7 @@ If *live-build*(7) is used to build the live system, the live-config parameters 
 
 Some individual components can change their behaviour upon a boot parameter.
 
-- **live-config.debconf-preseed=filesystem|medium|URL1|URL2|...|URLn | debconf-preseed=medium|filesystem|URL1|URL2|...|URLn**: Allows one to fetch and apply one or more debconf preseed files to be applied to the debconf database. Note that the URLs must be fetchable by wget (http, ftp, or file://). If the file is placed on the live medium, it can be fetched with `file:///run/initramfs/memory/data/FILE`, or with `file:///FILE` if it is in the root filesystem of the live system itself. All preseed files in `/usr/lib/live/config-preseed/` in the root filesystem of the live system can be automatically enabled with the keyword `filesystem`. All preseed files in `/minios/config-preseed/` of the live medium can be automatically enabled with the keyword `medium`. If several mechanisms are combined, then filesystem preseed files are applied first, then medium preseed files, and last the network preseed files.
+- **live-config.debconf-preseed=filesystem|medium|URL1|URL2|...|URLn | debconf-preseed=medium|filesystem|URL1|URL2|...|URLn**: Fetches and applies one or more debconf preseed files. URLs are handled by `wget` and may use HTTP, FTP, or `file://`. The keyword `filesystem` expands files in `/usr/lib/live/config-preseed/`; `medium` expands files in `minios/config-preseed/` on the detected live medium. Explicit local files can use paths such as `file:///run/initramfs/memory/data/minios/config-preseed/FILE` or `file:///PATH` in the live root. Pipe-separated entries are processed in the order specified; files expanded by a keyword use shell glob order.
 - **live-config.hostname=HOSTNAME | hostname=HOSTNAME**: Allows one to set the hostname of the system. The default is `minios`.
 - **live-config.username=USERNAME | username=USERNAME**: Allows one to set the username that gets created for autologin. The default is `live`.
 - **live-config.user-default-groups=GROUP1,GROUP2,...GROUPn | user-default-groups=GROUP1,GROUP2,...GROUPn**: Allows one to set the default groups of the users that gets created for autologin. The default is `audio cdrom dip floppy video plugdev netdev powerdev scanner bluetooth`.
@@ -45,7 +45,9 @@ Some individual components can change their behaviour upon a boot parameter.
 - **live-config.xorg-resolution=XORG_RESOLUTION | xorg-resolution=XORG_RESOLUTION**: Allows one to set xorg resolution instead of autodetecting it, e.g. 1024x768.
 - **live-config.wlan-driver=WLAN_DRIVER | wlan-driver=WLAN_DRIVER**: Allows one to set WLAN driver instead of autodetecting it. If a PCI ID is specified in `/usr/share/live/config/broadcom-sta/*DRIVER*.ids` within the live system, the *DRIVER* is enforced for these devices. If both a boot parameter and an override are found, the boot parameter takes precedence.
 - **live-config.module-mode=MODE | module-mode=MODE**: Allows you to specify the module mode for live configuration. When set to "merged", the system will update user accounts, rebuild caches, and refresh package settings so that configuration changes are dynamically integrated into the running system.
-- **live-config.hooks=filesystem|medium|URL1|URL2|...|URLn | hooks=medium|filesystem|URL1|URL2|...|URLn**: Allows one to fetch and execute one or more arbitrary files. Note that the URLs must be fetchable by wget (http, ftp, or file://), the files are executed in /tmp of the running live system, and that the files needs their dependencies, if any, already installed, e.g. if a python script should be executed the system needs python installed. Some hooks for some common use-cases are available at `/usr/share/doc/live-config/examples/hooks/`. If the file is placed on the live medium, it can be fetched with `file:///run/initramfs/memory/data/FILE`, or with `file:///FILE` if it is in the root filesystem of the live system itself. All hooks in `/usr/lib/live/config-hooks/` in the root filesystem of the live system can be automatically enabled with the keyword `filesystem`. All hooks in `/minios/config-hooks/` of the live medium can be automatically enabled with the keyword `medium`. If several mechanisms are combined, then filesystem hooks are executed first, then medium hooks, and last the network hooks.
+- **live-config.hooks=filesystem|medium|URL1|URL2|...|URLn | hooks=medium|filesystem|URL1|URL2|...|URLn**: Fetches and executes arbitrary files from a temporary file in the running live system. URLs are handled by `wget` and may use HTTP, FTP, or `file://`; required interpreters and other dependencies must already be installed. The keyword `filesystem` expands files in `/usr/lib/live/config-hooks/`; `medium` expands files in `minios/config-hooks/` on the detected live medium (with an ISO-path fallback in the hook component). Explicit local files can use `file:///run/initramfs/memory/data/minios/config-hooks/FILE` or `file:///PATH` in the live root. Pipe-separated entries execute in the order specified; files expanded by a keyword use shell glob order. Examples are installed under `/usr/share/doc/live-config/examples/hooks/`.
+
+> **Security warning:** `live-config` runs as root. Hooks are made executable and run as root, and preseeds alter the system debconf database with root privileges. Plain HTTP and FTP do not authenticate the downloaded content and provide no integrity protection. Prefer reviewed local files or trusted authenticated transport with independent integrity verification; do not use remote hooks or preseeds from untrusted networks.
 
 ## Boot Parameters (shortcuts)
 
@@ -68,9 +70,13 @@ For special use cases there are some special boot parameters.
 
 **Note:** If configuration files are used, either (preferably) all boot parameters should be put into the **LIVE_CONFIG_CMDLINE** variable, or individual variables can be set. If individual variables are used, the user is required to ensure that all the necessary variables are set to create a valid configuration.
 
-Configuration files can be placed either in the root filesystem itself (`/etc/live/config.conf`, `/etc/live/config.conf.d/*.conf`), or on the live media (`minios/config.conf`, `minios/config.conf.d/*.conf`). If both places are used for a certain option, the ones from the live media take precedence over the ones from the root filesystem.
+`live-config` itself sources `/etc/live/config.conf` and then `/etc/live/config.conf.d/*.conf` in shell glob order. Later fragments can therefore replace values from the main file or earlier fragments. It does not separately source a second media configuration layer.
 
-Although the configuration files placed in the configuration directories do not require a particular name, it is suggested for consistency reasons to either use `vendor.conf` or `project.conf` as a naming scheme (whereas `vendor` or `project` is replaced with the actual name, resulting in a filename like `progress-linux.conf`).
+On MiniOS media, the source files are `minios/config.conf` and `minios/config.conf.d/*.conf`. Before `live-config` starts, the MiniOS initramfs synchronizes these with the `/etc/live/` runtime files by modification time. A newer source file replaces its runtime counterpart; a newer runtime file is copied back only if the selected MiniOS data directory is writable. Equal timestamps cause no copy, missing files are filled, and files are not deleted. This is boot-time synchronization, not continuous monitoring. See [Configuration file](/configuration/Configuration-File.md) for the complete synchronization and command-line precedence rules.
+
+As a fallback for initramfs implementations that did not prepare the runtime file, the systemd and SysV startup wrappers copy `minios/config.conf` from the detected medium only when `/etc/live/config.conf` is absent. That fallback does not copy `config.conf.d` fragments. The standard current MiniOS LiveKit initramfs performs the earlier synchronization instead.
+
+Fragment files must match `*.conf`. Names such as `vendor.conf` or `project.conf` are recommended; choose lexical names deliberately because later fragments override earlier ones.
 
 The actual content of the configuration files consists of one or more of the following variables.
 
@@ -178,18 +184,20 @@ The configuration files for the live system itself are best put into an own debi
 
 # FILES
 
+- `minios/config.conf` on the selected MiniOS data medium (source copy)
+- `minios/config.conf.d/*.conf` on the selected MiniOS data medium (source fragments)
 - `/etc/live/config.conf`
 - `/etc/live/config.conf.d/*.conf`
-- `minios/config.conf`
-- `minios/config.conf.d/*.conf`
 - `/lib/live/config.sh`
 - `/lib/live/config/`
 - `/var/lib/live/config/`
 - `/var/log/live/config.log`
-- `/minios/config-hooks/*`
-- `minios/config-hooks/*`
-- `/minios/config-preseed/*`
-- `minios/config-preseed/*`
+- `/var/log/minios/minios-boot.log`
+- `minios/log/YYYYMMDD_HHMMSS/` on writable selected data media when log export is enabled
+- `/usr/lib/live/config-hooks/*` (`filesystem` hooks)
+- `minios/config-hooks/*` on the detected live medium (`medium` hooks)
+- `/usr/lib/live/config-preseed/*` (`filesystem` preseeds)
+- `minios/config-preseed/*` on the detected live medium (`medium` preseeds)
 
 # SEE ALSO
 

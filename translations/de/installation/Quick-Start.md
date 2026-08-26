@@ -39,29 +39,26 @@ und die [Originalmethode](/installation/tools/Original-Method.md). Einen Verglei
 [USB-Erstellungstools](/installation/tools/USB-Creation-Tools.md) und einen Überblick zur Installation unter
 [MiniOS installieren](/installation/Installing-MiniOS.md).
 
-## 3. Persistenz vor dem Schreiben verstehen
+## 3. Persistenz verstehen, bevor Sie schreiben
 
-Persistenz wird nicht von jeder Schreib- oder Bootmethode erstellt.
+Persistenz wird nicht durch jede Schreib- oder Startmethode erzeugt.
 
-- Ein Rohdaten-Schreibvorgang mit `dd`, Etcher oder einem ähnlichen Tool reproduziert das ISO. Dadurch wird jedoch keine persistente Sitzung eingerichtet.
-- Ventoy startet das ISO normalerweise als Datei. MiniOS-Persistenz muss separat eingerichtet werden.
+- Ein Rohabbild-Schreibvorgang mit `dd`, Etcher oder einem ähnlichen Tool reproduziert das ISO. Dadurch wird jedoch keine persistente Sitzung eingerichtet.
+- Ventoy startet das ISO normalerweise als Datei. Die Persistenz von MiniOS muss separat eingerichtet werden.
 - Der MiniOS Installer kann eine Live-Installation erstellen und nativen, DynFileFS-, Raw- oder verschlüsselten LUKS-Sitzungsspeicher konfigurieren.
-- Ein frischer Start läuft absichtlich ohne Persistenz. Andere MiniOS-Bootmenüeinträge können Sitzungen fortsetzen, erstellen oder auswählen, wenn beschreibbarer Speicher verfügbar ist.
-- Eine native Installation ist ein klassisch installiertes System und verwendet keine Live-Sitzungspersistenz auf dieselbe Weise.
+- Ein frischer Start läuft absichtlich ohne Persistenz. Andere MiniOS Boot-Menüeinträge können Sitzungen fortsetzen, erstellen oder auswählen, wenn beschreibbarer Speicher verfügbar ist.
+- Eine native Installation ist ein konventionell installiertes System und verwendet Live-Session-Persistenz nicht auf die gleiche Weise.
 
-Siehe [Sitzungsverwaltung](/configuration/Session-Management.md) und
-[Boot-Parameter](/configuration/Boot-Parameters.md), bevor Sie den Sitzungsspeicher ändern. Sichern Sie wichtige Dateien unabhängig vom Persistenzmodus.
+Verwenden Sie [Boot-Modi](/configuration/Boot-Modes.md) als maßgebliche Anleitung für das für Nutzer sichtbare Verhalten beim Live-Start. Siehe [Sitzungsverwaltung](/configuration/Session-Management.md) für Speicheroptionen, [Initrd-Persistenz](/configuration/Initrd-Persistence.md) für den detaillierten Bootzeit-Vertrag und [Boot-Parameter](/configuration/Boot-Parameters.md), bevor Sie Kernel-Optionen ändern. Erstellen Sie unabhängig vom Persistenzmodus ein Backup wichtiger Dateien.
 
-## 4. MiniOS booten
+## 4. MiniOS starten
 
 1. Fahren Sie den Computer herunter und schließen Sie das vorbereitete Gerät an.
-2. Öffnen Sie das Firmware-Bootmenü und wählen Sie den UEFI- oder Legacy-Eintrag des Geräts aus.
-3. Wählen Sie für den ersten Hardwaretest eine frische Sitzung oder eine persistente Sitzung, falls diese bereits konfiguriert wurde.
-4. Überprüfen Sie, ob Grafik, Tastatur, Speicher und Netzwerk funktionieren, bevor Sie Änderungen vornehmen, die das System verändern.
+2. Öffnen Sie das Firmware-Boot-Menü und wählen Sie den UEFI- oder Legacy-Eintrag des Geräts aus.
+3. Wählen Sie für einen ersten Hardware-Test eine frische Sitzung oder eine persistente Sitzung nur, wenn bereits eine konfiguriert wurde.
+4. Überprüfen Sie, ob Grafik, Tastatur, Speicher und Netzwerk funktionieren, bevor Sie Änderungen an der Installation vornehmen, die nicht rückgängig gemacht werden können.
 
-Wird das Gerät nicht angezeigt oder startet die Desktop-Umgebung nicht, siehe
-[Hardware-Kompatibilität](/installation/Hardware-Compatibility.md) und
-[Fehlerbehebung](/administration/Troubleshooting.md).
+Wenn das Gerät nicht aufgeführt ist oder der Desktop nicht startet, siehe [Hardware-Kompatibilität](/installation/Hardware-Compatibility.md) und [Fehlerbehebung](/administration/Troubleshooting.md). Bei Problemen beim Auffinden der Live-Quelle siehe [Initrd-Systemerkennung](/configuration/Initrd-System-Discovery.md).
 
 ## 5. System konfigurieren
 
@@ -89,8 +86,7 @@ Normale kabelgebundene und WLAN-Verbindungen werden mit der [Netzwerkkonfigurati
 
 ## 6. Software installieren und Arbeit speichern
 
-Mit APT vorgenommene Änderungen in einer Live-Sitzung bleiben nur bei persistenter Sitzung nach einem Neustart erhalten. SquashFS-Module bleiben getrennt von der beschreibbaren Sitzung und können als Teil des modularen Systems geladen werden; siehe
-[Module erstellen](/development/Creating-Modules.md).
+APT-Änderungen, die in einer Live-Sitzung vorgenommen werden, überstehen einen Neustart nur, wenn diese Sitzung persistent ist. SquashFS-Module bleiben vom beschreibbaren Sitzungsbereich getrennt und können als Teil des modularen Systems geladen werden; siehe [Module erstellen](/development/Creating-Modules.md) und [Initrd-Modulladen](/configuration/Initrd-Module-Loading.md).
 
 Speichern Sie wichtige Dateien auf bekannt beschreibbarem Speicher und testen Sie einen sauberen Shutdown und Neustart, bevor Sie sich auf eine persistente Sitzung verlassen.
 

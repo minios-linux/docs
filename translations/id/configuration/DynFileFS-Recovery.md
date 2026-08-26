@@ -15,13 +15,13 @@ Penyebabnya bisa berupa segmen penyimpanan yang tidak lengkap, metadata containe
 
 ## Aturan Keamanan
 
-1. Jangan memperbaiki satu-satunya salinan container penyimpanan.
-2. Jangan menyalin sesi sumber ke `minios/changes` yang sedang aktif.
+1. Jangan memperbaiki satu-satunya salinan kontainer penyimpanan.
+2. Jangan menyalin sesi sumber ke atas store `minios/changes` yang sedang berjalan atau ter-mount.
 3. Salin seluruh direktori `changes` sebelum mencoba pemulihan.
 4. Jalankan `e2fsck -y` hanya pada salinan tambahan dari sebuah sesi.
 5. Jangan membuat file `changes.dat.N` yang hilang secara manual.
 
-Jika MiniOS sedang berjalan dengan persistensi dan perangkat sumber sudah di-mount, aman untuk membuat salinan awal. Jangan mengganti `session.conf` sampai MiniOS sudah boot tanpa persistensi.
+Jangan membuat salinan awal saat sesi sumber sedang berjalan atau kontainer DynFileFS-nya sedang ter-mount. Metadata dan file segmennya dapat berubah secara independen dan menghasilkan salinan yang tidak konsisten. Boot tanpa persistensi atau gunakan sistem Linux lain. Pastikan tampilan DynFileFS/FUSE, perangkat loop `virtual.dat`, dan filesystem ext4 di dalamnya tetap tidak aktif. Mount hanya filesystem penyimpanan luar, sebaiknya dalam mode read-only, agar file segmen pendukungnya dapat disalin secara konsisten.
 
 ## 1. Temukan Sumber dan Tujuan
 
@@ -97,9 +97,9 @@ cat "$RECOVERY/session.conf" 2>/dev/null
 
 MiniOS menggunakan `session.conf` untuk memilih dan mendeskripsikan sesi persistensi.
 
-## 4. Mount Container DynFileFS atau dynblk
+## 4. Mount Kontainer DynFileFS atau dynblk
 
-Temukan helper yang terpasang. Tergantung pada image MiniOS, nama kanoniknya bisa `dynblk` atau nama kompatibilitas `@mount.dynfilefs`:
+Temukan helper yang telah terpasang. Bergantung pada image MiniOS, nama kanoniknya bisa `dynblk` atau nama kompatibilitas `@mount.dynfilefs`:
 
 ```bash
 DYN=""
@@ -122,7 +122,7 @@ E2FSCK=/run/initramfs/bin/e2fsck
 ls -l "$DYN" "$E2FSCK"
 ```
 
-Pilih salah satu sesi kandidat, misalnya sesi 3:
+Pilih sesi kandidat, misalnya sesi 3:
 
 ```bash
 SESSION=3
@@ -134,7 +134,7 @@ mkdir -p /tmp/dynfilefs-recovery /tmp/old-session
     -p 4000
 ```
 
-Jangan tentukan `-s` atau `perchsize` saat memulihkan container yang sudah ada. Ukuran virtualnya sudah tersimpan di metadata DynFileFS/dynblk.
+Jangan tentukan `-s` atau `perchsize` selama proses mount pemulihan manual ini. Jalur boot normal mungkin meneruskan `-s` untuk ukuran logis yang diminta atau tercatat, namun pemulihan secara sengaja menghindari permintaan resize dan membaca ukuran yang ada dari metadata DynFileFS/dynblk.
 
 Mount yang berhasil akan menampilkan `virtual.dat`:
 
@@ -142,13 +142,13 @@ Mount yang berhasil akan menampilkan `virtual.dat`:
 ls -lh /tmp/dynfilefs-recovery/virtual.dat
 ```
 
-Periksa filesystem ext4 tanpa melakukan perubahan:
+Periksa filesystem ext4-nya tanpa melakukan perubahan:
 
 ```bash
 "$E2FSCK" -f -n /tmp/dynfilefs-recovery/virtual.dat
 ```
 
-Kemudian mount sebagai read-only:
+Kemudian mount dalam mode read-only:
 
 ```bash
 mount -o ro,loop /tmp/dynfilefs-recovery/virtual.dat /tmp/old-session
@@ -158,7 +158,7 @@ ls -la /tmp/old-session/home
 
 Jika file yang diharapkan terlihat, sesi dapat dipulihkan.
 
-Unmount secara urut terbalik:
+Unmount secara berurutan dari belakang:
 
 ```bash
 umount /tmp/old-session
@@ -190,71 +190,45 @@ fusermount -u /tmp/dynfilefs-repair
 
 Ulangi pengecekan read-only dari bagian sebelumnya setelah perbaikan dilakukan.
 
-## 6. Pulihkan Sesi untuk Boot
+## 6. Pulihkan ke Sesi Baru yang Kompatibel
 
-Lakukan langkah ini setelah mematikan sesi persisten dan boot MiniOS tanpa `perch`, `perchdir`, atau `perchmode`. Langkah ini juga bisa dilakukan dari sistem Linux lain.
-
-Salin container yang sudah dipulihkan ke dalam direktori sesi bernomor yang belum terpakai. Menggunakan nomor baru mencegah penimpaan sesi yang sedang aktif:
+Lebih disarankan melakukan pemulihan ke sesi baru yang dibuat daripada merekonstruksi metadata untuk sesi yang rusak. Jika terdapat ekspor `.tar.zst` yang valid, boot secara normal dan impor dengan konversi otomatis untuk filesystem tujuan:
 
 ```bash
-NEW_CHANGES="$TARGET_MINIOS/changes"
-RESTORED=90
-
-test ! -e "$NEW_CHANGES/$RESTORED"
-mkdir -p "$NEW_CHANGES/$RESTORED"
-cp -a "$REPAIR/." "$NEW_CHANGES/$RESTORED/"
+sudo minios-session import /path/to/session.tar.zst --auto-convert
 ```
 
-Jika tidak diperlukan perbaikan filesystem, salin dari `$RECOVERY/$SESSION` sebagai pengganti `$REPAIR`.
+Impor akan membuat sesi baru dengan nomor berbeda. Periksa, lalu aktifkan secara eksplisit.
 
-Backup dan ganti metadata sesi:
+Jika hanya kontainer yang ter-mount yang dapat digunakan, buat dan boot sesi baru dalam mode yang kompatibel dengan filesystem tujuan. Mount salinan hasil pemulihan dalam mode read-only seperti pada bagian 4, lalu salin file yang diperlukan ke sesi yang sedang berjalan tersebut. Misalnya, untuk memulihkan direktori home:
 
 ```bash
-cp -a "$NEW_CHANGES/session.conf" \
-    "$NEW_CHANGES/session.conf.before-recovery" 2>/dev/null || true
-
-printf '%s\n' \
-    "default=$RESTORED" \
-    "session_mode[$RESTORED]=dynfilefs" \
-    >"$NEW_CHANGES/session.conf"
-sync
-```
-
-Metadata minimal sengaja tidak mencantumkan versi, edisi, dan field union agar data kompatibilitas lama tidak memaksa MiniOS membuat sesi baru.
-
-Boot MiniOS dengan:
-
-```text
-perchdir=resume perchmode=dynfilefs
-```
-
-Jangan tambahkan `perchdir=new` atau `perchsize` pada boot recovery pertama ini.
-
-## 7. Pulihkan File Tanpa Boot ke Sesi
-
-Jika container bisa di-mount secara manual namun tidak dapat digunakan sebagai sesi boot, salin file penting dari hasil mount read-only ke sesi kerja baru:
-
-```bash
-mkdir -p "$TARGET_MINIOS/recovered-home"
-rsync -aHAX --info=progress2 \
+sudo rsync -aHAX --info=progress2 \
     /tmp/old-session/home/ \
-    "$TARGET_MINIOS/recovered-home/"
+    /home/
 sync
 ```
+
+Salin hanya data dan konfigurasi yang diperlukan. Ini menghindari perlakuan metadata kompatibilitas yang tidak dikenal atau tidak lengkap sebagai definisi sesi bootable.
+
+## 7. Jangan Rekonstruksi Metadata Sesi di Tempat
+
+Jangan mengganti `session.conf` dengan file minimal atau menambah direktori hasil pemulihan ke store yang sudah ada secara manual. Metadata mendeskripsikan setiap sesi dalam store tersebut; menggantinya dapat membuat sesi sehat menjadi yatim, menghapus field kompatibilitas dan kebijakan penyimpanan, serta mengubah pemilihan boot berikutnya.
+
+Jika kontainer bisa di-mount dalam mode read-only, pulihkan file-file-nya ke sesi baru yang kompatibel seperti dijelaskan di atas. Jika tidak bisa di-mount, simpan salinan offline lengkap untuk pemulihan filesystem atau forensik lebih lanjut. Kontainer tanpa metadata store yang dapat dipercaya adalah input yang dapat dipulihkan, bukan definisi sesi bootable.
 
 ## Referensi Error
 
-- `cannot open ... changes.dat.N`: segmen yang telah dikomit hilang. Salin ulang dari perangkat sumber atau coba sesi lain. Jangan membuat segmen kosong.
+- `cannot open ... changes.dat.N`: segmen yang sudah dikomit hilang. Salin ulang dari perangkat sumber atau coba sesi lain. Jangan membuat segmen kosong.
 - `cannot read header`: header DynFileFS/dynblk rusak.
-- `incompatible data format`: helper dan format container tidak cocok.
-- `virtual.dat` ada tetapi ext4 tidak bisa di-mount: periksa salinannya dengan `e2fsck`.
-- Container berhasil di-mount tapi MiniOS membuat sesi baru: pastikan `session.conf` mengarah ke nomor yang dipulihkan dan berisi `session_mode[N]=dynfilefs`.
+- `incompatible data format`: helper dan format kontainer tidak cocok.
+- `virtual.dat` ada tapi ext4 tidak bisa di-mount: periksa salinan dengan `e2fsck`.
 
-## Mencegah Terulangnya Masalah
+## Mencegah Terulang Kembali
 
-Sebagian besar insiden terjadi saat perangkat persistensi penuh saat digunakan. Kurangi risiko dengan langkah-langkah berikut:
+Kebanyakan insiden terjadi saat perangkat persistensi penuh selama penggunaan. Kurangi risiko dengan langkah-langkah berikut:
 
-- Sisakan ruang bebas dengan parameter boot `perchreserve` (default 256 MB). Container baru dan yang bertambah besar tidak akan menggunakannya, dan MiniOS akan memberi peringatan saat ruang bebas turun ke batas reserve. Tingkatkan nilainya pada perangkat kecil atau yang sering dipakai, misalnya `perchreserve=1024`.
-- Hapus sesi lama atau tidak terpakai sebelum perangkat menjadi penuh.
-- Gunakan sesi `raw` berukuran tetap jika Anda membutuhkan penggunaan disk yang dapat diprediksi, sehingga pertumbuhan tidak akan menghabiskan perangkat secara tiba-tiba.
-- Matikan perangkat dengan benar. Pemadaman listrik mendadak saat perangkat penuh adalah penyebab paling umum container yang kemudian tidak bisa di-mount.
+- Sisakan cadangan ruang kosong dengan parameter boot `perchreserve` (default 256 MiB). Kontainer baru dan yang bertambah besar tidak akan menggunakan cadangan ini, dan MiniOS akan memberi peringatan saat ruang kosong turun ke cadangan. Tingkatkan cadangan pada perangkat yang kecil atau sering digunakan, misalnya `perchreserve=1024`.
+- Hapus sesi lama atau yang tidak digunakan sebelum perangkat menjadi penuh.
+- Lebih baik gunakan sesi `raw` dengan ukuran tetap jika Anda membutuhkan penggunaan disk yang dapat diprediksi, sehingga pertumbuhan tidak akan menghabiskan perangkat secara tak terduga.
+- Matikan perangkat dengan benar. Pemadaman listrik mendadak saat perangkat penuh adalah penyebab paling umum kontainer yang kemudian tidak dapat di-mount.

@@ -10,14 +10,14 @@ Drive Utility è uno strumento grafico per scrivere immagini ISO di MiniOS su un
 
 ## Requisiti dell’unità
 
-### Dimensione dell’unità (per scrittura di MiniOS)
+### Dimensione dell'unità (per la scrittura di MiniOS)
 
-Consulta la [Guida alla compatibilità hardware](/installation/Hardware-Compatibility.md#system-requirements) per i requisiti di sistema dettagliati e le dimensioni delle unità.
+Consulta la [Guida alla compatibilità hardware](/installation/Hardware-Compatibility.md) per i requisiti di sistema dettagliati e le dimensioni delle unità.
 
 ### File system supportati
 
 - **FAT32**: massima compatibilità
-- **NTFS**: compatibilità con Windows  
+- **NTFS**: compatibilità con Windows
 - **EXT4**: consigliato per Linux
 
 ## Avvio di Drive Utility
@@ -44,17 +44,8 @@ driveutility
    - Conferma l’operazione – tutti i dati sull’unità verranno eliminati
 5. **Attendi il completamento** – il processo richiederà alcuni minuti
 
-## Persistenza automatica delle modifiche
+## Risultato e persistenza
 
-Quando si scrive MiniOS tramite Drive Utility, viene creata una copia esatta dell’immagine ISO. MiniOS rileverà automaticamente il metodo di scrittura e configurerà la persistenza delle modifiche al primo avvio.
+La modalità di scrittura esegue una scrittura raw dell'immagine: copia la struttura dell'ISO sull'intero dispositivo di destinazione. Non crea una partizione ext4 nello spazio inutilizzato, non crea una sessione di persistenza e non esegue un deployment dell'Installer di MiniOS. Le scelte del filesystem sopra indicate si applicano alle operazioni di Drive Utility che formattano un filesystem, non al layout delle partizioni copiato tramite scrittura ISO.
 
-### Configurazione dei parametri (per utenti avanzati)
-
-Per una configurazione precisa della persistenza, è possibile utilizzare i parametri di avvio:
-
-- `perchmode=native` - Salvataggio diretto sulla partizione (se spazio disponibile)
-- `perchmode=dynfilefs` - File espandibile dinamicamente
-- `perchmode=raw` - File a dimensione fissa
-- `perchsize=8000` - Dimensione dello spazio dati in MB
-
-Dettagli nei [parametri di avvio](/configuration/Boot-Parameters.md).
+La persistenza viene abilitata solo quando una voce di avvio o una riga di comando del kernel la richiede, e richiede comunque uno spazio di archiviazione scrivibile adeguato. Consulta [Modalità di avvio](/configuration/Boot-Modes.md) e [Persistenza Initrd](/configuration/Initrd-Persistence.md) prima di fare affidamento sulle modifiche salvate.

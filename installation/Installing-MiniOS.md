@@ -21,7 +21,7 @@ Choose a method for your operating system:
 - [UNetbootin](/installation/tools/UNetbootin.md) on Windows, Linux, or macOS
 - [Original method](/installation/tools/Original-Method.md) for a file-based MiniOS layout
 
-Writing an image with Rufus, Etcher, `dd`, or Drive Utility is destructive. Confirm the device path, model, and capacity before starting. These tools create bootable media; they do not perform a live or native deployment with MiniOS Installer.
+Writing an image with Rufus, Etcher, `dd`, or Drive Utility is destructive. Confirm the device path, model, and capacity before starting. A raw image write reproduces the image layout; it does not by itself configure persistence or perform a live or native deployment with MiniOS Installer.
 
 Ventoy is different: install Ventoy on the device, then copy the ISO to its data partition. This keeps Ventoy's multiboot layout.
 
@@ -33,11 +33,19 @@ Ventoy is different: install Ventoy on the device, then copy the ISO to its data
 
 Firmware settings vary by computer. A MiniOS image may boot through BIOS or UEFI; the target of a later MiniOS Installer deployment is not restricted to MBR.
 
+Use [Boot modes](/configuration/Boot-Modes.md) as the canonical guide to live
+boot behavior. If early boot cannot find the image or its modules, see
+[Initrd system discovery](/configuration/Initrd-System-Discovery.md).
+
 ## Choose an installed layout
 
 From the live session, start [MiniOS Installer](/installation/MiniOS-Installer.md) when you want MiniOS on another USB drive, SSD, or hard disk.
 
 - Live mode preserves the compressed module stack and live boot layout. It supports optional session persistence and is suited to portable installations.
 - Native mode expands the selected modules into a conventional Linux root filesystem, generates initramfs, and installs a supported bootloader. Native mode is available only when the booted image provides the required installer metadata.
+
+Live persistence is prepared during early boot; the detailed behavior is in
+[Initrd persistence](/configuration/Initrd-Persistence.md). It does not apply to
+the conventional root filesystem used by native mode.
 
 The installer supports automatic BIOS/MBR, UEFI/MBR, and UEFI/GPT layouts. BIOS on GPT is not supported by the current installer. See [Using MiniOS Installer](/installation/MiniOS-Installer.md) for placement, filesystem, persistence, and partitioning limits.

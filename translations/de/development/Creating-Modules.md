@@ -1,8 +1,8 @@
 # Module erstellen
 
-MiniOS-Module sind schreibgeschützte SquashFS-Dateisystem-Images, die üblicherweise die Dateiendung `.sb` tragen. Beim Systemstart ordnet MiniOS die ausgewählten Module zu einem geschichteten Root-Dateisystem an. Dateien in einer höher priorisierten Schicht können Dateien aus niedrigeren Schichten ergänzen oder ausblenden.
+MiniOS-Module sind schreibgeschützte SquashFS-Dateisystem-Images, die üblicherweise mit der Endung `.sb` benannt werden. Beim Systemstart ordnet MiniOS die ausgewählten Module zu einem geschichteten Root-Dateisystem an. Dateien in einer höher priorisierten Schicht können Dateien aus niedrigeren Schichten ergänzen oder überdecken. Dies ist die modulare Live-Pipeline, wie sie unter [Boot-Modi](/configuration/Boot-Modes.md) beschrieben ist, nicht das Paketlayout einer nativen Installation.
 
-Diese Anleitung dokumentiert die aktuellen Kommandozeilen-Workflows der MiniOS Tools. Für die grafische Anwendung siehe [MiniOS Module Manager](/administration/Module-Manager.md). Den vollständigen Image-Bauprozess und die Systemarchitektur finden Sie unter [Building MiniOS](/development/Building-MiniOS.md). Die beim Bau von MiniOS verwendeten Paketlisten sind in der [CondinAPT-Dokumentation](/development/CondinAPT.md) beschrieben.
+Diese Anleitung dokumentiert die aktuellen MiniOS Tools-Workflows auf der Kommandozeile. Für die grafische Anwendung siehe [MiniOS Module Manager](/administration/Module-Manager.md). Für den vollständigen Image-Bauprozess und die Systemarchitektur siehe [Building MiniOS](/development/Building-MiniOS.md). Die beim Bau von MiniOS verwendeten Paketlisten werden in der [CondinAPT-Dokumentation](/development/CondinAPT.md) beschrieben.
 
 ## Sicherheits- und Privilegiengrenzen
 
@@ -28,7 +28,11 @@ Verwenden Sie die `--help`-Ausgabe jedes Befehls als Referenz für die installie
 
 Namen beginnen häufig mit einer Zahl wie `06-browser.sb`, da die Schichtreihenfolge die Konfliktlösung beeinflusst. Ein Modul sollte Pfade relativ zum System-Root enthalten, z. B. `usr/bin/example`, und nicht ein zusätzliches Verzeichnis, das diesen Baum enthält.
 
-Die Option `--level LEVEL` bei `apt2sb`, `script2sb` und `chroot2sb` begrenzt die Basisschichten, die zum Erstellen des Build-Unions verwendet werden. Mit `--level 3` werden nummerierte Schichten bis `03` verwendet, und höher nummerierte Schichten werden herausgefiltert. Das kann ein Modul weniger abhängig von optionalen höheren Schichten machen, allerdings auf Kosten zusätzlicher Abhängigkeiten im Ergebnis.
+Für die genauen Quell-Tier-Kandidaten, das Verhalten bei Namensgleichheiten, die numerische
+Sortierung sowie die Bedeutung von `bext=`, `load=` und `noload=` siehe
+[Initrd-Modulladung](/configuration/Initrd-Module-Loading.md). Insbesondere sollte ein eindeutiger Basisname verwendet werden, außer das Modul soll gezielt einen gleichnamigen Slot aus einer früheren Quellstufe ersetzen.
+
+Die Option `--level LEVEL` bei `apt2sb`, `script2sb` und `chroot2sb` begrenzt die Basisschichten, die für den Bau-Union verwendet werden. Mit `--level 3` werden nummerierte Schichten bis `03` genutzt und höher nummerierte Schichten herausgefiltert. Dadurch kann ein Modul weniger von optionalen höheren Schichten abhängen, allerdings müssen dann mehr Abhängigkeiten im Ergebnis enthalten sein.
 
 ## Modul aus Paketen erstellen
 
@@ -155,48 +159,52 @@ Die normale Extraktion ist ohne Root möglich und verändert die Quelle nicht. D
 
 Von aktuellen `sb2dir` erzeugte Verzeichnisse sind normale Verzeichnisse. `rmsbdir`, `sb rm` und `sb rmdir` sind veraltete Kompatibilitätsbefehle, die immer das Entfernen verweigern; sie führen kein Unmount oder rekursives Löschen durch. Überprüfen Sie einen extrahierten Pfad und dessen Inhalte, bevor Sie ihn mit Standard-Dateisystemwerkzeugen entfernen.
 
-## Laufende und Next-Boot-Module verwalten
+## Laufende und beim nächsten Start geladene Module verwalten
 
-"Running Now" und "Next Boot" sind unabhängige Zusammenstellungen.
+Laufende und Next Boot sind unabhängige Zusammenstellungen. Siehe
+[Union-Konstruktion und Laufzeitaktivierung](/configuration/Initrd-Module-Loading.md)
+für die Grenze zwischen Boot- und Laufzeit sowie die Gründe, warum sich die beiden Listen unterscheiden können.
 
-Listen Sie die Module auf, die das aktuelle AUFS- oder OverlayFS-Root zusammensetzen, von niedrigster zu höchster Priorität:
+Zeige die Module an, die aktuell das AUFS- oder OverlayFS-Root bilden, von niedrigster bis höchster Priorität:
 
 ```bash
 sb list
 sb list --json
 ```
 
-Listen Sie die Module auf, die durch die aktuellen Boot-Regeln ausgewählt wurden, einschließlich `bext`, `load` und `noload`:
+Zeige die Module an, die durch die aktuellen Boot-Regeln ausgewählt wurden:
 
 ```bash
 sb next-boot
 sb next-boot --json
 ```
 
-Diese Abfragen sind ohne Root möglich. Ein Next-Boot-Modul kann aus dem Basisdatenbaum, seinem `modules/`-Verzeichnis oder einem separaten Persistenzmodulspeicher stammen. Eine spätere Quelle mit demselben Basisnamen ersetzt die frühere Auswahl.
+Diese Abfragen sind rootlos. Die kanonischen
+[Kandidaten-Tier- und Ersetzungsregeln](/configuration/Initrd-Module-Loading.md)
+bestimmen, welche Quelle jeden Next Boot-Basename liefert.
 
-Um ein Benutzermodul für den nächsten Boot verfügbar zu machen:
+So machen Sie ein Benutzermodul beim nächsten Start verfügbar:
 
 ```bash
 sudo sb next-boot add 50-extra.sb
 ```
 
-MiniOS verwendet geeigneten, dauerhaften, beschreibbaren Speicher, bereitet die Kopie vor, prüft sie und veröffentlicht sie atomar, ohne ein bestehendes Modul zu ersetzen. Der Dateiname muss die aktuellen Boot-Filter erfüllen. Entfernen Sie ein ausgewähltes Benutzermodul anhand seines exakten Basisnamens:
+MiniOS verwendet geeigneten, dauerhaften, beschreibbaren Speicher, bereitet die Kopie vor, validiert sie und veröffentlicht sie atomar, ohne ein bestehendes Modul zu ersetzen. Der Dateiname muss den aktuellen Boot-Filtern entsprechen. Entfernen Sie ein ausgewähltes Benutzermodul anhand seines exakten Basenamens:
 
 ```bash
 sudo sb next-boot remove 50-extra.sb
 ```
 
-Das Entfernen wird für Basismodule und Module auf schreibgeschützten oder flüchtigen Quellen verweigert.
+Das Entfernen wird für Basismodule sowie Module auf schreibgeschützten oder flüchtigen Quellen verweigert.
 
-Die Laufzeitaktivierung ist eine separate, nur für die Sitzung gültige Operation:
+Die Laufzeitaktivierung ist ein separater, nur für die aktuelle Sitzung gültiger Vorgang:
 
 ```bash
 sudo sb activate 50-extra.sb
 sudo sb deactivate 50-extra.sb
 ```
 
-Aktivierung und Deaktivierung funktionieren nur, wenn `/` aktuell ein AUFS-Union ist. Sie sind auf OverlayFS nicht verfügbar, und Kernel-AUFS-Unterstützung allein reicht nicht aus. Keine dieser Aktionen ändert den Next Boot.
+Aktivierung und Deaktivierung funktionieren nur, wenn `/` aktuell eine AUFS-Union ist. Sie sind bei OverlayFS nicht verfügbar, und allein die Kernel-AUFS-Unterstützung reicht nicht aus. Keiner der Befehle ändert Next Boot.
 
 Der Kompatibilitäts-Konverter-Dispatcher benötigt beide Operanden:
 
@@ -210,6 +218,8 @@ Direkte Verwendung von `dir2sb` und `sb2dir` ist vorzuziehen, da die normale Kon
 ## Verwandte Dokumentation
 
 - [MiniOS Module Manager](/administration/Module-Manager.md)
-- [ISO-Abbilder neu erstellen](/development/Rebuilding-ISO.md)
-- [MiniOS erstellen](/development/Building-MiniOS.md)
+- [Initrd-Modulladung](/configuration/Initrd-Module-Loading.md)
+- [Boot-Modi](/configuration/Boot-Modes.md)
+- [ISO-Images neu erstellen](/development/Rebuilding-ISO.md)
+- [Building MiniOS](/development/Building-MiniOS.md)
 - [Boot-Parameter](/configuration/Boot-Parameters.md)

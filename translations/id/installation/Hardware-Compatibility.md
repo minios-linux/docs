@@ -1,61 +1,40 @@
-# Panduan Kompatibilitas Perangkat Keras
+# Panduan kompatibilitas perangkat keras
 
-Panduan ini memberikan informasi penting tentang kompatibilitas perangkat keras untuk MiniOS. Sistem ini berbasis Debian 13 "Trixie" dengan kernel Linux Long-Term Support (LTS), memastikan dukungan perangkat keras yang luas.
+Dukungan perangkat keras bergantung pada rilis dan image MiniOS: distribusi dasar, kernel, firmware, modul yang disertakan, dan edisi semuanya berpengaruh. Periksa deskripsi rilis untuk image yang Anda unduh, lalu uji sesi live baru sebelum mengganti disk atau menggunakan mesin tersebut untuk pekerjaan yang bersifat persisten.
 
-## Persyaratan Sistem
+## Persyaratan sistem
 
-MiniOS dibuat untuk arsitektur **amd64** (64-bit). Persyaratan berbeda tergantung pada edisinya:
+Image MiniOS untuk PC yang dipublikasikan ditujukan untuk arsitektur **amd64** (x86 64-bit) kecuali jika deskripsi rilis menyatakan lain. Kebutuhan sumber daya bervariasi tergantung image, edisi, desktop, aplikasi, dan mode boot:
 
-**Untuk Varian Standar:**
-- **CPU:** Prosesor 64-bit 1 GHz
-- **RAM:** Minimal 1 GB (2 GB direkomendasikan)
-- **Penyimpanan:** 2 GB untuk menjalankan sistem (4 GB+ direkomendasikan untuk penyimpanan data)
-- **Grafis:** Adapter display yang kompatibel dengan VGA
+- CPU harus mendukung arsitektur image dan mode firmware yang dipilih.
+- RAM harus mencukupi untuk edisi dan beban kerja yang dipilih. Mode `toram` membutuhkan memori tambahan untuk data image yang disalin.
+- Media boot harus memiliki ruang yang cukup untuk image yang diunduh. Persistensi, data pengguna, dan instalasi native memerlukan penyimpanan tambahan yang dapat ditulis.
+- Kebutuhan grafis bergantung pada desktop dan aplikasi di edisi yang dipilih.
 
-**Untuk Varian Toolbox:**
-- **CPU:** Prosesor 64-bit 1.2 GHz
-- **RAM:** Minimal 2 GB (4 GB direkomendasikan)
-- **Penyimpanan:** 2 GB untuk menjalankan sistem (8 GB+ direkomendasikan untuk penyimpanan data)
-- **Grafis:** Kartu grafis dengan dukungan akselerasi perangkat keras
+Menulis image ke perangkat yang lebih besar tidak otomatis membuat penyimpanan persisten. Lihat [Boot modes](/configuration/Boot-Modes.md) untuk panduan resmi perilaku live boot dan [Quick start](/installation/Quick-Start.md) untuk persiapan media.
 
-**Untuk Varian Ultra:**
-- **CPU:** Prosesor dual-core 64-bit 1.5 GHz
-- **RAM:** Minimal 4 GB (8 GB direkomendasikan)
-- **Penyimpanan:** 2 GB untuk menjalankan sistem (8 GB+ direkomendasikan untuk penyimpanan data)
-- **Grafis:** GPU modern dengan dukungan akselerasi perangkat keras
-
-## Kompatibilitas Komponen
+## Kompatibilitas komponen
 
 ### Prosesor
 
-Beragam prosesor x86 64-bit dari Intel (Core i3/i5/i7/i9) dan AMD (Ryzen 3/5/7/9) didukung.
+Kompatibilitas bergantung pada arsitektur dan kernel yang disertakan dalam image yang dipilih. Periksa catatan rilis jika menggunakan prosesor terbaru atau fitur CPU yang memerlukan dukungan kernel yang lebih baru.
 
 ### Grafis
 
-- **Intel:** Grafis terintegrasi (UHD, Iris Xe, Arc) didukung dengan baik.
-- **NVIDIA:** Driver open-source Nouveau sudah termasuk. Untuk kartu grafis modern, disarankan menginstal driver proprietary untuk performa terbaik.
-- **AMD:** Kartu grafis Radeon RX seri terbaru sepenuhnya didukung oleh driver open-source AMDGPU.
+Dukungan grafis bergantung pada driver kernel, firmware, dan stack grafis userspace dalam image. Sebuah kartu grafis mungkin hanya menyediakan output tampilan dasar tanpa mendukung akselerasi hardware atau semua konektor. Beberapa hardware NVIDIA mungkin memerlukan driver proprietary yang tidak disertakan dalam image tertentu.
 
 ### Jaringan
 
-- **Ethernet:** Sebagian besar controller kabel dari Intel, Realtek, dan Broadcom langsung dapat digunakan.
-- **Wi-Fi:** Beragam adapter Wi-Fi didukung melalui firmware yang sudah termasuk dan driver DKMS yang dibangun otomatis, terutama model umum dari Intel, Atheros, dan Realtek.
+Dukungan Ethernet dan Wi-Fi bergantung pada controller, driver kernel, dan firmware yang disertakan dalam image. Uji jaringan dari sesi baru. Untuk Wi-Fi, periksa juga apakah perangkat memerlukan firmware atau driver out-of-tree yang tidak ada di rilis tersebut.
 
 ### Penyimpanan
 
-MiniOS dirancang untuk boot dari berbagai perangkat penyimpanan. Skrip startup sistem akan memindai semua perangkat blok yang tersedia secara otomatis, sehingga kompatibel dengan:
+Perangkat USB, SATA, NVMe, IDE, dan SD/MMC hanya berfungsi jika image yang dipilih memiliki driver untuk controller-nya dan kernel dapat mengenali perangkat tersebut. Pemindaian initrd tidak membuat controller yang tidak didukung menjadi kompatibel. Lihat [Initrd system discovery](/configuration/Initrd-System-Discovery.md) untuk perilaku pencarian live-source secara detail.
 
-- **USB Drive:** Semua generasi USB didukung.
-- **SATA/IDE Drive:** Semua hard disk internal dan SSD standar.
-- **NVMe Drive:** Dukungan penuh untuk SSD NVMe modern.
-- **SD/MMC Card:** Didukung jika pembaca kartu dikenali oleh kernel.
+Mode live dan mode native memiliki jalur boot yang berbeda. Mode live mendeteksi pohon data MiniOS dan merakit modul read-only di userspace awal; mode native melakukan boot ke root yang diinstal secara konvensional. Lihat [Initrd module loading](/configuration/Initrd-Module-Loading.md) untuk penanganan modul live dan [Installing MiniOS](/installation/Installing-MiniOS.md) untuk perbedaan tata letak.
 
 ### Virtualisasi
 
-MiniOS sepenuhnya dioptimalkan untuk digunakan sebagai sistem operasi tamu di semua lingkungan virtualisasi utama. Proses build sudah menyertakan semua driver yang diperlukan dalam ramdisk awal (`initrd`) untuk memastikan performa maksimal secara langsung.
+MiniOS dapat dijalankan sebagai guest jika image yang dipilih menyertakan driver untuk CPU, penyimpanan, jaringan, dan perangkat display yang dikonfigurasi pada VM. Dukungan tidak dijamin untuk setiap hypervisor atau model controller. Dukungan VirtIO, VMware, Hyper-V, serta IDE atau SATA emulasi harus dicek terhadap rilis dan diuji dengan konfigurasi VM yang spesifik.
 
-- **Driver Performa Tinggi:** Dukungan untuk controller penyimpanan paravirtualisasi sudah terintegrasi, termasuk **VirtIO** (KVM/QEMU), **VMware Paravirtual SCSI**, dan **Hyper-V Storvsc**. Hal ini memungkinkan performa I/O disk yang mendekati native.
-- **Kompatibilitas Luas:** Sistem juga dapat boot dari controller **IDE** dan **SATA** yang diemulasi, memastikan kompatibilitas dengan konfigurasi hypervisor apa pun.
-- **Guest Tools:** Untuk integrasi yang lebih baik (seperti mouse seamless, berbagi clipboard, dan resolusi dinamis), varian `toolbox` dan `ultra` sudah menyertakan `open-vm-tools` (untuk VMware) dan `hyperv-daemons` (untuk Hyper-V).
-
-Untuk petunjuk setup detail dan konfigurasi spesifik platform, lihat [Panduan Virtualisasi](/administration/Virtualization.md).
+Agen guest dan alat integrasi desktop juga bervariasi tergantung edisi dan image. Lihat [daftar paket](/administration/Packages.md) dan [panduan Virtualisasi](/administration/Virtualization.md) sebelum mengasumsikan fitur seperti clipboard sharing, resolusi dinamis, shutdown bersih, atau komunikasi dengan host tersedia.

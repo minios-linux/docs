@@ -10,7 +10,7 @@ Balena Etcher adalah program lintas platform yang praktis untuk menulis image IS
 
 ### Ukuran Drive
 
-Lihat [Panduan Kompatibilitas Perangkat Keras](/installation/Hardware-Compatibility.md#system-requirements) untuk persyaratan sistem dan ukuran drive secara detail.
+Lihat [Panduan Kompatibilitas Hardware](/installation/Hardware-Compatibility.md) untuk persyaratan sistem dan ukuran drive secara detail.
 
 ## Persiapan
 
@@ -31,17 +31,8 @@ Lihat [Panduan Kompatibilitas Perangkat Keras](/installation/Hardware-Compatibil
    - Klik "Flash!"
    - Tunggu hingga proses selesai (5–15 menit)
 
-## Persistensi Perubahan Otomatis
+## Hasil dan persistensi
 
-Pada boot pertama, MiniOS akan memeriksa tipe sistem file drive dan memilih mode persistensi perubahan yang optimal. Jika ada ruang kosong, sistem akan otomatis membuat partisi ext4 untuk performa maksimal.
+Etcher melakukan penulisan image secara mentah: ini menyalin tata letak ISO ke seluruh perangkat target. Etcher tidak membuat partisi ext4 di ruang yang tidak terpakai, tidak membuat sesi persistensi, maupun melakukan deployment MiniOS Installer.
 
-### Konfigurasi Parameter (untuk Pengguna Lanjutan)
-
-Jika diperlukan konfigurasi persistensi yang lebih spesifik, parameter boot dapat digunakan:
-
-- `perchmode=native` - Menyimpan langsung ke partisi (default, tercepat)
-- `perchmode=dynfilefs` - File yang dapat diperluas secara dinamis
-- `perchmode=raw` - File dengan ukuran tetap
-- `perchsize=8000` - Ukuran ruang penyimpanan data dalam MB untuk file image
-
-Detail ada di [parameter boot](/configuration/Boot-Parameters.md).
+Persistensi hanya diaktifkan jika entri boot atau baris perintah kernel memintanya, dan tetap memerlukan media penyimpanan yang dapat ditulis. Lihat [Mode Boot](/configuration/Boot-Modes.md) dan [Persistensi Initrd](/configuration/Initrd-Persistence.md) sebelum mengandalkan perubahan yang disimpan.

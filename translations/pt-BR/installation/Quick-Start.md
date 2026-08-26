@@ -40,27 +40,40 @@ e [Instalando o MiniOS](/installation/Installing-MiniOS.md) para uma visão gera
 
 ## 3. Entenda a persistência antes de gravar
 
-A persistência não é criada por todos os métodos de gravação ou inicialização.
+A persistência não é criada por todo método de gravação ou inicialização.
 
-- Uma gravação de imagem bruta com `dd`, Etcher ou ferramenta similar reproduz a ISO. Isso, por si só, não configura uma sessão persistente.
-- O Ventoy normalmente inicializa a ISO como um arquivo. A persistência do MiniOS deve ser configurada separadamente.
-- O MiniOS Installer pode criar uma instalação live e configurar armazenamento de sessão nativo, DynFileFS, raw ou criptografado com LUKS.
-- Uma inicialização limpa executa propositalmente sem persistência. Outras entradas do menu de boot do MiniOS podem retomar, criar ou selecionar sessões quando houver armazenamento gravável disponível.
-- Uma instalação nativa é um sistema instalado convencional e não utiliza persistência de sessão live da mesma forma.
+- Uma gravação de imagem bruta com `dd`, Etcher ou ferramenta similar apenas reproduz o ISO. Isso
+  não configura, por si só, uma sessão persistente.
+- O Ventoy normalmente inicializa o ISO como um arquivo. A persistência do MiniOS deve ser
+  configurada separadamente.
+- O Instalador do MiniOS pode criar uma instalação live e configurar armazenamento de sessão
+  nativo, DynFileFS, bruto ou criptografado com LUKS.
+- Uma inicialização limpa é feita propositalmente sem persistência. Outras entradas do menu de boot do MiniOS
+  podem retomar, criar ou selecionar sessões quando houver armazenamento gravável disponível.
+- Uma instalação nativa é um sistema instalado convencional e não utiliza
+  persistência de sessão live da mesma forma.
 
-Consulte [Gerenciamento de sessões](/configuration/Session-Management.md) e
-[Parâmetros de boot](/configuration/Boot-Parameters.md) antes de alterar o armazenamento de sessões. Mantenha backup dos arquivos importantes independentemente do modo de persistência.
+Use [Modos de boot](/configuration/Boot-Modes.md) como referência principal para
+comportamento visível ao usuário durante o boot live. Veja
+[Gerenciamento de sessões](/configuration/Session-Management.md) para opções de armazenamento,
+[Persistência Initrd](/configuration/Initrd-Persistence.md) para detalhes do contrato
+em tempo de boot, e [Parâmetros de boot](/configuration/Boot-Parameters.md)
+antes de alterar opções do kernel. Mantenha backup dos arquivos importantes independentemente
+do modo de persistência.
 
 ## 4. Inicialize o MiniOS
 
 1. Desligue o computador e conecte o dispositivo preparado.
 2. Abra o menu de boot do firmware e selecione a entrada UEFI ou legacy do dispositivo.
-3. Selecione uma sessão limpa para um teste inicial de hardware, ou uma sessão persistente somente se já tiver sido configurada.
-4. Confirme se vídeo, teclado, armazenamento e rede funcionam antes de realizar alterações de instalação destrutivas.
+3. Selecione uma sessão limpa para um teste inicial de hardware, ou uma sessão persistente
+   apenas se já houver uma configurada.
+4. Confirme se vídeo, teclado, armazenamento e rede funcionam antes de realizar
+   alterações de instalação destrutivas.
 
 Se o dispositivo não aparecer na lista ou a área de trabalho não iniciar, consulte
 [Compatibilidade de hardware](/installation/Hardware-Compatibility.md) e
-[Solução de problemas](/administration/Troubleshooting.md).
+[Solução de problemas](/administration/Troubleshooting.md). Para falhas ao localizar a fonte live, veja
+[Descoberta do sistema Initrd](/configuration/Initrd-System-Discovery.md).
 
 ## 5. Configure o sistema
 
@@ -88,10 +101,13 @@ Configure conexões cabeadas e Wi-Fi normalmente com a [Configuração de rede](
 
 ## 6. Instale softwares e salve seu trabalho
 
-Alterações feitas pelo APT em uma sessão live só permanecem após reinicialização quando a sessão é persistente. Módulos SquashFS permanecem separados da sessão gravável e podem ser carregados como parte do sistema modular; veja
-[Criando módulos](/development/Creating-Modules.md).
+As alterações feitas via APT em uma sessão live só permanecem após reinicialização se essa sessão for
+persistente. Os módulos SquashFS permanecem separados da sessão gravável e podem ser carregados como parte do sistema modular; veja
+[Criando módulos](/development/Creating-Modules.md) e
+[Carregamento de módulos Initrd](/configuration/Initrd-Module-Loading.md).
 
-Salve arquivos importantes em um armazenamento conhecido como gravável e teste um desligamento limpo e reinicialização antes de confiar em uma sessão persistente.
+Salve arquivos importantes em mídias graváveis conhecidas e teste pelo menos um desligamento limpo e
+reinicialização antes de confiar totalmente em uma sessão persistente.
 
 ## Obtendo ajuda
 

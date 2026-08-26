@@ -1,8 +1,8 @@
 # Membuat modul
 
-Modul MiniOS adalah image filesystem SquashFS hanya-baca, yang secara konvensional dinamai dengan ekstensi `.sb`. Saat boot, MiniOS mengurutkan modul-modul terpilih ke dalam root filesystem berlapis. File pada lapisan prioritas lebih tinggi dapat melengkapi atau menyembunyikan file dari lapisan yang lebih rendah.
+Modul MiniOS adalah image filesystem SquashFS hanya-baca, yang secara konvensional dinamai dengan ekstensi `.sb`. Saat boot, MiniOS mengurutkan modul-modul terpilih ke dalam root filesystem berlapis. Berkas pada lapisan prioritas lebih tinggi dapat melengkapi atau menyembunyikan berkas dari lapisan di bawahnya. Inilah pipeline modular live yang dijelaskan pada [Mode Boot](/configuration/Boot-Modes.md), bukan tata letak paket dari instalasi native.
 
-Panduan ini mendokumentasikan alur kerja MiniOS Tools berbasis command-line saat ini. Untuk aplikasi grafis, lihat [MiniOS Module Manager](/administration/Module-Manager.md). Untuk proses build image lengkap dan arsitektur sistem, lihat [Building MiniOS](/development/Building-MiniOS.md). Daftar paket yang digunakan saat membangun MiniOS dijelaskan dalam dokumentasi [CondinAPT](/development/CondinAPT.md).
+Panduan ini mendokumentasikan alur kerja MiniOS Tools berbasis command-line saat ini. Untuk aplikasi grafis, lihat [MiniOS Module Manager](/administration/Module-Manager.md). Untuk proses build image secara lengkap dan arsitektur sistem, lihat [Membangun MiniOS](/development/Building-MiniOS.md). Daftar paket yang digunakan saat membangun MiniOS dijelaskan pada [dokumentasi CondinAPT](/development/CondinAPT.md).
 
 ## Batasan keamanan dan hak istimewa
 
@@ -24,11 +24,13 @@ Konverter dan builder saat ini menggunakan publikasi tanpa-replace. Target yang 
 
 Gunakan output `--help` dari setiap perintah sebagai referensi versi terinstal. Pilihan kompresi builder standar adalah `zstd` (default), `gzip`, `lzo`, dan `xz`; `dir2sb` juga mendukung `lz4`.
 
-## Nama modul dan tingkat filter
+## Nama modul dan level filter
 
-Nama biasanya diawali dengan angka seperti `06-browser.sb` karena urutan lapisan memengaruhi penyelesaian konflik. Sebuah modul sebaiknya berisi path relatif terhadap root sistem, seperti `usr/bin/example`, bukan direktori tambahan yang memuat pohon tersebut.
+Nama biasanya diawali dengan angka seperti `06-browser.sb` karena urutan lapisan memengaruhi resolusi konflik. Sebuah modul sebaiknya berisi path relatif terhadap root sistem, misalnya `usr/bin/example`, bukan direktori tambahan yang memuat pohon tersebut.
 
-Opsi `--level LEVEL` pada `apt2sb`, `script2sb`, dan `chroot2sb` membatasi lapisan dasar yang digunakan untuk membangun union build. Dengan `--level 3`, lapisan bernomor hingga `03` digunakan dan lapisan bernomor lebih tinggi akan difilter. Ini dapat membuat modul menjadi kurang bergantung pada lapisan opsional yang lebih tinggi, dengan konsekuensi menambah lebih banyak dependensi pada hasilnya.
+Untuk detail tingkat sumber kandidat, perilaku tabrakan basename, urutan numerik, dan semantik `bext=`, `load=`, serta `noload=`, lihat [Pemrosesan modul Initrd](/configuration/Initrd-Module-Loading.md). Secara khusus, gunakan basename unik kecuali modul memang dimaksudkan untuk menggantikan slot bernama sama dari tier sumber sebelumnya.
+
+Opsi `--level LEVEL` pada `apt2sb`, `script2sb`, dan `chroot2sb` membatasi lapisan dasar yang digunakan untuk membangun union build. Dengan `--level 3`, lapisan bernomor hingga `03` digunakan dan lapisan bernomor lebih tinggi akan difilter. Ini dapat membuat modul menjadi kurang bergantung pada lapisan opsional yang lebih tinggi, dengan konsekuensi menambah dependensi pada hasil akhir.
 
 ## Membuat modul dari paket
 
@@ -155,41 +157,45 @@ Ekstraksi biasa tidak memerlukan root dan tidak mengubah sumber. Direktori targe
 
 Direktori yang dihasilkan oleh `sb2dir` saat ini adalah direktori biasa. `rmsbdir`, `sb rm`, dan `sb rmdir` adalah perintah kompatibilitas lama yang selalu menolak penghapusan; mereka tidak melakukan unmount atau menghapus secara rekursif. Tinjau path hasil ekstraksi dan isinya sebelum menghapusnya dengan alat filesystem standar.
 
-## Mengelola modul yang berjalan dan next-boot
+## Kelola modul yang sedang berjalan dan modul untuk boot berikutnya
 
-Running Now dan Next Boot adalah komposisi yang terpisah.
+Running Now dan Next Boot adalah komposisi yang independen. Lihat
+[union construction and runtime activation](/configuration/Initrd-Module-Loading.md)
+untuk batas antara boot/runtime dan alasan mengapa kedua daftar tersebut bisa berbeda.
 
-Daftar modul yang benar-benar membentuk root AUFS atau OverlayFS saat ini, dari prioritas terendah ke tertinggi:
+Daftar modul yang benar-benar membentuk root AUFS atau OverlayFS saat ini, dari prioritas terendah hingga tertinggi:
 
 ```bash
 sb list
 sb list --json
 ```
 
-Daftar modul yang dipilih oleh aturan boot saat ini, termasuk `bext`, `load`, dan `noload`:
+Daftar modul yang dipilih oleh aturan boot saat ini:
 
 ```bash
 sb next-boot
 sb next-boot --json
 ```
 
-Kueri ini tidak memerlukan root. Modul next-boot dapat berasal dari pohon data dasar, direktori `modules/`-nya, atau penyimpanan modul persisten terpisah. Sumber yang muncul belakangan dengan basename yang sama akan menggantikan pilihan sebelumnya.
+Kueri ini dapat dijalankan tanpa akses root. Aturan resmi
+[candidate-tier and replacement rules](/configuration/Initrd-Module-Loading.md)
+menentukan sumber mana yang menyediakan setiap basename Next Boot.
 
-Untuk membuat modul user tersedia pada boot berikutnya:
+Untuk membuat modul pengguna tersedia pada boot berikutnya:
 
 ```bash
 sudo sb next-boot add 50-extra.sb
 ```
 
-MiniOS akan menggunakan media penyimpanan writable yang sesuai, menyiapkan dan memvalidasi salinan, lalu mempublikasikannya secara atomik tanpa mengganti modul yang sudah ada. Nama file harus memenuhi filter boot saat ini. Hapus modul user yang dipilih dengan basename persisnya:
+MiniOS menggunakan media penyimpanan yang tahan lama dan dapat ditulis, menyiapkan dan memvalidasi salinannya, lalu mempublikasikannya secara atomik tanpa menggantikan modul yang sudah ada. Nama file harus memenuhi filter boot saat ini. Hapus modul pengguna yang terpilih dengan nama basename persisnya:
 
 ```bash
 sudo sb next-boot remove 50-extra.sb
 ```
 
-Penghapusan akan ditolak untuk modul dasar dan modul pada sumber yang hanya-baca atau volatile.
+Penghapusan akan ditolak untuk modul dasar dan modul yang berada di sumber read-only atau volatile.
 
-Aktivasi runtime adalah operasi terpisah, hanya untuk sesi saat ini:
+Aktivasi runtime adalah operasi terpisah yang hanya berlaku untuk sesi saat ini:
 
 ```bash
 sudo sb activate 50-extra.sb
@@ -205,11 +211,13 @@ sudo sb conv my-app-root 06-my-app.sb
 sudo sb conv 06-my-app.sb example-root
 ```
 
-Penggunaan langsung `dir2sb` dan `sb2dir` lebih disarankan karena konversi biasa dapat dijalankan tanpa root.
+Penggunaan langsung `dir2sb` dan `sb2dir` lebih disarankan karena konversi biasa dapat dijalankan tanpa akses root.
 
 ## Dokumentasi terkait
 
 - [MiniOS Module Manager](/administration/Module-Manager.md)
+- [Pemrosesan modul Initrd](/configuration/Initrd-Module-Loading.md)
+- [Mode Boot](/configuration/Boot-Modes.md)
 - [Membangun ulang image ISO](/development/Rebuilding-ISO.md)
-- [Building MiniOS](/development/Building-MiniOS.md)
-- [Parameter boot](/configuration/Boot-Parameters.md)
+- [Membangun MiniOS](/development/Building-MiniOS.md)
+- [Parameter Boot](/configuration/Boot-Parameters.md)

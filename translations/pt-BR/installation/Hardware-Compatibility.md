@@ -1,61 +1,49 @@
-# Guia de Compatibilidade de Hardware
+# Guia de compatibilidade de hardware
 
-Este guia fornece informações essenciais sobre a compatibilidade de hardware do MiniOS. O sistema é baseado no Debian 13 "Trixie" com kernel Linux de Suporte de Longo Prazo (LTS), garantindo ampla compatibilidade com hardware.
+O suporte a hardware depende da versão e da imagem do MiniOS: a distribuição base,
+kernel, firmware, módulos incluídos e edição são fatores importantes. Verifique a descrição
+da versão da imagem que você baixou e teste uma sessão live nova antes de alterar discos
+ou depender da máquina para trabalhos persistentes.
 
-## Requisitos do Sistema
+## Requisitos do sistema
 
-O MiniOS foi desenvolvido para a arquitetura **amd64** (64 bits). Os requisitos variam conforme a edição:
+As imagens publicadas do MiniOS para PC são voltadas para a arquitetura **amd64** (x86 64 bits),
+a menos que a descrição da versão indique o contrário. As necessidades de recursos variam
+de acordo com a imagem, edição, ambiente de desktop, aplicativos e modo de inicialização:
 
-**Para a Variante Standard:**
-- **CPU:** Processador 64 bits de 1 GHz
-- **RAM:** 1 GB mínimo (2 GB recomendado)
-- **Armazenamento:** 2 GB para rodar o sistema (4 GB+ recomendado para armazenamento de dados)
-- **Gráficos:** Adaptador de vídeo compatível com VGA
+- A CPU deve ser compatível com a arquitetura da imagem e o modo de firmware selecionado.
+- A RAM deve ser suficiente para a edição escolhida e a carga de trabalho. Modos `toram`
+  exigem memória adicional para os dados copiados da imagem.
+- A mídia de boot precisa ter espaço suficiente para a imagem baixada. Persistência, dados do usuário
+e uma instalação nativa exigem armazenamento gravável adicional.
+- Os requisitos gráficos dependem do desktop e dos aplicativos presentes na edição selecionada.
 
-**Para a Variante Toolbox:**
-- **CPU:** Processador 64 bits de 1,2 GHz
-- **RAM:** 2 GB mínimo (4 GB recomendado)
-- **Armazenamento:** 2 GB para rodar o sistema (8 GB+ recomendado para armazenamento de dados)
-- **Gráficos:** Placa de vídeo com suporte a aceleração por hardware
+Gravar uma imagem em um dispositivo maior não cria armazenamento persistente automaticamente.
+Consulte [Modos de boot](/configuration/Boot-Modes.md) para o guia oficial sobre o comportamento
+do boot live e [Início rápido](/installation/Quick-Start.md) para preparação da mídia.
 
-**Para a Variante Ultra:**
-- **CPU:** Processador 64 bits dual-core de 1,5 GHz
-- **RAM:** 4 GB mínimo (8 GB recomendado)
-- **Armazenamento:** 2 GB para rodar o sistema (8 GB+ recomendado para armazenamento de dados)
-- **Gráficos:** GPU moderna com aceleração por hardware
-
-## Compatibilidade de Componentes
+## Compatibilidade de componentes
 
 ### Processadores
 
-Uma ampla variedade de processadores x86 64 bits da Intel (Core i3/i5/i7/i9) e AMD (Ryzen 3/5/7/9) são suportados.
+A compatibilidade depende da arquitetura e do kernel fornecidos na imagem selecionada. Verifique as notas de lançamento ao utilizar um processador recente ou recursos de CPU que exijam suporte de kernel mais novo.
 
 ### Gráficos
 
-- **Intel:** Gráficos integrados (UHD, Iris Xe, Arc) são bem suportados.
-- **NVIDIA:** O driver open source Nouveau está incluído. Para placas modernas, recomenda-se instalar o driver proprietário para melhor desempenho.
-- **AMD:** As placas modernas da série Radeon RX são totalmente suportadas pelo driver open source AMDGPU.
+O suporte gráfico depende do driver do kernel, firmware e stack gráfico em espaço de usuário presentes na imagem. Uma placa pode fornecer saída básica de vídeo sem suportar aceleração por hardware ou todos os conectores. Alguns hardwares NVIDIA podem exigir um driver proprietário que não está incluído em determinada imagem.
 
 ### Rede
 
-- **Ethernet:** A maioria dos controladores cabeados da Intel, Realtek e Broadcom funcionam automaticamente.
-- **Wi-Fi:** Uma grande variedade de adaptadores Wi-Fi é suportada por meio de firmwares incluídos e drivers DKMS compilados automaticamente, especialmente modelos comuns da Intel, Atheros e Realtek.
+O suporte a Ethernet e Wi-Fi depende do controlador, driver do kernel e firmware incluídos na imagem. Teste a rede a partir de uma sessão nova. Para Wi-Fi, verifique também se o dispositivo precisa de firmware ou de um driver externo que não esteja presente nessa versão.
 
 ### Armazenamento
 
-O MiniOS foi projetado para inicializar a partir de diversos dispositivos de armazenamento. Os scripts de inicialização do sistema escaneiam automaticamente todos os dispositivos de bloco disponíveis, garantindo compatibilidade com:
+Dispositivos USB, SATA, NVMe, IDE e SD/MMC funcionam apenas quando a imagem selecionada possui um driver para o controlador e o kernel reconhece o dispositivo. A varredura do initrd não torna um controlador não suportado compatível. Consulte [Descoberta do sistema pelo initrd](/configuration/Initrd-System-Discovery.md) para o comportamento exato de busca da fonte live.
 
-- **Unidades USB:** Todas as gerações de USB são suportadas.
-- **Unidades SATA/IDE:** Todos os HDs e SSDs internos padrão.
-- **Unidades NVMe:** Suporte total para SSDs NVMe modernos.
-- **Cartões SD/MMC:** Suportados se o leitor de cartões for reconhecido pelo kernel.
+O modo live e o modo nativo têm caminhos de boot diferentes. O modo live descobre a árvore de dados do MiniOS e monta módulos somente leitura no início do espaço de usuário; o modo nativo inicializa um root instalado convencional. Veja [Carregamento de módulos no initrd](/configuration/Initrd-Module-Loading.md) para detalhes sobre módulos no live e [Instalando o MiniOS](/installation/Installing-MiniOS.md) para a distinção de layout.
 
 ### Virtualização
 
-O MiniOS é totalmente otimizado para uso como sistema operacional convidado em todos os principais ambientes de virtualização. O processo de build inclui todos os drivers necessários no ramdisk inicial (`initrd`), garantindo o máximo desempenho desde a primeira inicialização.
+O MiniOS pode ser executado como máquina virtual quando a imagem selecionada inclui drivers para os dispositivos de CPU, armazenamento, rede e vídeo configurados na VM. O suporte não é garantido para todos os hipervisores ou modelos de controlador. É necessário conferir o suporte a VirtIO, VMware, Hyper-V e IDE ou SATA emulados de acordo com a versão e testar com a configuração específica da VM.
 
-- **Drivers de Alto Desempenho:** Suporte nativo para controladores de armazenamento paravirtualizados, incluindo **VirtIO** (KVM/QEMU), **VMware Paravirtual SCSI** e **Hyper-V Storvsc**. Isso permite desempenho de I/O de disco próximo ao nativo.
-- **Ampla Compatibilidade:** O sistema também pode inicializar a partir de controladores **IDE** e **SATA** emulados, garantindo compatibilidade com qualquer configuração de hipervisor.
-- **Ferramentas para Convidado:** Para integração avançada (como mouse sem fronteiras, compartilhamento de área de transferência e resolução dinâmica), as variantes `toolbox` e `ultra` incluem `open-vm-tools` (para VMware) e `hyperv-daemons` (para Hyper-V).
-
-Para instruções detalhadas de configuração e ajustes específicos de cada plataforma, consulte o [Guia de Virtualização](/administration/Virtualization.md).
+Agentes de convidado e ferramentas de integração com desktop também variam conforme a edição e a imagem. Consulte a [lista de pacotes](/administration/Packages.md) e o [guia de virtualização](/administration/Virtualization.md) antes de assumir que compartilhamento de área de transferência, resolução dinâmica, desligamento limpo ou comunicação com o host estão disponíveis.

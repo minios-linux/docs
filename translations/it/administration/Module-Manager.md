@@ -10,18 +10,24 @@ minios-module-manager
 
 L'applicazione viene eseguita con il tuo utente desktop. Richiede l'autenticazione amministratore solo quando un'operazione richiesta lo necessita.
 
-## Esecuzione attuale e prossimo avvio
+## In esecuzione ora e al prossimo avvio
 
 L'area di lavoro Moduli mantiene due viste separate:
 
-- **Esecuzione attuale** è l'insieme ordinato dei moduli che compongono attualmente il sistema live.
+- **In esecuzione ora** è l'insieme ordinato dei moduli che attualmente compongono il sistema attivo.
 - **Prossimo avvio** è l'insieme ordinato selezionato dalle regole di avvio correnti di MiniOS.
 
-Modificare una vista non cambia silenziosamente l'altra. Ad esempio, **Attiva per questa sessione** influisce solo sul sistema in esecuzione, mentre **Aggiungi al prossimo avvio** copia un modulo nell'archivio moduli persistente senza attivarlo ora.
+La modifica di una vista non cambia silenziosamente l'altra. Ad esempio, **Attiva per questa sessione** influisce solo sul sistema in esecuzione, mentre **Aggiungi al prossimo avvio** copia un modulo nell'archivio moduli permanente senza attivarlo subito.
 
-L'attivazione e la disattivazione in tempo reale sono disponibili solo quando il filesystem root utilizza attualmente AUFS. Non sono disponibili su root OverlayFS, anche se il kernel supporta AUFS. I moduli di base non possono essere disattivati tramite l'applicazione.
+Per le regole autorevoli di avvio, inclusi i livelli sorgente candidati,
+sostituzione esatta del basename, ordinamento numerico e filtri `load=`, `noload=` e
+`bext=`, consulta
+[Caricamento moduli Initrd](/configuration/Initrd-Module-Loading.md). Questa guida
+spiega anche perché In esecuzione ora e Prossimo avvio possono differire.
 
-Le modifiche per il prossimo avvio sono disponibili solo quando MiniOS trova uno spazio di archiviazione moduli adatto, persistente e scrivibile. I moduli di base e quelli su archiviazione di sola lettura o volatile non possono essere rimossi. I filtri di avvio come `load`, `noload` e `bext` determinano comunque quali moduli vengono selezionati.
+L'attivazione e la disattivazione a runtime sono disponibili solo quando il filesystem di root utilizza attualmente AUFS. Non sono disponibili su root OverlayFS, anche se il kernel supporta AUFS. I moduli di base non possono essere disattivati tramite l'applicazione.
+
+Le modifiche al prossimo avvio sono disponibili solo quando MiniOS trova un archivio moduli adatto, permanente e scrivibile. I moduli di base e quelli su archivi di sola lettura o volatili non possono essere rimossi. I filtri di avvio come `load`, `noload` e `bext` determinano comunque quali moduli vengono selezionati.
 
 ## Ispezionare un modulo
 
@@ -60,6 +66,8 @@ Il rilascio di un elemento non esegue codice né modifica Esecuzione attuale o P
 
 ## Documentazione correlata
 
-- [Creazione di moduli](/development/Creating-Modules.md)
+- [Creazione dei moduli](/development/Creating-Modules.md)
+- [Caricamento moduli Initrd](/configuration/Initrd-Module-Loading.md)
+- [Modalità di avvio](/configuration/Boot-Modes.md)
 - [Composizione di immagini ISO da riga di comando](/development/Rebuilding-ISO.md)
 - [Parametri di avvio](/configuration/Boot-Parameters.md)

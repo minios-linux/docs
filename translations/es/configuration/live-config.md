@@ -1,12 +1,14 @@
 # LIVE-CONFIG
 
-**live-config** - Componentes de Configuración del Sistema
+**live-config** - Componentes de configuración del sistema
 
-**live-config** contiene los componentes que configuran un sistema live durante el proceso de arranque (espacio de usuario tardío).
+**live-config** contiene los componentes que configuran un sistema live durante el proceso de arranque (usuariospace tardío).
 
-**live-config** puede configurarse mediante parámetros de arranque o archivos de configuración. Si se utilizan ambos mecanismos para una opción determinada, los parámetros de arranque tienen prioridad sobre los archivos de configuración. Cuando se utiliza persistencia, los componentes de **live-config** solo se ejecutan una vez.
+El arranque en red en el initramfs (`ip=`, PXE, `from=http://…`) es una capa separada de LiveKit y **no** está gestionada por live-config. Consulta [Arranque en red](/installation/Network-Boot.md).
 
-Si se utiliza *live-build*(7) para construir el sistema live, los parámetros de live-config utilizados por defecto pueden establecerse mediante la opción `--bootappend-live`. Consulta la página del manual de *lb_config*(1).
+**live-config** puede configurarse mediante parámetros de arranque o archivos de configuración en tiempo de ejecución preparados por el initramfs. La línea de comandos real del kernel se añade después de los valores proporcionados por archivo `LIVE_CONFIG_CMDLINE`, por lo que los parámetros de arranque coincidentes posteriores tienen prioridad. Cuando se utiliza persistencia, los componentes de **live-config** normalmente se ejecutan solo una vez.
+
+Si se utiliza *live-build*(7) para construir el sistema live, los parámetros de live-config utilizados por defecto pueden establecerse mediante la opción `--bootappend-live`; consulta la página del manual de *lb_config*(1).
 
 ## Parámetros de Arranque (componentes)
 
@@ -17,33 +19,35 @@ Si se utiliza *live-build*(7) para construir el sistema live, los parámetros de
 - **live-config.nocomponents | nocomponents**: No se ejecuta ningún componente. Esto equivale a no usar ninguno de los parámetros `live-config.components` o `live-config.nocomponents`.
 - **live-config.nocomponents=COMPONENT1,COMPONENT2,...COMPONENTn | nocomponents=COMPONENT1,COMPONENT2,...COMPONENTn**: Se ejecutan todos los componentes excepto los especificados.
 
-## Parámetros de Arranque (opciones)
+## Parámetros de arranque (opciones)
 
-Algunos componentes individuales pueden cambiar su comportamiento mediante un parámetro de arranque.
+Algunos componentes individuales pueden modificar su comportamiento mediante un parámetro de arranque.
 
-- **live-config.debconf-preseed=filesystem|medium|URL1|URL2|...|URLn | debconf-preseed=medium|filesystem|URL1|URL2|...|URLn**: Permite obtener y aplicar uno o más archivos preseed de debconf a la base de datos de debconf. Ten en cuenta que las URLs deben poder ser descargadas por wget (http, ftp o file://). Si el archivo está en el medio live, puede obtenerse con `file:///run/initramfs/memory/data/FILE`, o con `file:///FILE` si está en el sistema de archivos raíz del sistema live. Todos los archivos preseed en `/usr/lib/live/config-preseed/` en el sistema de archivos raíz del sistema live pueden habilitarse automáticamente con la palabra clave `filesystem`. Todos los archivos preseed en `/minios/config-preseed/` del medio live pueden habilitarse automáticamente con la palabra clave `medium`. Si se combinan varios mecanismos, primero se aplican los preseed del filesystem, luego los del medio y finalmente los de red.
-- **live-config.hostname=HOSTNAME | hostname=HOSTNAME**: Permite establecer el nombre de host del sistema. El valor por defecto es `minios`.
-- **live-config.username=USERNAME | username=USERNAME**: Permite establecer el nombre de usuario que se crea para el inicio de sesión automático. El valor por defecto es `live`.
-- **live-config.user-default-groups=GROUP1,GROUP2,...GROUPn | user-default-groups=GROUP1,GROUP2,...GROUPn**: Permite establecer los grupos predeterminados de los usuarios creados para el inicio de sesión automático. El valor por defecto es `audio cdrom dip floppy video plugdev netdev powerdev scanner bluetooth`.
-- **live-config.user-fullname="USER FULLNAME" | user-fullname="USER FULLNAME"**: Permite establecer el nombre completo de los usuarios creados para el inicio de sesión automático. En MiniOS, el valor por defecto es `MiniOS Live user`.
+- **live-config.debconf-preseed=filesystem|medium|URL1|URL2|...|URLn | debconf-preseed=medium|filesystem|URL1|URL2|...|URLn**: Descarga y aplica uno o más archivos preseed de debconf. Las URLs son gestionadas por `wget` y pueden usar HTTP, FTP o `file://`. La palabra clave `filesystem` expande archivos en `/usr/lib/live/config-preseed/`; `medium` expande archivos en `minios/config-preseed/` en el medio live detectado. Los archivos locales explícitos pueden usar rutas como `file:///run/initramfs/memory/data/minios/config-preseed/FILE` o `file:///PATH` en la raíz del live. Las entradas separadas por "|" se procesan en el orden especificado; los archivos expandidos por palabra clave usan el orden de glob de shell.
+- **live-config.hostname=HOSTNAME | hostname=HOSTNAME**: Permite establecer el hostname del sistema. El valor predeterminado es `minios`.
+- **live-config.username=USERNAME | username=USERNAME**: Permite establecer el nombre de usuario que se creará para el inicio de sesión automático. El valor predeterminado es `live`.
+- **live-config.user-default-groups=GROUP1,GROUP2,...GROUPn | user-default-groups=GROUP1,GROUP2,...GROUPn**: Permite definir los grupos predeterminados de los usuarios creados para el inicio de sesión automático. El valor predeterminado es `audio cdrom dip floppy video plugdev netdev powerdev scanner bluetooth`.
+- **live-config.user-fullname="USER FULLNAME" | user-fullname="USER FULLNAME"**: Permite establecer el nombre completo de los usuarios creados para el inicio de sesión automático. En MiniOS, el valor predeterminado es `MiniOS Live user`.
 - **live-config.root-password=PASSWORD | root-password=PASSWORD**: Permite establecer la contraseña de root en texto plano.
-- **live-config.root-password-crypted=PASSWORD | root-password-crypted=PASSWORD**: Permite establecer la contraseña de root en forma cifrada.
-- **live-config.user-password=PASSWORD | user-password=PASSWORD**: Permite establecer la contraseña del usuario en texto plano.
-- **live-config.user-password-crypted=PASSWORD | user-password-crypted=PASSWORD**: Permite establecer la contraseña del usuario en forma cifrada.
-- **live-config.locales=LOCALE1,LOCALE2,...LOCALEn | locales=LOCALE1,LOCALE2,...LOCALEn**: Permite establecer la configuración regional del sistema, por ejemplo, `de_CH.UTF-8`. El valor por defecto es `en_US.UTF-8`. Si la configuración regional seleccionada no está disponible en el sistema, se genera automáticamente al vuelo.
-- **live-config.timezone=TIMEZONE | timezone=TIMEZONE**: Permite establecer la zona horaria del sistema, por ejemplo, `Europe/Zurich`. El valor por defecto es `UTC`.
-- **live-config.keyboard-model=KEYBOARD_MODEL | keyboard-model=KEYBOARD_MODEL**: Permite cambiar el modelo de teclado. No hay un valor por defecto establecido.
-- **live-config.keyboard-layouts=KEYBOARD_LAYOUT1,KEYBOARD_LAYOUT2,...KEYBOARD_LAYOUTn | keyboard-layouts=KEYBOARD_LAYOUT1,KEYBOARD_LAYOUT2,...KEYBOARD_LAYOUTn**: Permite cambiar las distribuciones de teclado. Si se especifican varias, las herramientas del entorno de escritorio permitirán cambiar entre ellas bajo X11. No hay un valor por defecto establecido.
-- **live-config.keyboard-variants=KEYBOARD_VARIANT1,KEYBOARD_VARIANT2,...KEYBOARD_VARIANTn | keyboard-variants=KEYBOARD_VARIANT1,KEYBOARD_VARIANT2,...KEYBOARD_VARIANTn**: Permite cambiar las variantes de teclado. Si se especifican varias, se debe indicar el mismo número de valores que para las distribuciones de teclado, ya que se emparejarán uno a uno en el orden especificado. Se permiten valores en blanco. Las herramientas del entorno de escritorio permitirán cambiar entre cada par de distribución y variante bajo X11. No hay un valor por defecto establecido.
-- **live-config.keyboard-options=KEYBOARD_OPTIONS | keyboard-options=KEYBOARD_OPTIONS**: Permite cambiar las opciones del teclado. No hay un valor por defecto establecido.
+- **live-config.root-password-crypted=PASSWORD | root-password-crypted=PASSWORD**: Permite establecer la contraseña de root en formato cifrado.
+- **live-config.user-password=PASSWORD | user-password=PASSWORD**: Permite establecer la contraseña de usuario en texto plano.
+- **live-config.user-password-crypted=PASSWORD | user-password-crypted=PASSWORD**: Permite establecer la contraseña de usuario en formato cifrado.
+- **live-config.locales=LOCALE1,LOCALE2,...LOCALEn | locales=LOCALE1,LOCALE2,...LOCALEn**: Permite definir el locale del sistema, por ejemplo `de_CH.UTF-8`. El valor predeterminado es `en_US.UTF-8`. Si el locale seleccionado no está disponible en el sistema, se genera automáticamente en el momento.
+- **live-config.timezone=TIMEZONE | timezone=TIMEZONE**: Permite definir la zona horaria del sistema, por ejemplo `Europe/Zurich`. El valor predeterminado es `UTC`.
+- **live-config.keyboard-model=KEYBOARD_MODEL | keyboard-model=KEYBOARD_MODEL**: Permite cambiar el modelo de teclado. No hay valor predeterminado.
+- **live-config.keyboard-layouts=KEYBOARD_LAYOUT1,KEYBOARD_LAYOUT2,...KEYBOARD_LAYOUTn | keyboard-layouts=KEYBOARD_LAYOUT1,KEYBOARD_LAYOUT2,...KEYBOARD_LAYOUTn**: Permite cambiar las distribuciones de teclado. Si se especifican varias, las herramientas del entorno de escritorio permitirán cambiar entre ellas en X11. No hay valor predeterminado.
+- **live-config.keyboard-variants=KEYBOARD_VARIANT1,KEYBOARD_VARIANT2,...KEYBOARD_VARIANTn | keyboard-variants=KEYBOARD_VARIANT1,KEYBOARD_VARIANT2,...KEYBOARD_VARIANTn**: Permite cambiar las variantes de teclado. Si se especifican varias, se debe indicar la misma cantidad de variantes que de distribuciones, ya que se emparejan en el orden dado. Se permiten valores en blanco. Las herramientas del entorno de escritorio permitirán alternar entre cada par de distribución y variante en X11. No hay valor predeterminado.
+- **live-config.keyboard-options=KEYBOARD_OPTIONS | keyboard-options=KEYBOARD_OPTIONS**: Permite cambiar las opciones de teclado. No hay valor predeterminado.
 - **live-config.sysv-rc=SERVICE1,SERVICE2,...SERVICEn | sysv-rc=SERVICE1,SERVICE2,...SERVICEn**: Permite deshabilitar servicios sysv mediante update-rc.d.
-- **live-config.utc=yes|no | utc=yes|no**: Permite cambiar si el sistema asume que el reloj de hardware está en UTC o no. El valor por defecto es `yes`.
-- **live-config.x-session-manager=X_SESSION_MANAGER | x-session-manager=X_SESSION_MANAGER**: Permite establecer el x-session-manager mediante update-alternatives.
-- **live-config.xorg-driver=XORG_DRIVER | xorg-driver=XORG_DRIVER**: Permite establecer el driver de xorg en lugar de autodetectarlo. Si se especifica un ID PCI en `/usr/share/live/config/xserver-xorg/*DRIVER*.ids` dentro del sistema live, se fuerza el uso de *DRIVER* para esos dispositivos. Si se encuentra tanto un parámetro de arranque como una anulación, el parámetro de arranque tiene prioridad.
-- **live-config.xorg-resolution=XORG_RESOLUTION | xorg-resolution=XORG_RESOLUTION**: Permite establecer la resolución de xorg en lugar de autodetectarla, por ejemplo, 1024x768.
-- **live-config.wlan-driver=WLAN_DRIVER | wlan-driver=WLAN_DRIVER**: Permite establecer el driver WLAN en lugar de autodetectarlo. Si se especifica un ID PCI en `/usr/share/live/config/broadcom-sta/*DRIVER*.ids` dentro del sistema live, se fuerza el uso de *DRIVER* para esos dispositivos. Si se encuentra tanto un parámetro de arranque como una anulación, el parámetro de arranque tiene prioridad.
-- **live-config.module-mode=MODE | module-mode=MODE**: Permite especificar el modo de módulo para la configuración live. Cuando se establece en "merged", el sistema actualizará las cuentas de usuario, reconstruirá cachés y refrescará la configuración de paquetes para que los cambios de configuración se integren dinámicamente en el sistema en ejecución.
-- **live-config.hooks=filesystem|medium|URL1|URL2|...|URLn | hooks=medium|filesystem|URL1|URL2|...|URLn**: Permite obtener y ejecutar uno o más archivos arbitrarios. Ten en cuenta que las URLs deben ser accesibles por wget (http, ftp o file://), los archivos se ejecutan en /tmp del sistema live en ejecución, y que los archivos deben tener sus dependencias, si las hay, ya instaladas, por ejemplo, si se va a ejecutar un script de python, el sistema debe tener python instalado. Algunos hooks para casos de uso comunes están disponibles en `/usr/share/doc/live-config/examples/hooks/`. Si el archivo está en el medio live, puede obtenerse con `file:///run/initramfs/memory/data/FILE`, o con `file:///FILE` si está en el sistema de archivos raíz del sistema live. Todos los hooks en `/usr/lib/live/config-hooks/` en el sistema de archivos raíz del sistema live pueden habilitarse automáticamente con la palabra clave `filesystem`. Todos los hooks en `/minios/config-hooks/` del medio live pueden habilitarse automáticamente con la palabra clave `medium`. Si se combinan varios mecanismos, primero se ejecutan los hooks del filesystem, luego los del medio y finalmente los de red.
+- **live-config.utc=yes|no | utc=yes|no**: Permite definir si el sistema asume que el reloj de hardware está en UTC o no. El valor predeterminado es `yes`.
+- **live-config.x-session-manager=X_SESSION_MANAGER | x-session-manager=X_SESSION_MANAGER**: Permite definir el x-session-manager mediante update-alternatives.
+- **live-config.xorg-driver=XORG_DRIVER | xorg-driver=XORG_DRIVER**: Permite definir el driver de xorg en lugar de autodetectarlo. Si se especifica un ID PCI en `/usr/share/live/config/xserver-xorg/*DRIVER*.ids` dentro del sistema live, el *DRIVER* se fuerza para esos dispositivos. Si se encuentra tanto un parámetro de arranque como una anulación, el parámetro de arranque tiene prioridad.
+- **live-config.xorg-resolution=XORG_RESOLUTION | xorg-resolution=XORG_RESOLUTION**: Permite definir la resolución de xorg en lugar de autodetectarla, por ejemplo 1024x768.
+- **live-config.wlan-driver=WLAN_DRIVER | wlan-driver=WLAN_DRIVER**: Permite definir el driver WLAN en lugar de autodetectarlo. Si se especifica un ID PCI en `/usr/share/live/config/broadcom-sta/*DRIVER*.ids` dentro del sistema live, el *DRIVER* se fuerza para esos dispositivos. Si se encuentra tanto un parámetro de arranque como una anulación, el parámetro de arranque tiene prioridad.
+- **live-config.module-mode=MODE | module-mode=MODE**: Permite especificar el modo de módulo para la configuración live. Cuando se establece en "merged", el sistema actualizará las cuentas de usuario, reconstruirá cachés y actualizará la configuración de paquetes para que los cambios de configuración se integren dinámicamente en el sistema en ejecución.
+- **live-config.hooks=filesystem|medium|URL1|URL2|...|URLn | hooks=medium|filesystem|URL1|URL2|...|URLn**: Descarga y ejecuta archivos arbitrarios desde un archivo temporal en el sistema live en ejecución. Las URLs son gestionadas por `wget` y pueden usar HTTP, FTP o `file://`; los intérpretes requeridos y otras dependencias deben estar ya instalados. La palabra clave `filesystem` expande archivos en `/usr/lib/live/config-hooks/`; `medium` expande archivos en `minios/config-hooks/` en el medio live detectado (con una ruta ISO alternativa en el componente hook). Los archivos locales explícitos pueden usar `file:///run/initramfs/memory/data/minios/config-hooks/FILE` o `file:///PATH` en la raíz del live. Las entradas separadas por "|" se ejecutan en el orden especificado; los archivos expandidos por palabra clave usan el orden de glob de shell. Ejemplos se instalan en `/usr/share/doc/live-config/examples/hooks/`.
+
+> **Advertencia de seguridad:** `live-config` se ejecuta como root. Los hooks se hacen ejecutables y se ejecutan como root, y los preseeds modifican la base de datos debconf del sistema con privilegios de root. HTTP y FTP en texto plano no autentican el contenido descargado ni ofrecen protección de integridad. Prefiere archivos locales revisados o transporte autenticado de confianza con verificación de integridad independiente; no uses hooks o preseeds remotos desde redes no confiables.
 
 ## Parámetros de Arranque (atajos)
 
@@ -62,13 +66,17 @@ Para casos de uso especiales existen algunos parámetros de arranque específico
 
 ## Archivos de configuración
 
-**live-config** puede configurarse (pero no activarse) mediante archivos de configuración. Todo, excepto los atajos que pueden configurarse con un parámetro de arranque, también puede configurarse alternativamente a través de uno o más archivos. Si se utilizan archivos de configuración, el parámetro `boot=live` sigue siendo necesario para activar **live-config**.
+**live-config** puede configurarse (pero no activarse) mediante archivos de configuración. Todo, excepto los accesos directos que pueden configurarse con un parámetro de arranque, también puede configurarse alternativamente mediante uno o más archivos. Si se utilizan archivos de configuración, el parámetro `boot=live` sigue siendo necesario para activar **live-config**.
 
-**Nota:** Si se usan archivos de configuración, se recomienda (preferentemente) colocar todos los parámetros de arranque en la variable **LIVE_CONFIG_CMDLINE**, o bien establecer variables individuales. Si se usan variables individuales, el usuario debe asegurarse de que todas las variables necesarias estén definidas para crear una configuración válida.
+**Nota:** Si se utilizan archivos de configuración, se recomienda (preferentemente) colocar todos los parámetros de arranque en la variable **LIVE_CONFIG_CMDLINE**, o bien se pueden establecer variables individuales. Si se usan variables individuales, el usuario debe asegurarse de que todas las variables necesarias estén definidas para crear una configuración válida.
 
-Los archivos de configuración pueden ubicarse en el propio sistema de archivos raíz (`/etc/live/config.conf`, `/etc/live/config.conf.d/*.conf`), o en el medio live (`minios/config.conf`, `minios/config.conf.d/*.conf`). Si se usan ambos lugares para una opción determinada, las opciones del medio live tienen prioridad sobre las del sistema de archivos raíz.
+`live-config` a su vez incluye `/etc/live/config.conf` y luego `/etc/live/config.conf.d/*.conf` en orden de glob de shell. Por lo tanto, los fragmentos posteriores pueden reemplazar valores del archivo principal o de fragmentos anteriores. No incluye por separado una segunda capa de configuración de medios.
 
-Aunque los archivos de configuración ubicados en los directorios de configuración no requieren un nombre específico, por razones de consistencia se sugiere usar el esquema de nombres `vendor.conf` o `project.conf` (donde `vendor` o `project` se reemplaza por el nombre real, resultando en un archivo como `progress-linux.conf`).
+En los medios de MiniOS, los archivos fuente son `minios/config.conf` y `minios/config.conf.d/*.conf`. Antes de que inicie `live-config`, el initramfs de MiniOS sincroniza estos archivos con los archivos en tiempo de ejecución `/etc/live/` según la fecha de modificación. Un archivo fuente más reciente reemplaza a su contraparte en tiempo de ejecución; un archivo en tiempo de ejecución más reciente se copia de vuelta solo si el directorio de datos seleccionado de MiniOS es escribible. Si las marcas de tiempo son iguales, no se realiza ninguna copia; los archivos faltantes se rellenan y los archivos no se eliminan. Esta es una sincronización en el arranque, no una monitorización continua. Consulta [Archivo de configuración](/configuration/Configuration-File.md) para conocer las reglas completas de precedencia de sincronización y línea de comandos.
+
+Como mecanismo de respaldo para implementaciones de initramfs que no prepararon el archivo en tiempo de ejecución, los wrappers de inicio de systemd y SysV copian `minios/config.conf` desde el medio detectado solo cuando `/etc/live/config.conf` está ausente. Ese mecanismo de respaldo no copia los fragmentos `config.conf.d`. El initramfs estándar actual de MiniOS LiveKit realiza la sincronización mencionada anteriormente.
+
+Los archivos de fragmentos deben coincidir con `*.conf`. Se recomiendan nombres como `vendor.conf` o `project.conf`; elige nombres léxicos deliberadamente porque los fragmentos posteriores sobrescriben a los anteriores.
 
 El contenido real de los archivos de configuración consiste en una o más de las siguientes variables.
 
@@ -82,8 +90,8 @@ El contenido real de los archivos de configuración consiste en una o más de la
 - **LIVE_USER_FULLNAME="USER FULLNAME"**: Esta variable corresponde al parámetro `**live-config.user-fullname**="*USER FULLNAME*"`.
 - **LIVE_ROOT_PASSWORD=PASSWORD**: Esta variable corresponde al parámetro `**live-config.root-password**=*PASSWORD*`. Especifica la contraseña de root en texto plano.
 - **LIVE_ROOT_PASSWORD_CRYPTED=PASSWORD**: Esta variable corresponde al parámetro `**live-config.root-password-crypted**=*PASSWORD*`. Especifica la contraseña de root en forma cifrada.
-- **LIVE_USER_PASSWORD=PASSWORD**: Esta variable corresponde al parámetro `**live-config.user-password**=*PASSWORD*`. Especifica la contraseña del usuario en texto plano.
-- **LIVE_USER_PASSWORD_CRYPTED=PASSWORD**: Esta variable corresponde al parámetro `**live-config.user-password-crypted**=*PASSWORD*`. Especifica la contraseña del usuario en forma cifrada.
+- **LIVE_USER_PASSWORD=PASSWORD**: Esta variable corresponde al parámetro `**live-config.user-password**=*PASSWORD*`. Especifica la contraseña de usuario en texto plano.
+- **LIVE_USER_PASSWORD_CRYPTED=PASSWORD**: Esta variable corresponde al parámetro `**live-config.user-password-crypted**=*PASSWORD*`. Especifica la contraseña de usuario en forma cifrada.
 - **LIVE_LOCALES=LOCALE1,LOCALE2,...LOCALEn**: Esta variable corresponde al parámetro `**live-config.locales**=*LOCALE1*,*LOCALE2*...*LOCALEn*`.
 - **LIVE_TIMEZONE=TIMEZONE**: Esta variable corresponde al parámetro `**live-config.timezone**=*TIMEZONE*`.
 - **LIVE_KEYBOARD_MODEL=KEYBOARD_MODEL**: Esta variable corresponde al parámetro `**live-config.keyboard-model**=*KEYBOARD_MODEL*`.
@@ -99,10 +107,10 @@ El contenido real de los archivos de configuración consiste en una o más de la
 - **LIVE_HOOKS=filesystem|medium|URL1|URL2|...|URLn**: Esta variable corresponde al parámetro `**live-config.hooks**=filesystem|medium|*URL1*\|*URL2*\|...|*URLn*`.
 - **LIVE_LINK_USER_DIRS=true|false**: Esta variable corresponde al parámetro `**live-config.link-user-dirs**=true|false`. Enlaza los directorios estándar de datos del usuario con la unidad MiniOS escribible. No puede combinarse con el modo bind ni con ningún modo `toram`.
 - **LIVE_BIND_USER_DIRS=true|false**: Esta variable corresponde al parámetro `**live-config.bind-user-dirs**=true|false`. Realiza un bind-mount de los directorios estándar de datos del usuario desde la unidad MiniOS escribible. No puede combinarse con el modo link ni con ningún modo `toram`.
-- **LIVE_USER_DIRS_PATH=PATH**: Esta variable corresponde al parámetro `**live-config.user-dirs-path**=*PATH*`. Especifica una ruta segura dentro de la unidad MiniOS FAT32, exFAT o NTFS. El valor predeterminado es `/minios/userdata`; se rechazan los segmentos de punto y de directorio padre.
+- **LIVE_USER_DIRS_PATH=PATH**: Esta variable corresponde al parámetro `**live-config.user-dirs-path**=*PATH*`. Especifica una ruta segura dentro de la unidad MiniOS FAT32, exFAT o NTFS. El valor predeterminado es `/minios/userdata`; se rechazan los segmentos punto y directorio padre.
 
-La configuración de medios de usuario nunca fusiona automáticamente dos directorios no vacíos. Un directorio local no vacío solo se migra cuando su destino en el medio está vacío. Cuando la función se desactiva, los datos gestionados en el medio se copian de vuelta antes de eliminar los enlaces. Una validación o copia fallida deja los directorios de usuario existentes en su lugar y registra el motivo en `/var/lib/live/config/user-media.status`.
-- **LIVE_MODULE_MODE**: Esta variable contiene el estado especificado por el parámetro `live-config.module-mode` (o `module-mode`). Cuando se establece en "merged", el sistema live aplica actualizaciones (mediante minios-update-users, minios-update-cache y minios-update-dpkg) para fusionar configuraciones personalizadas con el entorno base.
+La configuración de medios de usuario nunca fusiona automáticamente dos directorios no vacíos. Un directorio local no vacío solo se migra cuando su destino en el medio está vacío. Cuando la función está deshabilitada, los datos gestionados en el medio se copian de vuelta antes de eliminar los enlaces. Una validación o copia fallida deja los directorios de usuario existentes en su lugar y registra el motivo en `/var/lib/live/config/user-media.status`.
+- **LIVE_MODULE_MODE**: Esta variable almacena el estado especificado por el parámetro `live-config.module-mode` (o `module-mode`). Cuando está configurado en "merged", el sistema live aplica actualizaciones (a través de minios-update-users, minios-update-cache y minios-update-dpkg) para fusionar configuraciones personalizadas con el entorno base.
 - **LIVE_CONFIG_DEBUG=true|false**: Esta variable corresponde al parámetro `**live-config.debug**`.
 
 # PERSONALIZACIÓN
@@ -172,18 +180,20 @@ Los archivos de configuración para el propio sistema live se deben empaquetar e
 
 # ARCHIVOS
 
+- `minios/config.conf` en el medio de datos MiniOS seleccionado (copia fuente)
+- `minios/config.conf.d/*.conf` en el medio de datos MiniOS seleccionado (fragmentos fuente)
 - `/etc/live/config.conf`
 - `/etc/live/config.conf.d/*.conf`
-- `minios/config.conf`
-- `minios/config.conf.d/*.conf`
 - `/lib/live/config.sh`
 - `/lib/live/config/`
 - `/var/lib/live/config/`
 - `/var/log/live/config.log`
-- `/minios/config-hooks/*`
-- `minios/config-hooks/*`
-- `/minios/config-preseed/*`
-- `minios/config-preseed/*`
+- `/var/log/minios/minios-boot.log`
+- `minios/log/YYYYMMDD_HHMMSS/` en medios de datos seleccionados con permisos de escritura cuando la exportación de logs está habilitada
+- `/usr/lib/live/config-hooks/*` (hooks `filesystem`)
+- `minios/config-hooks/*` en el medio live detectado (hooks `medium`)
+- `/usr/lib/live/config-preseed/*` (preseeds `filesystem`)
+- `minios/config-preseed/*` en el medio live detectado (preseeds `medium`)
 
 # VÉASE TAMBIÉN
 

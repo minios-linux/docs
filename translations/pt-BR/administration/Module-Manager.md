@@ -12,16 +12,22 @@ O aplicativo é executado como seu usuário do desktop. Ele solicita autenticaç
 
 ## Em execução agora e no próximo boot
 
-O ambiente de trabalho Módulos mantém duas visualizações separadas:
+O workspace de Módulos mantém duas visualizações separadas:
 
-- **Em Execução Agora** é o conjunto ordenado de módulos que atualmente compõem o sistema ativo.
-- **Próximo Boot** é o conjunto ordenado selecionado pelas regras de boot atuais do MiniOS.
+- **Em Execução Agora** é o conjunto ordenado de módulos que atualmente compõem o sistema em funcionamento.
+- **Próximo Boot** é o conjunto ordenado selecionado pelas regras atuais de boot do MiniOS.
 
-Alterar uma visualização não modifica silenciosamente a outra. Por exemplo, **Ativar para Esta Sessão** afeta apenas o sistema em execução, enquanto **Adicionar ao Próximo Boot** copia um módulo para o armazenamento durável de módulos sem ativá-lo agora.
+Alterar uma visualização não muda silenciosamente a outra. Por exemplo, **Ativar para Esta Sessão** afeta apenas o sistema em execução, enquanto **Adicionar ao Próximo Boot** copia um módulo para o armazenamento durável de módulos sem ativá-lo imediatamente.
 
-A ativação e desativação em tempo real estão disponíveis somente quando o sistema de arquivos raiz está usando AUFS. Elas não estão disponíveis em um root OverlayFS, mesmo que o kernel suporte AUFS. Módulos base não podem ser desativados pelo aplicativo.
+Para as regras autoritativas de tempo de boot, incluindo níveis de origem candidatos,
+substituição exata de basename, ordenação numérica e filtragem por `load=`, `noload=` e
+`bext=`, consulte
+[Carregamento de módulos Initrd](/configuration/Initrd-Module-Loading.md). Esse guia
+também explica por que Em Execução Agora e Próximo Boot podem ser diferentes.
 
-Alterações para o próximo boot só estão disponíveis quando o MiniOS encontra armazenamento de módulos durável e gravável adequado. Módulos base e módulos em armazenamento somente leitura ou volátil não podem ser removidos. Filtros de boot como `load`, `noload` e `bext` ainda determinam quais módulos são selecionados.
+Ativação e desativação em tempo de execução estão disponíveis apenas quando o sistema de arquivos raiz está usando AUFS no momento. Não estão disponíveis em uma raiz OverlayFS, mesmo que o kernel ofereça suporte a AUFS. Módulos base não podem ser desativados pelo aplicativo.
+
+Alterações para o próximo boot estão disponíveis apenas quando o MiniOS encontra armazenamento de módulos durável e gravável adequado. Módulos base e módulos em armazenamento somente leitura ou volátil não podem ser removidos. Filtros de boot como `load`, `noload` e `bext` ainda determinam quais módulos são selecionados.
 
 ## Inspecionando um módulo
 
@@ -61,5 +67,7 @@ Soltar um item não executa código nem altera Em Execução Agora ou Próximo B
 ## Documentação relacionada
 
 - [Criando módulos](/development/Creating-Modules.md)
+- [Carregamento de módulos Initrd](/configuration/Initrd-Module-Loading.md)
+- [Modos de boot](/configuration/Boot-Modes.md)
 - [Compondo imagens ISO pela linha de comando](/development/Rebuilding-ISO.md)
 - [Parâmetros de boot](/configuration/Boot-Parameters.md)

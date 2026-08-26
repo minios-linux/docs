@@ -4,15 +4,17 @@ Der MiniOS Installer ist ein GTK-Assistent mit Kommandozeilen-Backend zur Bereit
 
 ## Vor dem Start
 
-Eine falsche Auswahl des Ziels oder der Partitionierung kann Daten zerstören. Sichern Sie wichtige Dateien, trennen Sie nicht benötigte Festplatten und identifizieren Sie das Ziel anhand von Gerätepfad, Modell und Kapazität. Die endgültige Bestätigung ist der letzte Punkt, an dem eine Installation sicher abgebrochen werden kann.
+Eine falsche Auswahl des Ziels oder der Partitionierung kann Daten zerstören. Sichern Sie wichtige Dateien, trennen Sie nicht benötigte Laufwerke und identifizieren Sie das Ziel anhand von Gerätepfad, Modell und Kapazität. Die abschließende Bestätigung ist der letzte Punkt, an dem eine Installation noch sicher abgebrochen werden kann.
 
-Die Festplatte mit dem laufenden MiniOS-Livesystem ist von der Zielauswahl ausgeschlossen. Allgemeine Hinweise zur Kapazität finden Sie im [Hardware-Kompatibilitätsleitfaden](Hardware-Compatibility.md#system-requirements).
+Das Laufwerk, das das laufende MiniOS-Livesystem enthält, ist von der Zielauswahl ausgeschlossen. Allgemeine Hinweise zur Kapazität finden Sie im [Hardware-Kompatibilitätsleitfaden](Hardware-Compatibility.md).
 
 ## Installationsmodi
 
-Im Live-Modus werden die ausgewählten komprimierten MiniOS-Module und Boot-Komponenten kopiert. Das Ergebnis behält das modulare Live-System-Layout und kann MiniOS-Sitzungspersistenz nutzen.
+Im Live-Modus werden die ausgewählten komprimierten MiniOS-Module und Boot-Komponenten kopiert. Das Ergebnis behält das modulare Live-System-Layout bei und kann MiniOS-Sitzungspersistenz nutzen.
 
-Im Native-Modus werden die ausgewählten Module in ein herkömmliches Linux-Root-Dateisystem entpackt, das Ziel konfiguriert, benötigte Pakete installiert, initramfs generiert und der Bootloader installiert. Der Installer erkennt native Unterstützung anhand des gestarteten Abbilds. Fehlen die erforderlichen Kernel-Metadaten und der EFI-Architekturvertrag, erlaubt der Kompatibilitätsmodus nur die Live-Installation.
+Im Native-Modus werden die ausgewählten Module in ein konventionelles Linux-Root-Dateisystem entpackt, das Ziel konfiguriert, erforderliche Pakete installiert, initramfs generiert und der Bootloader installiert. Der Installer erkennt native Unterstützung anhand des gestarteten Images. Fehlen die erforderlichen Kernel-Metadaten und der EFI-Architekturvertrag, erlaubt der Kompatibilitätsmodus nur die Live-Installation.
+
+Diese Bereitstellung unterscheidet sich von einem direkten ISO-Write, einem Ventoy-ISO-Datei-Multiboot-Setup oder einem dateibasierten Live-Medien-Tool. Siehe [Boot-Modi](/configuration/Boot-Modes.md) für die Abgrenzung zwischen Live- und Native-Systemen.
 
 ## Start des grafischen Installers
 
@@ -55,18 +57,18 @@ Sicherheitsprofile sind `convenient`, `balanced` und `strict`. Der Live-Modus ve
 
 Die Netzwerkkonfiguration umfasst Hostname sowie kabelgebundenes DHCP oder statisches IPv4. Der Installer erstellt oder ändert keine WLAN-Profile. Native und Daneben-Installationen benötigen eventuell Netzwerkzugriff (mit Ihrer Zustimmung), um GRUB, EFI, initramfs, `os-prober` oder Dateisystem-Resize-Pakete vor Änderungen an der Festplatte zu beziehen.
 
-## Persistenz in der Live-Sitzung
+## Persistenz der Live-Sitzung
 
 Persistenz gilt nur für Live-Installationen:
 
 - Native Persistenz speichert Änderungen direkt auf einem POSIX-kompatiblen Ziel-Dateisystem. Sie wird auf FAT32 oder NTFS nicht angeboten.
 - DynFileFS verwendet einen erweiterbaren Container.
 - Raw nutzt ein Abbild mit fester Größe.
-- LUKS verwendet ein verschlüsseltes Abbild, das beim ersten Start vom initrd erstellt wird. Die Passphrase wird beim Booten abgefragt und niemals vom Installer empfangen oder gespeichert.
+- LUKS verwendet ein verschlüsseltes Abbild, das beim ersten Start vom initrd erstellt wird. Das Passwort wird beim Booten abgefragt und niemals vom Installer empfangen oder gespeichert.
 
-Container-Modi haben standardmäßig 4000 MiB. Raw- und LUKS-Container können auf FAT32 nicht größer als 4000 MiB sein; DynFileFS unterliegt diesem Einzeldatei-Limit nicht. LUKS wird nur angeboten, wenn sowohl das laufende initrd als auch jedes kopierte Quell-initrd die erforderliche Kryptounterstützung anzeigen.
+Container-Modi verwenden standardmäßig 4000 MiB. Raw- und LUKS-Container können auf FAT32 nicht größer als 4000 MiB sein; DynFileFS unterliegt dieser Einzeldateigröße nicht. LUKS wird nur angeboten, wenn sowohl das laufende initrd als auch jedes kopierte Quell-initrd die erforderliche Kryptounterstützung anzeigen.
 
-Die resultierenden Boot-Optionen verwenden `perchmode` und `perchsize`. Siehe [Boot-Parameter](/configuration/Boot-Parameters.md) für deren Bedeutung zur Laufzeit.
+Die resultierenden Boot-Optionen verwenden `perchmode` und `perchsize`. Siehe [Initrd-Persistenz](/configuration/Initrd-Persistence.md) und [Boot-Parameter](/configuration/Boot-Parameters.md) für deren Bedeutung zur Laufzeit und Aktivierungsanforderungen.
 
 ## Bereitstellung über die Kommandozeile
 

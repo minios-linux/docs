@@ -10,7 +10,7 @@
 
 ### Ukuran Drive
 
-Lihat [Panduan Kompatibilitas Perangkat Keras](/installation/Hardware-Compatibility.md#system-requirements) untuk detail persyaratan sistem dan ukuran drive.
+Lihat [Panduan Kompatibilitas Perangkat Keras](/installation/Hardware-Compatibility.md) untuk persyaratan sistem dan ukuran drive secara detail.
 
 ## Persiapan
 
@@ -38,17 +38,8 @@ sudo dd if=MiniOS.iso of=/dev/diskX bs=4m
 - `MiniOS.iso` - path ke file ISO Anda
 - `/dev/sdX` - flashdisk USB Anda (misal: `/dev/sdb`)
 
-## Persistensi Perubahan Otomatis
+## Hasil dan persistensi
 
-Pada boot pertama, MiniOS akan memeriksa tipe filesystem drive dan memilih mode persistensi perubahan yang optimal. Jika ruang kosong tersedia, sistem akan otomatis membuat partisi ext4 untuk performa maksimal.
+`dd` melakukan penulisan image mentah: ini menyalin tata letak ISO ke seluruh perangkat target. Proses ini tidak membuat partisi ext4 di ruang yang tidak terpakai, tidak membuat sesi persistensi, maupun melakukan deployment MiniOS Installer.
 
-### Konfigurasi Parameter (untuk pengguna tingkat lanjut)
-
-Untuk konfigurasi persistensi yang lebih presisi, parameter boot dapat digunakan:
-
-- `perchmode=native` - Penyimpanan langsung ke partisi (default, tercepat)
-- `perchmode=dynfilefs` - File yang dapat diperluas secara dinamis
-- `perchmode=raw` - File dengan ukuran tetap
-- `perchsize=8000` - Ukuran ruang penyimpanan data dalam MB untuk file image
-
-Detail di [parameter boot](/configuration/Boot-Parameters.md).
+Persistensi hanya diaktifkan jika entri boot atau baris perintah kernel memintanya, dan tetap membutuhkan media penyimpanan yang dapat ditulis. Lihat [Mode Boot](/configuration/Boot-Modes.md) dan [Persistensi Initrd](/configuration/Initrd-Persistence.md) sebelum mengandalkan perubahan yang disimpan.

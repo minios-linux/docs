@@ -10,9 +10,9 @@ Ventoy est un outil populaire pour créer des clés USB bootables permettant de 
 
 ## Exigences pour le lecteur
 
-### Taille du lecteur
+### Taille du disque
 
-Consultez le [Guide de compatibilité matérielle](/installation/Hardware-Compatibility.md#system-requirements) pour les exigences système détaillées et les tailles de supports.
+Consultez le [Guide de compatibilité matérielle](/installation/Hardware-Compatibility.md) pour connaître en détail les exigences système et les tailles de disque recommandées.
 
 ## Installation de Ventoy
 
@@ -20,67 +20,46 @@ Consultez le [Guide de compatibilité matérielle](/installation/Hardware-Compat
 
 1. **Téléchargez Ventoy** depuis le [site officiel](https://www.ventoy.net/)
 2. **Lancez l’installateur Ventoy** et sélectionnez votre clé USB
-3. **Installez Ventoy** sur le support (toutes les données seront supprimées)
+3. **Installez Ventoy** sur la clé (toutes les données seront supprimées)
 4. **Copiez le fichier ISO de MiniOS** à la racine de la clé USB
 
-Après l'installation, le support sera prêt à l'emploi. MiniOS créera automatiquement un espace de stockage pour sauvegarder les modifications.
+Cela crée un support multiboot basé sur des fichiers ISO : Ventoy conserve l’ISO comme fichier sur sa partition de données et le présente au démarrage. Il ne s’agit pas d’une écriture brute de l’image MiniOS ni d’un déploiement de l’installateur MiniOS.
 
-### Méthode 2 : Installation avec partition de données séparée (recommandé)
+### Méthode 2 : Installation avec une partition de données séparée (recommandé)
 
 1. **Téléchargez Ventoy** depuis le [site officiel](https://www.ventoy.net/)
-2. **Lancez l’installateur Ventoy** et sélectionnez votre clé USB  
+2. **Lancez l’installateur Ventoy** et sélectionnez votre clé USB
 3. **Activez l’option "Réserver de l’espace"** lors de l’installation pour créer une partition supplémentaire
-4. **Installez Ventoy** sur le support
+4. **Installez Ventoy** sur la clé
 5. **Copiez le fichier ISO de MiniOS** à la racine de la clé USB
 6. **Créez une partition ext4** dans l’espace réservé avec le label `persistence`
 
-Cette méthode offre des performances de données plus rapides et un meilleur contrôle du stockage.
+Cela fournit un emplacement possible pour la persistance, mais le fait de créer uniquement la partition n’active pas la persistance et ne crée pas de session.
 
 ## Intégration avec MiniOS
 
-MiniOS inclut une prise en charge native de Ventoy et détecte automatiquement lorsqu’il s’exécute dans un environnement Ventoy. Le système configure automatiquement la persistance des modifications sans configuration supplémentaire de l’utilisateur.
+MiniOS prend en charge la détection d’un ISO présenté par Ventoy. La découverte de la source et la sélection de la persistance sont distinctes ; Ventoy n’active pas lui-même la persistance MiniOS.
 
-### Persistance automatique des modifications
+### Persistance
 
-MiniOS détecte automatiquement l’exécution dans un environnement Ventoy et configure la persistance des modifications :
+La persistance n’est activée que lorsqu’une entrée de démarrage ou une ligne de commande du noyau la demande. Son activation dépend alors d’un emplacement inscriptible compatible et d’une session utilisable ; une installation standard de Ventoy ne garantit pas la création automatique de l’un ou l’autre. Consultez [Modes de démarrage](/configuration/Boot-Modes.md) et [Persistance Initrd](/configuration/Initrd-Persistence.md) avant de compter sur la sauvegarde des modifications.
 
-- **Avec une partition `persistence` séparée** : Utilisée pour le stockage direct des données (mode natif, vitesse maximale)
-- **Avec une installation standard** : Crée un fichier dynamique dans la partition principale de Ventoy (mode dynfilefs)
-
-### Configuration des paramètres (pour utilisateurs avancés)
-
-Lorsque vous avez besoin d’une configuration précise, des paramètres de démarrage peuvent être utilisés :
-
-**Pour une partition `persistence` séparée (tous les modes disponibles) :**
-- `perchmode=native` - Sauvegarde directe sur la partition (le plus rapide)
-- `perchmode=dynfilefs` - Fichier dynamique extensible
-- `perchmode=raw` - Fichier de taille fixe
-
-**Pour une installation standard de Ventoy (deux modes disponibles) :**
-- `perchmode=dynfilefs` - Fichier dynamique extensible (par défaut, économise de l’espace)
-- `perchmode=raw` - Fichier de taille fixe
-
-**Paramètres communs pour les fichiers :**
-- `perchsize=8000` - Taille de l’espace de stockage des données en Mo
-
-Plus de détails dans [paramètres de démarrage](/configuration/Boot-Parameters.md).
-
-## Utilisation de MiniOS avec Ventoy
+## Utiliser MiniOS avec Ventoy
 
 ### Démarrage
 
-Après avoir installé Ventoy et copié le fichier ISO de MiniOS sur le support :
+Après avoir installé Ventoy et copié le fichier ISO de MiniOS sur la clé :
 
-1. **Démarrez depuis la clé USB** - sélectionnez-la dans le BIOS/UEFI
+1. **Démarrez depuis la clé USB** – sélectionnez-la dans le BIOS/UEFI
 2. **Sélectionnez MiniOS** dans la liste des fichiers ISO disponibles dans le menu Ventoy
 3. **⚠️ IMPORTANT : Sélectionnez le mode GRUB2** lorsque Ventoy le demande
-4. **Patientez pendant le chargement** - le système se configurera automatiquement pour fonctionner
+4. **Attendez le chargement de MiniOS**
 
 ### **Exigences du mode de démarrage Ventoy**
 
 **Pour que MiniOS fonctionne correctement :**
-- **Mode GRUB2** - Nécessaire pour le bon fonctionnement de MiniOS
+- **Mode GRUB2** – Requis pour le bon fonctionnement de MiniOS
 
 **Solution alternative :**
-- Ajoutez le suffixe `VTGRUB2` au nom du fichier ISO (ex. : `minios-5.0.0-standard-amd64_VTGRUB2.iso`)
-- Cela force Ventoy à utiliser automatiquement le mode GRUB2 sans demander
+- Ajoutez le suffixe `VTGRUB2` au nom du fichier ISO (par exemple, `minios-5.0.0-standard-amd64_VTGRUB2.iso`)
+- Cela force Ventoy à utiliser automatiquement le mode GRUB2 sans demander de confirmation

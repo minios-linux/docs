@@ -2,19 +2,33 @@
 
 MiniOS démarre un système d’exploitation en lecture seule assemblé à partir de modules SquashFS et ajoute une couche inscriptible pour la session en cours. L’initramfs est chargé de détecter le support, sélectionner les modules et la persistance, construire le système de fichiers racine, appliquer la configuration initiale, puis transférer le contrôle au système d’init installé.
 
-## Découverte au démarrage
+## Découverte du démarrage
 
-Le chargeur de démarrage BIOS ou UEFI charge un noyau Linux et l’initramfs MiniOS depuis `minios/boot/`. L’initramfs recherche ensuite les périphériques de stockage pour un répertoire `minios` contenant des modules `.sb`. Le paramètre de démarrage `from=` peut à la place désigner un répertoire, un périphérique de bloc et un chemin, une image ISO locale, ou une sélection interactive `askdisk`. Une ISO locale est montée en boucle avant d’utiliser son répertoire `minios`.
+Le chargeur de démarrage BIOS ou UEFI charge un noyau Linux et l'initramfs MiniOS depuis
+`minios/boot/`. L'initramfs découvre ensuite l’arborescence de données MiniOS qui contient
+les modules live. La source peut être locale, sélectionnée de façon interactive, ou fournie
+via un chemin réseau pris en charge ; une image ISO locale est montée en boucle avant que son arborescence
+de données ne soit utilisée. La priorité exacte et les formes acceptées de `from=` sont documentées dans
+[Découverte du système Initrd](/configuration/Initrd-System-Discovery.md).
 
-La même étape de découverte prend en charge les sources ISO HTTP et PXE. Le réseau en début de démarrage est optionnel et uniquement destiné au **chargement de MiniOS par le réseau** (PXE / ISO HTTP). Il ne s’agit pas d’une configuration réseau de session persistante. Voir [Démarrage réseau](/installation/Network-Boot.md).
+Cette étape de découverte prend également en charge les sources ISO HTTP et PXE. Le réseau optionnel en début de démarrage
+sert uniquement à **charger MiniOS par le réseau** (PXE / ISO HTTP).
+Il ne s'agit pas d'une configuration réseau de session persistante. Voir
+[Démarrage réseau](/installation/Network-Boot.md).
 
-Après la découverte, `toram=trim` peut copier les modules sélectionnés et les données nécessaires en RAM, tandis que `toram=full` copie l’arborescence des données du support. Voir [Paramètres de démarrage](/configuration/Boot-Parameters.md) pour les options de source, de filtrage et de copie en RAM.
+Après la découverte, MiniOS peut éventuellement préparer une copie en RAM. Le maintien de la source d'origine dépend du mode de copie, de la persistance et de la réussite du détachement. Consultez [Modes de démarrage](/configuration/Boot-Modes.md) pour le modèle opérationnel.
 
 ## Composition des modules
 
-Chaque fichier `.sb` est un système de fichiers SquashFS en lecture seule. Les modules intégrés sont stockés directement sous `minios/` ; des modules supplémentaires peuvent être placés sous `minios/modules/`, y compris un stockage de modules durable sur un périphérique de persistance inscriptible. L’initramfs détecte les deux emplacements, applique les filtres `load=` et `noload=`, trie les fichiers sélectionnés selon leur préfixe numérique, puis les monte en lecture seule.
+Chaque fichier `.sb` est un système de fichiers SquashFS en lecture seule. Les modules intégrés sont stockés
+directement sous `minios/` ; d'autres emplacements de modules peuvent contribuer à la
+composition ordonnée. L'initramfs sélectionne, ordonne et monte les couches résultantes
+en lecture seule. Les niveaux candidats, le remplacement de nom de base, les filtres, les extensions personnalisées de bundle
+et la coordination avec le noyau en cours d'exécution sont définis dans
+[Chargement des modules Initrd](/configuration/Initrd-Module-Loading.md).
 
-Une image Xfce typique contient les rôles suivants dans cet ordre, bien que les noms et numéros exacts dépendent de la construction et des modules ignorés pour cette cible :
+Une image Xfce typique contient les rôles ordonnés suivants, bien que les noms
+et le nombre exacts dépendent de la construction et des modules ignorés pour cette cible :
 
 ```text
 00-core-<arch>.sb
@@ -25,34 +39,44 @@ Une image Xfce typique contient les rôles suivants dans cet ordre, bien que les
 05-apps-<arch>.sb or the next applicable module
 ```
 
-Les modules ultérieurs ont une priorité supérieure et peuvent remplacer les chemins fournis par les modules précédents. Un module peut dépendre de fichiers présents dans tout module de numéro inférieur, de sorte qu’un ensemble de modules constitue une composition ordonnée plutôt qu’un simple regroupement de paquets indépendants.
+Les modules ajoutés ultérieurement ont une priorité supérieure et peuvent remplacer les chemins fournis par les modules précédents. Un module peut dépendre de fichiers présents dans chaque module de rang inférieur, de sorte qu'un ensemble de fichiers modules constitue une composition ordonnée plutôt qu'une collection de paquets indépendants.
 
 ## AUFS et OverlayFS
 
-MiniOS utilise un système de fichiers union pour présenter les modules et la couche inscriptible comme un seul système de fichiers racine. Il sélectionne AUFS si le noyau en cours d’exécution le prend en charge et bascule sinon sur OverlayFS. `union=aufs` demande AUFS mais bascule tout de même sur OverlayFS si AUFS n’est pas disponible ; `union=overlayfs` sélectionne OverlayFS.
+MiniOS utilise un système de fichiers union pour présenter les modules et la couche inscriptible comme un seul
+système de fichiers racine. Il sélectionne AUFS lorsque le noyau en cours l’autorise et bascule
+sur OverlayFS sinon. `union=aufs` demande AUFS mais bascule tout de même sur OverlayFS si AUFS n'est pas disponible ; `union=overlayfs` sélectionne OverlayFS.
 
 Les deux implémentations présentent une différence opérationnelle importante :
 
-- AUFS commence par la branche inscriptible et ajoute les modules montés comme branches en lecture seule. MiniOS peut activer ou désactiver un module dans la racine en cours lorsque le montage AUFS le permet.
-- OverlayFS reçoit sa liste ordonnée complète `lowerdir` lors du montage de la racine, ainsi qu’un `upperdir` et `workdir`. Son ensemble de modules inférieurs ne peut pas être modifié à chaud par le gestionnaire de modules.
+- AUFS commence par la branche inscriptible et ajoute les modules montés comme branches en lecture seule. MiniOS peut activer ou désactiver un module dans la racine en cours si le montage AUFS le permet.
+- OverlayFS reçoit sa liste complète et ordonnée de `lowerdir` lors du montage de la racine, ainsi qu’un `upperdir` et un `workdir`. L’ensemble des modules inférieurs ne peut pas être modifié à chaud par le Module Manager.
 
-Le gestionnaire de modules distingue donc **En cours d’exécution**, l’ensemble de modules montés, de **Prochain démarrage**, les modules sélectionnés par le support actuel et les règles de démarrage. Ajouter ou retirer un module durable modifie normalement uniquement le prochain démarrage. Créer ou ouvrir un module ne l’active pas. L’activation et la désactivation à chaud ne sont disponibles qu’avec AUFS.
+Le Module Manager distingue donc **En cours d’exécution**, l’ensemble des modules montés,
+de **Prochain démarrage**, les modules sélectionnés par le support actuel et les règles de démarrage. Ajouter ou retirer un module durable modifie normalement uniquement le prochain démarrage. Créer ou ouvrir un module ne l’active pas. L’activation et la désactivation à chaud ne sont disponibles qu’avec AUFS.
+
+Après l’assemblage de la racine et la fin de l’initialisation précoce, l’initrd LiveKit utilise
+`pivot_root`, conserve l’ancien initrd pour l’arrêt, puis exécute l’init de la nouvelle racine. Le chemin dracut prépare la même racine assemblée mais laisse la
+finalisation de `switch_root` à dracut. Voir
+[Chargement des modules Initrd](/configuration/Initrd-Module-Loading.md) pour la limite de transfert détaillée.
 
 ## Couche inscriptible et sessions
 
-Sans persistance, la couche inscriptible est stockée en mémoire et disparaît à l’extinction. La persistance place cette couche dans une session numérotée sous `minios/changes/`. `session.conf` enregistre la session par défaut pour le prochain démarrage, la session utilisée pour le démarrage actuel, les métadonnées de compatibilité, l’état et les paramètres spécifiques au mode.
+Sans persistance, la couche inscriptible est stockée en mémoire et disparaît à l’arrêt.
+La persistance peut activer à la place une session numérotée avec un backend de stockage pris en charge. La sélection, la compatibilité, l’échec d’activation, l’autorité du démarrage en cours et la durabilité sont définies dans
+[Persistance Initrd](/configuration/Initrd-Persistence.md).
 
 | Mode | Stockage inscriptible | Remarques |
 |------|----------------------|-----------|
-| `native` | Fichiers stockés directement dans le répertoire de session | Nécessite un système de fichiers POSIX inscriptible qui conserve les métadonnées Linux. |
-| `dynfilefs` | Système de fichiers ext4 extensible réparti sur plusieurs fichiers de support | Compatible avec les systèmes de fichiers POSIX ainsi que les supports FAT32, NTFS ou exFAT. |
-| `raw` | `changes.img` de taille fixe contenant un ext4 | Compatible avec les systèmes de fichiers POSIX ainsi que les supports FAT32, NTFS ou exFAT. |
-| `luks` | LUKS2 `changes.luks` contenant un ext4 | Nécessite cryptsetup et un initramfs construit avec le support du chiffrement MiniOS. La phrase de passe est demandée au démarrage. |
-| `squashfs` | Instantané `changes.sb` compressé | Décompressé en RAM pour l’utilisation ; l’enregistrement reconstruit et remplace l’instantané de façon atomique. Le système de fichiers de persistance doit préserver les métadonnées Linux lors de l’enregistrement. |
+| `native` | Fichiers stockés directement dans le répertoire de session | Nécessite un système de fichiers POSIX inscriptible qui préserve les métadonnées Linux. |
+| `dynfilefs` | Système de fichiers ext4 extensible réparti sur plusieurs fichiers de support | Compatible avec les systèmes de fichiers POSIX et les supports FAT32, NTFS ou exFAT. |
+| `raw` | `changes.img` de taille fixe contenant ext4 | Compatible avec les systèmes de fichiers POSIX et les supports FAT32, NTFS ou exFAT. |
+| `luks` | LUKS2 `changes.luks` contenant ext4 | Nécessite cryptsetup et un initramfs construit avec le support du chiffrement MiniOS. La phrase secrète est demandée au démarrage. |
+| `squashfs` | Instantané `changes.sb` compressé | Décompressé en RAM pour l’utilisation ; la sauvegarde reconstruit et remplace l’instantané de manière atomique. Le système de fichiers de persistance doit préserver les métadonnées Linux lors de la sauvegarde. |
 
-La session active sera celle par défaut au prochain démarrage. La session en cours est celle déjà montée dans la racine actuelle. Activer une autre session ne remplace pas la couche inscriptible en cours. Les vérifications de compatibilité de session incluent la version MiniOS, l’édition, le système de fichiers union et le mode de persistance.
+La session active sélectionnée pour une reprise future et la couche inscriptible effectivement autorisée pour le démarrage en cours sont deux états liés mais distincts. Modifier une sélection future ne remplace pas la couche inscriptible en cours d’utilisation.
 
-Voir [Gestion des sessions](/configuration/Session-Management.md) pour la création, la sélection, le dimensionnement, le chiffrement, la conversion, l’export et la récupération.
+Voir [Gestion des sessions](/configuration/Session-Management.md) pour les commandes de création, sélection, dimensionnement, chiffrement, conversion, export et récupération.
 
 ## Priorité de la configuration
 
@@ -97,6 +121,10 @@ Les chemins démarrés sous `/run/initramfs/memory/` sont des montages d’impl�
 
 ## Documentation associée
 
+- [Modes de démarrage](/configuration/Boot-Modes.md)
+- [Découverte du système Initrd](/configuration/Initrd-System-Discovery.md)
+- [Chargement des modules Initrd](/configuration/Initrd-Module-Loading.md)
+- [Persistance Initrd](/configuration/Initrd-Persistence.md)
 - [Paramètres de démarrage](/configuration/Boot-Parameters.md)
 - [Menus de démarrage](/configuration/Boot-Menus.md)
 - [Fichier de configuration](/configuration/Configuration-File.md)

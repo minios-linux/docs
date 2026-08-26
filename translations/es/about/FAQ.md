@@ -30,11 +30,12 @@ y [Gestión de sesiones](/configuration/Session-Management.md) según el método
 
 ## ¿Cuál es la diferencia entre la sesión activa y la sesión en ejecución?
 
-La sesión activa es la que se selecciona para el próximo inicio; la sesión en ejecución es la que proporciona persistencia en este momento. Activar una sesión no cambia el sistema actual. Consulta [Gestión de sesiones](/configuration/Session-Management.md).
+La sesión activa es la que se selecciona para el próximo arranque; conceptualmente, la sesión
+en ejecución proporciona persistencia en este momento. El registro persistente `running=` puede estar desactualizado después de un fallo, por lo que el estado protegido del arranque actual y la capa de escritura montada son los que tienen autoridad para las operaciones en tiempo de ejecución. Activar una sesión no cambia el sistema actual. Consulta [Gestión de sesiones](/configuration/Session-Management.md) y [Persistencia en Initrd](/configuration/Initrd-Persistence.md).
 
 ## ¿Por qué desaparecieron mis cambios después de reiniciar?
 
-Es posible que hayas iniciado una sesión nueva, utilizado un medio sin persistencia, seleccionado una sesión diferente o apagado el equipo antes de guardar los cambios. Verifica la sesión en ejecución y la activa como se describe en [Gestión de sesiones](/configuration/Session-Management.md) y [Solución de problemas](/administration/Troubleshooting.md).
+Es posible que hayas iniciado una sesión nueva, utilizado un medio sin persistencia o seleccionado una sesión diferente. Las sesiones Native, DynFileFS, raw y LUKS reciben escrituras mientras el sistema está en funcionamiento; no esperan a una instantánea al apagar. Solo la persistencia SquashFS requiere que los cambios en la RAM se reconstruyan en `changes.sb`, por lo que un apagado interrumpido o una política de guardado deshabilitada puede dejar los últimos cambios sin guardar. Verifica la sesión en ejecución y la activa como se describe en [Gestión de sesiones](/configuration/Session-Management.md) y [Solución de problemas](/administration/Troubleshooting.md).
 
 ## ¿Son LUKS y SquashFS el mismo tipo de persistencia?
 

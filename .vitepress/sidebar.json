@@ -109,14 +109,41 @@
     "text": "Configuration",
     "items": [
       {
-        "key": "sidebar.bootMenus",
-        "text": "Boot Menus",
-        "link": "/configuration/Boot-Menus"
-      },
-      {
-        "key": "sidebar.bootParameters",
-        "text": "Boot Parameters",
-        "link": "/configuration/Boot-Parameters"
+        "key": "sidebar.bootAndInitrd",
+        "text": "Boot and initrd",
+        "collapsed": false,
+        "items": [
+          {
+            "key": "sidebar.bootModes",
+            "text": "Boot Modes",
+            "link": "/configuration/Boot-Modes"
+          },
+          {
+            "key": "sidebar.bootMenus",
+            "text": "Boot Menus",
+            "link": "/configuration/Boot-Menus"
+          },
+          {
+            "key": "sidebar.bootParameters",
+            "text": "Boot Parameters",
+            "link": "/configuration/Boot-Parameters"
+          },
+          {
+            "key": "sidebar.initrdSystemDiscovery",
+            "text": "Initrd System Discovery",
+            "link": "/configuration/Initrd-System-Discovery"
+          },
+          {
+            "key": "sidebar.initrdModuleLoading",
+            "text": "Initrd Module Loading",
+            "link": "/configuration/Initrd-Module-Loading"
+          },
+          {
+            "key": "sidebar.initrdPersistence",
+            "text": "Initrd Persistence",
+            "link": "/configuration/Initrd-Persistence"
+          }
+        ]
       },
       {
         "key": "sidebar.configurationFile",

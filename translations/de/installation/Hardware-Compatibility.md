@@ -1,61 +1,40 @@
 # Hardware-Kompatibilitätsleitfaden
 
-Dieser Leitfaden bietet wichtige Informationen zur Hardware-Kompatibilität für MiniOS. Das System basiert auf Debian 13 „Trixie“ mit einem Long-Term Support (LTS) Linux-Kernel und gewährleistet dadurch eine breite Hardware-Unterstützung.
+Die Hardware-Unterstützung hängt von der MiniOS-Version und dem jeweiligen Image ab: Die zugrunde liegende Distribution, der Kernel, die Firmware, enthaltene Module und die Edition spielen alle eine Rolle. Prüfen Sie die Release-Beschreibung des heruntergeladenen Images und testen Sie eine frische Live-Session, bevor Sie Festplatten wechseln oder das Gerät für dauerhafte Arbeit nutzen.
 
 ## Systemanforderungen
 
-MiniOS ist für die **amd64** (64-Bit) Architektur entwickelt. Die Anforderungen unterscheiden sich je nach Edition:
+Veröffentlichte MiniOS-PC-Images richten sich an die **amd64**-Architektur (64-Bit x86), sofern in der Release-Beschreibung nichts anderes angegeben ist. Der Ressourcenbedarf variiert je nach Image, Edition, Desktop, Anwendungen und Boot-Modus:
 
-**Für die Standard-Variante:**
-- **CPU:** 1 GHz 64-Bit-Prozessor
-- **RAM:** Mindestens 1 GB (2 GB empfohlen)
-- **Speicher:** 2 GB zum Ausführen des Systems (4 GB+ für Datenspeicherung empfohlen)
-- **Grafik:** VGA-kompatibler Grafikadapter
+- Die CPU muss die Architektur des Images und den gewählten Firmware-Modus unterstützen.
+- RAM muss für die gewählte Edition und Arbeitslast ausreichen. `toram`-Modi benötigen zusätzlich Speicher für kopierte Image-Daten.
+- Das Boot-Medium muss genügend Speicherplatz für das heruntergeladene Image bieten. Für Persistenz, Benutzerdaten und eine native Installation ist zusätzlicher, beschreibbarer Speicher erforderlich.
+- Die Grafik-Anforderungen hängen vom Desktop und den Anwendungen der gewählten Edition ab.
 
-**Für die Toolbox-Variante:**
-- **CPU:** 1,2 GHz 64-Bit-Prozessor
-- **RAM:** Mindestens 2 GB (4 GB empfohlen)
-- **Speicher:** 2 GB zum Ausführen des Systems (8 GB+ für Datenspeicherung empfohlen)
-- **Grafik:** Grafikkarte mit Hardware-Beschleunigung
-
-**Für die Ultra-Variante:**
-- **CPU:** 1,5 GHz 64-Bit-Dual-Core-Prozessor
-- **RAM:** Mindestens 4 GB (8 GB empfohlen)
-- **Speicher:** 2 GB zum Ausführen des Systems (8 GB+ für Datenspeicherung empfohlen)
-- **Grafik:** Moderne GPU mit Hardware-Beschleunigung
+Das Schreiben eines Images auf ein größeres Gerät erzeugt nicht automatisch persistenten Speicher. Siehe [Boot-Modi](/configuration/Boot-Modes.md) für den maßgeblichen Leitfaden zum Live-Boot-Verhalten und [Schnellstart](/installation/Quick-Start.md) zur Vorbereitung des Mediums.
 
 ## Komponentenkompatibilität
 
 ### Prozessoren
 
-Eine breite Auswahl an 64-Bit-x86-Prozessoren von Intel (Core i3/i5/i7/i9) und AMD (Ryzen 3/5/7/9) wird unterstützt.
+Die Kompatibilität hängt von der Architektur und dem Kernel ab, die im gewählten Image enthalten sind. Prüfen Sie die Release Notes, wenn Sie einen aktuellen Prozessor oder CPU-Funktionen verwenden, die neuere Kernel-Unterstützung erfordern.
 
 ### Grafik
 
-- **Intel:** Integrierte Grafiklösungen (UHD, Iris Xe, Arc) werden sehr gut unterstützt.
-- **NVIDIA:** Der Open-Source-Treiber Nouveau ist enthalten. Für moderne Karten wird für beste Leistung die Installation des proprietären Treibers empfohlen.
-- **AMD:** Moderne Radeon RX Grafikkarten werden vollständig durch den Open-Source-Treiber AMDGPU unterstützt.
+Die Grafikunterstützung hängt vom Kernel-Treiber, der Firmware und dem Userspace-Grafik-Stack im Image ab. Eine Karte kann grundlegende Bildausgabe bieten, ohne Hardware-Beschleunigung oder alle Anschlüsse zu unterstützen. Für manche NVIDIA-Hardware wird möglicherweise ein proprietärer Treiber benötigt, der in einem bestimmten Image nicht enthalten ist.
 
 ### Netzwerk
 
-- **Ethernet:** Die meisten kabelgebundenen Controller von Intel, Realtek und Broadcom funktionieren direkt nach der Installation.
-- **WLAN:** Eine große Auswahl an WLAN-Adaptern wird durch enthaltene Firmware und automatisch gebaute DKMS-Treiber unterstützt, insbesondere gängige Modelle von Intel, Atheros und Realtek.
+Ethernet- und WLAN-Unterstützung hängt vom Controller, Kernel-Treiber und der im Image enthaltenen Firmware ab. Testen Sie die Netzwerkfunktionalität in einer frischen Sitzung. Prüfen Sie bei WLAN zusätzlich, ob das Gerät Firmware oder einen externen Treiber benötigt, der in dieser Version nicht enthalten ist.
 
 ### Speicher
 
-MiniOS ist darauf ausgelegt, von verschiedenen Speichermedien zu starten. Die Startskripte des Systems durchsuchen automatisch alle verfügbaren Blockgeräte und ermöglichen so die Kompatibilität mit:
+USB-, SATA-, NVMe-, IDE- und SD/MMC-Geräte funktionieren nur, wenn das gewählte Image einen Treiber für den Controller enthält und der Kernel das Gerät erkennt. Das Scannen im Initrd macht einen nicht unterstützten Controller nicht kompatibel. Siehe [Initrd-Systemerkennung](/configuration/Initrd-System-Discovery.md) für das genaue Suchverhalten im Live-Betrieb.
 
-- **USB-Laufwerke:** Alle Generationen von USB werden unterstützt.
-- **SATA/IDE-Laufwerke:** Alle gängigen internen Festplatten und SSDs.
-- **NVMe-Laufwerke:** Volle Unterstützung für moderne NVMe-SSDs.
-- **SD/MMC-Karten:** Unterstützt, sofern der Kartenleser vom Kernel erkannt wird.
+Live-Modus und nativer Modus haben unterschiedliche Boot-Pfade. Im Live-Modus wird der MiniOS-Datenbaum erkannt und schreibgeschützte Module im frühen Userspace zusammengefügt; der native Modus startet ein herkömmlich installiertes Root-System. Siehe [Initrd-Modulladung](/configuration/Initrd-Module-Loading.md) für das Modulhandling im Live-Betrieb und [MiniOS installieren](/installation/Installing-MiniOS.md) für die Unterschiede im Layout.
 
 ### Virtualisierung
 
-MiniOS ist vollständig für den Einsatz als Gastsystem in allen gängigen Virtualisierungsumgebungen optimiert. Der Build-Prozess integriert alle notwendigen Treiber in das initiale Ramdisk (`initrd`), um maximale Leistung direkt nach der Installation zu gewährleisten.
+MiniOS kann als Gast betrieben werden, wenn das gewählte Image Treiber für die im VM-Gast konfigurierten CPU-, Speicher-, Netzwerk- und Grafikgeräte enthält. Es gibt keine Garantie für die Unterstützung jedes Hypervisors oder Controller-Modells. VirtIO-, VMware-, Hyper-V- sowie emulierte IDE- oder SATA-Unterstützung müssen mit der jeweiligen Version abgeglichen und mit der spezifischen VM-Konfiguration getestet werden.
 
-- **Hochleistungs-Treiber:** Unterstützung für paravirtualisierte Speichercontroller ist integriert, darunter **VirtIO** (KVM/QEMU), **VMware Paravirtual SCSI** und **Hyper-V Storvsc**. Dies ermöglicht nahezu native Festplatten-I/O-Leistung.
-- **Breite Kompatibilität:** Das System kann auch von emulierten **IDE**- und **SATA**-Controllern booten und ist damit mit jeder Hypervisor-Konfiguration kompatibel.
-- **Gasterweiterungen:** Für eine verbesserte Integration (wie nahtlose Mausunterstützung, Zwischenablage-Sharing und dynamische Auflösung) enthalten die Varianten `toolbox` und `ultra` `open-vm-tools` (für VMware) und `hyperv-daemons` (für Hyper-V).
-
-Detaillierte Anleitungen zur Einrichtung und plattformspezifische Konfigurationen finden Sie im [Virtualisierungsleitfaden](/administration/Virtualization.md).
+Gäste-Agenten und Desktop-Integrationswerkzeuge variieren ebenfalls je nach Edition und Image. Siehe die [Paketliste](/administration/Packages.md) und den [Virtualisierungsleitfaden](/administration/Virtualization.md), bevor Sie davon ausgehen, dass Zwischenablage-Freigabe, dynamische Auflösung, sauberes Herunterfahren oder Host-Kommunikation verfügbar sind.

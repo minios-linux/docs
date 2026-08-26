@@ -11,7 +11,7 @@ Balena Etcher is a convenient cross-platform program for writing ISO images to U
 ## Drive Requirements
 
 ### Drive Size
-See [Hardware Compatibility Guide](/installation/Hardware-Compatibility.md#system-requirements) for detailed system requirements and drive sizes.
+See [Hardware Compatibility Guide](/installation/Hardware-Compatibility.md) for detailed system requirements and drive sizes.
 
 ## Preparation
 
@@ -34,18 +34,8 @@ See [Hardware Compatibility Guide](/installation/Hardware-Compatibility.md#syste
    - Wait for the process to complete (5–15 minutes)
 
 
-## Automatic Change Persistence
+## Result and persistence
 
-On first boot, MiniOS will check the drive's file system type and choose the optimal change persistence mode. If free space is available, the system will automatically create an ext4 partition for maximum performance.
+Etcher performs a raw image write: it copies the ISO layout to the whole target device. It does not create an ext4 partition in unused space, create a persistence session, or perform a MiniOS Installer deployment.
 
-
-### Parameter Configuration (for Advanced Users)
-
-When precise persistence configuration is needed, boot parameters can be used:
-
-- `perchmode=native` - Direct saving to partition (default, fastest)
-- `perchmode=dynfilefs` - Dynamically expandable file
-- `perchmode=raw` - Fixed-size file
-- `perchsize=8000` - Data storage space size in MB for image files
-
-Details in [boot parameters](/configuration/Boot-Parameters.md).
+Persistence is enabled only when a boot entry or kernel command line requests it, and it still requires suitable writable storage. See [Boot modes](/configuration/Boot-Modes.md) and [Initrd persistence](/configuration/Initrd-Persistence.md) before relying on saved changes.

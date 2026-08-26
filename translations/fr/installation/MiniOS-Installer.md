@@ -4,15 +4,17 @@ L’installateur MiniOS est un assistant GTK avec un backend en ligne de command
 
 ## Avant de commencer
 
-Un mauvais choix de disque cible ou de partitionnement peut entraîner la perte de données. Sauvegardez vos fichiers importants, déconnectez les disques inutiles et identifiez le disque cible par son chemin de périphérique, son modèle et sa capacité. La confirmation finale est le dernier moment où l’installation peut être annulée sans risque.
+Un choix incorrect de cible ou de partitionnement peut entraîner la perte de données. Sauvegardez les fichiers importants, déconnectez les disques inutiles et identifiez la cible par chemin de périphérique, modèle et capacité. La confirmation finale est le dernier moment où l'installation peut être annulée en toute sécurité.
 
-Le disque contenant le système live MiniOS en cours d’exécution est exclu de la sélection des cibles. Pour des recommandations générales sur la capacité, consultez le [Guide de compatibilité matérielle](Hardware-Compatibility.md#system-requirements).
+Le disque contenant le système MiniOS live en cours d'exécution est exclu de la sélection des cibles. Pour des recommandations générales sur la capacité, consultez le [Guide de compatibilité matérielle](Hardware-Compatibility.md).
 
-## Modes d’installation
+## Modes d'installation
 
-Le mode Live copie les modules MiniOS compressés sélectionnés ainsi que les éléments d’amorçage. Le résultat conserve la structure modulaire du système live et permet l’utilisation de la persistance de session MiniOS.
+Le mode Live copie les modules MiniOS compressés sélectionnés ainsi que les éléments de démarrage. Le résultat conserve la structure modulaire du système live et peut utiliser la persistance de session MiniOS.
 
-Le mode Natif décompresse les modules sélectionnés dans un système de fichiers racine Linux classique, configure la cible, installe les paquets nécessaires, génère l’initramfs et installe le chargeur d’amorçage. L’installateur détecte la prise en charge native à partir de l’image démarrée. Si les métadonnées du noyau requises et le contrat d’architecture EFI sont absents, le mode de compatibilité ne permet qu’une installation en mode live.
+Le mode natif déploie les modules sélectionnés dans un système de fichiers racine Linux conventionnel, configure la cible, installe les paquets nécessaires, génère l'initramfs et installe le chargeur d'amorçage. L'installateur détecte la prise en charge native à partir de l'image démarrée. Si les métadonnées du noyau requises et le contrat d'architecture EFI sont absents, le mode de compatibilité ne permet que l'installation live.
+
+Ce déploiement est différent d'une écriture brute d'ISO, d'une configuration multiboot de fichier ISO avec Ventoy, ou d'un outil de média live basé sur des fichiers. Consultez [Modes de démarrage](/configuration/Boot-Modes.md) pour la distinction entre systèmes live et natifs.
 
 ## Démarrer l’installateur graphique
 
@@ -55,18 +57,18 @@ Les profils de sécurité sont `convenient`, `balanced` et `strict`. Le mode liv
 
 La configuration réseau couvre le nom d'hôte et le DHCP filaire ou l'IPv4 statique. L'installateur ne crée ni ne modifie les profils Wi-Fi. Les installations natives et en parallèle peuvent nécessiter un accès réseau, avec votre consentement, pour obtenir GRUB, EFI, initramfs, `os-prober` ou des paquets de redimensionnement de système de fichiers avant toute modification du disque.
 
-## Persistance de la session live
+## Persistance de session live
 
-La persistance s'applique uniquement aux installations live :
+La persistance s'applique uniquement aux installations live :
 
 - La persistance native enregistre les modifications directement sur un système de fichiers cible compatible POSIX. Elle n'est pas proposée sur FAT32 ou NTFS.
 - DynFileFS utilise un conteneur extensible.
 - Raw utilise une image de taille fixe.
-- LUKS utilise une image chiffrée créée par l'initrd au premier démarrage. La phrase de passe est demandée au démarrage et n'est jamais reçue ni stockée par l'installateur.
+- LUKS utilise une image chiffrée créée par l'initrd lors du premier démarrage. La phrase de passe est demandée au démarrage et n'est jamais reçue ni stockée par l'installateur.
 
-Les modes conteneur sont limités par défaut à 4000 Mio. Les conteneurs Raw et LUKS ne peuvent pas dépasser 4000 Mio sur FAT32 ; DynFileFS n'est pas soumis à cette limite de taille de fichier unique. LUKS n'est proposé que si l'initrd en cours d'exécution et chaque initrd source copié annoncent le support crypto requis.
+Les modes conteneur sont par défaut à 4000 Mio. Les conteneurs Raw et LUKS ne peuvent pas dépasser 4000 Mio sur FAT32 ; DynFileFS n'est pas soumis à cette limite de taille de fichier. LUKS n'est proposé que si l'initrd en cours d'exécution et chaque initrd source copié annoncent la prise en charge crypto requise.
 
-Les options de démarrage résultantes utilisent `perchmode` et `perchsize`. Voir [Paramètres de démarrage](/configuration/Boot-Parameters.md) pour leur signification à l'exécution.
+Les options de démarrage résultantes utilisent `perchmode` et `perchsize`. Consultez [Persistance Initrd](/configuration/Initrd-Persistence.md) et [Paramètres de démarrage](/configuration/Boot-Parameters.md) pour leur signification à l'exécution et les conditions d'activation.
 
 ## Déploiement en ligne de commande
 

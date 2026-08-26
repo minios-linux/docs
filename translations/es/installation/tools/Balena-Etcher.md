@@ -10,7 +10,7 @@ Balena Etcher es un programa multiplataforma muy práctico para grabar imágenes
 
 ### Tamaño de la unidad
 
-Consulta la [Guía de compatibilidad de hardware](/installation/Hardware-Compatibility.md#system-requirements) para ver los requisitos detallados del sistema y los tamaños de las unidades.
+Consulta la [Guía de compatibilidad de hardware](/installation/Hardware-Compatibility.md) para obtener información detallada sobre los requisitos del sistema y los tamaños de las unidades.
 
 ## Preparación
 
@@ -31,17 +31,8 @@ Consulta la [Guía de compatibilidad de hardware](/installation/Hardware-Compati
    - Haz clic en "Flash!"
    - Espera a que el proceso finalice (5–15 minutos)
 
-## Persistencia automática de cambios
+## Resultado y persistencia
 
-En el primer arranque, MiniOS comprobará el tipo de sistema de archivos de la unidad y elegirá el modo de persistencia de cambios óptimo. Si hay espacio libre disponible, el sistema creará automáticamente una partición ext4 para obtener el máximo rendimiento.
+Etcher realiza una escritura de imagen en bruto: copia la estructura del ISO en todo el dispositivo de destino. No crea una partición ext4 en el espacio no utilizado, no crea una sesión de persistencia ni realiza una implementación del instalador de MiniOS.
 
-### Configuración de parámetros (para usuarios avanzados)
-
-Cuando se requiere una configuración precisa de la persistencia, se pueden utilizar parámetros de arranque:
-
-- `perchmode=native` - Guardado directo en la partición (predeterminado, más rápido)
-- `perchmode=dynfilefs` - Archivo dinámicamente expandible
-- `perchmode=raw` - Archivo de tamaño fijo
-- `perchsize=8000` - Tamaño del espacio de almacenamiento de datos en MB para archivos de imagen
-
-Más detalles en [parámetros de arranque](/configuration/Boot-Parameters.md).
+La persistencia solo se habilita cuando una entrada de arranque o una línea de comandos del kernel la solicita, y aún así requiere un almacenamiento adecuado y con permisos de escritura. Consulta [Modos de arranque](/configuration/Boot-Modes.md) y [Persistencia Initrd](/configuration/Initrd-Persistence.md) antes de depender de los cambios guardados.

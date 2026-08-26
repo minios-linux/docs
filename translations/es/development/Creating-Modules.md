@@ -1,8 +1,8 @@
 # Creación de módulos
 
-Los módulos de MiniOS son imágenes de sistema de archivos SquashFS de solo lectura, que convencionalmente se nombran con la extensión `.sb`. Al iniciar, MiniOS organiza los módulos seleccionados en un sistema de archivos raíz en capas. Los archivos en una capa de mayor prioridad pueden complementar u ocultar archivos de capas inferiores.
+Los módulos de MiniOS son imágenes de sistema de archivos SquashFS de solo lectura, que convencionalmente llevan la extensión `.sb`. Al arrancar, MiniOS organiza los módulos seleccionados en un sistema de archivos raíz en capas. Los archivos en una capa de mayor prioridad pueden complementar u ocultar archivos de capas inferiores. Este es el flujo modular en vivo descrito en [Modos de arranque](/configuration/Boot-Modes.md), no la estructura de paquetes de una instalación nativa.
 
-Esta guía documenta los flujos de trabajo actuales por línea de comandos de las MiniOS Tools. Para la aplicación gráfica, consulta el [MiniOS Module Manager](/administration/Module-Manager.md). Para el proceso completo de construcción de imágenes y la arquitectura del sistema, consulta [Building MiniOS](/development/Building-MiniOS.md). Las listas de paquetes utilizadas durante la construcción de MiniOS se describen en la [documentación de CondinAPT](/development/CondinAPT.md).
+Esta guía documenta los flujos de trabajo actuales por línea de comandos de MiniOS Tools. Para la aplicación gráfica, consulta el [Administrador de módulos de MiniOS](/administration/Module-Manager.md). Para el proceso completo de construcción de imágenes y la arquitectura del sistema, consulta [Compilando MiniOS](/development/Building-MiniOS.md). Las listas de paquetes utilizadas durante la construcción de MiniOS se describen en la [documentación de CondinAPT](/development/CondinAPT.md).
 
 ## Límites de seguridad y privilegios
 
@@ -24,11 +24,13 @@ Los conversores y constructores actuales usan publicación sin reemplazo. Un des
 
 Utiliza la salida `--help` de cada comando como referencia de la versión instalada. Las opciones estándar de compresión del constructor son `zstd` (por defecto), `gzip`, `lzo` y `xz`; `dir2sb` también admite `lz4`.
 
-## Nombres de módulos y niveles de filtrado
+## Nombres de módulos y niveles de filtro
 
 Los nombres suelen comenzar con un número como `06-browser.sb` porque el orden de las capas afecta la resolución de conflictos. Un módulo debe contener rutas relativas a la raíz del sistema, como `usr/bin/example`, y no un directorio adicional que contenga ese árbol.
 
-La opción `--level LEVEL` en `apt2sb`, `script2sb` y `chroot2sb` limita las capas base utilizadas para construir la unión de compilación. Con `--level 3`, se usan las capas numeradas hasta `03` y se filtran las de mayor número. Esto puede hacer que un módulo dependa menos de capas opcionales superiores, a costa de incluir más dependencias en el resultado.
+Para conocer los niveles exactos de origen candidatos, el comportamiento ante colisiones de nombres base, el orden numérico y la semántica de `bext=`, `load=` y `noload=`, consulta [Carga de módulos en Initrd](/configuration/Initrd-Module-Loading.md). En particular, utiliza un nombre base único a menos que el módulo esté destinado a reemplazar la misma ranura con nombre de un nivel de origen anterior.
+
+La opción `--level LEVEL` en `apt2sb`, `script2sb` y `chroot2sb` limita las capas base utilizadas para construir la unión de compilación. Con `--level 3`, se usan las capas numeradas hasta `03` y las capas con números superiores se filtran. Esto puede hacer que un módulo dependa menos de capas opcionales superiores, a costa de incluir más dependencias en el resultado.
 
 ## Crear un módulo a partir de paquetes
 
@@ -157,23 +159,27 @@ Los directorios producidos por `sb2dir` actuales son directorios ordinarios. `rm
 
 ## Gestionar módulos en ejecución y para el próximo arranque
 
-"Running Now" y "Next Boot" son composiciones independientes.
+"En ejecución" y "Próximo arranque" son composiciones independientes. Consulta
+[construcción de uniones y activación en tiempo de ejecución](/configuration/Initrd-Module-Loading.md)
+para conocer el límite entre arranque/ejecución y por qué las dos listas pueden diferir.
 
-Lista los módulos que realmente componen la raíz AUFS u OverlayFS actual, de menor a mayor prioridad:
+Lista los módulos que realmente componen la raíz actual de AUFS o OverlayFS, desde la prioridad más baja hasta la más alta:
 
 ```bash
 sb list
 sb list --json
 ```
 
-Lista los módulos seleccionados por las reglas de arranque actuales, incluyendo `bext`, `load` y `noload`:
+Lista los módulos seleccionados por las reglas de arranque actuales:
 
 ```bash
 sb next-boot
 sb next-boot --json
 ```
 
-Estas consultas no requieren root. Un módulo para el próximo arranque puede provenir del árbol de datos base, su directorio `modules/` o almacenamiento separado de módulos persistentes. Una fuente posterior con el mismo nombre base reemplaza la selección anterior.
+Estas consultas no requieren privilegios de root. Las reglas canónicas de
+[candidato-nivel y reemplazo](/configuration/Initrd-Module-Loading.md)
+determinan qué fuente suministra cada nombre base de Próximo arranque.
 
 Para poner un módulo de usuario disponible en el próximo arranque:
 
@@ -181,35 +187,37 @@ Para poner un módulo de usuario disponible en el próximo arranque:
 sudo sb next-boot add 50-extra.sb
 ```
 
-MiniOS utiliza almacenamiento duradero y escribible adecuado, prepara y valida la copia, y la publica atómicamente sin reemplazar un módulo existente. El nombre de archivo debe cumplir los filtros de arranque actuales. Elimina un módulo de usuario seleccionado por su nombre base exacto:
+MiniOS utiliza almacenamiento duradero y escribible adecuado, prepara y valida la copia, y la publica de forma atómica sin reemplazar un módulo existente. El nombre de archivo debe cumplir con los filtros de arranque actuales. Elimina un módulo de usuario seleccionado usando su nombre base exacto:
 
 ```bash
 sudo sb next-boot remove 50-extra.sb
 ```
 
-La eliminación se rechaza para módulos base y módulos en fuentes de solo lectura o volátiles.
+No se permite la eliminación de módulos base ni de módulos en fuentes de solo lectura o volátiles.
 
-La activación en tiempo de ejecución es una operación separada, solo para la sesión actual:
+La activación en tiempo de ejecución es una operación separada, válida solo para la sesión actual:
 
 ```bash
 sudo sb activate 50-extra.sb
 sudo sb deactivate 50-extra.sb
 ```
 
-La activación y desactivación solo funcionan cuando `/` es actualmente una unión AUFS. No están disponibles en OverlayFS, y el soporte AUFS del kernel por sí solo no es suficiente. Ningún comando modifica el próximo arranque.
+La activación y desactivación solo funcionan cuando `/` es actualmente una unión AUFS. No están disponibles en OverlayFS, y el soporte de AUFS en el kernel por sí solo no es suficiente. Ningún comando modifica Próximo arranque.
 
-El despachador de conversión de compatibilidad requiere ambos operandos:
+El despachador del convertidor de compatibilidad requiere ambos operandos:
 
 ```bash
 sudo sb conv my-app-root 06-my-app.sb
 sudo sb conv 06-my-app.sb example-root
 ```
 
-El uso directo de `dir2sb` y `sb2dir` es preferible porque la conversión ordinaria puede ejecutarse sin root.
+El uso directo de `dir2sb` y `sb2dir` es preferible porque la conversión ordinaria puede ejecutarse sin privilegios de root.
 
 ## Documentación relacionada
 
-- [MiniOS Module Manager](/administration/Module-Manager.md)
+- [Administrador de módulos de MiniOS](/administration/Module-Manager.md)
+- [Carga de módulos en Initrd](/configuration/Initrd-Module-Loading.md)
+- [Modos de arranque](/configuration/Boot-Modes.md)
 - [Reconstrucción de imágenes ISO](/development/Rebuilding-ISO.md)
-- [Building MiniOS](/development/Building-MiniOS.md)
+- [Compilando MiniOS](/development/Building-MiniOS.md)
 - [Parámetros de arranque](/configuration/Boot-Parameters.md)

@@ -16,7 +16,7 @@ Related: [Boot parameters](/configuration/Boot-Parameters.md) (`ip`, `from`, `ca
 
 | Mode | What you boot | How MiniOS data is obtained |
 |------|----------------|-----------------------------|
-| **PXE** | Kernel + initrd from a network boot server | Non-empty `ip=` → initrd downloads MiniOS files from the PXE data server (HTTP preferred, TFTP fallback) |
+| **PXE** | Kernel + initrd from a network boot server | Non-empty `ip=` without `from=http://…` → initrd downloads MiniOS files from the PXE data server |
 | **HTTP ISO** | Kernel + initrd from local media **or** PXE | `from=http://…/minios.iso` → initrd brings up the network and mounts the ISO with `httpfs2` |
 | **Local media** | USB / ISO / disk | No initrd network; local search only |
 
@@ -24,18 +24,22 @@ Initramfs builders: **LiveKit** (`livekit-mos`) or **dracut** (`dracut-mos`). Bo
 
 ```text
 find_data()
-  ├─ from=http://…     → configure network → mount ISO (httpfs2)
+  ├─ from=http://…     → configure network (ip= static, otherwise DHCP) → mount ISO (httpfs2)
   ├─ ip=… (non-empty)  → configure network → PXE download of MiniOS data
   └─ else              → search local disks/ISO only (no network)
 ```
 
-**Important:** any non-empty `ip=` selects the **PXE data path** and **skips local media**. Do not add `ip=` on a normal USB/ISO boot just to “set a static address.”
+`from=http://…` has precedence over `ip=`. In that mode, `ip=` supplies static
+addressing for the HTTP ISO connection. Otherwise, any non-empty `ip=` selects
+the **PXE data path** and skips local media. Do not add `ip=` on a normal USB/ISO
+boot just to "set a static address." Neither network path falls back to local
+media if discovery or download fails.
 
 ## Requirements
 
 | Requirement | Notes |
 |-------------|--------|
-| Wired Ethernet (or virtio/vmxnet in VMs) | First usable non-loopback interface is used; no `BOOTIF` / `ethdevice` selection in initrd |
+| Wired Ethernet (or virtio/vmxnet in VMs) | First detected non-loopback interface is used; link and reachability are not checked, and there is no `BOOTIF` / `ethdevice` selection in initrd |
 | Initrd with network modules | Built for package variants other than the internal `minimum` value (`--network`, often `--cloud`) |
 | No reliance on Wi‑Fi | Wireless is not supported in the network-boot path |
 | Prefer NICs without firmware blobs | Firmware-dependent cards often fail in initrd |
@@ -76,10 +80,12 @@ ip=192.168.1.10:192.168.1.1:192.168.1.1:255.255.255.0:8080
 
 ### How files are fetched
 
-1. **HTTP** (preferred):  
-   `http://<server-ip>:<port>/PXEFILELIST?<kernel-release>:<machine>`  
+1. **HTTP** (preferred):
+   `http://<server-ip>:<port>/PXEFILELIST?<kernel-release>:<machine>`
    then each path listed in that file from the same host/port.
-2. **TFTP** (fallback if HTTP fails): busybox `tftp` for `PXEFILELIST` and listed files.
+2. **TFTP**: busybox `tftp` is selected only if the initial HTTP request for
+   `PXEFILELIST` fails. A later HTTP file-download failure does not switch the
+   transfer to TFTP.
 
 Default port is **7529** when the fifth field is omitted.
 
@@ -89,7 +95,7 @@ Default port is **7529** when the fifth field is omitted.
 |-------------|---------|
 | Kernel / dracut forms (`ip=dhcp`, `ip=:::::eth0:dhcp`, …) | **Not supported** — misparsed as a client address |
 | Static IP for the whole live session | **Not supported** — after boot, NetworkManager (or similar) owns the interface |
-| Static IP while still booting from USB/ISO | **Do not use** — forces PXE data download |
+| Static IP while loading MiniOS data from USB/ISO | **Do not use** — without `from=http://…`, it forces PXE data download |
 | Dedicated DNS list | Only gateway + server are used as nameservers in the initrd |
 
 ## HTTP ISO boot (`from=http://…`)
@@ -127,7 +133,7 @@ Late userspace **live-config** may briefly bring up networking only to download 
 
 ## Common mistakes
 
-1. Putting `ip=` on a USB/ISO cmdline “for static IP” → system tries PXE download instead of local media.
+1. Putting `ip=` on a USB/ISO cmdline "for static IP" → system tries PXE download instead of local media unless `from=http://…` selected HTTP ISO boot first.
 2. Using `ip=dhcp` or other kernel `ip=` syntax → wrong parser, broken address setup.
 3. Expecting Wi‑Fi or multi-NIC `BOOTIF` selection in initrd → not implemented.
 4. Using a **Flux** image for PXE/HTTP ISO → network modules missing from initrd.
@@ -138,7 +144,7 @@ Late userspace **live-config** may briefly bring up networking only to download 
 
 | Scenario | Assessment |
 |----------|------------|
-| PXE + `ip=…` + HTTP list on :7529 (or TFTP), simple wired / virtio | Supported target |
+| PXE + `ip=…` + HTTP list on :7529 (or TFTP after the HTTP list request fails), simple wired / virtio | Supported target |
 | `from=http://…iso` + DHCP (or `ip=`), same NIC class | Usually works |
 | Normal USB/ISO boot | Initrd network not used |
 | Session static via `ip=` | Not supported |
@@ -157,6 +163,7 @@ Late userspace **live-config** may briefly bring up networking only to download 
 ## See also
 
 - [Boot parameters](/configuration/Boot-Parameters.md) — full parameter table (`ip`, `from`, `cache`, …)
+- [Initrd system discovery](/configuration/Initrd-System-Discovery.md) — source precedence, local discovery, and failure behavior
 - [live-config](/configuration/live-config.md) — late userspace configuration (not network boot)
 - [System architecture](/about/System-Architecture.md)
 - [Building MiniOS](/development/Building-MiniOS.md) — initramfs builder (`livekit` / `dracut`)

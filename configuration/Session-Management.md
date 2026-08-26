@@ -25,9 +25,12 @@ require administrative privileges, so the examples below use `sudo`.
 | `squashfs` | Compressed snapshot in `changes.sb` | Saving requires a POSIX persistence filesystem that can preserve links, ownership, modes, xattrs, ACLs, capabilities, and whiteouts. |
 
 `dynfilefs`, `raw`, and `luks` created with `minios-session` default to 4000
-MB. Sizes use decimal `MB`, `GB`, or `TB` units and are limited to 1 TB. Raw
-and LUKS files are limited to 4000 MB on FAT32. Container resize operations can
-only grow a session; shrinking is not supported.
+MiB. Size values are allocated in MiB; `GB` and `TB` suffixes convert to 1000
+and 1,000,000 MiB. Session Manager limits raw and LUKS files to 4000 MiB on
+FAT32. Do not rely on that as a
+general initrd guarantee: an oversized raw boot request may reach allocation
+and fail rather than being reduced. Container resize operations can only grow a
+session; shrinking is not supported.
 
 Native mode is the simplest and fastest choice on a compatible filesystem.
 Use DynFileFS when the persistence filesystem cannot represent Linux metadata.
@@ -42,38 +45,45 @@ sudo minios-session info
 sudo minios-session status
 ```
 
-No session can be created on read-only media. SquashFS activation on
-FAT32/NTFS/exFAT remains disabled until a metadata-preserving staging workspace
-is available.
+No session can be created on read-only media. The initrd can read and activate
+an existing SquashFS snapshot stored on writable FAT, exFAT, or NTFS because it
+extracts the snapshot into a temporary ext4 upper. Creating or exactly saving a
+snapshot is different: its private staging workspace must be on a suitable
+POSIX filesystem that preserves Linux metadata and union whiteouts.
 
 ## Boot selection
 
 Any recognized persistence parameter enables persistence handling. MiniOS boot
-menus normally provide resume, new, selection, and non-persistent entries.
+menus normally provide resume, new, selection, and non-persistent entries. The
+canonical description of selector, compatibility, fallback, and activation
+semantics is [Initrd persistence](./Initrd-Persistence.md).
 
 | Parameter | Meaning |
 |-----------|---------|
-| `perch` | Request persistence. |
-| `perchdir=resume` | Resume the default session. This is best-effort and continues in memory if no writable, compatible session is available. |
+| `perch` | Use the legacy best-effort resume path. It tries the metadata default but does not create a replacement when none is usable. |
+| `perchdir=resume` | Resume the metadata default and, when it is absent or incompatible, allow the initrd to create a new compatible replacement. This is the current boot-menu resume behavior. |
 | `perchdir=new` | Allocate a new numbered session. |
 | `perchdir=ask` | Select an existing session or create one during boot. |
 | `perchdir=<id>` | Select that numbered session directly. |
 | `perchdir=<device/path>` | Use a persistence location on a device, including `/dev/...` and `label:...` forms handled by the initrd. |
 | `perchmode=<mode>` | Set `native`, `dynfilefs`, `raw`, `luks`, or `squashfs`. |
-| `perchsize=<size>` | Set a new or larger container size; plain values are MB and `MB`, `GB`, and `TB` suffixes are accepted. |
+| `perchsize=<size>` | Set a new or larger container size; plain values are allocated in MiB and `MB`, `GB`, and `TB` suffixes are accepted. |
 
 If no mode is specified for a new session, boot uses native mode. On
 FAT32/NTFS/exFAT, native boot creation falls back to DynFileFS. A new raw or
-LUKS boot container defaults to 4000 MB; a new DynFileFS boot session without
+LUKS boot container defaults to 4000 MiB; a new DynFileFS boot session without
 `perchsize` is sized from available space while retaining a safety reserve.
 SquashFS sessions are captured from the running system with Session Manager or
 `minios-session create squashfs`; `perchdir=new perchmode=squashfs` does not
 create a snapshot in the initrd.
 
 When resuming, MiniOS checks the recorded version, edition, union filesystem,
-and mode. The normal `resume` path creates a new session instead of replacing
-an incompatible one. Interactive selection displays a warning before allowing
-an incompatible session.
+and mode. Literal `perchdir=resume` can create a new session instead of using an
+absent or incompatible default. Bare `perch`, direct numeric selection, and
+other legacy resume requests do not automatically create that replacement.
+Interactive selection displays a warning before allowing an incompatible
+session. If selection or activation still fails, boot normally continues with a
+RAM upper and a persistence warning.
 
 The session store has this form:
 
@@ -87,16 +97,25 @@ minios/changes/
 
 `session.conf` records the default and running IDs and per-session mode,
 version, edition, union filesystem, size, state, and mode-specific settings.
-It is the configuration committed by the boot implementation. Do not edit it
-or move numbered session data while a session is mounted; use Session Manager
-or `minios-session`.
+It is persistent metadata committed by the boot implementation, not by itself
+proof of current runtime state. Do not edit it or move numbered session data
+while a session is mounted; use Session Manager or `minios-session`.
 
 ## Active and running sessions
 
 These terms describe different state:
 
 - The **active** session is the default selected for the next boot.
-- The **running** session supplies persistence to the current boot.
+- Conceptually, the **running** session is the session whose writable layer
+  actually supplies persistence to the current boot.
+
+The persistent `running=` field records that intended relationship. A crash,
+failed union construction, copied store, or interrupted shutdown can leave it
+stale even when the current boot is using RAM or another session. Operations
+such as SquashFS saving therefore require the initrd's protected, boot-ID-bound
+current-boot state and verified mounted upper; they do not trust `running=`
+alone. See [Active, running, and current-boot
+state](./Initrd-Persistence.md).
 
 Activating a session changes the next boot and does not switch the current
 union filesystem:

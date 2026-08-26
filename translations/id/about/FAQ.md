@@ -22,16 +22,11 @@ Tidak selalu. Penulisan ISO secara langsung dan boot ISO normal dengan Ventoy ti
 
 ## Apa perbedaan antara sesi aktif dan sesi berjalan?
 
-Sesi aktif dipilih untuk boot berikutnya; sesi berjalan menyediakan
-persistensi saat ini. Mengaktifkan sesi tidak akan mengganti sistem yang sedang berjalan. Lihat
-[Manajemen Sesi](/configuration/Session-Management.md).
+Sesi aktif adalah sesi yang dipilih untuk boot berikutnya; secara konsep, sesi berjalan menyediakan persistensi saat ini. Rekaman `running=` yang persisten bisa saja usang setelah terjadi crash, sehingga status boot saat ini yang terlindungi dan layer writable yang ter-mount menjadi acuan utama untuk operasi runtime. Mengaktifkan sebuah sesi tidak akan langsung mengganti sistem yang sedang berjalan. Lihat [Manajemen Sesi](/configuration/Session-Management.md) dan [Persistensi Initrd](/configuration/Initrd-Persistence.md).
 
 ## Mengapa perubahan saya hilang setelah reboot?
 
-Anda mungkin melakukan boot ke sesi baru, menggunakan media tanpa persistensi, memilih sesi yang berbeda, atau mematikan perangkat sebelum perubahan disimpan. Periksa sesi berjalan dan
-aktif seperti dijelaskan di
-[Manajemen Sesi](/configuration/Session-Management.md) dan
-[Pemecahan Masalah](/administration/Troubleshooting.md).
+Anda mungkin melakukan boot ke sesi baru, menggunakan media tanpa persistensi, atau memilih sesi yang berbeda. Sesi Native, DynFileFS, raw, dan LUKS akan menerima penulisan data selama sistem berjalan; mereka tidak menunggu snapshot saat shutdown. Hanya persistensi SquashFS yang memerlukan perubahan berbasis RAM untuk dibangun ulang ke dalam `changes.sb`, sehingga shutdown yang terputus atau kebijakan penyimpanan yang dinonaktifkan dapat menyebabkan perubahan terakhir tidak tersimpan. Periksa sesi berjalan dan aktif seperti dijelaskan di [Manajemen Sesi](/configuration/Session-Management.md) dan [Pemecahan Masalah](/administration/Troubleshooting.md).
 
 ## Apakah LUKS dan SquashFS jenis persistensi yang sama?
 

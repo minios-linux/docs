@@ -14,45 +14,71 @@ L’outil équivalent en ligne de commande est `minios-session`. Ses commandes d
 
 | Mode | Stockage | Contraintes principales |
 |------|----------|------------------------|
-| `native` | Modifications stockées directement dans le répertoire de session | Nécessite un système de fichiers POSIX writable tel que ext2/3/4, Btrfs, XFS, F2FS ou ReiserFS. |
-| `dynfilefs` | Conteneur ext4 extensible découpé en fichiers de support | Fonctionne sur POSIX writable, FAT32, NTFS et exFAT. Nécessite le backend DynFileFS. |
-| `raw` | `changes.img` de taille fixe contenant ext4 | Fonctionne sur POSIX writable, FAT32, NTFS et exFAT. |
-| `luks` | `changes.luks` chiffré LUKS2 contenant ext4 | Nécessite `cryptsetup`, le support loop et le hook LUKS de l’initrd MiniOS. |
-| `squashfs` | Snapshot compressé dans `changes.sb` | L’enregistrement nécessite un système de fichiers persistant POSIX capable de préserver liens, propriétaires, modes, xattrs, ACLs, capacités et whiteouts. |
+| `native` | Modifications stockées directement dans le répertoire de session | Nécessite un système de fichiers POSIX inscriptible tel que ext2/3/4, Btrfs, XFS, F2FS ou ReiserFS. |
+| `dynfilefs` | Conteneur ext4 extensible réparti en fichiers de support | Fonctionne sur POSIX inscriptible, FAT32, NTFS et exFAT. Nécessite le backend DynFileFS. |
+| `raw` | `changes.img` de taille fixe contenant ext4 | Fonctionne sur POSIX inscriptible, FAT32, NTFS et exFAT. |
+| `luks` | `changes.luks` chiffré LUKS2 contenant ext4 | Nécessite `cryptsetup`, le support loop et le hook LUKS de l'initrd MiniOS. |
+| `squashfs` | Instantané compressé dans `changes.sb` | L'enregistrement nécessite un système de fichiers de persistance POSIX capable de préserver les liens, propriétaires, modes, xattrs, ACLs, capacités et whiteouts. |
 
-`dynfilefs`, `raw` et `luks` créés avec `minios-session` ont par défaut une taille de 4000 Mo. Les tailles utilisent les unités décimales `MB`, `GB` ou `TB` et sont limitées à 1 To. Les fichiers raw et LUKS sont limités à 4000 Mo sur FAT32. Les opérations de redimensionnement de conteneur ne permettent que d’augmenter la taille d’une session ; la réduction n’est pas prise en charge.
+`dynfilefs`, `raw` et `luks` créés avec `minios-session` ont une taille par défaut de 4000
+MiB. Les valeurs de taille sont allouées en MiB ; les suffixes `GB` et `TB` convertissent respectivement en 1000
+et 1 000 000 MiB. Le gestionnaire de sessions limite les fichiers raw et LUKS à 4000 MiB sur
+FAT32. Ne considérez pas cela comme une garantie générale de l'initrd : une demande de démarrage raw surdimensionnée peut être allouée
+et échouer au lieu d'être réduite. Les opérations de redimensionnement de conteneur ne peuvent qu'augmenter la taille d'une
+session ; la réduction n'est pas prise en charge.
 
-Le mode natif est le choix le plus simple et le plus rapide sur un système de fichiers compatible. Utilisez DynFileFS lorsque le système de fichiers persistant ne peut pas représenter les métadonnées Linux. Utilisez raw lorsqu’une allocation fixe est requise, LUKS si la session doit être chiffrée, et SquashFS pour un snapshot compressé exact.
+Le mode natif est le choix le plus simple et rapide sur un système de fichiers compatible.
+Utilisez DynFileFS lorsque le système de fichiers de persistance ne peut pas représenter les métadonnées Linux.
+Utilisez raw lorsque l'allocation fixe est requise, LUKS lorsque la session doit être
+chiffrée, et SquashFS pour un instantané compressé exact.
 
-Exécutez les commandes suivantes pour inspecter le système de fichiers persistant réel et les modes disponibles dessus :
+Exécutez les commandes suivantes pour inspecter le système de fichiers de persistance réel et
+les modes disponibles dessus :
 
 ```bash
 sudo minios-session info
 sudo minios-session status
 ```
 
-Aucune session ne peut être créée sur un support en lecture seule. L’activation de SquashFS sur FAT32/NTFS/exFAT reste désactivée tant qu’un espace de travail intermédiaire préservant les métadonnées n’est pas disponible.
+Aucune session ne peut être créée sur un support en lecture seule. L'initrd peut lire et activer
+un instantané SquashFS existant stocké sur FAT, exFAT ou NTFS inscriptible car il
+extrait l'instantané dans un ext4 temporaire. Créer ou enregistrer exactement un
+instantané est différent : son espace de travail privé de préparation doit être sur un système de fichiers POSIX adapté qui préserve les métadonnées Linux et les whiteouts d'union.
 
-## Sélection au démarrage
+## Sélection du démarrage
 
-Tout paramètre de persistance reconnu active la gestion de la persistance. Les menus de démarrage MiniOS proposent généralement des entrées pour reprendre, créer une nouvelle session, sélectionner, ou démarrer sans persistance.
+Tout paramètre de persistance reconnu active la gestion de la persistance. Les menus de démarrage MiniOS
+proposent généralement des entrées pour reprendre, créer une nouvelle session, sélectionner, ou démarrer sans persistance.
+La description de référence des comportements de sélection, compatibilité, repli et activation
+se trouve dans [Persistance de l'initrd](./Initrd-Persistence.md).
 
 | Paramètre | Signification |
 |-----------|--------------|
-| `perch` | Demande la persistance. |
-| `perchdir=resume` | Reprend la session par défaut. Ceci est effectué au mieux et continue en mémoire si aucune session writable et compatible n’est disponible. |
+| `perch` | Utilise l'ancien chemin de reprise "best-effort". Il tente d'utiliser la valeur par défaut des métadonnées mais ne crée pas de remplacement si aucune n'est utilisable. |
+| `perchdir=resume` | Reprend la valeur par défaut des métadonnées et, si elle est absente ou incompatible, permet à l'initrd de créer un nouveau remplacement compatible. C'est le comportement actuel du menu de démarrage pour la reprise. |
 | `perchdir=new` | Alloue une nouvelle session numérotée. |
 | `perchdir=ask` | Sélectionne une session existante ou en crée une au démarrage. |
 | `perchdir=<id>` | Sélectionne directement cette session numérotée. |
-| `perchdir=<device/path>` | Utilise un emplacement de persistance sur un périphérique, y compris les formes `/dev/...` et `label:...` gérées par l’initrd. |
+| `perchdir=<device/path>` | Utilise un emplacement de persistance sur un périphérique, y compris les formes `/dev/...` et `label:...` gérées par l'initrd. |
 | `perchmode=<mode>` | Définit `native`, `dynfilefs`, `raw`, `luks` ou `squashfs`. |
-| `perchsize=<size>` | Définit une taille de conteneur nouvelle ou supérieure ; les valeurs simples sont en Mo et les suffixes `MB`, `GB` et `TB` sont acceptés. |
+| `perchsize=<size>` | Définit une taille de conteneur nouvelle ou supérieure ; les valeurs simples sont allouées en MiB et les suffixes `MB`, `GB` et `TB` sont acceptés. |
 
-Si aucun mode n’est spécifié pour une nouvelle session, le démarrage utilise le mode natif. Sur FAT32/NTFS/exFAT, la création native bascule sur DynFileFS. Un nouveau conteneur raw ou LUKS démarre à 4000 Mo ; une nouvelle session DynFileFS sans `perchsize` est dimensionnée selon l’espace disponible tout en conservant une réserve de sécurité. Les sessions SquashFS sont capturées depuis le système en cours via le Gestionnaire de sessions ou `minios-session create squashfs` ; `perchdir=new perchmode=squashfs` ne crée pas de snapshot dans l’initrd.
+Si aucun mode n'est spécifié pour une nouvelle session, le démarrage utilise le mode natif. Sur
+FAT32/NTFS/exFAT, la création native bascule vers DynFileFS. Un nouveau conteneur raw ou LUKS démarre à 4000 MiB ; une nouvelle session DynFileFS sans
+`perchsize` est dimensionnée selon l'espace disponible tout en conservant une marge de sécurité.
+Les sessions SquashFS sont capturées depuis le système en cours d'exécution avec le gestionnaire de sessions ou
+`minios-session create squashfs` ; `perchdir=new perchmode=squashfs` ne
+crée pas d'instantané dans l'initrd.
 
-Lors de la reprise, MiniOS vérifie la version enregistrée, l’édition, le système de fichiers union et le mode. Le chemin normal `resume` crée une nouvelle session au lieu de remplacer une session incompatible. La sélection interactive affiche un avertissement avant d’autoriser une session incompatible.
+Lors de la reprise, MiniOS vérifie la version enregistrée, l'édition, le système de fichiers union
+et le mode. L'utilisation de `perchdir=resume` peut créer une nouvelle session au lieu d'utiliser une valeur par défaut
+absente ou incompatible. Les demandes de reprise directes `perch`, la sélection numérique directe et
+les autres requêtes de reprise héritées ne créent pas automatiquement ce remplacement.
+La sélection interactive affiche un avertissement avant d'autoriser une session incompatible.
+Si la sélection ou l'activation échoue encore, le démarrage continue normalement avec une
+couche supérieure en RAM et un avertissement de persistance.
 
-Le stockage des sessions a la forme suivante :
+Le stockage des sessions a cette forme :
 
 ```text
 minios/changes/
@@ -62,16 +88,27 @@ minios/changes/
 `-- N/
 ```
 
-`session.conf` enregistre les identifiants par défaut et en cours, ainsi que le mode, la version, l’édition, le système de fichiers union, la taille, l’état et les paramètres spécifiques à chaque session. Il s’agit de la configuration validée par le démarrage. Ne l’éditez pas et ne déplacez pas les données de session numérotées pendant qu’une session est montée ; utilisez le Gestionnaire de sessions ou `minios-session`.
+`session.conf` enregistre les identifiants par défaut et en cours, ainsi que le mode, la version, l'édition, le système de fichiers union, la taille, l'état et les paramètres spécifiques à chaque session.
+Il s'agit de métadonnées persistantes validées par l'implémentation du démarrage, et non d'une preuve
+de l'état d'exécution actuel. Ne l'éditez pas et ne déplacez pas les données de session numérotées
+lorsqu'une session est montée ; utilisez le gestionnaire de sessions ou `minios-session`.
 
 ## Sessions actives et en cours d’exécution
 
-Ces termes décrivent des états différents :
+Ces termes décrivent des états différents :
 
 - La session **active** est celle sélectionnée par défaut pour le prochain démarrage.
-- La session **en cours** fournit la persistance à la session en cours d’exécution.
+- Conceptuellement, la session **en cours d’exécution** est celle dont la couche inscriptible
+  fournit effectivement la persistance au démarrage actuel.
 
-Activer une session modifie le prochain démarrage sans changer le système de fichiers union actuel :
+Le champ persistant `running=` enregistre cette relation prévue. Un crash,
+une construction de l’union échouée, une copie du stockage ou une extinction interrompue peuvent le rendre
+obsolète, même si le démarrage actuel utilise la RAM ou une autre session. Les opérations
+comme la sauvegarde SquashFS nécessitent donc l’état protégé de l’initrd, lié à l’ID de démarrage
+et la couche supérieure montée et vérifiée ; elles ne se fient pas uniquement à `running=`.
+Voir [État actif, en cours d’exécution et de démarrage actuel](./Initrd-Persistence.md).
+
+Activer une session modifie le prochain démarrage mais ne change pas le système de fichiers union actuel :
 
 ```bash
 sudo minios-session active
@@ -79,7 +116,9 @@ sudo minios-session running
 sudo minios-session activate <id>
 ```
 
-La session active ne peut pas être supprimée ni convertie sur place. Une session en cours ne peut normalement pas être supprimée, exportée, copiée, redimensionnée ou convertie. Le nettoyage protège également ces deux identifiants.
+La session active ne peut pas être supprimée ni convertie sur place. Une session en cours d’exécution
+ne peut normalement pas être supprimée, exportée, copiée, redimensionnée ou convertie. Le nettoyage
+protège également les deux identifiants.
 
 ## Référence des commandes
 

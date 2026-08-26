@@ -18,11 +18,11 @@ Pas forcément. L’écriture brute de l’ISO et le démarrage classique de l�
 
 ## Quelle est la différence entre la session active et la session en cours d’exécution ?
 
-La session active est celle sélectionnée pour le prochain démarrage ; la session en cours d’exécution fournit la persistance actuellement. Activer une session ne change pas le système en cours. Voir la [Gestion des sessions](/configuration/Session-Management.md).
+La session active est celle sélectionnée pour le prochain démarrage ; en pratique, la session en cours d’exécution assure la persistance à l’instant présent. L’enregistrement persistant `running=` peut être obsolète après un crash, c’est pourquoi l’état protégé du démarrage actuel et le système de fichiers monté en écriture font autorité pour les opérations en temps réel. Activer une session ne change pas le système en cours. Consultez [Gestion des sessions](/configuration/Session-Management.md) et [Persistance de l’initrd](/configuration/Initrd-Persistence.md).
 
 ## Pourquoi mes modifications ont-elles disparu après le redémarrage ?
 
-Vous avez peut-être démarré une nouvelle session, utilisé un support sans persistance, sélectionné une session différente ou éteint l’ordinateur avant que les modifications ne soient enregistrées. Vérifiez la session en cours et la session active comme décrit dans la [Gestion des sessions](/configuration/Session-Management.md) et la section [Dépannage](/administration/Troubleshooting.md).
+Vous avez peut-être démarré une nouvelle session, utilisé un support sans persistance ou sélectionné une session différente. Les sessions Native, DynFileFS, raw et LUKS enregistrent les écritures pendant l’exécution du système ; elles n’attendent pas la création d’un instantané à l’arrêt. Seule la persistance SquashFS nécessite que les modifications en mémoire (RAM) soient réintégrées dans `changes.sb`, donc un arrêt interrompu ou une politique de sauvegarde désactivée peut empêcher l’enregistrement des derniers changements. Vérifiez la session en cours d’exécution et la session active comme décrit dans [Gestion des sessions](/configuration/Session-Management.md) et [Dépannage](/administration/Troubleshooting.md).
 
 ## LUKS et SquashFS sont-ils le même type de persistance ?
 

@@ -8,9 +8,9 @@ Balena Etcher è un programma multipiattaforma pratico per scrivere immagini ISO
 
 ## Requisiti dell’unità
 
-### Dimensione dell’unità
+### Dimensione del drive
 
-Consulta la [Guida alla compatibilità hardware](/installation/Hardware-Compatibility.md#system-requirements) per i requisiti di sistema dettagliati e le dimensioni delle unità.
+Consulta la [Guida alla compatibilità hardware](/installation/Hardware-Compatibility.md) per i requisiti di sistema dettagliati e le dimensioni dei drive.
 
 ## Preparazione
 
@@ -31,17 +31,8 @@ Consulta la [Guida alla compatibilità hardware](/installation/Hardware-Compatib
    - Clicca su "Flash!"
    - Attendi il completamento del processo (5–15 minuti)
 
-## Persistenza automatica delle modifiche
+## Risultato e persistenza
 
-Al primo avvio, MiniOS controllerà il tipo di file system dell’unità e sceglierà la modalità di persistenza delle modifiche ottimale. Se è disponibile spazio libero, il sistema creerà automaticamente una partizione ext4 per prestazioni massime.
+Etcher esegue una scrittura raw dell'immagine: copia la struttura dell'ISO su tutto il dispositivo di destinazione. Non crea una partizione ext4 nello spazio inutilizzato, non crea una sessione di persistenza e non esegue un deployment dell'Installer di MiniOS.
 
-### Configurazione dei parametri (per utenti esperti)
-
-Quando è necessaria una configurazione precisa della persistenza, è possibile utilizzare i parametri di avvio:
-
-- `perchmode=native` - Salvataggio diretto sulla partizione (predefinito, più veloce)
-- `perchmode=dynfilefs` - File espandibile dinamicamente
-- `perchmode=raw` - File a dimensione fissa
-- `perchsize=8000` - Spazio di archiviazione dati in MB per i file immagine
-
-Dettagli in [parametri di avvio](/configuration/Boot-Parameters.md).
+La persistenza viene abilitata solo quando una voce di avvio o una riga di comando del kernel la richiede, e richiede comunque uno spazio di archiviazione scrivibile adeguato. Consulta [Modalità di avvio](/configuration/Boot-Modes.md) e [Persistenza Initrd](/configuration/Initrd-Persistence.md) prima di fare affidamento sulle modifiche salvate.

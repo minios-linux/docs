@@ -4,17 +4,28 @@ MiniOS inicia un sistema operativo de solo lectura ensamblado a partir de módul
 
 ## Descubrimiento de arranque
 
-El cargador de arranque BIOS o UEFI carga un kernel de Linux y el initramfs de MiniOS desde `minios/boot/`. Luego, el initramfs busca en los dispositivos de bloque un directorio `minios` que contenga módulos `.sb`. El parámetro de arranque `from=` puede, en su lugar, indicar un directorio, un dispositivo de bloque y ruta, un archivo ISO local o una selección interactiva `askdisk`. Un ISO local se monta en modo loop antes de usar su directorio `minios`.
+El gestor de arranque BIOS o UEFI carga un kernel de Linux y el initramfs de MiniOS desde
+`minios/boot/`. Luego, el initramfs detecta el árbol de datos de MiniOS que contiene
+los módulos live. La fuente puede ser local, seleccionada de forma interactiva o proporcionada
+a través de una ruta de red compatible; una ISO local se monta en modo loop antes de usar su árbol de datos.
+La precedencia exacta y las formas aceptadas de `from=` están documentadas en
+[Descubrimiento del sistema Initrd](/configuration/Initrd-System-Discovery.md).
 
-La misma etapa de descubrimiento admite fuentes ISO HTTP y PXE. La red opcional en el arranque temprano es solo para **cargar MiniOS a través de la red** (PXE / ISO por HTTP). No es una configuración de red de sesión duradera. Consulta [Arranque por red](/installation/Network-Boot.md).
+La misma etapa de descubrimiento admite fuentes ISO HTTP y PXE. La red opcional en arranque temprano es solo para **cargar MiniOS por red** (PXE / ISO por HTTP). No es una configuración de red de sesión duradera. Consulta
+[Arranque por red](/installation/Network-Boot.md).
 
-Tras el descubrimiento, `toram=trim` puede copiar los módulos seleccionados y los datos requeridos a RAM, mientras que `toram=full` copia el árbol de datos del medio. Consulta [Parámetros de arranque](/configuration/Boot-Parameters.md) para opciones de origen, filtrado y copia a RAM.
+Después del descubrimiento, MiniOS puede preparar opcionalmente una copia en RAM. Si la fuente original sigue siendo necesaria depende del modo de copia, la persistencia y el éxito del desmontaje. Consulta [Modos de arranque](/configuration/Boot-Modes.md) para el modelo operativo.
 
 ## Composición de módulos
 
-Cada archivo `.sb` es un sistema de archivos SquashFS de solo lectura. Los módulos integrados se almacenan directamente bajo `minios/`; los módulos adicionales pueden almacenarse en `minios/modules/`, incluyendo almacenamiento duradero de módulos en un dispositivo de persistencia escribible. El initramfs detecta ambas ubicaciones, aplica los filtros `load=` y `noload=`, ordena los archivos seleccionados por el prefijo numérico del nombre de archivo y los monta en modo solo lectura.
+Cada archivo `.sb` es un sistema de archivos SquashFS de solo lectura. Los módulos integrados se almacenan
+directamente en `minios/`; ubicaciones adicionales de módulos pueden contribuir a la
+composición ordenada. El initramfs selecciona, ordena y monta las capas resultantes
+de solo lectura. Los niveles candidatos, el reemplazo de nombre base, los filtros, las extensiones de bundle personalizadas y la coordinación con el kernel en ejecución se especifican en
+[Carga de módulos Initrd](/configuration/Initrd-Module-Loading.md).
 
-Una imagen típica de Xfce contiene los siguientes roles ordenados, aunque los nombres y números exactos dependen de la compilación y los módulos omitidos para ese destino:
+Una imagen típica de Xfce contiene los siguientes roles ordenados, aunque los nombres
+y la cantidad exacta dependen de la build y de los módulos omitidos para ese destino:
 
 ```text
 00-core-<arch>.sb
@@ -25,34 +36,42 @@ Una imagen típica de Xfce contiene los siguientes roles ordenados, aunque los n
 05-apps-<arch>.sb or the next applicable module
 ```
 
-Los módulos posteriores tienen mayor precedencia y pueden reemplazar rutas proporcionadas por módulos anteriores. Un módulo puede depender de archivos en cualquier módulo de número inferior, por lo que el conjunto de archivos de módulos es una composición ordenada y no una colección de paquetes independientes.
+Los módulos posteriores tienen mayor precedencia y pueden reemplazar rutas proporcionadas por módulos anteriores. Un módulo puede depender de archivos en cualquier módulo con número inferior, por lo que un conjunto de archivos de módulo es una composición ordenada y no una colección de paquetes independientes.
 
 ## AUFS y OverlayFS
 
-MiniOS utiliza un sistema de archivos unificado (union filesystem) para presentar los módulos y la capa escribible como un solo sistema de archivos raíz. Selecciona AUFS cuando el kernel en ejecución lo soporta y recurre a OverlayFS en caso contrario. `union=aufs` solicita AUFS pero igualmente recurre a OverlayFS si AUFS no está disponible; `union=overlayfs` selecciona OverlayFS.
+MiniOS utiliza un sistema de archivos unificado para presentar los módulos y la capa escribible como un solo sistema de archivos raíz. Selecciona AUFS cuando el kernel en ejecución lo soporta y recurre a OverlayFS en caso contrario. `union=aufs` solicita AUFS pero igualmente recurre a OverlayFS cuando AUFS no está disponible; `union=overlayfs` selecciona OverlayFS.
 
 Las dos implementaciones tienen una diferencia operativa importante:
 
-- AUFS comienza con la rama escribible y añade los módulos montados como ramas de solo lectura. MiniOS puede activar o desactivar un módulo en el sistema raíz en ejecución cuando el montaje AUFS lo permite.
-- OverlayFS recibe su lista completa y ordenada de `lowerdir` al montar el sistema raíz, además de un `upperdir` y `workdir`. Su conjunto de módulos inferiores no puede modificarse en caliente mediante el Gestor de Módulos.
+- AUFS comienza con la rama escribible y añade los módulos montados como ramas de solo lectura. MiniOS puede activar o desactivar un módulo en el root en ejecución cuando el montaje AUFS soporta esa operación.
+- OverlayFS recibe su lista completa y ordenada de `lowerdir` cuando se monta el root, además de un `upperdir` y `workdir`. El conjunto de módulos inferiores no puede modificarse en caliente mediante el Gestor de Módulos.
 
-Por ello, el Gestor de Módulos separa **Ejecutando ahora**, el conjunto de módulos montados, de **Próximo arranque**, los módulos seleccionados por el medio y las reglas de arranque actuales. Agregar o quitar un módulo duradero normalmente solo afecta el próximo arranque. Crear o abrir un módulo no lo activa. La activación y desactivación en tiempo real solo están disponibles con AUFS.
+Por lo tanto, el Gestor de Módulos separa **Ejecutando ahora**, el conjunto de módulos montados,
+de **Próximo arranque**, los módulos seleccionados por el medio actual y las reglas de arranque. Añadir o quitar un módulo duradero normalmente solo afecta al próximo arranque. Crear o abrir un módulo no lo activa. La activación y desactivación en tiempo real solo están disponibles con AUFS.
+
+Tras ensamblar el root y completar la configuración inicial, el initrd de LiveKit utiliza
+`pivot_root`, conserva el initrd antiguo para tareas de apagado y ejecuta el init del nuevo root. La ruta de dracut prepara el mismo root ensamblado pero deja la
+finalización de `switch_root` a dracut. Consulta
+[Carga de módulos Initrd](/configuration/Initrd-Module-Loading.md) para conocer el límite de traspaso en detalle.
 
 ## Capa escribible y sesiones
 
-Sin persistencia, la capa escribible se respalda en memoria y desaparece al apagar el sistema. La persistencia coloca esa capa en una sesión numerada bajo `minios/changes/`. `session.conf` registra la sesión predeterminada para el próximo arranque, la sesión utilizada por el arranque actual, metadatos de compatibilidad, estado y configuraciones específicas del modo.
+Sin persistencia, la capa escribible se respalda en memoria y desaparece al apagar. La persistencia puede, en cambio, activar una sesión numerada con un backend de almacenamiento compatible. La selección, compatibilidad, fallos de activación, autoridad de arranque actual y durabilidad se definen en
+[Persistencia Initrd](/configuration/Initrd-Persistence.md).
 
 | Modo | Almacenamiento escribible | Notas |
 |------|--------------------------|-------|
-| `native` | Archivos almacenados directamente en el directorio de la sesión | Requiere un sistema de archivos POSIX escribible que conserve los metadatos de Linux. |
-| `dynfilefs` | Sistema de archivos ext4 expandible dividido en archivos de respaldo | Compatible con sistemas de archivos POSIX y medios FAT32, NTFS o exFAT. |
-| `raw` | `changes.img` de tamaño fijo que contiene ext4 | Compatible con sistemas de archivos POSIX y medios FAT32, NTFS o exFAT. |
-| `luks` | LUKS2 `changes.luks` que contiene ext4 | Requiere cryptsetup y un initramfs construido con soporte de cifrado de MiniOS. La contraseña se solicita durante el arranque. |
-| `squashfs` | Snapshot `changes.sb` comprimido | Se descomprime en RAM para su uso; al guardar, se reconstruye y reemplaza atómicamente el snapshot. El sistema de archivos de persistencia debe conservar los metadatos de Linux durante el guardado. |
+| `native` | Archivos almacenados directamente en el directorio de la sesión | Requiere un sistema de archivos POSIX escribible que preserve los metadatos de Linux. |
+| `dynfilefs` | Sistema de archivos ext4 expandible dividido en archivos de respaldo | Soporta sistemas de archivos POSIX y medios FAT32, NTFS o exFAT. |
+| `raw` | `changes.img` de tamaño fijo que contiene ext4 | Soporta sistemas de archivos POSIX y medios FAT32, NTFS o exFAT. |
+| `luks` | LUKS2 `changes.luks` que contiene ext4 | Requiere cryptsetup y un initramfs construido con soporte de cifrado MiniOS. Se solicita la contraseña durante el arranque. |
+| `squashfs` | Snapshot `changes.sb` comprimido | Se descomprime en RAM para su uso; al guardar, se reconstruye y reemplaza atómicamente el snapshot. El sistema de archivos de persistencia debe preservar los metadatos de Linux durante el guardado. |
 
-La sesión activa es la predeterminada para el próximo arranque. La sesión en ejecución es la que ya está montada en el sistema raíz actual. Activar otra sesión no reemplaza la capa escribible actual. Las comprobaciones de compatibilidad de sesión incluyen la versión de MiniOS, edición, sistema de archivos unificado y modo de persistencia.
+La sesión activa seleccionada para una reanudación futura y la capa escribible realmente autorizada para el arranque actual son estados relacionados pero distintos. Cambiar una selección futura no reemplaza la capa escribible en ejecución.
 
-Consulta [Gestión de sesiones](/configuration/Session-Management.md) para comandos de creación, selección, dimensionamiento, cifrado, conversión, exportación y recuperación.
+Consulta [Gestión de sesiones](/configuration/Session-Management.md) para los comandos de creación,
+selección, dimensionamiento, cifrado, conversión, exportación y recuperación.
 
 ## Precedencia de configuración
 
@@ -97,6 +116,10 @@ Las rutas arrancadas bajo `/run/initramfs/memory/` son montajes de implementaci�
 
 ## Documentación relacionada
 
+- [Modos de arranque](/configuration/Boot-Modes.md)
+- [Descubrimiento del sistema Initrd](/configuration/Initrd-System-Discovery.md)
+- [Carga de módulos Initrd](/configuration/Initrd-Module-Loading.md)
+- [Persistencia Initrd](/configuration/Initrd-Persistence.md)
 - [Parámetros de arranque](/configuration/Boot-Parameters.md)
 - [Menús de arranque](/configuration/Boot-Menus.md)
 - [Archivo de configuración](/configuration/Configuration-File.md)

@@ -1,11 +1,13 @@
-# Berkas Konfigurasi
+# Berkas konfigurasi
 
-MiniOS berbeda dari kebanyakan distribusi flash klasik karena beberapa parameter dapat diatur sebelum boot melalui berkas konfigurasi yang cukup sederhana `config/config.conf`, sehingga meminimalkan pekerjaan yang diperlukan saat membuat modul sendiri untuk sistem embedded. Opsional, beberapa parameter juga bisa diatur melalui parameter boot. Opsi boot memiliki prioritas lebih tinggi dibandingkan berkas konfigurasi. Beberapa parameter dalam berkas ini bersifat layanan dan sebaiknya tidak diubah. Berikut adalah contoh berkas konfigurasi standar:
+Media boot MiniOS menyimpan konfigurasi utama di `minios/config.conf`. Saat boot, initramfs menyinkronkannya ke `/etc/live/config.conf` di live root yang telah dirakit. Oleh karena itu, skrip di sistem yang sedang berjalan sebaiknya membaca `/etc/live/config.conf`; `/etc/minios/config.conf` dan `config/config.conf` bukan jalur konfigurasi yang digunakan oleh kode boot saat ini.
+
+Parameter boot dapat menimpa pengaturan berkas yang bersesuaian. Berikut ini adalah contoh standar `config.conf`:
 
 ```
 # You can get information about minios-live-config and other options:
 # man live-config
-LIVE_CONFIG_CMDLINE="components"
+LIVE_CONFIG_CMDLINE="components nottyautologin"
 LIVE_HOSTNAME="minios"
 LIVE_USERNAME="live"
 LIVE_USER_FULLNAME="MiniOS Live User"
@@ -35,42 +37,64 @@ EXPORT_LOGS="false"
 ## Deskripsi Parameter
 
 **Legenda:**
-- 🔒 **Sekali saja** - Diterapkan hanya pada boot pertama, tidak dapat diubah pada boot berikutnya  
-- 🔄 **Dapat dikonfigurasi ulang** - Dapat diubah setiap kali boot dan diterapkan kembali
+- 🔒 **Sekali saja** - Diterapkan hanya pada boot pertama, tidak dapat diubah pada boot berikutnya
+- 🔄 **Dapat dikonfigurasi ulang** - Dapat diubah pada setiap boot dan diterapkan kembali
 
 | Parameter | Dapat dikonfigurasi ulang | Arti | Contoh |
 | --------- | ------------------------ | ----- | ------ |
-| LIVE_CONFIG_CMDLINE | 🔄 | Parameter boot tambahan untuk live-config. Lihat `man 7 live-config`. | LIVE_CONFIG_CMDLINE="components" |
+| LIVE_CONFIG_CMDLINE | 🔄 | Opsi tambahan live-config. `nottyautologin` disimpan di sini, bukan ditulis langsung pada setiap entri boot. Lihat `man 7 live-config`. | LIVE_CONFIG_CMDLINE="components nottyautologin" |
 | LIVE_HOSTNAME | 🔄 | Nama node yang terhubung dengan sistem. Lihat `man 7 live-config`. | LIVE_HOSTNAME="minios" |
-| LIVE_USERNAME | 🔒 | Nama pengguna yang profilnya akan dibuat pada boot pertama. Jika Anda menentukan username <strong>root</strong>, maka tidak ada profil pengguna yang akan dibuat, dan login akan dilakukan menggunakan profil <strong>root</strong>. Lihat `man 7 live-config`. | LIVE_USERNAME="live" |
+| LIVE_USERNAME | 🔒 | Nama pengguna yang profilnya akan dibuat pada boot pertama. Jika Anda menentukan username <strong>root</strong>, maka tidak ada profil pengguna yang dibuat, dan login akan dilakukan menggunakan profil <strong>root</strong>. Lihat `man 7 live-config`. | LIVE_USERNAME="live" |
 | LIVE_USER_FULLNAME | 🔒 | Nama lengkap untuk pengguna utama. Lihat `man 7 live-config`. | LIVE_USER_FULLNAME="MiniOS Live User" |
 | LIVE_USER_DEFAULT_GROUPS | 🔒 | Daftar grup untuk pengguna utama, dipisahkan koma. Lihat `man 7 live-config`. | LIVE_USER_DEFAULT_GROUPS="dialout,cdrom,floppy..." |
-| LIVE_USER_PASSWORD_CRYPTED | 🔒 | Kata sandi pengguna utama dalam bentuk terenkripsi (hash). Gunakan `mkpasswd -m yescrypt` untuk menghasilkan. Lihat `man 7 live-config`. | LIVE_USER_PASSWORD_CRYPTED='$y$j9T$...' |
-| LIVE_ROOT_PASSWORD_CRYPTED | 🔒 | Kata sandi pengguna istimewa **root** dalam bentuk terenkripsi (hash). Gunakan `mkpasswd -m yescrypt` untuk menghasilkan. Lihat `man 7 live-config`. | LIVE_ROOT_PASSWORD_CRYPTED='$y$j9T$...' |
-| LIVE_CONFIG_NOROOT | 🔒 | Jika diatur, menonaktifkan login akun root dan menonaktifkan sudo/policykit untuk pengguna. Lihat `man 7 live-config`. | LIVE_CONFIG_NOROOT="" |
-| LIVE_LOCALES | 🔄 | Mengatur locale. Bisa lebih dari satu nilai, dipisahkan koma. Lihat `man 7 live-config`. | LIVE_LOCALES="en_US.UTF-8" |
+| LIVE_USER_PASSWORD_CRYPTED | 🔒 | Password pengguna utama dalam bentuk terenkripsi (hash). Gunakan `mkpasswd -m yescrypt` untuk menghasilkan. Lihat `man 7 live-config`. | LIVE_USER_PASSWORD_CRYPTED='$y$j9T$...' |
+| LIVE_ROOT_PASSWORD_CRYPTED | 🔒 | Password untuk pengguna dengan hak istimewa **root** dalam bentuk terenkripsi (hash). Gunakan `mkpasswd -m yescrypt` untuk menghasilkan. Lihat `man 7 live-config`. | LIVE_ROOT_PASSWORD_CRYPTED='$y$j9T$...' |
+| LIVE_CONFIG_NOROOT | 🔒 | Jika diaktifkan, login akun root dinonaktifkan dan sudo/policykit untuk pengguna juga dinonaktifkan. Lihat `man 7 live-config`. | LIVE_CONFIG_NOROOT="" |
+| LIVE_LOCALES | 🔄 | Mengatur locale. Bisa beberapa nilai, dipisahkan koma. Lihat `man 7 live-config`. | LIVE_LOCALES="en_US.UTF-8" |
 | LIVE_TIMEZONE | 🔄 | Mengatur zona waktu (misal: "Europe/Berlin", "Etc/UTC"). Lihat `man 7 live-config`. | LIVE_TIMEZONE="Etc/UTC" |
 | LIVE_KEYBOARD_MODEL | 🔄 | Mengatur model keyboard (misal: "pc105"). Lihat `man 7 live-config`. | LIVE_KEYBOARD_MODEL="pc105" |
 | LIVE_KEYBOARD_LAYOUTS | 🔄 | Mengatur layout keyboard (dipisahkan koma, misal: "us,de"). Lihat `man 7 live-config`. | LIVE_KEYBOARD_LAYOUTS="us,de" |
 | LIVE_KEYBOARD_OPTIONS | 🔄 | Mengatur opsi keyboard (misal: "grp:alt_shift_toggle,grp_led:scroll"). Lihat `man 7 live-config`. | LIVE_KEYBOARD_OPTIONS="grp:alt_shift_toggle,grp_led:scroll" |
 | LIVE_KEYBOARD_VARIANTS | 🔄 | Mengatur varian keyboard (dipisahkan koma, bisa kosong atau sesuai layout). Lihat `man 7 live-config`. | LIVE_KEYBOARD_VARIANTS="," |
 | LIVE_CONFIG_DEBUG | 🔄 | Mengaktifkan output debug untuk live-config. Lihat `man 7 live-config`. | LIVE_CONFIG_DEBUG="true" |
-| LIVE_LINK_USER_DIRS | 🔄 | Jika true, direktori pengguna akan dilink dari path yang ditentukan. | LIVE_LINK_USER_DIRS="false" |
+| LIVE_LINK_USER_DIRS | 🔄 | Jika true, direktori pengguna akan di-link dari path yang ditentukan. | LIVE_LINK_USER_DIRS="false" |
 | LIVE_BIND_USER_DIRS | 🔄 | Jika true, direktori pengguna akan di-bind-mount dari path yang ditentukan. | LIVE_BIND_USER_DIRS="false" |
 | LIVE_USER_DIRS_PATH | 🔄 | Path ke direktori data pengguna di flash drive. | LIVE_USER_DIRS_PATH="/minios/userdata" |
-| LIVE_MODULE_MODE | 🔄 | Pilih mode operasi sistem. Jika Anda ingin instalasi software hanya melalui modul, gunakan "merged". Jika ingin instalasi software menggunakan apt, gunakan "simple". Default adalah "merged". | LIVE_MODULE_MODE="merged" |
-| DEFAULT_TARGET | 🔄 | systemd target untuk boot. Lihat `man systemd.special`. | DEFAULT_TARGET="graphical" |
+| LIVE_MODULE_MODE | 🔄 | Pilih mode operasi sistem. Jika Anda hanya ingin menginstal software lewat modul, gunakan "merged". Jika ingin menginstal software menggunakan apt, gunakan "simple". Default-nya adalah "merged". | LIVE_MODULE_MODE="merged" |
+| DEFAULT_TARGET | 🔄 | Target systemd untuk boot. Lihat `man systemd.special`. | DEFAULT_TARGET="graphical" |
 | ENABLE_SERVICES | 🔄 | Mengaktifkan layanan saat boot (dipisahkan koma). | ENABLE_SERVICES="ssh" |
-| DISABLE_SERVICES | 🔄 | Menonaktifkan layanan saat boot (dipisahkan koma). | DISABLE_SERVICES="" |
-| EXPORT_LOGS | 🔄 | Jika true, saat boot dari media yang dapat ditulis, log MiniOS akan disalin ke folder minios/logs saat boot. | EXPORT_LOGS="false" |
+| DISABLE_SERVICES | 🔄 | Mematikan layanan saat boot (dipisahkan koma). | DISABLE_SERVICES="" |
+| EXPORT_LOGS | 🔄 | Jika true dan direktori data MiniOS yang dipilih dapat ditulis, log boot akan disalin ke `minios/log/YYYYMMDD_HHMMSS/`. | EXPORT_LOGS="false" |
 
 
-**Untuk detail lebih lanjut tentang sebagian besar parameter, lihat:**  
+**Untuk detail lebih lanjut tentang sebagian besar parameter, lihat:**
 - `man 7 live-config` ([live-config](/configuration/live-config.md))
-- Untuk systemd target: `man systemd.special`
+- Untuk target systemd: `man systemd.special`
 
 ## Penting!
 
-* Server SSH diaktifkan secara default untuk kompatibilitas dengan initrd pihak ketiga. Untuk menonaktifkannya, Anda tidak hanya perlu menghapusnya dari `ENABLE_SERVICES`.
+* Server SSH diaktifkan secara default untuk kompatibilitas dengan initrd pihak ketiga, untuk menonaktifkannya, Anda tidak hanya harus menghapusnya dari `ENABLE_SERVICES`.
 
-Apa lagi kegunaan berkas `config.conf`? Anda dapat menggunakannya untuk menetapkan parameter sendiri di skrip Anda saat membuat modul. Pada boot pertama, file ini akan disalin ke folder /etc/minios, lalu file `/etc/live/config.conf` akan dipantau secara otomatis dan, jika ada perubahan, akan menimpa file konfigurasi di flash drive jika dapat ditulis. Dengan demikian, Anda bisa menaruh variabel Anda di config.conf dan mengambilnya dari `/etc/live/config.conf` di skrip Anda, terlepas dari jenis initrd yang digunakan.
+## Sumber, salinan runtime, dan prioritas
+
+Direktori data MiniOS yang dipilih biasanya adalah direktori `minios/` pada media boot. Path konfigurasi dan salinan runtime-nya adalah:
+
+| Direktori data yang dipilih | Sistem berjalan |
+| --- | --- |
+| `config.conf` | `/etc/live/config.conf` |
+| `config.conf.d/*.conf` | `/etc/live/config.conf.d/*.conf` |
+
+Untuk media yang ter-mount secara normal, file sumber ini terlihat sebagai `minios/config.conf` dan `minios/config.conf.d/*.conf`, sering kali di bawah `/run/initramfs/memory/data/`. File-file ini tidak dimuat langsung oleh `live-config`. Initramfs akan menyinkronkan dengan path runtime sebelum menjalankan `minios-boot`; lihat [Boot modes](/configuration/Boot-Modes.md) untuk mengetahui di mana proses ini terjadi dalam urutan boot.
+
+Sinkronisasi dilakukan saat boot, bukan oleh pemantau file:
+
+- Salinan `config.conf` yang lebih baru (berdasarkan waktu modifikasi) yang akan digunakan. Salinan sumber yang lebih baru akan disalin ke live root. Salinan runtime yang lebih baru hanya akan disalin kembali jika direktori data yang dipilih dapat ditulis.
+- Setiap file `config.conf.d/*.conf` disinkronkan secara independen berdasarkan nama file menggunakan aturan waktu modifikasi dan hak tulis yang sama. File tidak dihapus dari kedua sisi.
+- Jika jam sistem lebih awal dari waktu sinkronisasi terakhir yang tercatat, perbandingan timestamp dilewati dan hanya file tujuan yang belum ada yang akan diisi.
+- `toram=trim` menyalin `config.conf` tetapi mengabaikan `config.conf.d/`; lihat [Initrd module loading](/configuration/Initrd-Module-Loading.md). Salinan penuh `toram` menyalin seluruh pohon data, namun sinkronisasi kemudian menargetkan salinan di RAM, bukan media yang terlepas.
+
+Setelah sinkronisasi, `live-config` membaca `/etc/live/config.conf` terlebih dahulu lalu `/etc/live/config.conf.d/*.conf` sesuai urutan shell glob, sehingga fragmen yang lebih akhir dapat menggantikan nilai sebelumnya. Baris perintah kernel yang sebenarnya akan ditambahkan ke `LIVE_CONFIG_CMDLINE`; untuk opsi yang diulang di sana, kemunculan kernel command-line yang lebih akhir akan digunakan. `minios-boot` juga membaca `/etc/live/config.conf` untuk pengaturan awal yang didukung dan memberikan prioritas pada parameter kernel yang dikenali.
+
+Anda dapat menambahkan variabel shell khusus proyek ke file-file ini dan membacanya dari `/etc/live/config.conf` atau fragmen saat runtime. Kutip nilai sebagai string shell dan jangan beri spasi di sekitar `=`.
+
+Log awal MiniOS adalah `/var/log/minios/minios-boot.log`, sedangkan output `live-config` yang lebih akhir adalah `/var/log/live/config.log`. Dengan `EXPORT_LOGS="true"`, kedua pohon akan disalin ke `minios/log/YYYYMMDD_HHMMSS/{minios,live}/` jika direktori data yang dipilih dapat ditulis.

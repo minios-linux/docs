@@ -1,69 +1,40 @@
-# Leitfaden zur Leistungsoptimierung
+# Performance-Optimierung
 
-Dieser Leitfaden stellt Techniken zur Optimierung der MiniOS-Leistung vor, mit Fokus auf die besonderen Eigenschaften als Live-System. Die größten Leistungssteigerungen erzielen Sie, indem Sie steuern, wie MiniOS seine Daten lädt und wie dauerhafte Änderungen verarbeitet werden.
+Die Performance-Optimierung in MiniOS ist im Wesentlichen ein Ausgleich zwischen Bootzeit, RAM-Nutzung, Lesezugriffen zur Laufzeit, Persistenz-Overhead und Speicherdauerhaftigkeit. Für genaue Bedeutungen der Optionen und Sicherheitsgrenzen nutzen Sie bitte [Boot-Modi](/configuration/Boot-Modes.md), [Initrd-Modulladen](/configuration/Initrd-Module-Loading.md) und [Initrd-Persistenz](/configuration/Initrd-Persistence.md).
 
 ## Boot-Parameter für Performance
 
-Die effektivste Methode, die Leistung zu steigern – besonders beim Betrieb von einem langsamen USB-Stick – ist die Nutzung von Boot-Parametern, um zu steuern, wie das System in den Arbeitsspeicher geladen wird. Eine vollständige Liste aller verfügbaren Parameter finden Sie unter [Boot-Parameter](/configuration/Boot-Parameters.md).
+Boot-Parameter können Startvorgänge und Lesezugriffe des Live-Systems zwischen RAM und Quellgerät verschieben. Die vollständige Referenz finden Sie unter [Boot-Parameter](/configuration/Boot-Parameters.md).
 
 ### Laden des Systems in den RAM (`toram`)
 
-Dies ist die mit Abstand wichtigste Optimierung. Der Boot-Parameter `toram` kopiert das gesamte MiniOS-System vom Boot-Medium in den RAM Ihres Computers. Dadurch wird das System extrem reaktionsschnell, da keine Daten mehr vom langsameren USB-Laufwerk gelesen werden müssen.
+`toram` kann die Latenzzeit zur Laufzeit bei langsamen USB-Geräten oder netzwerkbasierten ISOs verringern, allerdings auf Kosten einer längeren Bootzeit und deutlich höherem RAM-Bedarf. Reines `toram` verwendet den vollständigen Kopiervorgang. `toram=trim` benötigt in der Regel weniger RAM, kann aber durch die selektive Kopie Daten oder Module auslassen, die später benötigt werden.
 
-- **Verwendung:** Fügen Sie `toram` der Kernel-Befehlszeile beim Start hinzu.
-- **Voraussetzung:** Sie benötigen genügend RAM, um die Kernsystemmodule aufzunehmen. Für die `standard` Edition werden mindestens 2-3 GB freier RAM empfohlen.
-- **Vorteil:** Startzeiten von Anwendungen und die allgemeine Systemreaktion werden drastisch verbessert.
+Berücksichtigen Sie neben den Moduldateien auch Platz für die beschreibbare Schicht, Anwendungen, Caches und zram. Mehr RAM für die Live-Kopie bedeutet weniger RAM für die eigentliche Arbeitslast. Beachten Sie [Boot-Modi](/configuration/Boot-Modes.md) hinsichtlich Kopierbeständigkeit und Anforderungen bei Medienentfernung.
 
-Für `toram` gibt es zwei Modi:
+### Filtern von Modulen (`load` und `noload`)
 
-- **`toram=full` (Standard):** Kopiert alle Systemmodule in den RAM. Verwenden Sie dies, wenn Sie ausreichend Speicher haben.
-- **`toram=trim`:** Kopiert nur die wichtigsten Module, die durch die Boot-Parameter `load` und `noload` definiert sind. Dies ist nützlich für Systeme mit begrenztem RAM.
+Durch Filtern kann die Menge der kopierten Daten und gemounteten Schichten reduziert werden, insbesondere mit `toram=trim`. Dies geht jedoch auf Kosten der Systemfunktionalität und erhöht das Risiko von Boot- oder Laufzeitfehlern, falls eine Abhängigkeit fehlt. Überprüfen Sie die resultierende Modulliste; Syntax und Einschränkungen für geschützte Module sind in [Initrd-Modulladen](/configuration/Initrd-Module-Loading.md) definiert.
 
-### Module filtern (`load` und `noload`)
+## Persistenz-Optimierung
 
-Um den Speicherverbrauch zu reduzieren, können Sie festlegen, welche Module geladen werden sollen. Dies ist besonders effektiv in Kombination mit `toram=trim`.
+Persistenz verschiebt schreibbare Layer-I/O von temporärem RAM auf einen Speicher oder in einen Container. Die Wahl des Backends beeinflusst Latenz, Kompatibilität, Kapazitätsmanagement und die Komplexität der Wiederherstellung.
 
-- **`load=module1,module2`:** Lädt nur die angegebenen Module (z.B. `load=01-kernel,03-gui-base,04-xfce-desktop`).
-- **`noload=module_name`:** Schließt ein bestimmtes Modul vom Laden aus.
+### Persistenzmodi (`perchmode`)
 
-So können Sie sich ein schlankes System im RAM zusammenstellen, das genau auf Ihre Bedürfnisse zugeschnitten ist.
+- **`native`:** Verzichtet auf eine Dateisystem-in-einer-Datei-Schicht und ist die einfachste Wahl auf einem geeigneten POSIX-Dateisystem, steht jedoch auf Dateisystemen, die die erforderlichen Linux-Metadaten nicht erhalten können, nicht zur Verfügung.
+- **`raw`:** Bietet eine vorhersehbare, feste Kapazität und das übliche ext4-Verhalten, reserviert aber die Dateigröße und kann nicht über den verfügbaren Speicherplatz hinaus wachsen.
+- **`dynfilefs`:** Erweitert sich bei Bedarf und unterstützt ansonsten ungeeignete Medien, bringt jedoch zusätzliche Komplexität bei Zuordnung und Wiederherstellung mit sich.
+- **`luks`:** Fügt Vertraulichkeit hinzu, was jedoch mit zusätzlichem Aufwand zum Entsperren und Verschlüsselungs-Overhead verbunden ist.
+- **`squashfs`:** Tauscht Komprimierung beim Speichern und RAM-Extraktion gegen einen kompakten Snapshot; ist jedoch kein allgemeiner, latenzarmer, schreibbarer Backend.
 
-## Optimierung der Persistenz
-
-Die Art und Weise, wie MiniOS Ihre Änderungen speichert (Persistenz), kann die Performance erheblich beeinflussen, insbesondere die Schreibgeschwindigkeit.
-
-### Persistenz-Modi (`perchmode`)
-
-Der Boot-Parameter `perchmode` legt das Backend für Ihren persistenten Speicher fest. Die Wahl hängt von Ihrem Speichermedium ab:
-
-- **`perchmode=native` (Standard):** Speichert Dateien direkt in einem Verzeichnis auf Ihrem Speichermedium. Dies ist die **schnellste Option für SSDs und schnelle USB-Sticks**, da der Overhead eines Dateisystems in einer Datei vermieden wird.
-- **`perchmode=raw`:** Verwendet eine vorab zugewiesene Raw-Image-Datei für Änderungen. Die Performance ist gut, aber die Dateigröße ist fest.
-- **`perchmode=dynfilefs`:** Nutzt eine dynamisch wachsende Datei. Dies ist eine gute Wahl für **langsamere USB-Sticks**, da es die Schreibbelastung reduzieren und die Lebensdauer des Sticks verlängern kann, auch wenn es etwas langsamer als der `native` Modus ist.
-
-### Aktivieren und Deaktivieren der Persistenz
-
-Standardmäßig läuft MiniOS im „Live“-Modus, bei dem alle Änderungen beim Neustart verworfen werden. Um Ihre Änderungen zu speichern, müssen Sie die Persistenz explizit aktivieren.
-
-- **Persistenz aktivieren:** Fügen Sie den Parameter `perch` der Boot-Befehlszeile hinzu. Dadurch wird die Persistenzfunktion von MiniOS aktiviert.
-- **Persistenz deaktivieren:** Lassen Sie den Parameter `perch` einfach weg. Ist er nicht vorhanden, läuft das System vollständig aus dem RAM (oder vom Boot-Medium) und es werden keine Änderungen gespeichert.
+Testen Sie repräsentative Arbeitslasten auf dem tatsächlichen Gerät. Unterschiede bei Flash-Controllern, Dateisystemen, USB-Bridges und Workloads sind aussagekräftiger als eine allgemeine Rangfolge der Persistenzmodi.
 
 ## ZRAM-Konfiguration
 
-MiniOS verwendet standardmäßig `zram`, um einen komprimierten Swap-Bereich im RAM zu erstellen. Dies verbessert die Leistung auf Systemen mit begrenztem physischem Speicher, da so die Nutzung einer deutlich langsameren Swap-Datei auf der Festplatte vermieden wird.
+Zram tauscht CPU-Leistung gegen komprimierte Speicherkapazität und kann deutlich langsameren, speicherbasierten Swap vermeiden. Ein größeres zram-Device kann mehr inaktive Seiten aufnehmen, erzeugt aber keinen physischen RAM; nicht komprimierbare Workloads verbrauchen weiterhin Speicher. Kompressionsalgorithmen bieten unterschiedliche Durchsatzraten und CPU-Belastung im Verhältnis zur Kompressionsrate; die Verfügbarkeit hängt vom Kernel ab. Beginnen Sie mit der Standardeinstellung und ändern Sie `zramsize`, `zramcomp` oder `nozram` nur für gemessene Arbeitslasten; akzeptierte Werte finden Sie unter [Boot-Parameter](/configuration/Boot-Parameters.md).
 
-**Automatische Größenanpassung:**
-- **≥4GB RAM:** 2GB ZRAM
-- **1–4GB RAM:** Die Hälfte des gesamten RAM
-- **<1GB RAM:** 512MB ZRAM
+## Dateisystem und Speicherhardware
 
-**Boot-Parameter:**
-- **`zramsize=1024`:** Legt die Größe des ZRAM-Geräts fest (z. B. `zramsize=1024` für 1GB). Standardmäßig wird die Größe automatisch anhand des gesamten RAM konfiguriert.
-- **`zramcomp=lz4`:** Legt den Komprimierungsalgorithmus fest (`lzo`, `lzo-rle`, `lz4`, `lz4hc`, `zstd`). `lz4` bietet in der Regel einen guten Kompromiss zwischen Geschwindigkeit und Kompressionsrate.
-- **`nozram`:** Deaktiviert ZRAM vollständig.
-
-Für die meisten Nutzer sind die Standard-Einstellungen von `zram` optimal. Eine Anpassung wird nur empfohlen, wenn Sie spezielle Anforderungen haben und die jeweiligen Auswirkungen kennen.
-
-## Dateisystem und Speichermedien
-
-- **Verwenden Sie einen schnellen USB-Stick:** Der wichtigste Hardwarefaktor für die MiniOS-Leistung ist die Geschwindigkeit Ihres USB-Sticks. Ein **USB 3.0- oder schneller SSD-basierter Stick** bietet ein deutlich besseres Nutzungserlebnis als ein günstiger, langsamer USB 2.0-Stick.
-- **Dateisystemwahl:** Für die Persistenz-Partition bietet ein Standard-Linux-Dateisystem wie **ext4** in der Regel die beste Performance und Zuverlässigkeit.
+- **Geräteauswahl:** Höherer sequentieller Datendurchsatz verkürzt große Modulkopien, während niedrige Latenz bei zufälligen I/O-Vorgängen für persistente Desktop-Workloads wichtiger ist. Messen Sie Gerät und Gehäuse gemeinsam; die USB-Generation allein sagt nichts über die Leistung von Flash oder SSD aus.
+- **Dateisystemauswahl:** Ein natives Linux-Dateisystem ermöglicht native Persistenz ohne Container-Overhead. Plattformübergreifende Dateisysteme erhöhen die Portabilität, erfordern aber für Linux-Metadaten ein kompatibles Container-Backend, was zusätzliche Zuordnungs- und Dateisystemschichten mit sich bringt. Wählen Sie je nach Portabilitäts- und Wiederherstellungsbedarf sowie nach Benchmark-Ergebnissen.

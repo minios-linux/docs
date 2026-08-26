@@ -10,7 +10,7 @@ Rufus es una utilidad popular para Windows que ayuda a formatear y crear unidade
 
 ### Tamaño de la unidad
 
-Consulta la [Guía de compatibilidad de hardware](/installation/Hardware-Compatibility.md#system-requirements) para ver los requisitos de sistema y tamaños de unidad detallados.
+Consulta la [Guía de compatibilidad de hardware](/installation/Hardware-Compatibility.md) para ver los requisitos de sistema detallados y los tamaños de unidad.
 
 ## Instalando Rufus
 
@@ -49,20 +49,8 @@ Rufus ofrece dos métodos para grabar MiniOS en una unidad USB:
 6. **Inicia el proceso**: Haz clic en el botón "INICIAR"
 7. **Confirma el formateo** - todos los datos de la unidad serán eliminados
 
-## Persistencia automática de cambios
+## Resultado y persistencia
 
-MiniOS detectará automáticamente el método de escritura y configurará la persistencia de cambios:
+El modo DD realiza una escritura de imagen en bruto y copia la estructura del ISO en todo el dispositivo de destino. El modo ISO formatea un sistema de archivos y extrae el contenido del ISO para crear un medio live basado en archivos. Ninguno de los dos modos es una implementación del instalador de MiniOS, y Rufus no crea automáticamente una partición ext4 ni una sesión de persistencia.
 
-- **Modo DD**: Si hay espacio libre disponible, creará una partición ext4 para máximo rendimiento
-- **Modo ISO**: Utiliza un archivo dinámico para guardar los cambios
-
-### Configuración de parámetros (para usuarios avanzados)
-
-Cuando se necesita una configuración precisa de la persistencia, se pueden usar parámetros de arranque:
-
-- `perchmode=native` - Guardado directo en la partición (para modo DD)
-- `perchmode=dynfilefs` - Archivo dinámico expandible
-- `perchmode=raw` - Archivo de tamaño fijo
-- `perchsize=8000` - Tamaño del espacio de almacenamiento de datos en MB
-
-Detalles en [parámetros de arranque](/configuration/Boot-Parameters.md).
+La persistencia solo se habilita cuando una entrada de arranque o una línea de comandos del kernel la solicita, y aún requiere un almacenamiento adecuado con permisos de escritura. Consulta [Modos de arranque](/configuration/Boot-Modes.md) y [Persistencia Initrd](/configuration/Initrd-Persistence.md) antes de confiar en los cambios guardados.

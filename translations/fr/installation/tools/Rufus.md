@@ -8,9 +8,9 @@ Rufus est un utilitaire populaire pour Windows qui permet de formater et de cré
 
 ## Exigences pour le lecteur
 
-### Taille du lecteur
+### Taille du disque
 
-Consultez le [Guide de compatibilité matérielle](/installation/Hardware-Compatibility.md#system-requirements) pour les exigences système détaillées et les tailles de lecteur.
+Consultez le [Guide de compatibilité matérielle](/installation/Hardware-Compatibility.md) pour connaître en détail les exigences système et les tailles de disque recommandées.
 
 ## Installation de Rufus
 
@@ -49,20 +49,8 @@ Rufus propose deux méthodes pour écrire MiniOS sur une clé USB :
 6. **Démarrez le processus** : cliquez sur le bouton « DÉMARRER »
 7. **Confirmez le formatage** – toutes les données sur le lecteur seront supprimées
 
-## Persistance automatique des modifications
+## Résultat et persistance
 
-MiniOS détectera automatiquement la méthode d’écriture et configurera la persistance des modifications :
+Le mode DD effectue une écriture brute de l’image et copie la structure ISO sur l’ensemble du périphérique cible. Le mode ISO formate un système de fichiers et extrait le contenu de l’ISO pour créer un média live basé sur des fichiers. Aucun des deux modes ne correspond à un déploiement de l’installateur MiniOS, et Rufus ne crée pas automatiquement de partition ext4 ni de session de persistance.
 
-- **Mode DD** : Si de l’espace libre est disponible, une partition ext4 sera créée pour des performances maximales
-- **Mode ISO** : Utilise un fichier dynamique pour enregistrer les modifications
-
-### Configuration des paramètres (pour utilisateurs avancés)
-
-Lorsque vous avez besoin d’une configuration précise de la persistance, vous pouvez utiliser des paramètres de démarrage :
-
-- `perchmode=native` – Sauvegarde directe sur la partition (pour le mode DD)
-- `perchmode=dynfilefs` – Fichier extensible dynamiquement
-- `perchmode=raw` – Fichier de taille fixe
-- `perchsize=8000` – Taille de l’espace de stockage des données en Mo
-
-Détails dans [paramètres de démarrage](/configuration/Boot-Parameters.md).
+La persistance n’est activée que lorsqu’une entrée de démarrage ou une ligne de commande du noyau la demande, et elle nécessite toujours un support d’écriture adapté. Consultez [Modes de démarrage](/configuration/Boot-Modes.md) et [Persistance Initrd](/configuration/Initrd-Persistence.md) avant de compter sur la sauvegarde des modifications.

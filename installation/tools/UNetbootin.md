@@ -11,7 +11,7 @@ UNetbootin is a cross-platform open-source utility that allows you to create boo
 ## Drive Requirements
 
 ### Drive Size
-See [Hardware Compatibility Guide](/installation/Hardware-Compatibility.md#system-requirements) for detailed system requirements and drive sizes.
+See [Hardware Compatibility Guide](/installation/Hardware-Compatibility.md) for detailed system requirements and drive sizes.
 
 ## Installing UNetbootin
 
@@ -33,16 +33,8 @@ See [Hardware Compatibility Guide](/installation/Hardware-Compatibility.md#syste
 4. **Start the process:** Click "OK"
 5. **Wait for completion** - the process may take 10-20 minutes
 
-## Automatic Change Persistence
+## Result and persistence
 
-UNetbootin automatically formats the drive to FAT32, so MiniOS will use dynfilefs mode for saving changes. This ensures maximum compatibility with various systems, including EFI boot support.
+UNetbootin extracts files and installs boot files on the selected filesystem, creating file-based live media rather than performing a raw image write or a MiniOS Installer deployment. Its use does not guarantee FAT32 formatting, EFI support, or persistence.
 
-### Parameter Configuration (for Advanced Users)
-
-When precise configuration is needed, boot parameters can be used:
-
-- `perchmode=dynfilefs` - Dynamically expandable file (default)
-- `perchmode=raw` - Fixed-size file
-- `perchsize=8000` - Data storage space size in MB
-
-Details in [boot parameters](/configuration/Boot-Parameters.md).
+Persistence is enabled only when a boot entry or kernel command line requests it, and it still requires suitable writable storage. See [Boot modes](/configuration/Boot-Modes.md) and [Initrd persistence](/configuration/Initrd-Persistence.md) before relying on saved changes.

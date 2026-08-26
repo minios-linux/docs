@@ -4,15 +4,17 @@ MiniOS Installer adalah wizard berbasis GTK dan backend command-line untuk melak
 
 ## Sebelum memulai
 
-Pilihan target atau partisi yang salah dapat menyebabkan hilangnya data. Cadangkan file penting, lepaskan disk yang tidak diperlukan, dan identifikasi target berdasarkan path perangkat, model, serta kapasitas. Konfirmasi terakhir adalah titik akhir di mana instalasi masih dapat dibatalkan dengan aman.
+Pilihan target atau partisi yang salah dapat menyebabkan hilangnya data. Cadangkan file penting, lepaskan disk yang tidak diperlukan, dan identifikasi target berdasarkan jalur perangkat, model, dan kapasitas. Konfirmasi terakhir adalah titik akhir di mana instalasi masih dapat dibatalkan dengan aman.
 
-Disk yang berisi sistem live MiniOS yang sedang berjalan tidak akan tersedia sebagai target. Untuk panduan kapasitas umum, lihat [Panduan kompatibilitas perangkat keras](Hardware-Compatibility.md#system-requirements).
+Disk yang berisi sistem MiniOS live yang sedang berjalan tidak akan muncul dalam pemilihan target. Untuk panduan kapasitas secara umum, lihat [Panduan kompatibilitas perangkat keras](Hardware-Compatibility.md).
 
 ## Mode instalasi
 
 Mode Live menyalin modul MiniOS terkompresi yang dipilih beserta aset boot. Hasilnya mempertahankan tata letak sistem live modular dan dapat menggunakan persistensi sesi MiniOS.
 
-Mode Native mengekstrak modul yang dipilih ke filesystem root Linux konvensional, mengonfigurasi target, menginstal paket yang dibutuhkan, menghasilkan initramfs, dan menginstal bootloader. Installer mendeteksi dukungan native dari image yang sedang dijalankan. Jika metadata kernel yang dibutuhkan dan kontrak arsitektur EFI tidak tersedia, mode kompatibilitas hanya mengizinkan instalasi live.
+Mode Native mengekstrak modul yang dipilih ke dalam filesystem root Linux konvensional, mengonfigurasi target, menginstal paket yang dibutuhkan, menghasilkan initramfs, dan memasang bootloader. Installer mendeteksi dukungan native dari image yang sedang dijalankan. Jika metadata kernel yang dibutuhkan dan kontrak arsitektur EFI tidak ada, mode kompatibilitas hanya mengizinkan instalasi live.
+
+Penerapan ini berbeda dengan penulisan ISO mentah, setup multiboot file ISO Ventoy, atau alat media live berbasis file. Lihat [Mode Boot](/configuration/Boot-Modes.md) untuk batasan antara sistem live dan native.
 
 ## Memulai installer grafis
 
@@ -59,14 +61,14 @@ Konfigurasi jaringan mencakup hostname dan DHCP kabel atau IPv4 statis. Installe
 
 Persistensi hanya berlaku untuk instalasi live:
 
-- Persistensi native menyimpan perubahan langsung pada filesystem target yang kompatibel dengan POSIX. Tidak tersedia pada FAT32 atau NTFS.
+- Persistensi native menyimpan perubahan langsung pada filesystem target yang kompatibel dengan POSIX. Fitur ini tidak tersedia pada FAT32 atau NTFS.
 - DynFileFS menggunakan kontainer yang dapat diperluas.
-- Raw menggunakan image dengan ukuran tetap.
-- LUKS menggunakan image terenkripsi yang dibuat oleh initrd saat boot pertama. Kata sandi diminta saat boot dan tidak pernah diterima atau disimpan oleh installer.
+- Raw menggunakan image berukuran tetap.
+- LUKS menggunakan image terenkripsi yang dibuat oleh initrd saat boot pertama kali. Kata sandi diminta saat boot dan tidak pernah diterima atau disimpan oleh installer.
 
-Mode kontainer default ke 4000 MiB. Kontainer Raw dan LUKS tidak dapat melebihi 4000 MiB pada FAT32; DynFileFS tidak terkena batas ukuran file tunggal tersebut. LUKS hanya ditawarkan jika initrd yang berjalan dan setiap initrd sumber yang disalin mendukung fitur kripto yang dibutuhkan.
+Mode kontainer secara default berukuran 4000 MiB. Kontainer Raw dan LUKS tidak dapat melebihi 4000 MiB pada FAT32; DynFileFS tidak terkena batasan ukuran file tunggal tersebut. LUKS hanya tersedia jika baik initrd yang berjalan maupun setiap initrd sumber yang disalin mendukung fitur kripto yang dibutuhkan.
 
-Opsi boot yang dihasilkan menggunakan `perchmode` dan `perchsize`. Lihat [Parameter Boot](/configuration/Boot-Parameters.md) untuk arti di waktu runtime.
+Opsi boot yang dihasilkan menggunakan `perchmode` dan `perchsize`. Lihat [Persistensi Initrd](/configuration/Initrd-Persistence.md) dan [Parameter Boot](/configuration/Boot-Parameters.md) untuk makna runtime dan persyaratan aktivasinya.
 
 ## Deploy melalui command-line
 

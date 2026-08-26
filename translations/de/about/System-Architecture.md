@@ -4,17 +4,18 @@ MiniOS startet ein schreibgeschütztes Betriebssystem, das aus SquashFS-Modulen 
 
 ## Boot-Erkennung
 
-Der BIOS- oder UEFI-Bootloader lädt einen Linux-Kernel und das MiniOS-initramfs von `minios/boot/`. Das initramfs durchsucht anschließend Blockgeräte nach einem `minios`-Verzeichnis, das `.sb`-Module enthält. Der Boot-Parameter `from=` kann stattdessen ein Verzeichnis, Blockgerät und Pfad, eine lokale ISO-Datei oder eine interaktive `askdisk`-Auswahl angeben. Eine lokale ISO wird per Loop eingebunden, bevor ihr `minios`-Verzeichnis verwendet wird.
+Der BIOS- oder UEFI-Bootloader lädt einen Linux-Kernel und das MiniOS-initramfs von
+`minios/boot/`. Das initramfs erkennt anschließend den MiniOS-Datenbaum, der die Live-Module enthält. Eine Quelle kann lokal sein, interaktiv ausgewählt oder über einen unterstützten Netzwerkpfad bereitgestellt werden; ein lokales ISO wird per Loop-Mount eingebunden, bevor dessen Datenbaum verwendet wird. Die genaue Reihenfolge und akzeptierte `from=`-Formate sind in der Dokumentation zu [Initrd-System-Erkennung](/configuration/Initrd-System-Discovery.md) beschrieben.
 
-Die gleiche Erkennungsphase unterstützt HTTP-ISO- und PXE-Quellen. Optionales Netzwerk im Frühstart dient ausschließlich dem **Laden von MiniOS über das Netzwerk** (PXE / HTTP-ISO). Es handelt sich nicht um eine dauerhafte Netzwerkkonfiguration für die Sitzung. Siehe [Netzwerk-Boot](/installation/Network-Boot.md).
+Die gleiche Erkennungsphase unterstützt HTTP-ISO- und PXE-Quellen. Optionales Netzwerk im Frühstart dient ausschließlich dem **Laden von MiniOS über das Netzwerk** (PXE / HTTP ISO). Es handelt sich dabei nicht um eine dauerhafte Netzwerkkonfiguration für die Sitzung. Siehe [Netzwerk-Boot](/installation/Network-Boot.md).
 
-Nach der Erkennung kann `toram=trim` die ausgewählten Module und benötigten Daten in den RAM kopieren, während `toram=full` den Mediadatenbaum kopiert. Weitere Informationen zu Quelle, Filterung und RAM-Kopieroptionen finden Sie unter [Boot-Parameter](/configuration/Boot-Parameters.md).
+Nach der Erkennung kann MiniOS optional eine Kopie im RAM vorbereiten. Ob die Originalquelle weiterhin benötigt wird, hängt vom Kopiermodus, der Persistenz und einer erfolgreichen Trennung ab. Das Betriebsmodell finden Sie unter [Boot-Modi](/configuration/Boot-Modes.md).
 
 ## Modulkombination
 
-Jede `.sb`-Datei ist ein schreibgeschütztes SquashFS-Dateisystem. Eingebaute Module werden direkt unter `minios/` gespeichert; zusätzliche Module können unter `minios/modules/` abgelegt werden, einschließlich dauerhafter Modulablage auf einem beschreibbaren Persistenzgerät. Das initramfs erkennt beide Speicherorte, wendet `load=`- und `noload=`-Filter an, sortiert die ausgewählten Dateien nach ihrem numerischen Dateinamen-Präfix und bindet sie schreibgeschützt ein.
+Jede `.sb`-Datei ist ein schreibgeschütztes SquashFS-Dateisystem. Eingebaute Module werden direkt unter `minios/` gespeichert; zusätzliche Modulpfade können zur geordneten Zusammenstellung beitragen. Das initramfs wählt, ordnet und mountet die resultierenden schreibgeschützten Layer. Kandidatenebenen, Basename-Ersetzung, Filter, benutzerdefinierte Bundle-Erweiterungen und Koordination mit dem laufenden Kernel sind in [Initrd-Modulladen](/configuration/Initrd-Module-Loading.md) beschrieben.
 
-Ein typisches Xfce-Image enthält die folgenden geordneten Rollen, wobei genaue Namen und Nummern vom Build und den für das Ziel übersprungenen Modulen abhängen:
+Ein typisches Xfce-Image enthält die folgenden geordneten Rollen, wobei genaue Namen und Anzahl vom Build und von für das Ziel übersprungenen Modulen abhängen:
 
 ```text
 00-core-<arch>.sb
@@ -25,34 +26,36 @@ Ein typisches Xfce-Image enthält die folgenden geordneten Rollen, wobei genaue 
 05-apps-<arch>.sb or the next applicable module
 ```
 
-Später eingebundene Module haben eine höhere Priorität und können Pfade ersetzen, die von früheren Modulen bereitgestellt werden. Ein Modul kann von Dateien in jedem niedriger nummerierten Modul abhängen, sodass eine Menge von Moduldateien eine geordnete Komposition und keine Sammlung unabhängiger Pakete ist.
+Spätere Module haben eine höhere Priorität und können Pfade ersetzen, die von früheren Modulen bereitgestellt werden. Ein Modul kann auf Dateien in jedem niedriger nummerierten Modul angewiesen sein, sodass eine Menge von Moduldateien eine geordnete Komposition und keine Sammlung unabhängiger Pakete ist.
 
 ## AUFS und OverlayFS
 
-MiniOS verwendet ein Union-Dateisystem, um die Module und die beschreibbare Ebene als ein gemeinsames Root-Dateisystem darzustellen. Es wählt AUFS, wenn der laufende Kernel dies unterstützt, und greift andernfalls auf OverlayFS zurück. `union=aufs` fordert AUFS an, fällt aber dennoch auf OverlayFS zurück, wenn AUFS nicht verfügbar ist; `union=overlayfs` wählt OverlayFS.
+MiniOS verwendet ein Union-Dateisystem, um die Module und die beschreibbare Schicht als ein Root-Dateisystem darzustellen. Es wählt AUFS, wenn der laufende Kernel es unterstützt, und greift andernfalls auf OverlayFS zurück. `union=aufs` fordert AUFS an, fällt aber dennoch auf OverlayFS zurück, wenn AUFS nicht verfügbar ist; `union=overlayfs` wählt OverlayFS.
 
-Die beiden Implementierungen unterscheiden sich im Betrieb wesentlich:
+Die beiden Implementierungen unterscheiden sich betrieblich wesentlich:
 
-- AUFS beginnt mit dem beschreibbaren Zweig und fügt eingebundene Module als schreibgeschützte Zweige hinzu. MiniOS kann ein Modul im laufenden Root aktivieren oder deaktivieren, sofern das AUFS-Mount dies unterstützt.
-- OverlayFS erhält beim Mounten des Root sein vollständiges, geordnetes `lowerdir`-Verzeichnis, sowie ein `upperdir` und `workdir`. Das Set der unteren Module kann vom Module Manager nicht im laufenden Betrieb verändert werden.
+- AUFS beginnt mit dem beschreibbaren Zweig und fügt gemountete Module als schreibgeschützte Zweige hinzu. MiniOS kann ein Modul im laufenden Root aktivieren oder deaktivieren, sofern das AUFS-Mount dies unterstützt.
+- OverlayFS erhält beim Mounten des Root seine vollständige, geordnete `lowerdir`-Liste sowie ein `upperdir` und `workdir`. Das Set der unteren Module kann vom Module Manager nicht im laufenden Betrieb geändert werden.
 
-Der Module Manager unterscheidet daher zwischen **Jetzt aktiv**, dem aktuell eingebundenen Modulsatz, und **Nächster Start**, den durch aktuelles Medium und Bootregeln ausgewählten Modulen. Das Hinzufügen oder Entfernen eines dauerhaften Moduls wirkt sich normalerweise nur auf den nächsten Start aus. Das Erstellen oder Öffnen eines Moduls aktiviert dieses nicht. Laufzeit-Aktivierung und -Deaktivierung sind nur mit AUFS möglich.
+Der Module Manager trennt daher **Jetzt aktiv**, das aktuell gemountete Modul-Set, von **Nächster Start**, die durch aktuelle Medien und Boot-Regeln ausgewählten Module. Das Hinzufügen oder Entfernen eines dauerhaften Moduls wirkt sich normalerweise nur auf den nächsten Start aus. Das Erstellen oder Öffnen eines Moduls aktiviert es nicht. Die Aktivierung und Deaktivierung zur Laufzeit ist nur mit AUFS möglich.
 
-## Schreibbare Ebene und Sitzungen
+Nachdem das Root-Dateisystem zusammengesetzt und das frühe Setup abgeschlossen ist, verwendet das LiveKit-initrd `pivot_root`, behält das alte initrd für Shutdown-Aufgaben und startet das init des neuen Root. Der dracut-Pfad bereitet das gleiche zusammengesetzte Root vor, überlässt aber den finalen `switch_root` dracut. Details zur Übergabe finden Sie unter [Initrd-Modulladen](/configuration/Initrd-Module-Loading.md).
 
-Ohne Persistenz ist die beschreibbare Ebene speicherbasiert (RAM) und verschwindet beim Herunterfahren. Persistenz legt diese Ebene in einer nummerierten Sitzung unter `minios/changes/` ab. `session.conf` speichert die Standardsitzung für den nächsten Start, die im aktuellen Boot verwendete Sitzung, Kompatibilitätsmetadaten, Status und modusspezifische Einstellungen.
+## Schreibbare Schicht und Sitzungen
+
+Ohne Persistenz ist die beschreibbare Schicht speicherbasiert und verschwindet beim Herunterfahren. Persistenz kann stattdessen eine nummerierte Sitzung mit einem unterstützten Speicher-Backend aktivieren. Auswahl, Kompatibilität, Aktivierungsfehler, Autorität für den aktuellen Boot und Dauerhaftigkeit sind in [Initrd-Persistenz](/configuration/Initrd-Persistence.md) definiert.
 
 | Modus | Beschreibbarer Speicher | Hinweise |
-|------|-------------------------|----------|
+|------|------------------------|----------|
 | `native` | Dateien werden direkt im Sitzungsverzeichnis gespeichert | Erfordert ein beschreibbares POSIX-Dateisystem, das Linux-Metadaten erhält. |
-| `dynfilefs` | Erweiterbares ext4-Dateisystem, verteilt auf Backing-Dateien | Unterstützt POSIX-Dateisysteme sowie FAT32, NTFS oder exFAT-Medien. |
-| `raw` | Feste `changes.img` mit ext4 | Unterstützt POSIX-Dateisysteme sowie FAT32, NTFS oder exFAT-Medien. |
-| `luks` | LUKS2-`changes.luks` mit ext4 | Erfordert cryptsetup und ein mit MiniOS-Verschlüsselungsunterstützung gebautes initramfs. Das Passwort wird beim Booten abgefragt. |
-| `squashfs` | Komprimierter `changes.sb`-Snapshot | Wird zum Gebrauch in den RAM entpackt; das Speichern erstellt und ersetzt den Snapshot atomar. Das Persistenz-Dateisystem muss beim Speichern Linux-Metadaten erhalten. |
+| `dynfilefs` | Erweiterbares ext4-Dateisystem, aufgeteilt auf Backing-Dateien | Unterstützt POSIX-Dateisysteme sowie FAT32-, NTFS- oder exFAT-Medien. |
+| `raw` | Feste Größe `changes.img` mit ext4 | Unterstützt POSIX-Dateisysteme sowie FAT32-, NTFS- oder exFAT-Medien. |
+| `luks` | LUKS2-`changes.luks` mit ext4 | Erfordert cryptsetup und ein initramfs mit MiniOS-Verschlüsselungsunterstützung. Das Passwort wird beim Booten abgefragt. |
+| `squashfs` | Komprimierter `changes.sb`-Snapshot | Wird für die Nutzung ins RAM entpackt; beim Speichern wird der Snapshot neu erstellt und atomar ersetzt. Das Persistenz-Dateisystem muss beim Speichern die Linux-Metadaten erhalten. |
 
-Die aktive Sitzung ist die Standardauswahl für den nächsten Start. Die laufende Sitzung ist diejenige, die bereits ins aktuelle Root eingebunden ist. Das Aktivieren einer anderen Sitzung ersetzt nicht die aktuelle beschreibbare Ebene. Kompatibilitätsprüfungen für Sitzungen umfassen die MiniOS-Version, Edition, das Union-Dateisystem und den Persistenzmodus.
+Die für einen zukünftigen Resume ausgewählte aktive Sitzung und die tatsächlich für den aktuellen Boot autorisierte beschreibbare Schicht sind verwandte, aber unterschiedliche Zustände. Eine Änderung der zukünftigen Auswahl ersetzt nicht die laufende beschreibbare Schicht.
 
-Siehe [Sitzungsverwaltung](/configuration/Session-Management.md) für Befehle zur Erstellung, Auswahl, Größenanpassung, Verschlüsselung, Konvertierung, Export und Wiederherstellung.
+Siehe [Sitzungsverwaltung](/configuration/Session-Management.md) für Befehle zur Erstellung, Auswahl, Größenanpassung, Verschlüsselung, Konvertierung, zum Export und zur Wiederherstellung.
 
 ## Konfigurationsreihenfolge
 
@@ -97,6 +100,10 @@ Die gebooteten Pfade unter `/run/initramfs/memory/` sind Implementierungs-Mounts
 
 ## Verwandte Dokumentation
 
+- [Boot-Modi](/configuration/Boot-Modes.md)
+- [Initrd-System-Erkennung](/configuration/Initrd-System-Discovery.md)
+- [Initrd-Modulladen](/configuration/Initrd-Module-Loading.md)
+- [Initrd-Persistenz](/configuration/Initrd-Persistence.md)
 - [Boot-Parameter](/configuration/Boot-Parameters.md)
 - [Boot-Menüs](/configuration/Boot-Menus.md)
 - [Konfigurationsdatei](/configuration/Configuration-File.md)

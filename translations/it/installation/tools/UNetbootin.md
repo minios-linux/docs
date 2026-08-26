@@ -8,9 +8,9 @@ UNetbootin è un'utility open-source multipiattaforma che consente di creare uni
 
 ## Requisiti dell'unità
 
-### Dimensione dell'unità
+### Dimensione del drive
 
-Consulta la [Guida alla compatibilità hardware](/installation/Hardware-Compatibility.md#system-requirements) per i requisiti di sistema dettagliati e le dimensioni delle unità.
+Consulta la [Guida alla compatibilità hardware](/installation/Hardware-Compatibility.md) per i requisiti di sistema dettagliati e le dimensioni dei drive.
 
 ## Installazione di UNetbootin
 
@@ -32,16 +32,8 @@ Consulta la [Guida alla compatibilità hardware](/installation/Hardware-Compatib
 4. **Avvia il processo:** Clicca su "OK"
 5. **Attendi il completamento** – il processo può richiedere 10-20 minuti
 
-## Persistenza automatica delle modifiche
+## Risultato e persistenza
 
-UNetbootin formatta automaticamente l’unità in FAT32, quindi MiniOS utilizzerà la modalità dynfilefs per il salvataggio delle modifiche. Questo garantisce la massima compatibilità con diversi sistemi, incluso il supporto all’avvio EFI.
+UNetbootin estrae i file e installa i file di avvio sul filesystem selezionato, creando un supporto live basato su file invece di eseguire una scrittura raw dell'immagine o un'installazione tramite MiniOS Installer. Il suo utilizzo non garantisce la formattazione FAT32, il supporto EFI o la persistenza.
 
-### Configurazione dei parametri (per utenti avanzati)
-
-Quando è necessaria una configurazione precisa, è possibile utilizzare i parametri di avvio:
-
-- `perchmode=dynfilefs` - File espandibile dinamicamente (predefinito)
-- `perchmode=raw` - File a dimensione fissa
-- `perchsize=8000` - Dimensione dello spazio di archiviazione dati in MB
-
-Dettagli in [parametri di avvio](/configuration/Boot-Parameters.md).
+La persistenza viene abilitata solo quando una voce di avvio o una riga di comando del kernel la richiede, e richiede comunque uno spazio di archiviazione scrivibile adeguato. Consulta [Modalità di avvio](/configuration/Boot-Modes.md) e [Persistenza Initrd](/configuration/Initrd-Persistence.md) prima di fare affidamento sulle modifiche salvate.

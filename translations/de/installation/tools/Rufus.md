@@ -10,7 +10,7 @@ Rufus ist ein beliebtes Tool für Windows, das beim Formatieren und Erstellen vo
 
 ### Laufwerksgröße
 
-Siehe [Hardware-Kompatibilitätsleitfaden](/installation/Hardware-Compatibility.md#system-requirements) für detaillierte Systemanforderungen und Laufwerksgrößen.
+Siehe [Hardware-Kompatibilitätsleitfaden](/installation/Hardware-Compatibility.md) für detaillierte Systemanforderungen und Laufwerksgrößen.
 
 ## Rufus installieren
 
@@ -49,20 +49,8 @@ Rufus bietet zwei Methoden, um MiniOS auf einen USB-Stick zu schreiben:
 6. **Vorgang starten**: Klicken Sie auf die Schaltfläche „START“
 7. **Formatierung bestätigen** – alle Daten auf dem Laufwerk werden gelöscht
 
-## Automatische Änderungsspeicherung
+## Ergebnis und Persistenz
 
-MiniOS erkennt automatisch die verwendete Schreibmethode und konfiguriert die Änderungsspeicherung:
+Der DD-Modus führt ein Raw-Image-Write durch und kopiert das ISO-Layout auf das gesamte Zielgerät. Im ISO-Modus wird ein Dateisystem formatiert und der ISO-Inhalt extrahiert, um ein dateibasiertes Live-Medium zu erstellen. Keiner der Modi ist eine MiniOS Installer-Installation, und Rufus erstellt weder automatisch eine ext4-Partition noch eine Persistenzsitzung.
 
-- **DD-Modus**: Wenn freier Speicherplatz vorhanden ist, wird eine ext4-Partition für maximale Performance erstellt
-- **ISO-Modus**: Verwendet eine dynamische Datei zum Speichern von Änderungen
-
-### Parameterkonfiguration (für fortgeschrittene Nutzer)
-
-Wenn eine präzise Konfiguration der Änderungsspeicherung erforderlich ist, können Boot-Parameter verwendet werden:
-
-- `perchmode=native` – Direktes Speichern auf Partition (für DD-Modus)
-- `perchmode=dynfilefs` – Dynamisch erweiterbare Datei
-- `perchmode=raw` – Datei mit fester Größe
-- `perchsize=8000` – Speicherplatzgröße in MB
-
-Details unter [Boot-Parameter](/configuration/Boot-Parameters.md).
+Persistenz wird nur aktiviert, wenn ein Boot-Eintrag oder eine Kernel-Befehlszeile dies anfordert, und es wird weiterhin geeigneter beschreibbarer Speicher benötigt. Siehe [Boot-Modi](/configuration/Boot-Modes.md) und [Initrd-Persistenz](/configuration/Initrd-Persistence.md), bevor Sie sich auf gespeicherte Änderungen verlassen.

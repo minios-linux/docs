@@ -4,12 +4,21 @@ MiniOS è una distribuzione Linux basata su Debian progettata per essere eseguit
 
 ## Modello di sistema
 
-- Il sistema base e il software opzionale sono moduli separati. I moduli possono essere selezionati all'avvio o aggiunti senza ricostruire l'intero sistema.
-- Una nuova sessione live lascia invariati i moduli di base.
-- La persistenza può memorizzare le modifiche in una directory nativa, in un contenitore DynFileFS espandibile, in un'immagine raw a dimensione fissa o in un contenitore LUKS cifrato, a seconda dell'installazione e del filesystem di destinazione.
-- Il programma di installazione di MiniOS può creare un'installazione live modulare oppure, quando l'immagine lo consente, effettuare un'installazione Linux nativa convenzionale.
+- Il sistema base e il software opzionale sono moduli separati. I moduli possono essere
+  selezionati all'avvio o aggiunti senza dover ricostruire l'intero sistema.
+- Una sessione live nuova lascia i moduli di base invariati.
+- La persistenza può memorizzare le modifiche in una directory nativa, in un contenitore
+  DynFileFS espandibile, in un'immagine raw a dimensione fissa o in un contenitore LUKS cifrato,
+  a seconda dell'installazione e del filesystem di destinazione.
+- Il programma di installazione MiniOS può effettuare un'installazione live modulare oppure, quando l'immagine
+  lo supporta, distribuire una classica installazione Linux nativa.
 
-Consulta [Architettura del sistema](/about/System-Architecture.md) per la struttura di avvio e dei moduli, e [Gestione delle sessioni](/configuration/Session-Management.md) per le sessioni persistenti.
+Consulta [Modalità di avvio](/configuration/Boot-Modes.md) per la guida ufficiale al comportamento
+live all'avvio e [Architettura di sistema](/about/System-Architecture.md) per la
+struttura di avvio e dei moduli. I dettagli dei contratti di early-boot sono documentati in
+[initrd system discovery](/configuration/Initrd-System-Discovery.md),
+[initrd module loading](/configuration/Initrd-Module-Loading.md) e
+[initrd persistence](/configuration/Initrd-Persistence.md).
 
 ## Edizioni
 
@@ -30,9 +39,17 @@ Per il software incluso in ogni edizione, consulta la
 
 ## Installazione e persistenza
 
-Un file ISO può essere scritto come immagine avviabile, copiato su un dispositivo multiboot o installato tramite MiniOS Installer. Questi metodi non hanno un comportamento di archiviazione identico. Gli strumenti di scrittura di immagini come `dd` ed Etcher riproducono la struttura dell'ISO; Ventoy avvia il file ISO; MiniOS Installer può allocare e configurare lo spazio di archiviazione per le sessioni scrivibili. Non dare per scontato che un metodo di scrittura crei la persistenza.
+Un file ISO può essere scritto come immagine avviabile, copiato su un dispositivo multiboot o
+installato tramite MiniOS Installer. Questi metodi non hanno tutti lo stesso comportamento di gestione dello storage.
+Strumenti di scrittura immagini come `dd` ed Etcher riproducono la struttura dell’ISO;
+Ventoy avvia direttamente il file ISO; MiniOS Installer può allocare e configurare uno spazio di archiviazione scrivibile per la sessione. Non dare per scontato che un metodo di scrittura abiliti la persistenza.
 
-Inizia da [Guida rapida](/installation/Quick-Start.md) e utilizza la guida collegata per il metodo di installazione scelto. La persistenza può anche essere selezionata da un menu di avvio appropriato o configurata tramite i parametri di avvio documentati quando è disponibile uno spazio di archiviazione scrivibile.
+Inizia da [Guida rapida](/installation/Quick-Start.md) e utilizza la guida collegata
+per il metodo di installazione scelto. La persistenza può anche essere selezionata da un
+menu di avvio appropriato o configurata tramite i parametri di avvio documentati quando
+è disponibile uno storage scrivibile. Consulta [Modalità di avvio](/configuration/Boot-Modes.md)
+per il comportamento della sessione live risultante e
+[Gestione delle sessioni](/configuration/Session-Management.md) per le opzioni di storage.
 
 ## Risorse del progetto
 

@@ -6,13 +6,13 @@ Diese veraltete MiniOS-Installationsmethode beinhaltet das direkte Kopieren der 
 
 ## Wichtig
 
-**Warnung:** Eine falsche Laufwerksauswahl führt zu Datenverlust. Überprüfen Sie immer das ausgewählte Laufwerk sorgfältig und sichern Sie wichtige Daten.
+**Warnung:** Dieses Verfahren partitioniert und formatiert das ausgewählte Gerät neu. Es wirkt sich auf das gesamte Gerät aus und ist nicht nur auf die aktuell sichtbaren Dateien beschränkt. Sichern Sie wichtige Daten und überprüfen Sie den exakten Gerätepfad, das Modell, die Kapazität, die Partition und den Einhängepunkt, bevor Sie `fdisk`, `mkfs` oder `bootinst` ausführen. Trennen Sie nach Möglichkeit andere Wechseldatenträger.
 
 ## Laufwerksanforderungen
 
 ### Laufwerksgröße
 
-Siehe [Hardware-Kompatibilitätsleitfaden](/installation/Hardware-Compatibility.md#system-requirements) für detaillierte Systemanforderungen und Laufwerksgrößen.
+Siehe [Hardware-Kompatibilitätsleitfaden](/installation/Hardware-Compatibility.md) für detaillierte Systemanforderungen und Laufwerksgrößen.
 
 ### Technische Anforderungen
 
@@ -26,22 +26,29 @@ Siehe [Hardware-Kompatibilitätsleitfaden](/installation/Hardware-Compatibility.
 
 **Windows:**
 1. Öffnen Sie die "Datenträgerverwaltung" (`Win+R`, dann `diskmgmt.msc`)
-2. Suchen Sie das USB-Laufwerk, klicken Sie mit der rechten Maustaste darauf und wählen Sie "Volume löschen"
-3. Klicken Sie mit der rechten Maustaste auf den nicht zugeordneten Speicherplatz und wählen Sie "Neues einfaches Volume"
-4. Wählen Sie das Dateisystem: FAT32 (empfohlen) oder NTFS
+2. Überprüfen Sie das USB-Gerät anhand der Datenträgernummer, des Modells und der Kapazität. Fahren Sie nicht fort, wenn Sie sich bei einem Detail unsicher sind.
+3. Klicken Sie mit der rechten Maustaste auf das Volume und wählen Sie "Volume löschen"
+4. Klicken Sie mit der rechten Maustaste auf den nicht zugeordneten Speicherplatz und wählen Sie "Neues einfaches Volume"
+5. Wählen Sie das Dateisystem: FAT32 (empfohlen) oder NTFS
 
 **Linux:**
+
+Setzen Sie `TARGET_DISK` und `TARGET_PARTITION` auf die exakten Pfade, nachdem Sie das Gerätemodell und die Kapazität in `lsblk` abgeglichen haben. Der Befehl `fdisk` überschreibt die Partitionstabelle auf dem gesamten Zieldatenträger. Führen Sie nur einen `mkfs`-Befehl für das gewünschte Dateisystem aus.
+
 ```bash
-# Identify the device
-lsblk
+lsblk -o NAME,PATH,SIZE,FSTYPE,LABEL,MOUNTPOINTS,MODEL
+TARGET_DISK=/dev/sdX
+TARGET_PARTITION=/dev/sdX1
+lsblk -o NAME,PATH,SIZE,FSTYPE,LABEL,MOUNTPOINTS,MODEL "$TARGET_DISK"
 
 # Create new MBR partition table
-sudo fdisk /dev/sdX
+sudo fdisk "$TARGET_DISK"
 # In fdisk: o (new table), n (new partition), p (primary), a (bootable), w (write)
 
-# Create file system
-sudo mkfs.vfat -F 32 /dev/sdX1  # For FAT32
-sudo mkfs.ext4 /dev/sdX1         # For ext4
+# Verify the new partition, then create one filesystem
+lsblk -o NAME,PATH,SIZE,FSTYPE,LABEL,MOUNTPOINTS,MODEL "$TARGET_DISK"
+sudo mkfs.vfat -F 32 "$TARGET_PARTITION"  # For FAT32
+# Or: sudo mkfs.ext4 "$TARGET_PARTITION"  # For ext4
 ```
 
 ### Schritt 2: Dateien extrahieren und kopieren
@@ -55,45 +62,42 @@ sudo mkfs.ext4 /dev/sdX1         # For ext4
 ```bash
 sudo mkdir /mnt/minios-iso
 sudo mount -o loop MiniOS.iso /mnt/minios-iso
+
+TARGET_PARTITION=/dev/sdX1
+sudo mkdir /mnt/minios-target
+sudo mount "$TARGET_PARTITION" /mnt/minios-target
+findmnt --mountpoint /mnt/minios-target
 ```
 
 **Dateien kopieren:**
-1. **Suchen Sie den Ordner `/minios/`** im eingebundenen ISO
+1. **Suchen Sie den Ordner `/minios/`** im eingebundenen ISO-Image
 2. **Kopieren Sie den gesamten Ordner `/minios/`** in das Stammverzeichnis des USB-Laufwerks
+
+Unter Linux ist das Ziel-Stammverzeichnis im obigen Beispiel `/mnt/minios-target`. Vergewissern Sie sich, dass `findmnt --mountpoint /mnt/minios-target` genau die in Schritt 1 gewählte Partition anzeigt, bevor Sie Dateien kopieren.
 
 ### Schritt 3: Bootloader installieren
 
 Navigieren Sie zum Ordner `/minios/boot/syslinux/` auf dem Laufwerk und führen Sie das Installationsprogramm aus:
 
+`bootinst` schreibt Boot-Code auf das Laufwerk, das vom Speicherort des Installers abgeleitet wird. Lesen Sie [Boot-Wiederherstellung](/administration/Boot-Recovery.md), bevor Sie den Boot-Code ändern, und führen Sie das Installationsprogramm erst aus, nachdem das Gerät und der Einhängepunkt überprüft wurden.
+
 **Windows:**
-- Führen Sie `bootinst.bat` **als Administrator** aus
+- Öffnen Sie das verifizierte USB-Laufwerk anhand des exakten Laufwerksbuchstabens, navigieren Sie zu `minios\boot\syslinux` und führen Sie `bootinst.bat` **als Administrator** aus.
 
 **Linux:**
 ```bash
-lsblk -o NAME,SIZE,FSTYPE,LABEL,MOUNTPOINTS,MODEL
-TARGET_MOUNT="/media/$USER/MINIOS"
+TARGET_MOUNT=/mnt/minios-target
+findmnt --mountpoint "$TARGET_MOUNT"
+lsblk -o NAME,PATH,SIZE,FSTYPE,LABEL,MOUNTPOINTS,MODEL
 cd "$TARGET_MOUNT/minios/boot/syslinux"
 chmod +x bootinst.sh
 sudo ./bootinst.sh
 ```
 
-Ersetzen Sie `MINIOS` durch das genaue Einhängeverzeichnis, das Sie mit `lsblk` überprüft haben. Verwenden Sie kein Wildcard: Das Skript ermittelt das Ziellaufwerk anhand seines eigenen Speicherorts und schreibt den Boot-Code auf dieses Laufwerk.
+Verwenden Sie keinen Platzhalter für den Einhängepunkt. Das Skript leitet das Zieldatenträgerlaufwerk von seinem eigenen Speicherort ab und schreibt den Boot-Code auf dieses Laufwerk.
 
-## Automatische Änderungsspeicherung
+## Ergebnis und Persistenz
 
-Beim ersten Start prüft MiniOS den Typ des Dateisystems auf dem Laufwerk und versucht, den optimalen Modus für die Änderungsspeicherung zu verwenden:
+Dieses Verfahren erstellt eine dateibasierte Live-Installation, indem der `minios/`-Baum und der Bootloader auf einem normalen Dateisystem abgelegt werden. Es handelt sich weder um ein direktes ISO-Abbild, noch um eine Multiboot-ISO-Installation oder eine MiniOS Installer-Installation.
 
-- **ext2/3/4, Btrfs**: versucht, den `native`-Modus (direktes Speichern) zu nutzen
-- **FAT32/NTFS**: verwendet den `dynfilefs`-Modus (dynamische Datei)
-- Wenn der native Modus nicht verfügbar ist, wird automatisch auf dynfilefs umgeschaltet
-
-### Parameterkonfiguration für fortgeschrittene Nutzer
-
-Wenn eine präzise Persistenzkonfiguration erforderlich ist, können Boot-Parameter verwendet werden:
-
-- `perchmode=native` – Direktes Speichern auf der Partition (für ext4)
-- `perchmode=dynfilefs` – Dynamisch erweiterbare Datei
-- `perchmode=raw` – Datei mit fester Größe
-- `perchsize=8000` – Größe des Speicherbereichs in MB
-
-Weitere Informationen unter [Boot-Parameter](/configuration/Boot-Parameters.md).
+Das gewählte Dateisystem beeinflusst, welche Persistenz-Backends funktionieren können, aktiviert jedoch keine Persistenz und garantiert auch nicht, dass eine Sitzung erstellt wird. Persistenz wird nur aktiviert, wenn ein Booteintrag oder eine Kernel-Befehlszeile dies anfordert, und erfordert weiterhin geeigneten beschreibbaren Speicher. Siehe [Boot-Modi](/configuration/Boot-Modes.md) und [Initrd-Persistenz](/configuration/Initrd-Persistence.md), bevor Sie sich auf gespeicherte Änderungen verlassen.

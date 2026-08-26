@@ -1,6 +1,6 @@
 # Récupération du démarrage
 
-La réparation du démarrage dépend de la manière dont MiniOS a été installé sur l’appareil et du mode de démarrage du firmware (BIOS ou UEFI). Une procédure adaptée à une configuration peut endommager une autre. Sauvegardez les fichiers importants avant d’écrire un secteur de démarrage, de modifier un drapeau de partition, de remplacer un arbre EFI ou de réinstaller GRUB. Consultez [Sauvegarde et récupération](/administration/Backup-Recovery.md).
+La réparation du démarrage dépend de la façon dont MiniOS a été installé sur l’appareil et du mode de démarrage du firmware (BIOS ou UEFI). Une procédure adaptée à une configuration peut endommager une autre. Sauvegardez les fichiers importants avant d’écrire un secteur de démarrage, de modifier un drapeau de partition, de remplacer un arbre EFI ou de réinstaller GRUB. Consultez la page [Sauvegarde et récupération](/administration/Backup-Recovery.md). Si le type d’installation est incertain, comparez-le avec les [modes de démarrage](/configuration/Boot-Modes.md) avant de choisir une procédure de réparation.
 
 ## Identifier la configuration
 
@@ -12,7 +12,7 @@ La réparation du démarrage dépend de la manière dont MiniOS a été install�
 
 ## Diagnostiquer sans modifier le disque
 
-Commencez par vérifier si l’échec se produit avant le menu MiniOS, après le menu ou après le démarrage du noyau. Vérifiez le menu de démarrage unique du firmware et notez si l’entrée sélectionnée est en mode UEFI ou BIOS hérité. Essayez un autre port et, si possible, démarrez le même périphérique sur un autre ordinateur.
+Commencez par vérifier si la panne survient avant le menu MiniOS, après le menu, ou après le démarrage du noyau. Consultez le menu de démarrage temporaire du firmware et notez si l’entrée sélectionnée est en mode UEFI ou BIOS hérité. Essayez un autre port et, si possible, démarrez le même appareil sur un autre ordinateur.
 
 Depuis un support de secours Linux fonctionnel, inspectez sans réparer :
 
@@ -23,15 +23,15 @@ sudo blkid
 sudo fdisk -l
 ```
 
-Sur un système démarré en mode UEFI, `sudo efibootmgr -v` peut lister les entrées du firmware. Son absence ou une erreur ne prouve pas que les fichiers EFI sont manquants. Ne formatez pas, ne repartitionnez pas, n’exécutez pas de réparation de système de fichiers, et ne modifiez pas les drapeaux simplement pour tester. Vérifiez chaque périphérique par modèle et capacité, et montez les systèmes de fichiers en lecture seule lors de l’inspection.
+Sur un système démarré en mode UEFI, `sudo efibootmgr -v` peut lister les entrées du firmware. Son absence ou une erreur ne prouve pas que les fichiers EFI sont manquants. Ne formatez pas, ne repartitionnez pas, n’effectuez pas de réparation du système de fichiers, et ne modifiez pas les drapeaux uniquement à des fins de test. Vérifiez chaque périphérique par modèle et capacité, et montez les systèmes de fichiers en lecture seule lors de simples inspections.
 
-Si le menu de démarrage apparaît mais que MiniOS ne trouve pas ses modules, modifiez temporairement l’entrée de démarrage et essayez `from=askdisk`. Une fois le bon système de fichiers identifié, un label de système de fichiers est plus fiable qu’un nom comme `/dev/sdb1` :
+Si le menu de démarrage apparaît mais que MiniOS ne trouve pas ses modules, modifiez temporairement l’entrée de démarrage et essayez `from=askdisk`. Une fois le bon système de fichiers identifié, une étiquette de système de fichiers est plus stable qu’un nom tel que `/dev/sdb1` :
 
 ```text
 from=/dev/disk/by-label/MINIOS/minios
 ```
 
-Le label doit exister et identifier le système de fichiers visé ; les labels doivent être uniques. Ajoutez `debug timing` pour plus de détails lors du démarrage. Ajoutez `rd.break` uniquement si un shell initramfs est nécessaire pour une inspection avancée. Ces options servent au diagnostic de la détection des modules ; elles ne réparent pas le chargeur de démarrage. Voir [Paramètres de démarrage](/configuration/Boot-Parameters.md) et [Dépannage](/administration/Troubleshooting.md).
+L’étiquette doit exister et identifier le système de fichiers visé ; les étiquettes doivent être uniques. Ajoutez `debug timing` pour obtenir plus de messages au démarrage. Ajoutez `rd.break` uniquement si un shell initramfs est nécessaire pour une inspection avancée. Ces options servent au diagnostic de la détection des modules ; elles ne réparent pas le chargeur d’amorçage. Consultez [Découverte du système initrd](/configuration/Initrd-System-Discovery.md) pour les formes `from=` prises en charge, le comportement de `askdisk` et la priorité des sources. Voir aussi [Paramètres de démarrage](/configuration/Boot-Parameters.md) et [Dépannage](/administration/Troubleshooting.md).
 
 ## Support ISO écrit en mode brut
 
@@ -110,7 +110,17 @@ Il est préférable de restaurer une sauvegarde exacte et testée de la racine n
 
 ## Restauration modulaire du noyau
 
-Pour une installation live basée sur des fichiers qui ne démarre plus après une modification du noyau, utilisez un support de secours issu de la même version et architecture de MiniOS. Au menu de démarrage, utilisez `from=askdisk` ou un chemin de label stable pour sélectionner l’arborescence `minios/` installée. Si cette combinaison permet d’atteindre un système fonctionnel et que l’arborescence installée est accessible en écriture, inspectez les ensembles de noyaux coordonnés et activez-en un qui est connu pour fonctionner :
+Pour une installation live basée sur des fichiers qui ne démarre plus après une modification du noyau,
+utilisez un média de secours issu de la même version et architecture de MiniOS. Dans le menu de démarrage,
+sélectionnez `from=askdisk` ou un chemin de label stable pour choisir l’arborescence
+`minios/` installée. L’arborescence sélectionnée doit contenir un triplet complet correspondant
+au noyau déjà chargé depuis le média de secours ; l’initrd ne peut pas changer le noyau en cours d’exécution.
+Consultez la page
+[Coordination du noyau en cours d’exécution](/configuration/Initrd-Module-Loading.md)
+pour connaître les chemins exacts des modules, de l’image du noyau et de l’initramfs ainsi que leur comportement.
+
+Si cette combinaison permet d’atteindre un système fonctionnel et que l’arborescence installée est accessible en écriture,
+inspectez les ensembles de noyaux coordonnés et activez-en un dont le fonctionnement est avéré :
 
 ```bash
 sudo minios-kernel list
@@ -118,9 +128,14 @@ sudo minios-kernel status
 sudo minios-kernel activate <working-version>
 ```
 
-L’activation doit restaurer un module de noyau coordonné, une image du noyau, un initramfs et la configuration du chargeur de démarrage. Ne remplacez pas uniquement `vmlinuz`, uniquement l’initramfs ou uniquement `01-kernel*.sb`. Conservez le noyau empaqueté précédent jusqu’à ce que le remplacement ait démarré avec succès. Voir [Gestion du noyau](/administration/Kernel-Management.md).
+L’activation doit restaurer un module du noyau coordonné, une image du noyau, un initramfs,
+et la configuration du chargeur d’amorçage. Ne remplacez pas uniquement `vmlinuz`, uniquement l’initramfs,
+ou uniquement `01-kernel*.sb`. Conservez le noyau empaqueté précédent jusqu’à ce que le remplacement
+ait démarré avec succès. Voir
+[Gestion du noyau](/administration/Kernel-Management.md).
 
-Cette restauration concerne les installations live modulaires. Les installations natives utilisent leurs paquets noyau installés et GRUB, et nécessitent une récupération native ou une réinstallation.
+Cette restauration s’applique aux installations live modulaires. Les installations natives utilisent leurs
+paquets noyau installés et GRUB et nécessitent une récupération native ou une réinstallation.
 
 ## Quand réinstaller
 

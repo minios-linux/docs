@@ -61,9 +61,13 @@ Persistence is not created by every write or boot method.
 - A native installation is a conventional installed system and does not use
   live-session persistence in the same way.
 
-See [Session management](/configuration/Session-Management.md) and
-[Boot parameters](/configuration/Boot-Parameters.md) before changing session
-storage. Keep a backup of important files regardless of persistence mode.
+Use [Boot modes](/configuration/Boot-Modes.md) as the canonical guide to
+user-visible live boot behavior. See
+[Session management](/configuration/Session-Management.md) for storage choices,
+[Initrd persistence](/configuration/Initrd-Persistence.md) for the detailed
+boot-time contract, and [Boot parameters](/configuration/Boot-Parameters.md)
+before changing kernel options. Keep a backup of important files regardless of
+persistence mode.
 
 ## 4. Boot MiniOS
 
@@ -76,7 +80,9 @@ storage. Keep a backup of important files regardless of persistence mode.
 
 If the device is not listed or the desktop does not start, see
 [Hardware compatibility](/installation/Hardware-Compatibility.md) and
-[Troubleshooting](/administration/Troubleshooting.md).
+[Troubleshooting](/administration/Troubleshooting.md). For failures while
+locating the live source, see
+[Initrd system discovery](/configuration/Initrd-System-Discovery.md).
 
 ## 5. Configure the system
 
@@ -109,7 +115,8 @@ configuration](/configuration/Network-Configuration.md). The network boot
 APT changes made in a live session survive reboot only when that session is
 persistent. SquashFS modules remain separate from the writable session and can
 be loaded as part of the modular system; see
-[Creating modules](/development/Creating-Modules.md).
+[Creating modules](/development/Creating-Modules.md) and
+[Initrd module loading](/configuration/Initrd-Module-Loading.md).
 
 Store important files on known writable storage and test one clean shutdown and
 reboot before relying on a persistent session.

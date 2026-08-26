@@ -16,12 +16,17 @@ La causa puede ser un segmento de almacenamiento incompleto, metadatos dañados 
 ## Reglas de seguridad
 
 1. No repare la única copia de un contenedor de almacenamiento.
-2. No copie sesiones de origen sobre el `minios/changes` actualmente activo.
+2. No copie sesiones de origen sobre un almacén `minios/changes` que esté en uso o montado.
 3. Copie el directorio completo `changes` antes de intentar la recuperación.
 4. Ejecute `e2fsck -y` solo sobre una copia adicional de una sesión.
 5. No cree manualmente un archivo `changes.dat.N` que falte.
 
-Si MiniOS está ejecutándose actualmente con persistencia y el dispositivo de origen está montado, es seguro hacer la copia inicial. No reemplace `session.conf` hasta que MiniOS haya arrancado sin persistencia.
+No realice la copia inicial mientras la sesión de origen esté en ejecución o su
+contenedor DynFileFS esté montado. Sus archivos de metadatos y segmentos pueden cambiar
+de forma independiente y producir una copia inconsistente. Arranque sin persistencia o utilice
+otro sistema Linux. Mantenga inactivos la vista DynFileFS/FUSE, el dispositivo de bucle `virtual.dat`
+y el sistema de archivos ext4 interno. Monte solo el sistema de archivos de almacenamiento externo,
+de preferencia en modo solo lectura, para que sus archivos de segmento de respaldo puedan copiarse de forma consistente.
 
 ## 1. Localizar el origen y el destino
 
@@ -99,7 +104,8 @@ MiniOS utiliza `session.conf` para seleccionar y describir las sesiones de persi
 
 ## 4. Montar el contenedor DynFileFS o dynblk
 
-Ubique el helper instalado. Dependiendo de la imagen de MiniOS, el nombre canónico puede ser `dynblk` o el nombre de compatibilidad `@mount.dynfilefs`:
+Ubique el helper instalado. Dependiendo de la imagen de MiniOS, el nombre canónico
+puede ser `dynblk` o el nombre de compatibilidad `@mount.dynfilefs`:
 
 ```bash
 DYN=""
@@ -134,7 +140,10 @@ mkdir -p /tmp/dynfilefs-recovery /tmp/old-session
     -p 4000
 ```
 
-No especifique `-s` ni `perchsize` al recuperar un contenedor existente. Su tamaño virtual se almacena en los metadatos de DynFileFS/dynblk.
+No especifique `-s` ni `perchsize` durante este montaje manual de recuperación. La ruta
+normal de arranque puede pasar `-s` para un tamaño lógico solicitado o registrado, pero la recuperación
+intencionalmente evita una solicitud de redimensionamiento y lee el tamaño existente desde los
+metadatos de DynFileFS/dynblk.
 
 Un montaje exitoso expone `virtual.dat`:
 
@@ -142,7 +151,7 @@ Un montaje exitoso expone `virtual.dat`:
 ls -lh /tmp/dynfilefs-recovery/virtual.dat
 ```
 
-Compruebe su sistema de archivos ext4 sin realizar cambios:
+Verifique su sistema de archivos ext4 sin realizar cambios:
 
 ```bash
 "$E2FSCK" -f -n /tmp/dynfilefs-recovery/virtual.dat
@@ -190,71 +199,65 @@ fusermount -u /tmp/dynfilefs-repair
 
 Repita la verificación en solo lectura de la sección anterior después de repararla.
 
-## 6. Restaurar la sesión para el arranque
+## 6. Recuperar en una nueva sesión compatible
 
-Realice este paso después de apagar la sesión persistente y arrancar MiniOS sin `perch`, `perchdir` ni `perchmode`. También puede hacerse desde otro sistema Linux.
-
-Copie el contenedor recuperado en un directorio de sesión numérico sin usar. Usar un número nuevo evita sobrescribir cualquier sesión actual:
-
-```bash
-NEW_CHANGES="$TARGET_MINIOS/changes"
-RESTORED=90
-
-test ! -e "$NEW_CHANGES/$RESTORED"
-mkdir -p "$NEW_CHANGES/$RESTORED"
-cp -a "$REPAIR/." "$NEW_CHANGES/$RESTORED/"
-```
-
-Si no fue necesaria la reparación del sistema de archivos, copie desde `$RECOVERY/$SESSION` en lugar de `$REPAIR`.
-
-Haga una copia de seguridad y reemplace los metadatos de la sesión:
+Prefiera recuperar en una sesión recién creada en lugar de reconstruir los metadatos
+de la dañada. Si existe una exportación válida de `.tar.zst`, inicie normalmente e impórtela
+con conversión automática para el sistema de archivos de destino:
 
 ```bash
-cp -a "$NEW_CHANGES/session.conf" \
-    "$NEW_CHANGES/session.conf.before-recovery" 2>/dev/null || true
-
-printf '%s\n' \
-    "default=$RESTORED" \
-    "session_mode[$RESTORED]=dynfilefs" \
-    >"$NEW_CHANGES/session.conf"
-sync
+sudo minios-session import /path/to/session.tar.zst --auto-convert
 ```
 
-Los metadatos mínimos omiten deliberadamente los campos de versión, edición y unión para que datos de compatibilidad obsoletos no fuercen a MiniOS a crear otra sesión.
+La importación crea una nueva sesión numerada. Revísela y luego actívela explícitamente.
 
-Arranque MiniOS con:
-
-```text
-perchdir=resume perchmode=dynfilefs
-```
-
-No agregue `perchdir=new` ni `perchsize` durante este primer arranque de recuperación.
-
-## 7. Recuperar archivos sin iniciar la sesión
-
-Si el contenedor se monta manualmente pero no puede usarse como sesión de arranque, copie los archivos importantes desde el montaje en solo lectura a una nueva sesión de trabajo:
+Si solo el contenedor montado es utilizable, cree e inicie una nueva sesión en un
+modo compatible con el sistema de archivos de destino. Monte la copia recuperada
+en solo lectura como en la sección 4, luego copie los archivos necesarios a esa sesión
+en ejecución. Por ejemplo, para recuperar los directorios home:
 
 ```bash
-mkdir -p "$TARGET_MINIOS/recovered-home"
-rsync -aHAX --info=progress2 \
+sudo rsync -aHAX --info=progress2 \
     /tmp/old-session/home/ \
-    "$TARGET_MINIOS/recovered-home/"
+    /home/
 sync
 ```
+
+Copie solo los datos y la configuración que necesite. Así evita tratar metadatos de compatibilidad
+desconocidos o incompletos como una definición de sesión arrancable.
+
+## 7. No reconstruya los metadatos de la sesión en el lugar
+
+No reemplace `session.conf` con un archivo mínimo ni agregue un directorio recuperado
+a un almacén existente manualmente. Los metadatos describen cada sesión en ese
+almacén; reemplazarlos puede dejar sesiones sanas huérfanas, descartar campos de compatibilidad y política
+de guardado, y cambiar la selección para el siguiente arranque.
+
+Si el contenedor puede montarse en solo lectura, recupere sus archivos en una sesión
+compatible recién creada como se describe arriba. Si no puede montarse, conserve
+la copia completa fuera de línea para una recuperación de sistema de archivos o forense posterior. Un
+contenedor sin metadatos de almacén confiables es una entrada recuperable, no una
+definición de sesión arrancable.
 
 ## Referencia de errores
 
-- `cannot open ... changes.dat.N`: falta un segmento confirmado. Vuelva a copiarlo desde el dispositivo de origen o pruebe con otra sesión. No cree un segmento vacío.
+- `cannot open ... changes.dat.N`: falta un segmento confirmado. Vuelva a copiarlo
+desde el dispositivo de origen o pruebe con otra sesión. No cree un segmento vacío.
 - `cannot read header`: el encabezado de DynFileFS/dynblk está dañado.
 - `incompatible data format`: el helper y el formato del contenedor no coinciden.
 - `virtual.dat` existe pero ext4 no monta: verifique una copia con `e2fsck`.
-- El contenedor monta pero MiniOS crea una nueva sesión: verifique que `session.conf` apunte al número restaurado y contenga `session_mode[N]=dynfilefs`.
 
 ## Prevención de recurrencias
 
-La mayoría de los incidentes comienzan cuando el dispositivo de persistencia se llena durante el uso. Reduzca el riesgo con estas medidas:
+La mayoría de los incidentes comienzan cuando el dispositivo de persistencia se llena durante el uso. Reduzca el
+riesgo con estas medidas:
 
-- Mantenga una reserva de espacio libre con el parámetro de arranque `perchreserve` (por defecto 256 MB). Los contenedores nuevos y en crecimiento nunca la consumen, y MiniOS avisa al arrancar cuando el espacio libre cae por debajo de la reserva. Auméntela en dispositivos pequeños o muy usados, por ejemplo `perchreserve=1024`.
-- Elimine sesiones antiguas o sin uso antes de que el dispositivo se llene.
-- Prefiera una sesión de tamaño fijo `raw` cuando necesite un uso de disco predecible, para que el crecimiento no agote el dispositivo inesperadamente.
-- Apague correctamente. Un apagado brusco con el dispositivo lleno es la causa más común de un contenedor que luego no puede montarse.
+- Mantenga una reserva de espacio libre con el parámetro de arranque `perchreserve` (por defecto
+  256 MiB). Los contenedores nuevos y en crecimiento nunca la consumen, y MiniOS avisa al arrancar
+  cuando el espacio libre cae por debajo de la reserva. Auméntela en dispositivos pequeños o muy usados,
+  por ejemplo `perchreserve=1024`.
+- Elimine sesiones antiguas o no utilizadas antes de que el dispositivo se llene.
+- Prefiera una sesión `raw` de tamaño fijo cuando necesite un uso de disco predecible, así
+  el crecimiento no puede agotar el dispositivo inesperadamente.
+- Apague correctamente. Un corte de energía abrupto mientras el dispositivo está lleno es la causa
+  más común de un contenedor que luego no puede montarse.

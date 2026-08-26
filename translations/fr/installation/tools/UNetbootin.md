@@ -8,9 +8,9 @@ UNetbootin est un utilitaire open source multiplateforme qui vous permet de cré
 
 ## Exigences pour le lecteur
 
-### Taille du lecteur
+### Taille du disque
 
-Consultez le [Guide de compatibilité matérielle](/installation/Hardware-Compatibility.md#system-requirements) pour les exigences système détaillées et les tailles de lecteur.
+Consultez le [Guide de compatibilité matérielle](/installation/Hardware-Compatibility.md) pour connaître en détail les exigences système et les tailles de disque recommandées.
 
 ## Installation de UNetbootin
 
@@ -32,16 +32,8 @@ Consultez le [Guide de compatibilité matérielle](/installation/Hardware-Compat
 4. **Démarrez le processus :** Cliquez sur « OK »
 5. **Patientez jusqu’à la fin** – le processus peut prendre 10 à 20 minutes
 
-## Persistance automatique des modifications
+## Résultat et persistance
 
-UNetbootin formate automatiquement le lecteur en FAT32, ainsi MiniOS utilisera le mode dynfilefs pour sauvegarder les modifications. Cela garantit une compatibilité maximale avec différents systèmes, y compris la prise en charge du démarrage EFI.
+UNetbootin extrait les fichiers et installe les fichiers de démarrage sur le système de fichiers sélectionné, créant ainsi un média live basé sur des fichiers au lieu d’effectuer une écriture d’image brute ou un déploiement de l’installateur MiniOS. Son utilisation ne garantit pas le formatage en FAT32, la prise en charge de l’EFI ou la persistance.
 
-### Configuration des paramètres (pour utilisateurs avancés)
-
-Lorsque vous avez besoin d’une configuration précise, des paramètres de démarrage peuvent être utilisés :
-
-- `perchmode=dynfilefs` – Fichier extensible dynamiquement (par défaut)
-- `perchmode=raw` – Fichier de taille fixe
-- `perchsize=8000` – Taille de l’espace de stockage des données en Mo
-
-Détails dans [paramètres de démarrage](/configuration/Boot-Parameters.md).
+La persistance n’est activée que lorsqu’une entrée de démarrage ou une ligne de commande du noyau la demande, et elle nécessite toujours un support d’écriture adapté. Consultez [Modes de démarrage](/configuration/Boot-Modes.md) et [Persistance Initrd](/configuration/Initrd-Persistence.md) avant de vous fier à la sauvegarde des modifications.

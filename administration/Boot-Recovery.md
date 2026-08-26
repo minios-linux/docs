@@ -4,7 +4,9 @@ Boot repair depends on how MiniOS was placed on the device and whether the
 firmware starts it in BIOS or UEFI mode. A procedure for one layout can damage
 another. Back up important files before writing a boot sector, changing a
 partition flag, replacing an EFI tree, or reinstalling GRUB. See
-[Backup and recovery](/administration/Backup-Recovery.md).
+[Backup and recovery](/administration/Backup-Recovery.md). If the installation
+type is uncertain, compare it with [Boot modes](/configuration/Boot-Modes.md)
+before choosing a repair workflow.
 
 ## Identify the layout
 
@@ -57,6 +59,8 @@ The label must exist and identify the intended filesystem; labels should be
 unique. Add `debug timing` for more early-boot output. Add `rd.break` only when
 an initramfs shell is needed for advanced inspection. These options diagnose
 module discovery; they do not repair the bootloader. See
+[Initrd system discovery](/configuration/Initrd-System-Discovery.md) for the
+supported `from=` forms, `askdisk` behavior, and source precedence. Also see
 [Boot parameters](/configuration/Boot-Parameters.md) and
 [Troubleshooting](/administration/Troubleshooting.md).
 
@@ -190,9 +194,14 @@ live `EFI/boot` copy procedure to a native installation.
 For a file-based live installation that stopped booting after a kernel change,
 use rescue media from the same MiniOS release and architecture. At its boot
 menu, use `from=askdisk` or a stable label path to select the installed
-`minios/` tree. If that combination reaches a working system and the installed
-tree is writable, inspect the coordinated kernel sets and activate a known
-working one:
+`minios/` tree. The selected tree must contain a complete triplet matching the
+kernel already loaded from the rescue media; the initrd cannot switch the
+running kernel. See
+[running kernel coordination](/configuration/Initrd-Module-Loading.md)
+for the exact module, kernel image, and initramfs paths and behavior.
+
+If that combination reaches a working system and the installed tree is
+writable, inspect the coordinated kernel sets and activate a known working one:
 
 ```bash
 sudo minios-kernel list

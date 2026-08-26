@@ -9,7 +9,7 @@ Existem duas tarefas distintas que costumam ser chamadas de instalação:
 
 Baixe um ISO no [site oficial](https://minios.dev) ou na página oficial de [Releases do GitHub](https://github.com/minios-linux/minios-live/releases). Verifique o arquivo antes de gravá-lo em um dispositivo; veja [Verificando downloads](/installation/Verifying-Downloads.md).
 
-## Grave a mídia inicializável
+## Gravar mídia inicializável
 
 Escolha um método para o seu sistema operacional:
 
@@ -19,25 +19,29 @@ Escolha um método para o seu sistema operacional:
 - [`dd`](/installation/tools/dd.md) no Linux ou macOS
 - [Drive Utility](/installation/tools/Drive-Utility.md) no Linux
 - [UNetbootin](/installation/tools/UNetbootin.md) no Windows, Linux ou macOS
-- [Método original](/installation/tools/Original-Method.md) para uma estrutura MiniOS baseada em arquivos
+- [Método original](/installation/tools/Original-Method.md) para um layout MiniOS baseado em arquivos
 
-A gravação de uma imagem com Rufus, Etcher, `dd` ou Drive Utility é destrutiva. Confirme o caminho do dispositivo, modelo e capacidade antes de começar. Essas ferramentas criam a mídia inicializável; elas não realizam uma implantação live ou nativa com o MiniOS Installer.
+A gravação de uma imagem com Rufus, Etcher, `dd` ou Drive Utility é destrutiva. Confirme o caminho do dispositivo, modelo e capacidade antes de começar. Uma gravação de imagem bruta reproduz o layout da imagem; ela não configura persistência nem realiza uma implantação live ou nativa com o Instalador MiniOS por si só.
 
-O Ventoy é diferente: instale o Ventoy no dispositivo e depois copie o ISO para a partição de dados dele. Isso mantém a estrutura multiboot do Ventoy.
+Ventoy é diferente: instale o Ventoy no dispositivo e depois copie o ISO para a partição de dados. Isso mantém o layout multiboot do Ventoy.
 
-## Inicialize a sessão live
+## Inicializar a sessão live
 
 1. Reinicie o computador e abra o menu de boot do firmware.
 2. Selecione o dispositivo USB ou outra mídia inicializável.
-3. Inicie o MiniOS e verifique se o armazenamento, rede e dispositivos de entrada funcionam como esperado.
+3. Inicie o MiniOS e verifique se armazenamento, rede e dispositivos de entrada funcionam como esperado.
 
-As configurações de firmware variam conforme o computador. Uma imagem do MiniOS pode inicializar via BIOS ou UEFI; o destino de uma futura implantação pelo MiniOS Installer não está restrito ao MBR.
+As configurações de firmware variam conforme o computador. Uma imagem MiniOS pode inicializar via BIOS ou UEFI; o destino de uma futura implantação pelo Instalador MiniOS não está restrito a MBR.
+
+Use [Modos de boot](/configuration/Boot-Modes.md) como referência principal para o comportamento do boot live. Se o boot inicial não encontrar a imagem ou seus módulos, consulte [Descoberta do sistema Initrd](/configuration/Initrd-System-Discovery.md).
 
 ## Escolha um layout de instalação
 
-A partir da sessão live, inicie o [MiniOS Installer](/installation/MiniOS-Installer.md) quando quiser instalar o MiniOS em outro pendrive, SSD ou HD.
+A partir da sessão live, inicie o [Instalador MiniOS](/installation/MiniOS-Installer.md) quando quiser instalar o MiniOS em outro pendrive, SSD ou disco rígido.
 
-- O modo live preserva a pilha de módulos compactados e o layout de boot live. Ele suporta persistência opcional da sessão e é indicado para instalações portáteis.
+- O modo live preserva a pilha de módulos compactados e o layout de boot live. Ele suporta persistência opcional de sessão e é indicado para instalações portáteis.
 - O modo nativo expande os módulos selecionados em um sistema de arquivos raiz Linux convencional, gera o initramfs e instala um bootloader compatível. O modo nativo só está disponível quando a imagem inicializada fornece os metadados necessários do instalador.
 
-O instalador suporta layouts automáticos BIOS/MBR, UEFI/MBR e UEFI/GPT. BIOS em GPT não é suportado pelo instalador atual. Veja [Usando o MiniOS Installer](/installation/MiniOS-Installer.md) para informações sobre posicionamento, sistema de arquivos, persistência e limites de particionamento.
+A persistência live é preparada durante o boot inicial; o comportamento detalhado está em [Persistência Initrd](/configuration/Initrd-Persistence.md). Ela não se aplica ao sistema de arquivos raiz convencional usado pelo modo nativo.
+
+O instalador oferece suporte automático para layouts BIOS/MBR, UEFI/MBR e UEFI/GPT. BIOS em GPT não é suportado pelo instalador atual. Veja [Usando o Instalador MiniOS](/installation/MiniOS-Installer.md) para informações sobre posicionamento, sistema de arquivos, persistência e limites de particionamento.

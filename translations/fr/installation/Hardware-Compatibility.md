@@ -1,61 +1,41 @@
 # Guide de compatibilité matérielle
 
-Ce guide fournit des informations essentielles sur la compatibilité matérielle pour MiniOS. Le système est basé sur Debian 13 "Trixie" avec un noyau Linux Long-Term Support (LTS), garantissant une large prise en charge du matériel.
+La prise en charge du matériel dépend de la version et de l’image MiniOS : la distribution de base, le noyau, le microprogramme, les modules inclus et l’édition sont tous importants. Consultez la description de la version correspondant à l’image que vous avez téléchargée, puis testez une session live neuve avant de modifier les disques ou de compter sur la machine pour un usage persistant.
 
 ## Configuration requise
 
-MiniOS est conçu pour l’architecture **amd64** (64 bits). Les exigences varient selon l’édition :
+Les images MiniOS PC publiées ciblent l’architecture **amd64** (x86 64 bits), sauf indication contraire dans la description de la version. Les ressources nécessaires varient selon l’image, l’édition, l’environnement de bureau, les applications et le mode de démarrage :
 
-**Pour la variante Standard :**
-- **Processeur :** Processeur 64 bits à 1 GHz
-- **RAM :** 1 Go minimum (2 Go recommandés)
-- **Stockage :** 2 Go pour exécuter le système (4 Go+ recommandés pour le stockage de données)
-- **Graphismes :** Carte graphique compatible VGA
+- Le processeur doit être compatible avec l’architecture de l’image et le mode de microprogramme sélectionné.
+- La RAM doit être suffisante pour l’édition choisie et la charge de travail. Les modes `toram` nécessitent
+  une mémoire supplémentaire pour les données d’image copiées.
+- Le support d’amorçage doit offrir assez d’espace pour l’image téléchargée. La persistance, les données utilisateur et une installation native requièrent un espace d’écriture supplémentaire.
+- Les exigences graphiques dépendent de l’environnement de bureau et des applications dans l’édition sélectionnée.
 
-**Pour la variante Toolbox :**
-- **Processeur :** Processeur 64 bits à 1,2 GHz
-- **RAM :** 2 Go minimum (4 Go recommandés)
-- **Stockage :** 2 Go pour exécuter le système (8 Go+ recommandés pour le stockage de données)
-- **Graphismes :** Carte graphique avec prise en charge de l’accélération matérielle
-
-**Pour la variante Ultra :**
-- **Processeur :** Processeur double cœur 64 bits à 1,5 GHz
-- **RAM :** 4 Go minimum (8 Go recommandés)
-- **Stockage :** 2 Go pour exécuter le système (8 Go+ recommandés pour le stockage de données)
-- **Graphismes :** GPU moderne avec accélération matérielle
+Écrire une image sur un support de plus grande capacité ne crée pas automatiquement un espace de stockage persistant. Consultez le guide de référence [Modes de démarrage](/configuration/Boot-Modes.md) pour le comportement du démarrage live et [Démarrage rapide](/installation/Quick-Start.md) pour la préparation du support.
 
 ## Compatibilité des composants
 
 ### Processeurs
 
-Un large éventail de processeurs x86 64 bits d’Intel (Core i3/i5/i7/i9) et d’AMD (Ryzen 3/5/7/9) sont pris en charge.
+La compatibilité dépend de l’architecture et du noyau fournis dans l’image sélectionnée. Consultez les notes de version si vous utilisez un processeur récent ou des fonctionnalités CPU nécessitant la prise en charge d’un noyau plus récent.
 
-### Graphismes
+### Graphiques
 
-- **Intel :** Les cartes graphiques intégrées (UHD, Iris Xe, Arc) sont bien prises en charge.
-- **NVIDIA :** Le pilote open source Nouveau est inclus. Pour les cartes récentes, il est recommandé d’installer le pilote propriétaire pour des performances optimales.
-- **AMD :** Les cartes graphiques Radeon RX récentes sont entièrement prises en charge par le pilote open source AMDGPU.
+La prise en charge graphique dépend du pilote noyau, du microprogramme et de la pile graphique utilisateur présents dans l’image. Une carte peut fournir un affichage de base sans pour autant offrir l’accélération matérielle ou la prise en charge de tous les connecteurs. Certains matériels NVIDIA peuvent nécessiter un pilote propriétaire qui n’est pas inclus dans une image donnée.
 
 ### Réseau
 
-- **Ethernet :** La plupart des contrôleurs filaires Intel, Realtek et Broadcom fonctionnent immédiatement.
-- **Wi-Fi :** Un grand nombre d’adaptateurs Wi-Fi sont pris en charge grâce aux firmwares inclus et aux pilotes DKMS compilés automatiquement, en particulier les modèles courants d’Intel, Atheros et Realtek.
+La prise en charge Ethernet et Wi-Fi dépend du contrôleur, du pilote noyau et du microprogramme inclus dans l’image. Testez la connectivité réseau à partir d’une session neuve. Pour le Wi-Fi, vérifiez également si l’appareil nécessite un microprogramme ou un pilote externe absent de cette version.
 
 ### Stockage
 
-MiniOS est conçu pour démarrer depuis une variété de périphériques de stockage. Les scripts de démarrage du système analysent automatiquement tous les périphériques blocs disponibles, assurant la compatibilité avec :
+Les périphériques USB, SATA, NVMe, IDE et SD/MMC fonctionnent uniquement si l’image sélectionnée inclut un pilote pour le contrôleur et si le noyau reconnaît le périphérique. L’analyse initrd ne rend pas un contrôleur non pris en charge compatible. Consultez [Découverte système par initrd](/configuration/Initrd-System-Discovery.md) pour le comportement exact de recherche en mode live.
 
-- **Clés USB :** Toutes les générations d’USB sont prises en charge.
-- **Disques SATA/IDE :** Tous les disques durs et SSD internes standards.
-- **Disques NVMe :** Prise en charge complète des SSD NVMe récents.
-- **Cartes SD/MMC :** Prises en charge si le lecteur de cartes est reconnu par le noyau.
+Les modes live et natif ont des séquences de démarrage différentes. Le mode live détecte l’arborescence de données MiniOS et assemble les modules en lecture seule dans l’espace utilisateur initial ; le mode natif démarre sur une racine installée classique. Consultez [Chargement des modules initrd](/configuration/Initrd-Module-Loading.md) pour la gestion des modules live et [Installer MiniOS](/installation/Installing-MiniOS.md) pour la distinction des agencements.
 
 ### Virtualisation
 
-MiniOS est entièrement optimisé pour une utilisation en tant que système invité dans tous les principaux environnements de virtualisation. Le processus de construction inclut tous les pilotes nécessaires dans le ramdisk initial (`initrd`) pour garantir des performances maximales dès le démarrage.
+MiniOS peut fonctionner en tant qu’invité si l’image sélectionnée inclut les pilotes pour les périphériques CPU, stockage, réseau et affichage configurés dans la VM. La prise en charge n’est pas garantie pour tous les hyperviseurs ou modèles de contrôleurs. La compatibilité VirtIO, VMware, Hyper-V et IDE ou SATA émulés doit être vérifiée selon la version et testée avec la configuration VM spécifique.
 
-- **Pilotes haute performance :** La prise en charge des contrôleurs de stockage paravirtualisés est intégrée, notamment **VirtIO** (KVM/QEMU), **VMware Paravirtual SCSI** et **Hyper-V Storvsc**. Cela permet des performances d’E/S disque proches du natif.
-- **Compatibilité étendue :** Le système peut également démarrer depuis des contrôleurs **IDE** et **SATA** émulés, assurant la compatibilité avec toute configuration d’hyperviseur.
-- **Outils invités :** Pour une intégration avancée (souris fluide, partage du presse-papiers, résolution dynamique, etc.), les variantes `toolbox` et `ultra` incluent `open-vm-tools` (pour VMware) et `hyperv-daemons` (pour Hyper-V).
-
-Pour des instructions détaillées et des configurations spécifiques à chaque plateforme, consultez le [Guide de virtualisation](/administration/Virtualization.md).
+Les agents invités et les outils d’intégration de bureau varient également selon l’édition et l’image. Consultez la [liste des paquets](/administration/Packages.md) et le [guide de virtualisation](/administration/Virtualization.md) avant de supposer que le partage du presse-papiers, la résolution dynamique, l’arrêt propre ou la communication avec l’hôte sont disponibles.

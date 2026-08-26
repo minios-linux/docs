@@ -24,17 +24,11 @@ Non necessariamente. La scrittura diretta dell'ISO e l'avvio normale dell'ISO co
 
 ## Qual è la differenza tra sessione attiva e sessione in esecuzione?
 
-La sessione attiva è quella selezionata per il prossimo avvio; la sessione in esecuzione fornisce
-la persistenza attualmente. Attivare una sessione non cambia il sistema corrente. Consulta
-[Gestione delle sessioni](/configuration/Session-Management.md).
+La sessione attiva è quella selezionata per il prossimo avvio; concettualmente, la sessione in esecuzione fornisce la persistenza attualmente. Il record persistente `running=` può essere obsoleto dopo un crash, quindi lo stato protetto dell'avvio corrente e il layer scrivibile montato sono considerati autorevoli per le operazioni in tempo reale. L'attivazione di una sessione non comporta il cambio immediato del sistema attuale. Consulta [Gestione delle sessioni](/configuration/Session-Management.md) e [Persistenza Initrd](/configuration/Initrd-Persistence.md).
 
 ## Perché le mie modifiche sono scomparse dopo il riavvio?
 
-Potresti aver avviato una nuova sessione, utilizzato un supporto senza persistenza, selezionato
-una sessione diversa o spento il sistema prima che le modifiche fossero salvate. Controlla la sessione
-in esecuzione e quella attiva come descritto in
-[Gestione delle sessioni](/configuration/Session-Management.md) e
-[Risoluzione dei problemi](/administration/Troubleshooting.md).
+Potresti aver avviato una nuova sessione, utilizzato un supporto senza persistenza o selezionato una sessione diversa. Le sessioni Native, DynFileFS, raw e LUKS ricevono le scritture mentre il sistema è in esecuzione; non attendono uno snapshot al momento dello spegnimento. Solo la persistenza SquashFS richiede che le modifiche mantenute in RAM vengano ricostruite in `changes.sb`, quindi uno spegnimento interrotto o una policy di salvataggio disabilitata possono lasciare le ultime modifiche non salvate. Controlla la sessione in esecuzione e quella attiva come descritto in [Gestione delle sessioni](/configuration/Session-Management.md) e [Risoluzione dei problemi](/administration/Troubleshooting.md).
 
 ## LUKS e SquashFS sono lo stesso tipo di persistenza?
 

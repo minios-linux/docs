@@ -10,14 +10,14 @@ Drive Utility es una herramienta gráfica para grabar imágenes ISO de MiniOS en
 
 ## Requisitos de la unidad
 
-### Tamaño de la unidad (para grabar MiniOS)
+### Tamaño de la unidad (para escritura de MiniOS)
 
-Consulta la [Guía de compatibilidad de hardware](/installation/Hardware-Compatibility.md#system-requirements) para ver los requisitos detallados del sistema y tamaños de unidad.
+Consulta la [Guía de compatibilidad de hardware](/installation/Hardware-Compatibility.md) para conocer los requisitos de sistema y tamaños de unidad en detalle.
 
 ### Sistemas de archivos compatibles
 
 - **FAT32**: máxima compatibilidad
-- **NTFS**: compatibilidad con Windows  
+- **NTFS**: compatibilidad con Windows
 - **EXT4**: recomendado para Linux
 
 ## Iniciar Drive Utility
@@ -44,17 +44,8 @@ driveutility
    - Confirma la operación: todos los datos de la unidad serán eliminados
 5. **Espera a que finalice**: el proceso tomará varios minutos
 
-## Persistencia automática de cambios
+## Resultado y persistencia
 
-Al grabar MiniOS con Drive Utility, se crea una copia exacta de la imagen ISO. MiniOS detectará automáticamente el método de grabación y configurará la persistencia de cambios en el primer arranque.
+El modo de escritura realiza una grabación de imagen en bruto: copia la estructura del ISO en todo el dispositivo de destino. No crea una partición ext4 en el espacio no utilizado, ni crea una sesión de persistencia, ni realiza una instalación de MiniOS. Las opciones de sistema de archivos mencionadas arriba aplican solo a las operaciones de Drive Utility que formatean un sistema de archivos, no al esquema de particiones copiado por una escritura de ISO.
 
-### Configuración de parámetros (para usuarios avanzados)
-
-Para una configuración precisa de la persistencia, se pueden usar parámetros de arranque:
-
-- `perchmode=native` - Guardado directo en partición (cuando hay espacio libre disponible)
-- `perchmode=dynfilefs` - Archivo expandible dinámicamente
-- `perchmode=raw` - Archivo de tamaño fijo
-- `perchsize=8000` - Espacio de almacenamiento para datos en MB
-
-Más detalles en [parámetros de arranque](/configuration/Boot-Parameters.md).
+La persistencia solo se habilita cuando una entrada de arranque o la línea de comandos del kernel lo solicita, y aún requiere un almacenamiento adecuado con permisos de escritura. Consulta [Modos de arranque](/configuration/Boot-Modes.md) y [Persistencia Initrd](/configuration/Initrd-Persistence.md) antes de depender de los cambios guardados.

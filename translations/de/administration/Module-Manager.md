@@ -10,18 +10,21 @@ minios-module-manager
 
 Die Anwendung läuft unter Ihrem Desktop-Benutzer. Administratorrechte werden nur abgefragt, wenn eine angeforderte Aktion diese benötigt.
 
-## Aktuell ausgeführt und beim nächsten Start
+## Laufend jetzt und beim nächsten Start
 
-Der Arbeitsbereich Module bietet zwei getrennte Ansichten:
+Der Arbeitsbereich „Module“ bietet zwei getrennte Ansichten:
 
-- **Aktuell ausgeführt** ist die geordnete Liste der Module, die das laufende System aktuell zusammensetzen.
-- **Nächster Start** ist die geordnete Auswahl, die durch die aktuellen MiniOS-Startregeln bestimmt wird.
+- **Laufend jetzt** ist die geordnete Menge von Modulen, die aktuell das laufende System bilden.
+- **Nächster Start** ist die geordnete Menge, die durch die aktuellen MiniOS-Startregeln ausgewählt wurde.
 
-Eine Änderung in einer Ansicht wirkt sich nicht automatisch auf die andere aus. Zum Beispiel betrifft **Für diese Sitzung aktivieren** nur das laufende System, während **Zum nächsten Start hinzufügen** ein Modul in den dauerhaften Modulspeicher kopiert, es aber jetzt nicht aktiviert.
+Eine Änderung in einer Ansicht ändert nicht automatisch die andere. Zum Beispiel betrifft **Für diese Sitzung aktivieren** nur das laufende System, während **Zum nächsten Start hinzufügen** ein Modul in den dauerhaften Modulspeicher kopiert, ohne es sofort zu aktivieren.
 
-Die Aktivierung und Deaktivierung zur Laufzeit ist nur möglich, wenn das Root-Dateisystem aktuell AUFS verwendet. Sie stehen auf einem OverlayFS-Root nicht zur Verfügung, selbst wenn der Kernel AUFS unterstützt. Basismodule können über die Anwendung nicht deaktiviert werden.
+Die maßgeblichen Startzeit-Regeln, einschließlich Kandidatenquellen, exakter Basename-Ersetzung, numerischer Reihenfolge sowie Filterung nach `load=`, `noload=` und `bext=`, finden Sie unter
+[Initrd-Modulladung](/configuration/Initrd-Module-Loading.md). Dieser Leitfaden erklärt auch, warum sich „Laufend jetzt“ und „Nächster Start“ unterscheiden können.
 
-Änderungen für den nächsten Start sind nur möglich, wenn MiniOS einen geeigneten, dauerhaften und beschreibbaren Modulspeicher findet. Basismodule sowie Module auf schreibgeschützten oder flüchtigen Speichern können nicht entfernt werden. Boot-Filter wie `load`, `noload` und `bext` bestimmen weiterhin, welche Module ausgewählt werden.
+Aktivierung und Deaktivierung zur Laufzeit sind nur möglich, wenn das Root-Dateisystem aktuell AUFS verwendet. Sie stehen auf einem OverlayFS-Root nicht zur Verfügung, auch wenn der Kernel AUFS unterstützt. Basismodule können über die Anwendung nicht deaktiviert werden.
+
+Änderungen für den nächsten Start sind nur möglich, wenn MiniOS geeigneten, dauerhaften und beschreibbaren Modulspeicher findet. Basismodule und Module auf schreibgeschützten oder flüchtigen Speichern können nicht entfernt werden. Startfilter wie `load`, `noload` und `bext` bestimmen weiterhin, welche Module ausgewählt werden.
 
 ## Modul inspizieren
 
@@ -61,5 +64,7 @@ Das Ablegen eines Elements führt keinen Code aus und ändert weder Aktuell ausg
 ## Verwandte Dokumentation
 
 - [Module erstellen](/development/Creating-Modules.md)
-- [ISO-Images über die Kommandozeile zusammenstellen](/development/Rebuilding-ISO.md)
-- [Boot-Parameter](/configuration/Boot-Parameters.md)
+- [Initrd-Modulladung](/configuration/Initrd-Module-Loading.md)
+- [Startmodi](/configuration/Boot-Modes.md)
+- [ISO-Abbilder über die Kommandozeile zusammenstellen](/development/Rebuilding-ISO.md)
+- [Startparameter](/configuration/Boot-Parameters.md)

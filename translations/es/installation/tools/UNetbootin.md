@@ -10,7 +10,7 @@ UNetbootin es una utilidad de código abierto y multiplataforma que te permite c
 
 ### Tamaño de la unidad
 
-Consulta la [Guía de compatibilidad de hardware](/installation/Hardware-Compatibility.md#system-requirements) para ver los requisitos detallados del sistema y los tamaños de unidad.
+Consulta la [Guía de compatibilidad de hardware](/installation/Hardware-Compatibility.md) para conocer los requisitos del sistema y los tamaños de unidad en detalle.
 
 ## Instalación de UNetbootin
 
@@ -32,16 +32,8 @@ Consulta la [Guía de compatibilidad de hardware](/installation/Hardware-Compati
 4. **Inicia el proceso:** Haz clic en "OK"
 5. **Espera a que finalice** - el proceso puede tardar entre 10 y 20 minutos
 
-## Persistencia automática de cambios
+## Resultado y persistencia
 
-UNetbootin formatea automáticamente la unidad en FAT32, por lo que MiniOS usará el modo dynfilefs para guardar los cambios. Esto garantiza la máxima compatibilidad con diversos sistemas, incluyendo soporte para arranque EFI.
+UNetbootin extrae archivos e instala archivos de arranque en el sistema de archivos seleccionado, creando medios live basados en archivos en lugar de realizar una escritura de imagen sin procesar o una implementación del instalador de MiniOS. Su uso no garantiza el formateo FAT32, compatibilidad EFI ni persistencia.
 
-### Configuración de parámetros (para usuarios avanzados)
-
-Cuando se requiere una configuración precisa, se pueden usar parámetros de arranque:
-
-- `perchmode=dynfilefs` - Archivo dinámicamente expandible (por defecto)
-- `perchmode=raw` - Archivo de tamaño fijo
-- `perchsize=8000` - Espacio de almacenamiento de datos en MB
-
-Más detalles en [parámetros de arranque](/configuration/Boot-Parameters.md).
+La persistencia solo se habilita cuando una entrada de arranque o la línea de comandos del kernel la solicita, y aún así requiere un almacenamiento adecuado con permisos de escritura. Consulta [Modos de arranque](/configuration/Boot-Modes.md) y [Persistencia de Initrd](/configuration/Initrd-Persistence.md) antes de depender de los cambios guardados.
