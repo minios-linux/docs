@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Initrd-Persistenz
 
 MiniOS erstellt das Live-Root-Dateisystem aus schreibgeschützten Modulen und einer beschreibbaren oberen Schicht.
@@ -91,9 +95,15 @@ Im Raw-Modus wird ein festes `changes.img`-ext4-Image verwendet. Neue Images wer
 ### LUKS
 
 Der LUKS-Modus verwendet einen LUKS2-`changes.luks`-Container mit ext4 direkt darin.
-Er ist nur verfügbar, wenn das Initrd den Crypt-Support-Marker und die erforderlichen Tools enthält. Bei der Erstellung wird eine passende Bestätigungseingabe verlangt. Ein bestehender Container erlaubt drei Entsperrversuche auf der Boot-Konsole.
+Er ist nur verfügbar, wenn das initrd die Crypt-Unterstützungsmarkierung und die
+erforderlichen Tools enthält. Bei der Erstellung wird eine passende Bestätigungseingabe verlangt. Ein bestehender
+Container erlaubt drei Entsperrversuche an der Boot-Konsole.
 
-Das Initrd authentifiziert vor der Vergrößerung einer bestehenden verschlüsselten Datei, prüft und erweitert dann ext4 vor dem Mount. Falls Erstellung, Entsperren, Prüfung, Resize oder Mount fehlschlagen, räumt MiniOS das Mapping auf und setzt den Bootvorgang im RAM fort. Es erfolgt kein Fallback auf Native, DynFileFS, Raw oder eine andere unverschlüsselte Persistenz. Passphrasen werden weder in Sitzungs-Metadaten gespeichert noch als Befehlsargumente übergeben. Siehe [Security](../administration/Security-Hardening.md).
+Das initrd authentifiziert sich, bevor eine bestehende verschlüsselte Datei vergrößert wird, prüft
+und erweitert dann ext4, bevor es eingebunden wird. Falls Erstellung, Entsperren, Prüfung, Vergrößerung oder
+Einbinden fehlschlagen, räumt MiniOS die Zuordnung auf und läuft im RAM weiter. Es wird niemals auf native, DynFileFS, raw oder eine andere unverschlüsselte Persistenz zurückgegriffen.
+Passphrasen werden weder in den Sitzungsmetadaten gespeichert noch als Befehlsargumente übergeben.
+Siehe [Sicherheit](/administration/Security-Hardening.md).
 
 ### SquashFS
 
@@ -105,21 +115,44 @@ Eine Sitzung mit dem Marker `dirty` bedeutet, dass der vorherige Bootvorgang den
 
 Session Manager und das System-Backend für das Speichern erstellen und ersetzen SquashFS-Snapshots atomar mittels exakter Erfassung. Die Boot-Aktivierung kann einen bestehenden Snapshot von beschreibbarem FAT, exFAT oder NTFS einlesen, da die Extraktion im temporären ext4-Upper erfolgt. Erstellung und exaktes Speichern bleiben jedoch dateisystemabhängig: Ihr privater Staging-Bereich muss Links, Besitz, Modi, xattrs, ACLs, Fähigkeiten und Union-Whiteouts erhalten, daher erfordert das aktuelle Speichern ein geeignetes POSIX-Dateisystem. Siehe [Sitzungsverwaltung](./Session-Management.md).
 
-## Union-Aktivierung und Recovery-Grenze
+## Union-Aktivierung und Wiederherstellungsgrenze
 
-Für AUFS wird das aktivierte Changes-Root zum beschreibbaren Branch Null. Für OverlayFS erstellt das Initrd `upperdir` und `workdir` unterhalb des aktivierten Changes-Root und mountet die schreibgeschützten Module als untere Verzeichnisse. Anschließend überprüft das Initrd den Live-AUFS-Branch bzw. das OverlayFS-`upperdir`, bevor die Persistenz als aktiv veröffentlicht wird.
+Bei AUFS wird das aktivierte Changes-Root zum beschreibbaren Branch Null. Bei
+OverlayFS erstellt das initrd `upperdir` und `workdir` unterhalb des aktivierten
+Changes-Root und bindet die schreibgeschützten Module als untere Verzeichnisse ein. Das initrd
+überprüft dann den Live-AUFS-Branch oder das OverlayFS-`upperdir`, bevor die
+Persistenz als aktiv veröffentlicht wird.
 
-Scheitert ein Persistenz-Backend, ein Metadaten-Update oder diese Überprüfung, werden die Mounts soweit möglich rückgängig gemacht, es wird keine erfolgreiche Laufzeit-Autorität veröffentlicht und der Bootvorgang läuft beschreibbar im RAM weiter. Ein Fehlschlag beim Aufbau der Root-Union führt zur fatalen Initramfs-Shell. Das Verlassen dieser Shell kann das Setup mit einem ungültigen Root fortsetzen; dies ist weder eine Reparatur noch ein sicherer Fallback. AUFS behält best-effort-Modul-Branch-Anhänge, aber eine unvollständige Union überschreitet die Recovery-Grenze: MiniOS veröffentlicht keine erfolgreiche Persistenz-Autorität.
+Falls ein Persistenz-Backend, ein Metadaten-Update oder diese Überprüfung fehlschlägt, werden die
+eingebundenen Dateisysteme soweit möglich zurückgesetzt, keine erfolgreiche Laufzeitberechtigung wird
+veröffentlicht und der beschreibbare Boot läuft im RAM weiter. Wenn die Root-Union nicht erstellt werden kann, wird die fatale Initramfs-Shell gestartet. Das Verlassen dieser Shell kann dazu führen, dass das Setup mit einem ungültigen Root fortgesetzt wird; dies ist jedoch keine Reparatur oder sichere Rückfallebene. AUFS behält bestmögliche Modul-Branch-Erweiterungen bei, aber eine unvollständige Union überschreitet die Wiederherstellungsgrenze: MiniOS veröffentlicht keine erfolgreiche Persistenzberechtigung.
 
-Fehler bei Container-Prüfungen vermeiden absichtlich eine beschreibbare Wiederherstellung. Bewahren Sie die Sitzung auf und folgen Sie [Backup-Wiederherstellung](../administration/Backup-Recovery.md), [DynFileFS-Wiederherstellung](./DynFileFS-Recovery.md) oder [Fehlerbehebung](../administration/Troubleshooting.md), anstatt Sitzungsdateien während des Bootens zu ersetzen.
+Fehler bei Container-Prüfungen vermeiden absichtlich eine beschreibbare Wiederherstellung. Bewahren Sie die
+Sitzung auf und folgen Sie der [Backup-Wiederherstellung](/administration/Backup-Recovery.md),
+der [DynFileFS-Wiederherstellung](./DynFileFS-Recovery.md) oder dem
+[Troubleshooting](/administration/Troubleshooting.md), anstatt Sitzungsdateien während des Bootvorgangs zu ersetzen.
 
-## Aktiver, laufender und aktueller Boot-Status
+## Aktiver, laufender und aktueller Boot-Zustand
 
-In den dauerhaften Sitzungs-Metadaten ist `default=` die **aktive** Sitzung, die für das nächste Resume ausgewählt ist, während `running=` die Sitzung ist, die als Quelle für den aktuellen Boot aufgezeichnet wurde. Die Aktivierung schreibt beide Felder und markiert diese Sitzung als `dirty`.
-Nachdem die Persistenz-Mounts während eines sauberen Shutdowns entfernt wurden, entfernt MiniOS `running=` und markiert die Sitzung als `clean`.
+In den dauerhaften Sitzungsmetadaten ist `default=` die **aktive** Sitzung, die für
+den nächsten Resume ausgewählt wurde, während `running=` die Sitzung ist, die den
+aktuellen Boot bereitstellt. Die Aktivierung schreibt beide Felder und markiert diese Sitzung als `dirty`.
+Nachdem die Persistenz-Einbindungen bei einem sauberen Shutdown entfernt wurden, entfernt MiniOS
+`running=` und markiert die Sitzung als `clean`.
 
-Diese Metadatenfelder können nach einem Absturz, fehlgeschriebenen Metadaten, fehlgeschlagenem Union-Aufbau, kopiertem Speicher oder unterbrochenem Shutdown veraltet sein. Laufzeit-Komponenten, die das Speichern autorisieren müssen, vertrauen nicht allein auf `running=`. Sie verwenden den geschützten aktuellen Boot-Status des Initrd, der an die Boot-ID, die numerische Sitzung, den Modus, die tatsächliche Speicheridentität, den Schreibstatus, die Dauerhaftigkeit und die verifizierte aktive Generation gebunden ist. Ein fehlgeschlagener oder fehlender aktueller Boot-Datensatz bedeutet, dass die Persistenz nicht als autorisiertes Speicherziel behandelt werden darf.
+Diese Metadatenfelder können nach einem Absturz, fehlgeschriebenen Metadaten, fehlgeschlagener
+Union-Erstellung, kopiertem Store oder unterbrochenem Shutdown veraltet sein. Laufzeit-Komponenten,
+die das Speichern autorisieren müssen, vertrauen nicht allein auf `running=`. Sie nutzen den
+geschützten aktuellen Boot-Zustand des initrd, der an die Boot-ID, die numerische Sitzung,
+Modus, tatsächliche Store-Identität, Schreibstatus, Dauerhaftigkeit und die verifizierte aktive
+Generation gebunden ist. Ein fehlgeschlagener oder fehlender aktueller Boot-Eintrag bedeutet, dass Persistenz nicht als autorisiertes Speicherziel behandelt werden darf.
 
-Mit `toram` und einer anerkannten Persistenzanforderung wird der Sitzungs-Speicher vor der Aktivierung in den RAM kopiert. Die kopierte Sitzung kann beschreibbar sein und die laufende obere Schicht bereitstellen, aber ihr aktueller Boot-Status ist als nicht dauerhaft markiert. Änderungen an dieser RAM-Kopie werden beim Herunterfahren nicht auf das Originalgerät zurückgeschrieben und gehen verloren.
+Mit `toram` und einer erkannten Persistenzanforderung wird der Sitzungs-Store vor der Aktivierung in den RAM kopiert. Die kopierte Sitzung kann beschreibbar sein und das laufende Upper bereitstellen, aber ihr aktueller Boot-Zustand ist als nicht dauerhaft markiert. Änderungen an dieser RAM-Kopie werden nicht auf das Originalgerät zurückgeschrieben und gehen beim Shutdown verloren.
 
-Weitere Hinweise zum Betrieb finden Sie unter [Boot-Modi](./Boot-Modes.md), [Boot-Parameter](./Boot-Parameters.md), [Sitzungsverwaltung](./Session-Management.md), [DynFileFS-Wiederherstellung](./DynFileFS-Recovery.md), [Backup-Wiederherstellung](../administration/Backup-Recovery.md), [Security](../administration/Security-Hardening.md) und [Fehlerbehebung](../administration/Troubleshooting.md).
+Weitere Hinweise zum Betrieb finden Sie unter [Boot-Modi](./Boot-Modes.md),
+[Boot-Parameter](./Boot-Parameters.md),
+[Sitzungsverwaltung](./Session-Management.md),
+[DynFileFS-Wiederherstellung](./DynFileFS-Recovery.md),
+[Backup-Wiederherstellung](/administration/Backup-Recovery.md),
+[Sicherheit](/administration/Security-Hardening.md) und
+[Troubleshooting](/administration/Troubleshooting.md).

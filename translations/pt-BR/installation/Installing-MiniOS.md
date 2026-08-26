@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Instalando o MiniOS
 
 Existem duas tarefas distintas que costumam ser chamadas de instalação:
@@ -19,9 +23,9 @@ Escolha um método para o seu sistema operacional:
 - [`dd`](/installation/tools/dd.md) no Linux ou macOS
 - [Drive Utility](/installation/tools/Drive-Utility.md) no Linux
 - [UNetbootin](/installation/tools/UNetbootin.md) no Windows, Linux ou macOS
-- [Método original](/installation/tools/Original-Method.md) para um layout MiniOS baseado em arquivos
+- [Instalação USB baseada em arquivos](/installation/tools/File-Based-USB-Installation.md) para um layout MiniOS preparado manualmente
 
-A gravação de uma imagem com Rufus, Etcher, `dd` ou Drive Utility é destrutiva. Confirme o caminho do dispositivo, modelo e capacidade antes de começar. Uma gravação de imagem bruta reproduz o layout da imagem; ela não configura persistência nem realiza uma implantação live ou nativa com o Instalador MiniOS por si só.
+Gravar uma imagem com Rufus, Etcher, `dd` ou Drive Utility é um processo destrutivo. Confirme o caminho, modelo e capacidade do dispositivo antes de começar. A gravação de imagem bruta reproduz o layout da imagem; ela não configura persistência nem realiza uma implantação live ou nativa com o Instalador do MiniOS.
 
 Ventoy é diferente: instale o Ventoy no dispositivo e depois copie o ISO para a partição de dados. Isso mantém o layout multiboot do Ventoy.
 

@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Otimização de desempenho
 
 O ajuste de desempenho no MiniOS é principalmente um equilíbrio entre tempo de inicialização, uso de RAM,

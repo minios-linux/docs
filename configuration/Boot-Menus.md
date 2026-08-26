@@ -1,4 +1,9 @@
+---
+updated: 2026-08-26
+---
+
 # MiniOS Boot Menus Guide
+
 
 MiniOS boot menus provide convenient entries for common live boot modes. This
 guide explains how to select and edit those entries.
@@ -46,7 +51,7 @@ If your MiniOS USB drive supports multiple languages:
 3. The boot menu will appear in the selected language
 4. The selection can also pass locale settings to later startup, but it does not guarantee that every boot or application message is translated
 
-⚠️ **Important:** The multilingual menu overrides any locale settings specified in `config.conf`. The language selected in the boot menu takes precedence over pre-configured locale settings. See **[Configuration File](/configuration/Configuration-File.md)** and **[live-config](/configuration/live-config.md)** for details about system configuration files.
+**Important:** The multilingual menu overrides any locale settings specified in `config.conf`. The language selected in the boot menu takes precedence over pre-configured locale settings. See **[Configuration File](/configuration/Configuration-File.md)** and **[live-config](/configuration/live-config.md)** for details about system configuration files.
 
 ## Customizing Boot Options
 
@@ -88,7 +93,7 @@ For a complete list of available boot parameters, see **[Boot Parameters](/confi
 
 ### Editing Configuration Files
 
-⚠️ **Warning:** Only edit boot configuration files if you understand what you're doing. Incorrect changes can make your USB drive unbootable.
+**Warning:** Only edit boot configuration files if you understand what you're doing. Incorrect changes can make your USB drive unbootable.
 
 **To edit GRUB configuration:**
 1. Mount your MiniOS USB drive

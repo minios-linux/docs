@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Atualizações de software
 
 O MiniOS combina módulos de imagem SquashFS somente leitura com uma camada de execução gravável. O método de atualização deve corresponder à camada que está sendo alterada. Atualizar pacotes dentro de uma sessão em execução não é o mesmo que substituir os módulos no meio do MiniOS.

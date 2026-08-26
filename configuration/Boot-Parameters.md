@@ -1,4 +1,9 @@
+---
+updated: 2026-08-26
+---
+
 # Boot parameters
+
 
 ## How to use boot parameters
 Boot parameters customize how MiniOS starts. Separate parameters with spaces on the kernel command line.

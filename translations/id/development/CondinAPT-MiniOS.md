@@ -1,8 +1,14 @@
+---
+updated: 2026-08-26
+program_commits:
+    minios-live: 039ddd0f3e82651069756370e5f3addebce43984
+---
+
 # CondinAPT di MiniOS: Panduan Integrasi
 
-Dokumen ini menjelaskan aspek-aspek spesifik penggunaan CondinAPT dalam sistem build MiniOS.
+Dokumen ini menjelaskan aspek-aspek khusus penggunaan CondinAPT dalam sistem build MiniOS.
 
-> **📚 Dokumentasi Utama:** Untuk fitur dasar CondinAPT, lihat dokumen utama `CondinAPT.md`
+> **Dokumentasi Utama:** Untuk fitur dasar CondinAPT, lihat dokumen utama `CondinAPT.md`
 
 ## Daftar Isi
 
@@ -72,18 +78,18 @@ kl=KEEP_LOCALES
 - `DESKTOP_ENVIRONMENT` - lingkungan desktop (core, flux, xfce, lxqt)
 - `PACKAGE_VARIANT` - varian paket (minimum, standard, toolbox, ultra)
 - `INSTALL_KERNEL` - instal paket kernel (true/false)
-- `KERNEL_FLAVOUR` - varian kernel (none, rt, cloud)
+- `KERNEL_FLAVOUR` - flavour kernel (none, rt, cloud)
 - `KERNEL_AUFS` - dukungan AUFS (true/false)
 - `KERNEL_BUILD_DKMS` - build modul DKMS (true/false)
-- `INITRAMFS_BUILDER` - builder initramfs (livekit, dracut)
+- `INITRAMFS_BUILDER` - pembuat initramfs (livekit, dracut)
 - `LOCALE` - locale sistem (C, en_US, ru_RU, es_ES, pt_BR)
 - `MULTILINGUAL` - dukungan multibahasa (true/false)
 - `KEEP_LOCALES` - simpan locale (true/false)
 
 **Variabel yang dihitung otomatis (dari `minioslib`):**
-- `DISTRIBUTION_TYPE` - tipe distribusi (debian, ubuntu) - ditentukan otomatis berdasarkan `DISTRIBUTION`
+- `DISTRIBUTION_TYPE` - tipe distribusi (debian, ubuntu) - ditentukan secara otomatis berdasarkan `DISTRIBUTION`
   - `legacy`: stretch, buster, orel, bionic
-  - `current`: bullseye, bookworm, focal, jammy, noble  
+  - `current`: bullseye, bookworm, focal, jammy, noble
   - `future`: trixie, kali-rolling, sid
 
 ## Penggunaan di Modul
@@ -234,6 +240,10 @@ fi
 ```
 
 ---
+
+
+
+
 
 
 **Untuk informasi lengkap tentang fitur CondinAPT, silakan lihat dokumen utama `CondinAPT.md`**

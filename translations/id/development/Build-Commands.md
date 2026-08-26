@@ -1,3 +1,9 @@
+---
+updated: 2026-08-26
+program_commits:
+    minios-live: 039ddd0f3e82651069756370e5f3addebce43984
+---
+
 # Perintah build
 
 MiniOS memiliki dua antarmuka build berbasis command-line. Jalankan perintah dari direktori sumber `minios-live` kecuali jika menggunakan salinan yang sudah terinstal.

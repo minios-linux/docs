@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Persistance de l’initrd
 
 MiniOS construit la racine live à partir de modules en lecture seule et d’une couche supérieure en écriture. L’initrd décide si cette couche supérieure correspond à une session persistante numérotée ou à un répertoire temporaire en RAM. Cette page décrit la décision prise au démarrage et le chemin d’activation. Pour les contrôles destinés à l’utilisateur, consultez [Modes de démarrage](./Boot-Modes.md) et [Paramètres de démarrage](./Boot-Parameters.md).
@@ -88,9 +92,10 @@ Le mode raw utilise une image ext4 `changes.img` fixe. Les nouvelles images sont
 
 ### LUKS
 
-Le mode LUKS utilise un conteneur LUKS2 `changes.luks` avec ext4 directement à l’intérieur. Il n’est disponible que si l’initrd inclut le marqueur de support cryptographique et les outils nécessaires. La création demande une saisie de confirmation correspondante. Un conteneur existant autorise trois tentatives de déverrouillage sur la console de démarrage.
+Le mode LUKS utilise un conteneur LUKS2 `changes.luks` avec ext4 directement à l'intérieur.
+Ce mode n'est disponible que si l'initrd inclut le marqueur de support cryptographique ainsi que les outils requis. La création demande une saisie de confirmation identique. Un conteneur existant autorise trois tentatives de déverrouillage sur la console de démarrage.
 
-L’initrd authentifie avant d’agrandir un fichier chiffré existant, puis vérifie et étend ext4 avant de le monter. En cas d’échec de création, de déverrouillage, de vérification, d’agrandissement ou de montage, MiniOS nettoie le mapping et poursuit en RAM. Il ne bascule jamais vers natif, DynFileFS, raw ou toute autre persistance non chiffrée. Les mots de passe ne sont ni stockés dans les métadonnées de session ni passés comme arguments de commande. Voir [Sécurité](../administration/Security-Hardening.md).
+L'initrd s'authentifie avant d'étendre un fichier chiffré existant, puis vérifie et agrandit ext4 avant de le monter. En cas d'échec lors de la création, du déverrouillage, de la vérification, du redimensionnement ou du montage, MiniOS nettoie le mapping et poursuit l'exécution en RAM. Il ne bascule jamais vers les modes natif, DynFileFS, raw ou toute autre persistance non chiffrée. Les phrases de passe ne sont ni stockées dans les métadonnées de session, ni passées en tant qu'arguments de commande. Voir [Sécurité](/administration/Security-Hardening.md).
 
 ### SquashFS
 
@@ -102,20 +107,28 @@ Une session marquée `dirty` signifie que le démarrage précédent n’a pas te
 
 Le gestionnaire de sessions et le backend de sauvegarde système créent et remplacent de façon atomique les snapshots SquashFS par capture exacte. L’activation au démarrage peut lire un snapshot existant depuis un stockage FAT, exFAT ou NTFS en écriture car l’extraction se fait dans la couche supérieure ext4 temporaire. La création et la sauvegarde exacte restent conditionnées par le système de fichiers : leur zone de préparation privée doit préserver les liens, propriétaires, modes, xattr, ACL, capacités et whiteouts union, donc la sauvegarde actuelle nécessite un système de fichiers POSIX adapté. Voir [Gestion des sessions](./Session-Management.md).
 
-## Activation de l’union et frontière de récupération
+## Activation de l'union et frontière de récupération
 
-Pour AUFS, la racine des modifications activée devient la branche en écriture zéro. Pour OverlayFS, l’initrd construit `upperdir` et `workdir` sous la racine des modifications activée et monte les modules en lecture seule comme répertoires inférieurs. L’initrd vérifie ensuite la branche AUFS live ou le `upperdir` OverlayFS avant de publier la persistance comme active.
+Pour AUFS, la racine des modifications activée devient la branche zéro en écriture. Pour OverlayFS, l'initrd construit `upperdir` et `workdir` sous la racine des modifications activée et monte les modules en lecture seule comme répertoires inférieurs. L'initrd vérifie ensuite la branche AUFS active ou le `upperdir` d'OverlayFS avant de publier la persistance comme active.
 
-Si un backend de persistance, une mise à jour des métadonnées ou cette vérification échoue, les montages sont annulés si possible, aucune autorité d’exécution n’est publiée, et le démarrage en écriture se poursuit en RAM. L’échec de la construction de l’union racine lance le shell fatal de l’initramfs. Quitter ce shell peut permettre à la configuration de continuer avec une racine invalide ; ce n’est ni une réparation ni un repli sûr. AUFS conserve les ajouts de branches de modules au mieux, mais une union incomplète franchit la frontière de récupération : MiniOS ne publie pas d’autorité de persistance réussie.
+Si un backend de persistance, une mise à jour des métadonnées ou cette vérification échoue, les montages sont démontés lorsque c'est possible, aucune autorité d'exécution réussie n'est publiée et le démarrage en écriture continue en RAM. L'échec de la construction de l'union racine entraîne l'entrée dans le shell fatal de l'initramfs. Quitter ce shell peut permettre à la configuration de continuer avec une racine invalide ; ce n'est ni une réparation ni un repli sécurisé. AUFS conserve les ajouts de branches de modules au mieux, mais une union incomplète franchit la frontière de récupération : MiniOS ne publie pas d'autorité de persistance réussie.
 
-Les échecs de vérification des conteneurs évitent délibérément toute récupération en écriture. Préservez la session et suivez [Récupération de sauvegarde](../administration/Backup-Recovery.md), [Récupération DynFileFS](./DynFileFS-Recovery.md) ou [Dépannage](../administration/Troubleshooting.md) plutôt que de remplacer les fichiers de session au démarrage.
+Les échecs de vérification des conteneurs évitent volontairement toute récupération en écriture. Préservez la session et suivez [Récupération de sauvegarde](/administration/Backup-Recovery.md),
+[Récupération DynFileFS](./DynFileFS-Recovery.md), ou
+[Résolution des problèmes](/administration/Troubleshooting.md) plutôt que de remplacer les fichiers de session au démarrage.
 
-## État actif, en cours et du démarrage actuel
+## États actif, en cours et de démarrage actuel
 
-Dans les métadonnées de session durables, `default=` est la session **active** sélectionnée pour la prochaine reprise, tandis que `running=` est la session enregistrée comme fournissant le démarrage en cours. L’activation écrit les deux champs et marque cette session `dirty`. Après disparition des montages de persistance lors d’un arrêt propre, MiniOS supprime `running=` et marque la session `clean`.
+Dans les métadonnées de session durables, `default=` correspond à la session **active** sélectionnée pour la prochaine reprise, tandis que `running=` est la session enregistrée comme fournissant le démarrage en cours. L'activation écrit les deux champs et marque cette session `dirty`. Après disparition des montages de persistance lors d'un arrêt propre, MiniOS supprime `running=` et marque la session `clean`.
 
-Ces champs de métadonnées peuvent être obsolètes après un crash, un échec d’écriture des métadonnées, un échec de construction de l’union, une copie du stockage ou un arrêt interrompu. Les consommateurs en temps réel qui doivent autoriser la sauvegarde ne se fient pas uniquement à `running=`. Ils utilisent l’état protégé du démarrage actuel de l’initrd, lié à l’ID de démarrage, la session numérique, le mode, l’identité réelle du stockage, le statut en écriture, la durabilité et la génération active vérifiée. Un enregistrement du démarrage actuel manquant ou en échec signifie que la persistance ne doit pas être considérée comme une cible de sauvegarde autorisée.
+Ces champs de métadonnées peuvent être obsolètes après un crash, un échec d'écriture des métadonnées, un échec de construction de l'union, une copie du magasin ou un arrêt interrompu. Les consommateurs en cours d'exécution qui doivent autoriser la sauvegarde ne font pas confiance à `running=` seul. Ils utilisent l'état protégé de démarrage actuel de l'initrd, lié à l'identifiant de démarrage, au numéro de session, au mode, à l'identité réelle du magasin, au statut d'écriture, à la durabilité et à la génération active vérifiée. Un enregistrement de démarrage actuel manquant ou défaillant signifie que la persistance ne doit pas être considérée comme une cible de sauvegarde autorisée.
 
-Avec `toram` et une demande de persistance reconnue, le stockage de session est copié en RAM avant activation. La session copiée peut être en écriture et fournir la couche supérieure active, mais son état de démarrage actuel est marqué non durable. Les modifications de cette copie RAM ne retournent pas sur le périphérique d’origine et sont perdues à l’arrêt.
+Avec `toram` et une demande de persistance reconnue, le magasin de session est copié en RAM avant activation. La session copiée peut être en écriture et peut fournir l'upper en cours d'exécution, mais son état de démarrage actuel est marqué non durable. Les modifications apportées à cette copie en RAM ne sont pas répercutées sur le périphérique d'origine et sont perdues à l'arrêt.
 
-Pour des conseils opérationnels complémentaires, voir [Modes de démarrage](./Boot-Modes.md), [Paramètres de démarrage](./Boot-Parameters.md), [Gestion des sessions](./Session-Management.md), [Récupération DynFileFS](./DynFileFS-Recovery.md), [Récupération de sauvegarde](../administration/Backup-Recovery.md), [Sécurité](../administration/Security-Hardening.md) et [Dépannage](../administration/Troubleshooting.md).
+Pour des conseils opérationnels associés, voir [Modes de démarrage](./Boot-Modes.md),
+[Paramètres de démarrage](./Boot-Parameters.md),
+[Gestion des sessions](./Session-Management.md),
+[Récupération DynFileFS](./DynFileFS-Recovery.md),
+[Récupération de sauvegarde](/administration/Backup-Recovery.md),
+[Sécurité](/administration/Security-Hardening.md) et
+[Résolution des problèmes](/administration/Troubleshooting.md).

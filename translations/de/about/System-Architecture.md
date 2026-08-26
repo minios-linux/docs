@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # MiniOS-Systemarchitektur
 
 MiniOS startet ein schreibgeschütztes Betriebssystem, das aus SquashFS-Modulen zusammengesetzt ist, und fügt für die aktuelle Sitzung eine beschreibbare Ebene hinzu. Das initramfs ist dafür verantwortlich, das Medium zu finden, Module und Persistenz auszuwählen, das Root-Dateisystem zu erstellen, frühe Konfigurationen anzuwenden und die Kontrolle an das installierte Init-System zu übergeben.

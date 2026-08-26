@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Domande frequenti
 
 ## Quale edizione dovrei scegliere e perché manca un'applicazione?

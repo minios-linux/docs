@@ -1,3 +1,9 @@
+---
+updated: 2026-08-26
+program_commits:
+    minios-installer: 1b4c3df8b7aad7cec67b30263a6bb3929d98a77c
+---
+
 # Использование MiniOS Installer
 
 MiniOS Installer — это мастер на GTK и командная утилита для установки MiniOS из live-сессии MiniOS. Программа устанавливает систему на выбранный диск; это не то же самое, что запись ISO-образа на загрузочный носитель.

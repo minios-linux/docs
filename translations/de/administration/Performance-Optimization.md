@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Performance-Optimierung
 
 Die Performance-Optimierung in MiniOS ist im Wesentlichen ein Ausgleich zwischen Bootzeit, RAM-Nutzung, Lesezugriffen zur Laufzeit, Persistenz-Overhead und Speicherdauerhaftigkeit. Für genaue Bedeutungen der Optionen und Sicherheitsgrenzen nutzen Sie bitte [Boot-Modi](/configuration/Boot-Modes.md), [Initrd-Modulladen](/configuration/Initrd-Module-Loading.md) und [Initrd-Persistenz](/configuration/Initrd-Persistence.md).

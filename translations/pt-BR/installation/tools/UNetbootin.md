@@ -1,10 +1,14 @@
+---
+updated: 2026-08-26
+---
+
 # Usando o UNetbootin
 
 UNetbootin é uma ferramenta open source multiplataforma que permite criar pendrives bootáveis para várias distribuições Linux, incluindo o MiniOS.
 
 ## Importante
 
-⚠️ **Atenção:** Selecionar o dispositivo incorreto resultará em perda de dados! Sempre confira cuidadosamente o drive selecionado e faça backup dos dados importantes.
+**Atenção:** Selecionar o dispositivo incorreto resultará em perda de dados! Sempre confira o drive selecionado e faça backup dos dados importantes.
 
 ## Requisitos do Drive
 

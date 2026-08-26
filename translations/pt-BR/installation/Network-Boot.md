@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Inicialização pela rede
 
 Esta página descreve **como carregar o MiniOS pela rede**: PXE (kernel + initrd + dados do MiniOS) e HTTP ISO (`from=http://…`). Esse é o único objetivo do uso de rede dentro do initramfs do MiniOS.

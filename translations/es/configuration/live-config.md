@@ -1,3 +1,9 @@
+---
+updated: 2026-08-26
+program_commits:
+    minios-live-config: 069fa46ba4601f41966e479f63d90b2888e4df50
+---
+
 # LIVE-CONFIG
 
 **live-config** - Componentes de configuración del sistema

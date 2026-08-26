@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Fehlerbehebung
 
 Beginnen Sie mit Beobachtung und reversiblen Tests. Nehmen Sie keine Neu-Partitionierung, Neuformatierung, Reparatur eines Dateisystems, Löschung einer Sitzung oder Überschreibung von Boot-Dateien vor, bevor wichtige Daten gesichert wurden und das fehlerhafte Gerät anhand von Modell, Größe, Dateisystem und Einhängepunkt identifiziert ist.

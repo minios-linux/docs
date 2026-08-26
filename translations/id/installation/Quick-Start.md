@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Mulai Cepat
 
 Panduan ini mencakup proses mengunduh, menulis, booting, dan melakukan konfigurasi awal MiniOS.
@@ -20,9 +24,9 @@ Verifikasi checksum sebelum digunakan; lihat
 
 ## 2. Siapkan perangkat target
 
-Gunakan perangkat yang cukup besar untuk ISO yang dipilih dan data atau sesi persisten yang ingin Anda simpan. Ukuran ISO dapat berubah di setiap rilis, jadi periksa file unduhan dan alat penulisan, bukan hanya mengandalkan ukuran tetap yang tercantum di panduan. Cadangkan perangkat target terlebih dahulu: sebagian besar metode instalasi akan menimpa sebagian atau seluruh isinya.
+Gunakan perangkat yang kapasitasnya cukup untuk ISO yang dipilih serta data atau sesi persisten yang ingin Anda simpan. Ukuran ISO dapat berubah di setiap rilis, jadi pastikan untuk memeriksa file unduhan dan alat penulisan yang digunakan, bukan hanya mengandalkan ukuran tetap yang tercantum di panduan. Cadangkan perangkat target terlebih dahulu: sebagian besar metode instalasi akan menimpa sebagian atau seluruh isi perangkat tersebut.
 
-Pilih satu metode dan baca panduannya sebelum memilih perangkat:
+Pilih salah satu metode berikut dan baca panduannya sebelum menentukan perangkat:
 
 - Windows: [Rufus](/installation/tools/Rufus.md),
   [Balena Etcher](/installation/tools/Balena-Etcher.md), atau
@@ -34,8 +38,7 @@ Pilih satu metode dan baca panduannya sebelum memilih perangkat:
   [Balena Etcher](/installation/tools/Balena-Etcher.md)
 - Dari MiniOS: [MiniOS Installer](/installation/MiniOS-Installer.md)
 
-Metode lain yang terdokumentasi adalah [UNetbootin](/installation/tools/UNetbootin.md) dan [metode asli](/installation/tools/Original-Method.md). Lihat
-[Alat pembuatan USB](/installation/tools/USB-Creation-Tools.md) untuk perbandingan dan [Instalasi MiniOS](/installation/Installing-MiniOS.md) untuk gambaran instalasi.
+Metode lain yang terdokumentasi adalah [UNetbootin](/installation/tools/UNetbootin.md) dan [Instalasi USB berbasis file](/installation/tools/File-Based-USB-Installation.md). Lihat [Alat pembuatan USB](/installation/tools/USB-Creation-Tools.md) untuk perbandingan dan [Instalasi MiniOS](/installation/Installing-MiniOS.md) untuk gambaran umum instalasi.
 
 ## 3. Pahami persistensi sebelum menulis
 

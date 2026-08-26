@@ -1,4 +1,9 @@
+---
+updated: 2026-08-26
+---
+
 # Initrd persistence
+
 
 MiniOS builds the live root from read-only modules and one writable upper layer.
 The initrd decides whether that upper layer is a numbered persistent session or
@@ -165,7 +170,7 @@ and expands ext4 before mounting it. If creation, unlock, checking, resizing, or
 mounting fails, MiniOS cleans up the mapping and continues in RAM. It never
 falls back to native, DynFileFS, raw, or any other unencrypted persistence.
 Passphrases are not stored in session metadata or passed as command arguments.
-See [Security](../administration/Security-Hardening.md).
+See [Security](/administration/Security-Hardening.md).
 
 ### SquashFS
 
@@ -212,9 +217,9 @@ retains best-effort module branch appends, but an incomplete union crosses the
 recovery boundary: MiniOS does not publish successful persistence authority.
 
 Container check failures deliberately avoid writable recovery. Preserve the
-session and follow [Backup recovery](../administration/Backup-Recovery.md),
+session and follow [Backup recovery](/administration/Backup-Recovery.md),
 [DynFileFS recovery](./DynFileFS-Recovery.md), or
-[Troubleshooting](../administration/Troubleshooting.md) rather than replacing
+[Troubleshooting](/administration/Troubleshooting.md) rather than replacing
 session files during boot.
 
 ## Active, running, and current-boot state
@@ -242,6 +247,6 @@ For related operational guidance, see [Boot modes](./Boot-Modes.md),
 [Boot parameters](./Boot-Parameters.md),
 [Session management](./Session-Management.md),
 [DynFileFS recovery](./DynFileFS-Recovery.md),
-[Backup recovery](../administration/Backup-Recovery.md),
-[Security](../administration/Security-Hardening.md), and
-[Troubleshooting](../administration/Troubleshooting.md).
+[Backup recovery](/administration/Backup-Recovery.md),
+[Security](/administration/Security-Hardening.md), and
+[Troubleshooting](/administration/Troubleshooting.md).

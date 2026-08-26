@@ -1,4 +1,9 @@
+---
+updated: 2026-08-26
+---
+
 # Building MiniOS
+
 
 This guide covers the complete process for building MiniOS, including system builds, module development, and advanced configuration options.
 
@@ -76,21 +81,6 @@ The core build script that orchestrates the step-by-step build process:
 
 For detailed usage information, see the [minios-live documentation](https://github.com/minios-linux/minios-live/blob/master/docs/minios-live.md).
 
-### Offline Help Documentation
-
-`submodules/docs/` is the single editable source for MiniOS documentation. Before
-releasing `minios-help`, refresh its packaged offline copy with:
-
-```bash
-submodules/minios-help/tools/sync-from-docs.sh
-```
-
-The generated `submodules/minios-help/share/docs/` tree is committed with the
-application and is consumed directly by its Debian source package. Normal MiniOS
-image builds do not run VitePress, Node.js, or the documentation synchronizer;
-they install the already published `minios-help` package like any other desktop
-package.
-
 ## Project Structure
 
 The MiniOS build system is organized as follows:
@@ -127,27 +117,27 @@ flowchart TD
     A --> A1[Generate build.conf]
     A1 --> B
 
-    B --> PreCheck{🌐 Internet Check<br/>Network Required}
-    PreCheck -->|❌ No Internet| NetworkFail[❌ Build Cannot Start<br/>• Check network connection<br/>• Verify DNS resolution<br/>• Configure proxy if needed]
-    PreCheck -->|✅ Connected| C1
+    B --> PreCheck{Internet Check<br/>Network Required}
+    PreCheck -->|No Internet| NetworkFail[Build Cannot Start<br/>• Check network connection<br/>• Verify DNS resolution<br/>• Configure proxy if needed]
+    PreCheck -->|Connected| C1
 
     NetworkFail --> PreCheck
 
-    C1[build-bootstrap<br/>📦 Create Base System<br/>• Run debootstrap<br/>• Install core packages<br/>• Setup chroot environment]
+    C1[build-bootstrap<br/>Create Base System<br/>• Run debootstrap<br/>• Install core packages<br/>• Setup chroot environment]
 
-    C1 --> C2[build-chroot<br/>🔧 Configure System<br/>• Install base packages<br/>• Configure settings<br/><br/>]
+    C1 --> C2[build-chroot<br/>Configure System<br/>• Install base packages<br/>• Configure settings<br/><br/>]
 
-    C2 --> C3[build-live<br/>🗜️ Create Core SquashFS<br/>• Compress base system<br/>• Create 00-core.sb module<br/>• Prepare live environment]
+    C2 --> C3[build-live<br/>Create Core SquashFS<br/>• Compress base system<br/>• Create 00-core.sb module<br/>• Prepare live environment]
 
-    C3 --> C4[build-modules<br/>📚 Build Environment Modules<br/>• Process linked modules<br/>• Create SquashFS files<br/>• Apply conditional packages]
+    C3 --> C4[build-modules<br/>Build Environment Modules<br/>• Process linked modules<br/>• Create SquashFS files<br/>• Apply conditional packages]
 
-    C4 --> C5[build-boot<br/>🥾 Prepare Boot System<br/>• Setup GRUB & ISOLINUX<br/>• Create initramfs<br/>• Configure boot parameters]
+    C4 --> C5[build-boot<br/>Prepare Boot System<br/>• Setup GRUB & ISOLINUX<br/>• Create initramfs<br/>• Configure boot parameters]
 
-    C5 --> C6[build-config<br/>⚙️ Generate Boot Configs<br/>• Create menu entries<br/>• Configure live options<br/><br/>]
+    C5 --> C6[build-config<br/>Generate Boot Configs<br/>• Create menu entries<br/>• Configure live options<br/><br/>]
 
-    C6 --> C7[build-iso<br/>💿 Create Final ISO<br/>• Combine all components<br/>• Generate bootable image<br/><br/>]
+    C6 --> C7[build-iso<br/>Create Final ISO<br/>• Combine all components<br/>• Generate bootable image<br/><br/>]
 
-    C7 --> Success([✅ Final ISO Ready<br/>📁 build/iso/])
+    C7 --> Success([Final ISO Ready<br/>build/iso/])
 
     %% Alternative paths
     C1 -.->|Skip to specific stage| C4

@@ -1,10 +1,14 @@
+---
+updated: 2026-08-26
+---
+
 # Menggunakan Perintah `dd`
 
 `dd` adalah utilitas baris perintah serbaguna untuk menyalin data secara bit-per-bit antara file dan perangkat. Paling sering digunakan untuk menulis file ISO ke flashdisk USB, membuat cadangan, dan pemulihan data.
 
 ## Penting
 
-⚠️ **Peringatan:** Pemilihan perangkat yang salah akan menyebabkan kehilangan data! Selalu periksa kembali drive yang dipilih dan backup data penting Anda.
+**Peringatan:** Pemilihan perangkat yang salah dapat menyebabkan kehilangan data! Selalu periksa kembali drive yang dipilih dan cadangkan data penting Anda.
 
 ## Persyaratan Drive
 

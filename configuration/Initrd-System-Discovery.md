@@ -1,4 +1,9 @@
+---
+updated: 2026-08-26
+---
+
 # Initrd system discovery
+
 
 After the bootloader loads the kernel and initramfs, the initramfs must locate
 the MiniOS data tree that supplies the `.sb` system modules. This happens before

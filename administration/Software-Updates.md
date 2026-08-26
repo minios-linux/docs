@@ -1,4 +1,9 @@
+---
+updated: 2026-08-26
+---
+
 # Software updates
+
 
 MiniOS combines read-only SquashFS image modules with a writable runtime
 overlay. An update method must match the layer being changed. Updating packages

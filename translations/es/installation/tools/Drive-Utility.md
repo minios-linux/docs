@@ -1,3 +1,9 @@
+---
+updated: 2026-08-26
+program_commits:
+    driveutility: 4887bc27be38cf996333af8cd969149a7136bfa6
+---
+
 # Uso de Drive Utility
 
 Drive Utility es una herramienta gráfica para grabar imágenes ISO de MiniOS en unidades USB.
@@ -6,7 +12,7 @@ Drive Utility es una herramienta gráfica para grabar imágenes ISO de MiniOS en
 
 ## Importante
 
-⚠️ **Advertencia:** ¡La selección incorrecta del dispositivo resultará en pérdida de datos! Verifica siempre dos veces la unidad seleccionada y haz copia de seguridad de los datos importantes.
+**Advertencia:** ¡La selección incorrecta del dispositivo resultará en la pérdida de datos! Verifica siempre dos veces la unidad seleccionada y haz una copia de seguridad de los datos importantes.
 
 ## Requisitos de la unidad
 

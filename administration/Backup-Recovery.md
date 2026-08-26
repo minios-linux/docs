@@ -1,4 +1,9 @@
+---
+updated: 2026-08-26
+---
+
 # Backup and recovery
+
 
 No single backup protects every part of a MiniOS system. Personal files,
 configuration, persistent sessions, modules, and the storage device have

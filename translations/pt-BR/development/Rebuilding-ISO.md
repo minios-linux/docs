@@ -1,3 +1,10 @@
+---
+updated: 2026-08-26
+program_commits:
+    minios-image-builder: 48f882998f2f8f3cd9fdd0367697f999fa3b402c
+    minios-tools: 7cdd0e10c0f610ebc581efa82105b747437a6125
+---
+
 # Compondo imagens ISO do MiniOS pela linha de comando
 
 `minios-image-compose` é o backend de linha de comando fornecido com o MiniOS Image Builder. Ele substitui a antiga ferramenta `sb2iso`. O comando remasteriza uma árvore de conteúdo MiniOS existente, podendo alterar o conjunto de módulos e a configuração suportada, verifica o resultado e publica uma ISO inicializável.

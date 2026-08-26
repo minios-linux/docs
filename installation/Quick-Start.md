@@ -1,4 +1,9 @@
+---
+updated: 2026-08-26
+---
+
 # Quick start
+
 
 This guide covers downloading, writing, booting, and performing the initial
 configuration of MiniOS.
@@ -40,7 +45,7 @@ Choose one method and read its guide before selecting a device:
 - From MiniOS: [MiniOS Installer](/installation/MiniOS-Installer.md)
 
 Other documented methods are [UNetbootin](/installation/tools/UNetbootin.md)
-and the [original method](/installation/tools/Original-Method.md). See
+and [File-based USB installation](/installation/tools/File-Based-USB-Installation.md). See
 [USB creation tools](/installation/tools/USB-Creation-Tools.md) for a comparison
 and [Installing MiniOS](/installation/Installing-MiniOS.md) for the installation
 overview.

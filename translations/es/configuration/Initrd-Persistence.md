@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Persistencia en initrd
 
 MiniOS construye el sistema raíz en vivo a partir de módulos de solo lectura y una capa superior escribible. El initrd decide si esa capa superior corresponde a una sesión persistente numerada o a un directorio temporal en RAM. Esta página describe esa decisión y el proceso de activación durante el arranque. Para los controles visibles para el usuario, consulta [Modos de arranque](./Boot-Modes.md) y [Parámetros de arranque](./Boot-Parameters.md).
@@ -88,9 +92,10 @@ El modo raw utiliza una imagen ext4 fija en `changes.img`. Las imágenes nuevas 
 
 ### LUKS
 
-El modo LUKS utiliza un contenedor LUKS2 `changes.luks` con ext4 directamente en su interior. Solo está disponible cuando el initrd incluye el marcador de soporte de cifrado y las herramientas requeridas. La creación solicita una entrada de confirmación coincidente. Un contenedor existente permite tres intentos de desbloqueo en la consola de arranque.
+El modo LUKS utiliza un contenedor LUKS2 `changes.luks` con ext4 directamente en su interior.
+Está disponible solo cuando el initrd incluye el marcador de soporte para crypt y las herramientas requeridas. Al crear, se solicita una confirmación coincidente. Un contenedor existente permite tres intentos de desbloqueo en la consola de arranque.
 
-El initrd autentica antes de ampliar un archivo cifrado existente, luego comprueba y expande ext4 antes de montarlo. Si la creación, desbloqueo, comprobación, redimensionamiento o montaje fallan, MiniOS limpia el mapeo y continúa en RAM. Nunca recurre a nativo, DynFileFS, raw ni a ninguna otra persistencia sin cifrar. Las frases de contraseña no se almacenan en los metadatos de la sesión ni se pasan como argumentos de comando. Consulta [Seguridad](../administration/Security-Hardening.md).
+El initrd autentica antes de ampliar un archivo cifrado existente, luego verifica y expande ext4 antes de montarlo. Si la creación, el desbloqueo, la comprobación, el redimensionamiento o el montaje fallan, MiniOS limpia el mapeo y continúa en RAM. Nunca recurre a nativo, DynFileFS, raw ni a ningún otro tipo de persistencia sin cifrado. Las frases de paso no se almacenan en los metadatos de la sesión ni se pasan como argumentos de comando. Consulta [Seguridad](/administration/Security-Hardening.md).
 
 ### SquashFS
 
@@ -106,16 +111,16 @@ El Gestor de Sesiones y el backend de guardado del sistema crean y reemplazan sn
 
 Para AUFS, la raíz de cambios activada se convierte en la rama cero escribible. Para OverlayFS, el initrd construye `upperdir` y `workdir` debajo de la raíz de cambios activada y monta los módulos de solo lectura como directorios inferiores. Luego, el initrd verifica la rama activa de AUFS o el `upperdir` de OverlayFS antes de publicar la persistencia como activa.
 
-Si un backend de persistencia, una actualización de metadatos o esta verificación falla, los montajes se revierten donde sea posible, no se publica ninguna autoridad de ejecución exitosa y el arranque escribible continúa en RAM. El fallo al construir la unión raíz lleva a la shell fatal de initramfs. Salir de esa shell puede permitir que la configuración continúe con una raíz inválida; esto no es una reparación ni un fallback seguro. AUFS mantiene la mejor intención de añadir ramas de módulos, pero una unión incompleta cruza el límite de recuperación: MiniOS no publica autoridad de persistencia exitosa.
+Si falla un backend de persistencia, una actualización de metadatos o esta verificación, se desmontan los puntos de montaje cuando es posible, no se publica ninguna autoridad de ejecución exitosa y el arranque escribible continúa en RAM. Si falla la construcción de la unión raíz, se entra en la shell fatal de initramfs. Salir de esa shell puede permitir que la configuración continúe con una raíz no válida; esto no es una reparación ni un respaldo seguro. AUFS mantiene la anexión de ramas de módulos como mejor esfuerzo, pero una unión incompleta cruza el límite de recuperación: MiniOS no publica una autoridad de persistencia exitosa.
 
-Los fallos en la comprobación de contenedores evitan deliberadamente la recuperación escribible. Conserva la sesión y sigue [Recuperación de respaldo](../administration/Backup-Recovery.md), [Recuperación de DynFileFS](./DynFileFS-Recovery.md) o [Solución de problemas](../administration/Troubleshooting.md) en vez de reemplazar archivos de sesión durante el arranque.
+Los fallos en la comprobación de contenedores evitan deliberadamente la recuperación escribible. Conserva la sesión y sigue [Recuperación de copias de seguridad](/administration/Backup-Recovery.md), [Recuperación de DynFileFS](./DynFileFS-Recovery.md) o [Solución de problemas](/administration/Troubleshooting.md) en lugar de reemplazar archivos de sesión durante el arranque.
 
 ## Estado activo, en ejecución y de arranque actual
 
-En los metadatos duraderos de la sesión, `default=` es la sesión **activa** seleccionada para la próxima reanudación, mientras que `running=` es la sesión registrada como suministrando el arranque actual. La activación escribe ambos campos y marca esa sesión como `dirty`. Después de que los montajes de persistencia hayan desaparecido durante un apagado limpio, MiniOS elimina `running=` y marca la sesión como `clean`.
+En los metadatos de sesión duraderos, `default=` es la sesión **activa** seleccionada para la próxima reanudación, mientras que `running=` es la sesión registrada como la que suministra el arranque actual. La activación escribe ambos campos y marca esa sesión `dirty`. Después de que los puntos de montaje de persistencia hayan desaparecido durante un apagado limpio, MiniOS elimina `running=` y marca la sesión `clean`.
 
-Estos campos de metadatos pueden estar desactualizados tras un fallo, error de escritura de metadatos, fallo en la construcción de la unión, copia del almacenamiento o apagado interrumpido. Los procesos en ejecución que necesitan autorizar el guardado no confían solo en `running=`. Usan el estado protegido del arranque actual del initrd, vinculado al ID de arranque, sesión numérica, modo, identidad real del almacenamiento, estado escribible, durabilidad y generación activa verificada. Un registro de arranque actual fallido o ausente significa que la persistencia no debe considerarse un destino autorizado para guardar.
+Estos campos de metadatos pueden estar desactualizados tras un fallo, un error al escribir metadatos, un fallo en la construcción de la unión, una copia de almacenamiento o un apagado interrumpido. Los procesos en ejecución que necesitan autorizar el guardado no confían solo en `running=`. Usan el estado protegido de arranque actual del initrd, vinculado al ID de arranque, sesión numérica, modo, identidad real del almacenamiento, estado de escritura, durabilidad y generación activa verificada. Un registro de arranque actual fallido o ausente significa que la persistencia no debe considerarse un destino autorizado para guardar.
 
-Con `toram` y una solicitud de persistencia reconocida, el almacenamiento de sesiones se copia en RAM antes de la activación. La sesión copiada puede ser escribible y puede proporcionar la capa superior en ejecución, pero su estado de arranque actual se marca como no duradero. Los cambios en esa copia en RAM no regresan al dispositivo original y se pierden al apagar.
+Con `toram` y una solicitud de persistencia reconocida, el almacenamiento de sesión se copia en RAM antes de la activación. La sesión copiada puede ser escribible y puede proporcionar la capa superior en ejecución, pero su estado de arranque actual se marca como no duradero. Los cambios en esa copia en RAM no regresan al dispositivo original y se pierden al apagar.
 
-Para orientación operativa relacionada, consulta [Modos de arranque](./Boot-Modes.md), [Parámetros de arranque](./Boot-Parameters.md), [Gestión de sesiones](./Session-Management.md), [Recuperación de DynFileFS](./DynFileFS-Recovery.md), [Recuperación de respaldos](../administration/Backup-Recovery.md), [Seguridad](../administration/Security-Hardening.md) y [Solución de problemas](../administration/Troubleshooting.md).
+Para orientación operativa relacionada, consulta [Modos de arranque](./Boot-Modes.md), [Parámetros de arranque](./Boot-Parameters.md), [Gestión de sesiones](./Session-Management.md), [Recuperación de DynFileFS](./DynFileFS-Recovery.md), [Recuperación de copias de seguridad](/administration/Backup-Recovery.md), [Seguridad](/administration/Security-Hardening.md) y [Solución de problemas](/administration/Troubleshooting.md).

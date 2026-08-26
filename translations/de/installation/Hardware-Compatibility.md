@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Hardware-Kompatibilitätsleitfaden
 
 Die Hardware-Unterstützung hängt von der MiniOS-Version und dem jeweiligen Image ab: Die zugrunde liegende Distribution, der Kernel, die Firmware, enthaltene Module und die Edition spielen alle eine Rolle. Prüfen Sie die Release-Beschreibung des heruntergeladenen Images und testen Sie eine frische Live-Session, bevor Sie Festplatten wechseln oder das Gerät für dauerhafte Arbeit nutzen.

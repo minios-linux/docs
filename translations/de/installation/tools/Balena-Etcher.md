@@ -1,10 +1,14 @@
+---
+updated: 2026-08-26
+---
+
 # Verwendung von Balena Etcher
 
 Balena Etcher ist ein praktisches plattformübergreifendes Programm zum Schreiben von ISO-Images auf USB-Sticks. Geeignet für Windows, macOS und Linux.
 
 ## Wichtig
 
-⚠️ **Warnung:** Eine falsche Geräteauswahl führt zu Datenverlust! Überprüfen Sie immer das ausgewählte Laufwerk und sichern Sie wichtige Daten.
+**Warnung:** Eine falsche Geräteauswahl führt zu Datenverlust! Überprüfen Sie immer das ausgewählte Laufwerk und sichern Sie wichtige Daten.
 
 ## Laufwerksanforderungen
 

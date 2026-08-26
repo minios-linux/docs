@@ -1,3 +1,9 @@
+---
+updated: 2026-08-26
+program_commits:
+    minios-store: 2226f08d65dffd251ae016664239164a3b237fc0
+---
+
 # MiniOS Store
 
 O MiniOS Store oferece um catálogo de receitas de aplicativos em [store.minios.dev](https://store.minios.dev). No MiniOS, essas receitas podem ser instaladas diretamente no sistema em execução ou usadas para criar um ou mais módulos SquashFS (`.sb`).

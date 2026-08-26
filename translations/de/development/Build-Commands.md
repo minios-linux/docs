@@ -1,3 +1,9 @@
+---
+updated: 2026-08-26
+program_commits:
+    minios-live: 039ddd0f3e82651069756370e5f3addebce43984
+---
+
 # Build-Befehle
 
 MiniOS bietet zwei Kommandozeilen-Build-Schnittstellen. Führen Sie die Befehle im `minios-live` Quellverzeichnis aus, sofern Sie keine installierte Kopie verwenden.

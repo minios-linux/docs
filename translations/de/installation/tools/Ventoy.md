@@ -1,12 +1,16 @@
+---
+updated: 2026-08-26
+---
+
 # Verwendung von Ventoy
 
 Ventoy ist ein beliebtes Tool zum Erstellen bootfähiger USB-Sticks, mit dem Sie mehrere ISO-Dateien auf einem Gerät speichern und von jeder beliebigen starten können.
 
 ## Wichtig
 
-⚠️ **Warnung:** Eine falsche Laufwerksauswahl führt zu Datenverlust! Überprüfen Sie immer das ausgewählte Laufwerk und sichern Sie wichtige Daten.
+**Warnung:** Eine falsche Geräteauswahl führt zu Datenverlust! Überprüfen Sie immer das ausgewählte Laufwerk und sichern Sie wichtige Daten.
 
-⚠️ **Anforderung an den Boot-Modus:** Damit MiniOS mit Ventoy korrekt funktioniert, MÜSSEN Sie beim Booten den **GRUB2-Modus** auswählen oder Ihre ISO-Datei mit dem Suffix `VTGRUB2` umbenennen (z. B. `minios-standard-amd64_VTGRUB2.iso`), um den GRUB2-Modus automatisch zu erzwingen.
+**Anforderung an den Boot-Modus:** Damit MiniOS mit Ventoy korrekt funktioniert, MÜSSEN Sie beim Start **GRUB2-Modus** auswählen oder Ihre ISO-Datei mit dem Suffix `VTGRUB2` umbenennen (z. B. `minios-standard-amd64_VTGRUB2.iso`), um den GRUB2-Modus automatisch zu erzwingen.
 
 ## Laufwerksanforderungen
 
@@ -46,14 +50,14 @@ Persistenz wird nur aktiviert, wenn ein Boot-Eintrag oder eine Kernel-Befehlszei
 
 ## MiniOS mit Ventoy verwenden
 
-### Booten
+### Startvorgang
 
-Nachdem Ventoy installiert und die MiniOS-ISO-Datei auf das Laufwerk kopiert wurde:
+Nachdem Sie Ventoy installiert und die MiniOS-ISO-Datei auf das Laufwerk kopiert haben:
 
-1. **Vom USB-Laufwerk booten** – im BIOS/UEFI auswählen
+1. **Vom USB-Laufwerk booten** – wählen Sie es im BIOS/UEFI aus
 2. **MiniOS** aus der Liste der verfügbaren ISO-Dateien im Ventoy-Menü auswählen
-3. **⚠️ WICHTIG: GRUB2-Modus auswählen**, wenn Ventoy dazu auffordert
-4. **Warten, bis MiniOS geladen ist**
+3. **WICHTIG: GRUB2-Modus auswählen**, wenn Ventoy dazu auffordert
+4. **Warten Sie, bis MiniOS geladen ist**
 
 ### **Anforderungen an den Ventoy-Bootmodus**
 

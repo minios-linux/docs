@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Démarrage réseau
 
 Cette page explique **comment charger MiniOS via le réseau** : PXE (kernel + initrd + données MiniOS) et ISO HTTP (`from=http://…`). C’est le seul objectif du réseau dans l’initramfs de MiniOS.

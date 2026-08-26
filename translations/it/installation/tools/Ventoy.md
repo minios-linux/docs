@@ -1,12 +1,16 @@
+---
+updated: 2026-08-26
+---
+
 # Utilizzo di Ventoy
 
 Ventoy è uno strumento molto diffuso per creare unità USB avviabili che permette di memorizzare più file ISO su un unico dispositivo e avviare qualsiasi di essi.
 
 ## Importante
 
-⚠️ **Attenzione:** La selezione errata del dispositivo comporta la perdita dei dati! Controlla sempre con attenzione l’unità selezionata ed esegui il backup dei dati importanti.
+**Attenzione:** La selezione errata del dispositivo comporterà la perdita dei dati! Controlla sempre con attenzione l’unità selezionata ed esegui il backup dei dati importanti.
 
-⚠️ **Requisito modalità di avvio:** Per far funzionare correttamente MiniOS con Ventoy, DEVI selezionare la **modalità GRUB2** all’avvio, oppure rinominare il file ISO aggiungendo il suffisso `VTGRUB2` (es. `minios-standard-amd64_VTGRUB2.iso`) per forzare automaticamente la modalità GRUB2.
+**Requisito modalità di avvio:** Per far funzionare correttamente MiniOS con Ventoy, DEVI selezionare la **modalità GRUB2** durante l’avvio, oppure rinominare il file ISO aggiungendo il suffisso `VTGRUB2` (ad es. `minios-standard-amd64_VTGRUB2.iso`) per forzare automaticamente la modalità GRUB2.
 
 ## Requisiti dell’unità
 
@@ -51,8 +55,8 @@ La persistenza viene abilitata solo quando una voce di avvio o una riga di coman
 Dopo aver installato Ventoy e copiato il file ISO di MiniOS sull’unità:
 
 1. **Avvia dal drive USB** - selezionalo nel BIOS/UEFI
-2. **Seleziona MiniOS** dall’elenco dei file ISO disponibili nel menu Ventoy
-3. **⚠️ IMPORTANTE: Seleziona la modalità GRUB2** quando richiesto da Ventoy
+2. **Seleziona MiniOS** dall’elenco dei file ISO disponibili nel menu di Ventoy
+3. **IMPORTANTE: seleziona la modalità GRUB2** quando richiesto da Ventoy
 4. **Attendi il caricamento di MiniOS**
 
 ### **Requisiti modalità di avvio Ventoy**

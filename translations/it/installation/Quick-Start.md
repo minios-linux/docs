@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Guida rapida
 
 Questa guida copre il download, la scrittura, l'avvio e la configurazione iniziale di MiniOS.
@@ -20,24 +24,21 @@ Verifica il checksum prima di utilizzarla; vedi
 
 ## 2. Prepara un dispositivo di destinazione
 
-Utilizza un dispositivo sufficientemente capiente per la ISO scelta e per eventuali dati o sessioni persistenti che desideri mantenere. Le dimensioni delle ISO variano tra le release, quindi controlla il download e lo strumento di scrittura invece di affidarti a una dimensione fissa riportata in una guida. Esegui il backup del dispositivo di destinazione prima: la maggior parte dei metodi di installazione sovrascrive in parte o totalmente il contenuto.
+Utilizza un dispositivo abbastanza capiente per l’ISO selezionato e per eventuali dati o sessioni persistenti che desideri mantenere. Le dimensioni degli ISO variano tra le versioni, quindi verifica sia il file scaricato sia lo strumento di scrittura, invece di affidarti a una dimensione fissa indicata in una guida. Esegui un backup del dispositivo di destinazione prima di procedere: la maggior parte dei metodi di installazione sovrascrive in parte o totalmente il contenuto.
 
-Scegli un metodo e leggi la guida relativa prima di selezionare il dispositivo:
+Scegli un metodo e consulta la relativa guida prima di selezionare il dispositivo:
 
 - Windows: [Rufus](/installation/tools/Rufus.md),
-  [Balena Etcher](/installation/tools/Balena-Etcher.md) o
+  [Balena Etcher](/installation/tools/Balena-Etcher.md), oppure
   [Ventoy](/installation/tools/Ventoy.md)
 - Linux: [`dd`](/installation/tools/dd.md),
-  [Balena Etcher](/installation/tools/Balena-Etcher.md) o
+  [Balena Etcher](/installation/tools/Balena-Etcher.md), oppure
   [Drive Utility](/installation/tools/Drive-Utility.md)
-- macOS: [`dd`](/installation/tools/dd.md) o
+- macOS: [`dd`](/installation/tools/dd.md) oppure
   [Balena Etcher](/installation/tools/Balena-Etcher.md)
 - Da MiniOS: [MiniOS Installer](/installation/MiniOS-Installer.md)
 
-Altri metodi documentati sono [UNetbootin](/installation/tools/UNetbootin.md)
-e il [metodo originale](/installation/tools/Original-Method.md). Consulta
-[Strumenti per la creazione USB](/installation/tools/USB-Creation-Tools.md) per un confronto e
-[Installazione di MiniOS](/installation/Installing-MiniOS.md) per la panoramica dell'installazione.
+Altri metodi documentati sono [UNetbootin](/installation/tools/UNetbootin.md) e [Installazione USB basata su file](/installation/tools/File-Based-USB-Installation.md). Consulta [Strumenti per la creazione USB](/installation/tools/USB-Creation-Tools.md) per un confronto e [Installare MiniOS](/installation/Installing-MiniOS.md) per una panoramica dell’installazione.
 
 ## 3. Comprendere la persistenza prima di scrivere
 

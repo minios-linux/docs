@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # MiniOS Boot-Menü-Anleitung
 
 Die MiniOS-Boot-Menüs bieten praktische Einträge für gängige Live-Boot-Modi. Diese Anleitung erklärt, wie Sie diese Einträge auswählen und bearbeiten können.
@@ -32,12 +36,12 @@ Dies sind Selektoren, keine Garantien dafür, dass der Speicher beschreibbar ist
 ### Sprachauswahl (GRUB)
 
 Wenn Ihr MiniOS-USB-Stick mehrere Sprachen unterstützt:
-1. Der erste Bildschirm zeigt die verfügbaren Sprachen an
+1. Auf dem ersten Bildschirm werden Sprachoptionen angezeigt
 2. Wählen Sie Ihre bevorzugte Sprache aus
 3. Das Boot-Menü erscheint in der gewählten Sprache
-4. Die Auswahl kann auch Locale-Einstellungen an den weiteren Systemstart übergeben, garantiert jedoch nicht, dass jede Boot- oder Anwendungsnachricht übersetzt ist
+4. Die Auswahl kann auch die Locale-Einstellungen an spätere Startvorgänge weitergeben, jedoch ist nicht garantiert, dass jede Boot- oder Anwendungsnachricht übersetzt wird
 
-⚠️ **Wichtig:** Das mehrsprachige Menü überschreibt alle Locale-Einstellungen, die in `config.conf` angegeben sind. Die im Boot-Menü gewählte Sprache hat Vorrang vor vorkonfigurierten Locale-Einstellungen. Weitere Informationen zu Systemkonfigurationsdateien finden Sie unter **[Konfigurationsdatei](/configuration/Configuration-File.md)** und **[live-config](/configuration/live-config.md)**.
+**Wichtig:** Das mehrsprachige Menü überschreibt alle Locale-Einstellungen, die in `config.conf` angegeben sind. Die im Boot-Menü gewählte Sprache hat Vorrang vor vorkonfigurierten Locale-Einstellungen. Weitere Informationen zu Systemkonfigurationsdateien finden Sie unter **[Configuration File](/configuration/Configuration-File.md)** und **[live-config](/configuration/live-config.md)**.
 
 ## Boot-Optionen anpassen
 
@@ -83,7 +87,7 @@ Eine vollständige Liste aller verfügbaren Boot-Parameter finden Sie unter **[B
 
 ### Konfigurationsdateien bearbeiten
 
-⚠️ **Warnung:** Bearbeiten Sie Boot-Konfigurationsdateien nur, wenn Sie wissen, was Sie tun. Falsche Änderungen können dazu führen, dass Ihr USB-Stick nicht mehr bootet.
+**Warnung:** Bearbeiten Sie Boot-Konfigurationsdateien nur, wenn Sie wissen, was Sie tun. Falsche Änderungen können dazu führen, dass Ihr USB-Stick nicht mehr bootet.
 
 **So bearbeiten Sie die GRUB-Konfiguration:**
 1. Mounten Sie Ihren MiniOS-USB-Stick
@@ -92,6 +96,6 @@ Eine vollständige Liste aller verfügbaren Boot-Parameter finden Sie unter **[B
 4. Speichern Sie die Datei und werfen Sie den USB-Stick sicher aus
 
 **Häufige Änderungen:**
-- Ändern Sie die Timeout-Direktive des aktiven GRUB- oder Syslinux-Menüs
-- Ändern Sie `set default=0`, um die Standardmenüoption zu wechseln
+- Ändern Sie die Timeout-Direktive, die vom aktiven GRUB- oder Syslinux-Menü verwendet wird
+- Ändern Sie `set default=0`, um die Standardmenüoption zu ändern
 - Fügen Sie eigene Menüeinträge hinzu

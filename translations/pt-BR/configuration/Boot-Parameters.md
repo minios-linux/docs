@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Parâmetros de boot
 
 ## Como usar os parâmetros de boot

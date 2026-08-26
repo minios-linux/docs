@@ -1,4 +1,9 @@
+---
+updated: 2026-08-26
+---
+
 # MiniOS system architecture
+
 
 MiniOS boots a read-only operating system assembled from SquashFS modules and
 adds one writable layer for the current session. The initramfs is responsible

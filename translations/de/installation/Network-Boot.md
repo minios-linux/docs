@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Netzwerk-Boot
 
 Diese Seite beschreibt, **wie MiniOS über das Netzwerk geladen wird**: PXE (Kernel + initrd + MiniOS-Daten) und HTTP-ISO (`from=http://…`). Das ist der einzige Zweck von Netzwerkfunktionalität im MiniOS-initramfs.

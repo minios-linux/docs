@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Boot-Wiederherstellung
 
 Die Reparatur des Bootvorgangs hängt davon ab, wie MiniOS auf das Gerät gebracht wurde und ob die Firmware es im BIOS- oder UEFI-Modus startet. Ein Verfahren, das für eine Konfiguration geeignet ist, kann eine andere beschädigen. Sichern Sie wichtige Dateien, bevor Sie einen Bootsektor überschreiben, ein Partitions-Flag ändern, einen EFI-Baum ersetzen oder GRUB neu installieren. Siehe [Backup und Wiederherstellung](/administration/Backup-Recovery.md). Wenn der Installationstyp unklar ist, vergleichen Sie ihn mit den [Boot-Modi](/configuration/Boot-Modes.md), bevor Sie einen Reparaturablauf wählen.

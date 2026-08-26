@@ -1,3 +1,10 @@
+---
+updated: 2026-08-26
+program_commits:
+    minios-session-manager: 69436959d893a9870aca23e91b346d06b49eb98d
+    minios-tools: 7cdd0e10c0f610ebc581efa82105b747437a6125
+---
+
 # Gestion des sessions dans MiniOS
 
 Les sessions MiniOS conservent les modifications apportées au système live après redémarrage. Chaque session correspond à un répertoire numéroté sous `minios/changes/` ; les modules MiniOS en lecture seule restent inchangés et la session sélectionnée fournit la couche writable du système de fichiers union.

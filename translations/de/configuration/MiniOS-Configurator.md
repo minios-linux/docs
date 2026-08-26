@@ -1,3 +1,9 @@
+---
+updated: 2026-08-26
+program_commits:
+    minios-configurator: d2e9837de73c3c95ac3717168969a882ec97f04c
+---
+
 # MiniOS Configurator
 
 MiniOS Configurator ist ein grafischer Editor für die MiniOS-`live-config`-Einstellungen. Er validiert Änderungen und schreibt die Konfiguration für einen späteren Systemstart. Das laufende System wird dabei nicht direkt verändert.

@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Configurazione di rete
 
 Dopo l'avvio di MiniOS, NetworkManager gestisce normalmente le connessioni cablate e Wi-Fi. Questo è separato dal networking dell'initramfs utilizzato per scaricare un sistema PXE o HTTP-ISO. In particolare, il parametro PXE `ip=` non crea un profilo NetworkManager né imposta un indirizzo di sessione permanente. Consulta [Avvio da rete](/installation/Network-Boot.md) per la configurazione di rete nelle prime fasi di avvio.

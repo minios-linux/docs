@@ -1,11 +1,16 @@
+---
+updated: 2026-08-26
+---
+
 # Using Rufus (Windows)
+
 
 Rufus is a popular utility for Windows that helps format and create bootable USB drives.
 
 
 ## Important
 
-⚠️ **Warning:** Incorrect device selection will result in data loss! Always double-check the selected drive and backup important data.
+**Warning:** Incorrect device selection will result in data loss! Always double-check the selected drive and backup important data.
 
 
 ## Drive Requirements
@@ -46,7 +51,7 @@ Rufus offers two methods for writing MiniOS to a USB drive:
    - In the "Hybrid ISO image detected" dialog, select **"Write in ISO Image mode"**
 5. **Configure settings**:
    - **File system**: FAT32 (recommended) or NTFS
-   - ⚠️ **When choosing NTFS**: EFI mode booting may be unavailable
+   - **When choosing NTFS**: EFI mode booting may be unavailable
 6. **Start the process**: Click the "START" button
 7. **Confirm formatting** - all data on the drive will be deleted
 

@@ -1,3 +1,9 @@
+---
+updated: 2026-08-26
+program_commits:
+    minios-tools: 7cdd0e10c0f610ebc581efa82105b747437a6125
+---
+
 # Membuat modul
 
 Modul MiniOS adalah image filesystem SquashFS hanya-baca, yang secara konvensional dinamai dengan ekstensi `.sb`. Saat boot, MiniOS mengurutkan modul-modul terpilih ke dalam root filesystem berlapis. Berkas pada lapisan prioritas lebih tinggi dapat melengkapi atau menyembunyikan berkas dari lapisan di bawahnya. Inilah pipeline modular live yang dijelaskan pada [Mode Boot](/configuration/Boot-Modes.md), bukan tata letak paket dari instalasi native.

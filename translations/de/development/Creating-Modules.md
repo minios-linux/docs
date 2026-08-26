@@ -1,3 +1,9 @@
+---
+updated: 2026-08-26
+program_commits:
+    minios-tools: 7cdd0e10c0f610ebc581efa82105b747437a6125
+---
+
 # Module erstellen
 
 MiniOS-Module sind schreibgeschützte SquashFS-Dateisystem-Images, die üblicherweise mit der Endung `.sb` benannt werden. Beim Systemstart ordnet MiniOS die ausgewählten Module zu einem geschichteten Root-Dateisystem an. Dateien in einer höher priorisierten Schicht können Dateien aus niedrigeren Schichten ergänzen oder überdecken. Dies ist die modulare Live-Pipeline, wie sie unter [Boot-Modi](/configuration/Boot-Modes.md) beschrieben ist, nicht das Paketlayout einer nativen Installation.

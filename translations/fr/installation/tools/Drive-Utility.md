@@ -1,3 +1,9 @@
+---
+updated: 2026-08-26
+program_commits:
+    driveutility: 4887bc27be38cf996333af8cd969149a7136bfa6
+---
+
 # Utilisation de Drive Utility
 
 Drive Utility est un outil graphique permettant d’écrire des images ISO MiniOS sur des clés USB.
@@ -6,7 +12,7 @@ Drive Utility est un outil graphique permettant d’écrire des images ISO MiniO
 
 ## Important
 
-⚠️ **Avertissement :** Une mauvaise sélection du périphérique entraînera une perte de données ! Vérifiez toujours le lecteur sélectionné et sauvegardez vos données importantes.
+**Avertissement :** Une mauvaise sélection du périphérique entraînera une perte de données ! Vérifiez toujours attentivement le lecteur sélectionné et sauvegardez vos données importantes.
 
 ## Exigences pour le lecteur
 

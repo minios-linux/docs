@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # MiniOS-Startmodi
 
 Startmodi beschreiben, woher das Live-System stammt, ob seine beschreibbare Schicht temporär oder persistent ist und ob MiniOS seine Quelle in den RAM kopiert. Sie beschreiben jedoch kein anderes Firmware- oder Bootloader-Protokoll. GRUB, Syslinux, Ventoy oder ein PXE-Loader starten die gleiche grundlegende MiniOS-Early-Userspace-Pipeline, indem sie einen Kernel und ein Initramfs mit einer Kernel-Befehlszeile laden.

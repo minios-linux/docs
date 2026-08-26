@@ -1,4 +1,9 @@
+---
+updated: 2026-08-26
+---
+
 # Boot recovery
+
 
 Boot repair depends on how MiniOS was placed on the device and whether the
 firmware starts it in BIOS or UEFI mode. A procedure for one layout can damage

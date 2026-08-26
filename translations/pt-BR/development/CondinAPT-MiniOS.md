@@ -1,8 +1,14 @@
+---
+updated: 2026-08-26
+program_commits:
+    minios-live: 039ddd0f3e82651069756370e5f3addebce43984
+---
+
 # CondinAPT no MiniOS: Guia de Integração
 
 Este documento descreve os aspectos específicos do uso do CondinAPT no sistema de build do MiniOS.
 
-> **📚 Documentação Principal:** Para recursos básicos do CondinAPT, consulte o documento principal `CondinAPT.md`
+> **Documentação Principal:** Para recursos básicos do CondinAPT, consulte o documento principal `CondinAPT.md`
 
 ## Índice
 
@@ -66,24 +72,24 @@ kl=KEEP_LOCALES
 
 ### Variáveis de Configuração do MiniOS
 
-**Principais variáveis do `build.conf`:**
+**Principais variáveis de `build.conf`:**
 - `DISTRIBUTION` - distribuição alvo (bookworm, trixie, jammy, noble)
 - `DISTRIBUTION_ARCH` - arquitetura (amd64, i386, i386-pae)
-- `DESKTOP_ENVIRONMENT` - ambiente desktop (core, flux, xfce, lxqt)
+- `DESKTOP_ENVIRONMENT` - ambiente de desktop (core, flux, xfce, lxqt)
 - `PACKAGE_VARIANT` - variante do pacote (minimum, standard, toolbox, ultra)
 - `INSTALL_KERNEL` - instalar pacote do kernel (true/false)
 - `KERNEL_FLAVOUR` - flavor do kernel (none, rt, cloud)
 - `KERNEL_AUFS` - suporte a AUFS (true/false)
 - `KERNEL_BUILD_DKMS` - compilar módulos DKMS (true/false)
-- `INITRAMFS_BUILDER` - gerador de initramfs (livekit, dracut)
+- `INITRAMFS_BUILDER` - construtor do initramfs (livekit, dracut)
 - `LOCALE` - localidade do sistema (C, en_US, ru_RU, es_ES, pt_BR)
 - `MULTILINGUAL` - suporte multilíngue (true/false)
 - `KEEP_LOCALES` - manter localidades (true/false)
 
-**Variáveis calculadas automaticamente (do `minioslib`):**
+**Variáveis calculadas automaticamente (de `minioslib`):**
 - `DISTRIBUTION_TYPE` - tipo de distribuição (debian, ubuntu) - determinado automaticamente com base em `DISTRIBUTION`
   - `legacy`: stretch, buster, orel, bionic
-  - `current`: bullseye, bookworm, focal, jammy, noble  
+  - `current`: bullseye, bookworm, focal, jammy, noble
   - `future`: trixie, kali-rolling, sid
 
 ## Uso em Módulos
@@ -234,6 +240,9 @@ fi
 ```
 
 ---
+
+
+
 
 
 **Para informações completas sobre os recursos do CondinAPT, consulte o documento principal `CondinAPT.md`**

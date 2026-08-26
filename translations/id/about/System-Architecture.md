@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Arsitektur sistem MiniOS
 
 MiniOS melakukan boot sistem operasi hanya-baca yang dirakit dari modul-modul SquashFS dan menambahkan satu lapisan tulis untuk sesi saat ini. Initramfs bertanggung jawab untuk menemukan media, memilih modul dan persistensi, membangun root filesystem, menerapkan konfigurasi awal, dan menyerahkan kontrol ke sistem init yang terpasang.

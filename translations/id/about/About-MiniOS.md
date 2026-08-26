@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Tentang MiniOS
 
 MiniOS adalah distribusi Linux berbasis Debian yang dirancang untuk dijalankan dari media removable atau disk lokal. Sistemnya yang hanya-baca dibangun dari modul SquashFS, dengan opsi sesi yang dapat ditulis untuk file, pengaturan, dan paket yang diinstal. MiniOS mendukung sistem x86 64-bit dan dapat melakukan boot melalui UEFI atau BIOS lama.

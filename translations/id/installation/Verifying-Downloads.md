@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Memverifikasi unduhan
 
 Rilis MiniOS dipublikasikan di [Halaman Rilis GitHub resmi](https://github.com/minios-linux/minios-live/releases). Setiap aset rilis ISO memiliki file pendamping dengan nama yang diakhiri `.iso.sha256`.

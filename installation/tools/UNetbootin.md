@@ -1,11 +1,16 @@
+---
+updated: 2026-08-26
+---
+
 # Using UNetbootin
+
 
 UNetbootin is a cross-platform open-source utility that allows you to create bootable USB drives for various Linux distributions, including MiniOS.
 
 
 ## Important
 
-⚠️ **Warning:** Incorrect device selection will result in data loss! Always double-check the selected drive and backup important data.
+**Warning:** Incorrect device selection will result in data loss! Always double-check the selected drive and backup important data.
 
 
 ## Drive Requirements

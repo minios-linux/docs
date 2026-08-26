@@ -1,4 +1,12 @@
+---
+updated: 2026-08-26
+program_commits:
+  minios-image-builder: 48f882998f2f8f3cd9fdd0367697f999fa3b402c
+  minios-tools: 7cdd0e10c0f610ebc581efa82105b747437a6125
+---
+
 # MiniOS Image Builder
+
 
 MiniOS Image Builder is a GTK application for remastering an existing MiniOS image. It selects content from a current MiniOS session, ISO file, or optical disc, applies declarative customization, and uses `minios-image-compose` to produce a verified bootable ISO.
 

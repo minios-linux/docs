@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Perguntas frequentes
 
 ## Qual edição devo escolher e por que um aplicativo está ausente?

@@ -1,11 +1,16 @@
+---
+updated: 2026-08-26
+---
+
 # Using the `dd` command
+
 
 `dd` is a versatile command-line utility for bit-by-bit copying of data between files and devices. Most commonly used for writing ISO images to USB drives, creating backups and data recovery.
 
 
 ## Important
 
-⚠️ **Warning:** Incorrect device selection will result in data loss! Always double-check the selected drive and backup important data.
+**Warning:** Incorrect device selection will result in data loss! Always double-check the selected drive and backup important data.
 
 
 ## Drive Requirements

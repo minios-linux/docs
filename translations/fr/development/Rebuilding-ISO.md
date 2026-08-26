@@ -1,3 +1,10 @@
+---
+updated: 2026-08-26
+program_commits:
+    minios-image-builder: 48f882998f2f8f3cd9fdd0367697f999fa3b402c
+    minios-tools: 7cdd0e10c0f610ebc581efa82105b747437a6125
+---
+
 # Composer des images ISO MiniOS depuis la ligne de commande
 
 `minios-image-compose` est le moteur en ligne de commande fourni avec MiniOS Image Builder. Il remplace l’utilitaire `sb2iso`, désormais obsolète. Cette commande permet de remastériser un arbre de contenu MiniOS existant, de modifier éventuellement son ensemble de modules et sa configuration prise en charge, de vérifier le résultat et de publier une image ISO amorçable.

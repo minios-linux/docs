@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Konfigurasi jaringan
 
 Setelah MiniOS berjalan, NetworkManager biasanya mengelola koneksi kabel dan Wi-Fi.

@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Persistenza initrd
 
 MiniOS costruisce la root live a partire da moduli di sola lettura e uno strato superiore scrivibile. L'initrd decide se quello strato superiore sarà una sessione persistente numerata oppure una directory temporanea in RAM. Questa pagina descrive la decisione e il percorso di attivazione al boot. Per i controlli rivolti all'utente, consulta [Modalità di avvio](./Boot-Modes.md) e [Parametri di avvio](./Boot-Parameters.md).
@@ -88,9 +92,13 @@ La modalità Raw utilizza un'immagine ext4 `changes.img` fissa. Le nuove immagin
 
 ### LUKS
 
-La modalità LUKS utilizza un container LUKS2 `changes.luks` con ext4 direttamente al suo interno. È disponibile solo se l'initrd include il marker di supporto per la crittografia e gli strumenti necessari. La creazione richiede un input di conferma corrispondente. Un container esistente consente tre tentativi di sblocco sulla console di avvio.
+La modalità LUKS utilizza un contenitore LUKS2 `changes.luks` con ext4 direttamente al suo interno.
+È disponibile solo quando l'initrd include il marker di supporto per la crittografia e gli strumenti necessari.
+Durante la creazione viene richiesta una conferma corrispondente dell'input. Un contenitore esistente consente tre tentativi di sblocco sulla console di avvio.
 
-L'initrd autentica prima di espandere un file cifrato esistente, quindi controlla ed espande ext4 prima del mount. Se la creazione, lo sblocco, il controllo, il ridimensionamento o il mount falliscono, MiniOS rimuove la mappatura e prosegue in RAM. Non ricade mai su native, DynFileFS, raw o altre persistenze non cifrate. Le passphrase non vengono memorizzate nei metadati della sessione né passate come argomenti di comando. Consulta [Sicurezza](../administration/Security-Hardening.md).
+L'initrd autentica prima di espandere un file cifrato esistente, poi controlla ed espande ext4 prima di montarlo. Se la creazione, lo sblocco, il controllo, il ridimensionamento o il montaggio falliscono, MiniOS ripristina la mappatura e prosegue in RAM. Non effettua mai il fallback su native, DynFileFS, raw o qualsiasi altra persistenza non cifrata.
+Le passphrase non vengono memorizzate nei metadati di sessione né passate come argomenti di comando.
+Consulta [Sicurezza](/administration/Security-Hardening.md).
 
 ### SquashFS
 
@@ -102,20 +110,21 @@ Una sessione contrassegnata come `dirty` indica che il precedente avvio non ha c
 
 Session Manager e il backend di salvataggio del sistema creano e sostituiscono atomicamente gli snapshot SquashFS tramite acquisizione esatta. L'attivazione al boot può leggere uno snapshot esistente da storage FAT, exFAT o NTFS scrivibile perché l'estrazione avviene nello strato superiore ext4 temporaneo. La creazione e il salvataggio esatto restano vincolati dal filesystem: la loro area di staging privata deve preservare link, proprietà, permessi, xattr, ACL, capability e whiteout union, quindi il salvataggio attuale richiede un filesystem POSIX adatto. Consulta [Gestione delle sessioni](./Session-Management.md).
 
-## Attivazione del union e confine di recupero
+## Attivazione dell'unione e confine di recupero
 
-Per AUFS, la root dei cambiamenti attivata diventa il ramo scrivibile zero. Per OverlayFS, l'initrd costruisce `upperdir` e `workdir` sotto la root dei cambiamenti attivata e monta i moduli di sola lettura come directory inferiori. L'initrd quindi verifica il branch AUFS live o il `upperdir` di OverlayFS prima di pubblicare la persistenza come attiva.
+Per AUFS, la root dei cambiamenti attivata diventa il branch zero scrivibile. Per OverlayFS, l'initrd costruisce `upperdir` e `workdir` sotto la root dei cambiamenti attivata e monta i moduli in sola lettura come directory inferiori. L'initrd quindi verifica il branch AUFS live o `upperdir` di OverlayFS prima di pubblicare la persistenza come attiva.
 
-Se un backend di persistenza, un aggiornamento dei metadati o questa verifica falliscono, i mount vengono annullati dove possibile, nessuna autorità runtime viene pubblicata e l'avvio scrivibile prosegue in RAM. Il fallimento nella costruzione del root union porta alla shell fatale di initramfs. Uscire da quella shell può consentire la continuazione della configurazione con una root non valida; non è una riparazione né un fallback sicuro. AUFS mantiene l'aggiunta dei branch modulo best-effort, ma un union incompleto supera il confine di recupero: MiniOS non pubblica autorità di persistenza riuscita.
+Se un backend di persistenza, un aggiornamento dei metadati o questa verifica fallisce, i relativi mount vengono smontati dove possibile, nessuna autorità runtime viene pubblicata con successo e l'avvio scrivibile prosegue in RAM. Il fallimento nella costruzione dell'unione root porta alla shell fatale di initramfs. Uscire da quella shell può permettere la continuazione della configurazione con una root non valida; non si tratta di una riparazione né di un fallback sicuro. AUFS mantiene l'aggiunta dei branch dei moduli "best-effort", ma un'unione incompleta attraversa il confine di recupero: MiniOS non pubblica un'autorità di persistenza riuscita.
 
-I fallimenti nei controlli dei container evitano deliberatamente il recupero scrivibile. Conserva la sessione e segui [Recupero backup](../administration/Backup-Recovery.md), [Recupero DynFileFS](./DynFileFS-Recovery.md) o [Risoluzione dei problemi](../administration/Troubleshooting.md) invece di sostituire i file della sessione durante l'avvio.
+I fallimenti nel controllo dei container evitano deliberatamente il recupero scrivibile. Conserva la sessione e segui [Recupero backup](/administration/Backup-Recovery.md), [Recupero DynFileFS](./DynFileFS-Recovery.md) o [Risoluzione dei problemi](/administration/Troubleshooting.md) invece di sostituire i file di sessione durante l'avvio.
 
-## Stato attivo, in esecuzione e di avvio corrente
+## Stato attivo, in esecuzione e del boot corrente
 
-Nei metadati di sessione durevoli, `default=` è la sessione **attiva** selezionata per il prossimo resume, mentre `running=` è la sessione registrata come fornitrice dell'avvio corrente. L'attivazione scrive entrambi i campi e marca quella sessione come `dirty`. Dopo che i mount di persistenza sono stati rimossi durante uno shutdown pulito, MiniOS elimina `running=` e marca la sessione come `clean`.
+Nei metadati di sessione durevoli, `default=` è la sessione **attiva** selezionata per il prossimo ripristino, mentre `running=` è la sessione registrata come fornitrice dell'avvio corrente. L'attivazione scrive entrambi i campi e marca quella sessione `dirty`.
+Dopo che i mount di persistenza sono stati rimossi durante uno shutdown pulito, MiniOS elimina `running=` e marca la sessione `clean`.
 
-Questi campi dei metadati possono risultare obsoleti dopo un crash, un errore di scrittura dei metadati, un fallimento nella costruzione del union, una copia dell'archivio o uno shutdown interrotto. I processi runtime che devono autorizzare il salvataggio non si fidano del solo `running=`. Utilizzano lo stato protetto di avvio corrente dell'initrd, legato all'ID di boot, sessione numerica, modalità, identità reale dell'archivio, stato scrivibile, durabilità e generazione attiva verificata. Un record di avvio corrente fallito o mancante significa che la persistenza non deve essere trattata come destinazione autorizzata per il salvataggio.
+Questi campi dei metadati possono essere obsoleti dopo un crash, una scrittura fallita dei metadati, una costruzione dell'unione fallita, una copia dello store o uno shutdown interrotto. I consumer runtime che devono autorizzare il salvataggio non si fidano solo di `running=`. Utilizzano lo stato protetto dell'avvio corrente dell'initrd, legato all'ID di boot, al numero di sessione, alla modalità, all'identità effettiva dello store, allo stato scrivibile, alla durabilità e alla generazione attiva verificata. Un record current-boot fallito o mancante significa che la persistenza non deve essere considerata un target di salvataggio autorizzato.
 
-Con `toram` e una richiesta di persistenza riconosciuta, l'archivio delle sessioni viene copiato in RAM prima dell'attivazione. La sessione copiata può essere scrivibile e fornire lo strato superiore in esecuzione, ma il suo stato di avvio corrente è marcato come non durevole. Le modifiche a quella copia in RAM non vengono restituite al dispositivo originale e vengono perse allo spegnimento.
+Con `toram` e una richiesta di persistenza riconosciuta, lo store della sessione viene copiato in RAM prima dell'attivazione. La sessione copiata può essere scrivibile e può fornire l'upper in esecuzione, ma il suo stato current-boot è marcato come non durevole. Le modifiche a quella copia in RAM non vengono restituite al dispositivo originale e vengono perse allo shutdown.
 
-Per ulteriori indicazioni operative, consulta [Modalità di avvio](./Boot-Modes.md), [Parametri di avvio](./Boot-Parameters.md), [Gestione delle sessioni](./Session-Management.md), [Recupero DynFileFS](./DynFileFS-Recovery.md), [Recupero backup](../administration/Backup-Recovery.md), [Sicurezza](../administration/Security-Hardening.md) e [Risoluzione dei problemi](../administration/Troubleshooting.md).
+Per indicazioni operative correlate, consulta [Modalità di avvio](./Boot-Modes.md), [Parametri di avvio](./Boot-Parameters.md), [Gestione delle sessioni](./Session-Management.md), [Recupero DynFileFS](./DynFileFS-Recovery.md), [Recupero backup](/administration/Backup-Recovery.md), [Sicurezza](/administration/Security-Hardening.md) e [Risoluzione dei problemi](/administration/Troubleshooting.md).

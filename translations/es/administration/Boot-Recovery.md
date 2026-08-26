@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Recuperación de arranque
 
 La reparación del arranque depende de cómo se haya instalado MiniOS en el dispositivo y de si el firmware lo inicia en modo BIOS o UEFI. Un procedimiento adecuado para una configuración puede dañar otra. Haz una copia de seguridad de los archivos importantes antes de escribir un sector de arranque, cambiar una bandera de partición, reemplazar un árbol EFI o reinstalar GRUB. Consulta [Copia de seguridad y recuperación](/administration/Backup-Recovery.md). Si no tienes claro el tipo de instalación, compáralo con [Modos de arranque](/configuration/Boot-Modes.md) antes de elegir un flujo de trabajo de reparación.

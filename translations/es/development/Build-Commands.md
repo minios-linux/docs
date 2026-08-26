@@ -1,3 +1,9 @@
+---
+updated: 2026-08-26
+program_commits:
+    minios-live: 039ddd0f3e82651069756370e5f3addebce43984
+---
+
 # Comandos de compilación
 
 MiniOS ofrece dos interfaces de compilación por línea de comandos. Ejecuta los comandos desde el directorio fuente `minios-live` a menos que uses una copia instalada.

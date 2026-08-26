@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Parámetros de arranque
 
 ## Cómo usar los parámetros de arranque

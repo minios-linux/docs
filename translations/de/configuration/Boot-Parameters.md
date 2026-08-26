@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Boot-Parameter
 
 ## Verwendung von Boot-Parametern

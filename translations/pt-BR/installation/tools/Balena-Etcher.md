@@ -1,10 +1,14 @@
+---
+updated: 2026-08-26
+---
+
 # Usando o Balena Etcher
 
 O Balena Etcher é um programa prático e multiplataforma para gravar imagens ISO em drives USB. Compatível com Windows, macOS e Linux.
 
 ## Importante
 
-⚠️ **Atenção:** Selecionar o dispositivo incorreto resultará em perda de dados! Sempre confira o drive selecionado e faça backup dos dados importantes.
+**Atenção:** Selecionar o dispositivo incorreto resultará em perda de dados! Sempre confira o drive selecionado e faça backup dos dados importantes.
 
 ## Requisitos do Drive
 

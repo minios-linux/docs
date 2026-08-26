@@ -1,4 +1,9 @@
+---
+updated: 2026-08-26
+---
+
 # Network configuration
+
 
 After MiniOS starts, NetworkManager normally manages wired and Wi-Fi
 connections. This is separate from the initramfs networking used to download a

@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Guía de compatibilidad de hardware
 
 La compatibilidad de hardware depende de la versión y la imagen de MiniOS: la distribución base, el kernel, el firmware, los módulos incluidos y la edición son factores determinantes. Consulta la descripción de la versión de la imagen que descargaste y prueba una sesión en vivo desde cero antes de cambiar discos o depender del equipo para trabajo persistente.

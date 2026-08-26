@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Software-Updates
 
 MiniOS kombiniert schreibgeschützte SquashFS-Imagemodule mit einem beschreibbaren Laufzeit-Overlay. Die Update-Methode muss zur jeweiligen Ebene passen, die geändert wird. Das Aktualisieren von Paketen in einer laufenden Sitzung ist nicht dasselbe wie das Ersetzen der Module auf dem MiniOS-Medium.

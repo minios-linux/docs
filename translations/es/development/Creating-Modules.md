@@ -1,3 +1,9 @@
+---
+updated: 2026-08-26
+program_commits:
+    minios-tools: 7cdd0e10c0f610ebc581efa82105b747437a6125
+---
+
 # Creación de módulos
 
 Los módulos de MiniOS son imágenes de sistema de archivos SquashFS de solo lectura, que convencionalmente llevan la extensión `.sb`. Al arrancar, MiniOS organiza los módulos seleccionados en un sistema de archivos raíz en capas. Los archivos en una capa de mayor prioridad pueden complementar u ocultar archivos de capas inferiores. Este es el flujo modular en vivo descrito en [Modos de arranque](/configuration/Boot-Modes.md), no la estructura de paquetes de una instalación nativa.

@@ -1,83 +1,89 @@
-# Gestion du noyau dans MiniOS 🔧
+---
+updated: 2026-08-26
+program_commits:
+    minios-kernel-manager: a5bd09e2d1b2cbb6e44a690bf12047c93bf1a87b
+---
 
-## 🤔 Pourquoi remplacer le noyau ?
+# Gestion du noyau dans MiniOS
 
-MiniOS est livré avec un noyau par défaut, mais il existe plusieurs raisons pour lesquelles vous pourriez vouloir le remplacer :
+## Pourquoi remplacer le noyau ?
 
-### 🔧 **Différentes variantes du noyau Debian**
+MiniOS est livré avec un noyau par défaut, mais il existe plusieurs raisons pour lesquelles vous pourriez vouloir le remplacer :
 
-Debian propose plusieurs variantes de noyau optimisées pour différents cas d’utilisation :
+### **Différentes variantes de noyau Debian**
+
+Debian propose plusieurs variantes de noyau optimisées pour différents cas d'utilisation :
 
 - **`linux-image-6.12.38+deb13-amd64`** - Noyau standard pour systèmes 64 bits (par défaut dans MiniOS)
 - **`linux-image-6.12.38+deb13-rt-amd64`** - Noyau temps réel pour les applications critiques
 - **`linux-image-6.12.38+deb13-cloud-amd64`** - Optimisé pour les environnements cloud et virtualisés
 
-> **📝 Remarque :** Les numéros de version (comme `6.12.38+deb13`) évoluent avec les mises à jour. Pour trouver les noyaux actuellement disponibles :
+> **Remarque :** Les numéros de version (comme `6.12.38+deb13`) changent lors des mises à jour. Pour trouver les noyaux actuellement disponibles :
 > ```bash
 > apt search linux-image-.*-amd64
 > apt search linux-image-.*-rt-amd64
 > apt search linux-image-.*-cloud-amd64
 > ```
 
-### 🎯 **Cas d’utilisation spécialisés**
+### **Cas d'utilisation spécialisés**
 
-- **Calcul temps réel** – Noyaux RT pour la production audio, le contrôle industriel
-- **Jeux et faible latence** – Noyaux personnalisés optimisés pour le gaming
+- **Informatique temps réel** – Noyaux RT pour la production audio, le contrôle industriel
+- **Jeux vidéo et faible latence** – Noyaux personnalisés avec optimisations pour le gaming
 - **Renforcement de la sécurité** – Noyaux avec correctifs de sécurité supplémentaires (grsecurity, etc.)
-- **Compatibilité matérielle** – Noyaux récents pour le support du nouveau matériel
-- **Optimisation des performances** – Noyaux compilés sur mesure avec optimisations spécifiques
+- **Compatibilité matérielle** – Noyaux plus récents pour la prise en charge de nouveaux matériels
+- **Optimisation des performances** – Noyaux compilés sur mesure avec des optimisations spécifiques
 
-### 🛠️ **Fonctionnalités personnalisées du noyau**
+### **Fonctionnalités personnalisées du noyau**
 
-- **Correctifs personnalisés** – Appliquez des correctifs spécifiques à votre matériel ou à votre usage
-- **Modules noyau** – Ajoutez la prise en charge de matériels ou de systèmes de fichiers spécialisés
-- **Optimisations du compilateur** – Compilez avec différents indicateurs d’optimisation
+- **Correctifs personnalisés** – Appliquez des correctifs spécifiques à votre matériel ou à votre cas d'usage
+- **Modules du noyau** – Ajoutez la prise en charge de matériels ou de systèmes de fichiers spécialisés
+- **Optimisations du compilateur** – Compilez avec différents drapeaux d'optimisation
 - **Optimisation de la taille** – Supprimez les pilotes inutiles pour réduire la taille du noyau
 
-### 📈 **Scénarios courants**
+### **Scénarios courants**
 
 - **Stations de travail audio** – Utilisez un noyau RT pour une latence audio minimale
 - **Systèmes de jeu** – Appliquez des correctifs et optimisations spécifiques au gaming
-- **Environnements serveurs** – Utilisez des noyaux optimisés cloud pour une meilleure virtualisation
-- **Matériel ancien** – Utilisez des noyaux plus anciens pour la compatibilité avec des systèmes vintage
-- **Systèmes de développement** – Testez vos applications sur différentes versions du noyau
+- **Environnements serveurs** – Utilisez des noyaux optimisés pour le cloud pour une meilleure virtualisation
+- **Matériel ancien** – Utilisez des noyaux plus anciens pour la compatibilité avec du matériel vintage
+- **Systèmes de développement** – Testez des applications avec différentes versions de noyau
 
 ---
 
-## ⚙️ Présentation du gestionnaire de noyaux MiniOS
+## Présentation du gestionnaire de noyau MiniOS
 
 MiniOS propose deux outils pour la gestion des noyaux :
 
-1. **🖥️ Gestionnaire de noyaux MiniOS (GUI) :** Une application graphique conviviale pour empaqueter, installer et gérer les noyaux
-2. **⌨️ minios-kernel (CLI) :** Un outil en ligne de commande destiné aux utilisateurs avancés et à l’automatisation
+1. **MiniOS Kernel Manager (GUI) :** Une application graphique conviviale pour empaqueter, installer et gérer les noyaux
+2. **minios-kernel (CLI) :** Un outil en ligne de commande pour les utilisateurs avancés et l'automatisation
 
 Les deux outils gèrent automatiquement :
-- **L’empaquetage du noyau** au format SquashFS
-- **La génération de l’initramfs** avec les bons pilotes et scripts de démarrage
-- **L’installation** dans le dépôt de noyaux MiniOS
-- **La mise à jour** de la configuration du chargeur d’amorçage
-- **L’activation** et le changement de noyau
+- **L'empaquetage du noyau** au format SquashFS
+- **La génération de l'initramfs** avec les bons pilotes et scripts de démarrage
+- **L'installation** dans le dépôt de noyaux MiniOS
+- **La mise à jour de la configuration du chargeur d'amorçage**
+- **L'activation et le basculement de noyau**
 
-Cette page concerne les installations live modulaires. Les installations natives utilisent leurs propres paquets noyau installés, GRUB et initramfs ; voir
-[Modes de démarrage](/configuration/Boot-Modes.md). Pour le comportement coordonné exact du noyau avec l’initrd, consultez
-[Chargement des modules initrd](/configuration/Initrd-Module-Loading.md).
+Cette page concerne les installations live modulaires. Les installations natives utilisent leurs propres paquets noyau, GRUB et initramfs ; voir
+[Modes de démarrage](/configuration/Boot-Modes.md). Pour le comportement coordonné exact du noyau avec l'initrd, voir
+[Chargement des modules dans l'initrd](/configuration/Initrd-Module-Loading.md).
 
-### ⚠️ **Points importants à prendre en compte :**
+### **Points importants à prendre en compte :**
 
-- **🔑 Privilèges administrateur :** Les deux outils nécessitent des privilèges administrateur et demanderont une authentification via PolicyKit
-- **🔗 Compatibilité des noyaux :** Assurez-vous que les noyaux sont compatibles avec MiniOS. Il est recommandé d’utiliser les noyaux du dépôt
-- **💾 Répertoire MiniOS :** Les outils détectent automatiquement le répertoire MiniOS (`/minios/`) et vérifient les droits d’écriture
-- **🔄 Mises à jour automatiques :** Les configurations du bootloader sont mises à jour automatiquement lors de l’activation d’un noyau
+- **Privilèges administratifs :** Les deux outils nécessitent des privilèges administratifs et demanderont une authentification via PolicyKit
+- **Compatibilité des noyaux :** Assurez-vous que les noyaux sont compatibles avec MiniOS. Il est recommandé d'utiliser les noyaux du dépôt
+- **Répertoire MiniOS :** Les outils détectent automatiquement le répertoire MiniOS (`/minios/`) et vérifient les droits d'écriture
+- **Mises à jour automatiques :** Les configurations du chargeur d'amorçage sont mises à jour automatiquement lors de l'activation d'un noyau
 
 ---
 
-## 🖥️ Méthode 1 : Utilisation du gestionnaire de noyau MiniOS (GUI)
+## Méthode 1 : Utilisation du gestionnaire de noyau MiniOS (GUI)
 
-Le gestionnaire graphique de noyaux offre une interface intuitive pour toutes les opérations liées au noyau.
+Le gestionnaire graphique de noyau offre une interface intuitive pour toutes les opérations liées au noyau.
 
-### 📝 **Étapes :**
+### **Étapes :**
 
-#### 1. 🚀 **Lancer l’application**
+#### 1. **Lancer l'application**
 
 ```bash
 minios-kernel-manager
@@ -85,50 +91,50 @@ minios-kernel-manager
 
 Ou recherchez "MiniOS Kernel Manager" dans le menu de vos applications.
 
-#### 2. 📦 **Empaqueter un nouveau noyau**
+#### 2. **Créer un nouveau paquet noyau**
 
-**Dans l’onglet Empaqueter un noyau :**
+**Via l'onglet "Package Kernel" :**
 
 1. **Sélectionner la source du noyau :**
-   - **Empaquetage manuel :** Parcourez et sélectionnez un paquet noyau `.deb` local
+   - **Paquet manuel :** Parcourez et sélectionnez un paquet noyau local `.deb`
    - **Dépôt :** Choisissez parmi les noyaux disponibles dans les dépôts Debian/Ubuntu
 
 2. **Configurer la compression :**
    - Sélectionnez la compression SquashFS : `zstd` (recommandé), `lz4`, `lzo`, `xz` ou `gzip`
 
-3. **Empaqueter le noyau :**
-   - Cliquez sur le bouton "Empaqueter le noyau"
-   - Suivez la progression dans le journal d’empaquetage
+3. **Créer le paquet noyau :**
+   - Cliquez sur le bouton "Package Kernel"
+   - Suivez la progression dans le journal d'empaquetage
    - Les fichiers sont automatiquement installés dans le dépôt MiniOS
 
-#### 3. 🔄 **Gérer les noyaux installés**
+#### 3. **Gérer les noyaux installés**
 
-**Dans l’onglet Gérer les noyaux :**
+**Via l'onglet "Manage Kernels" :**
 
 1. **Voir les noyaux disponibles :**
-   - Affiche tous les noyaux empaquetés avec des badges d’état :
-     - **ACTIF :** Noyau actuellement configuré
-     - **EN COURS :** Noyau actuellement démarré
-     - **DISPONIBLE :** Disponible pour activation
+   - Affiche tous les noyaux empaquetés avec des badges de statut :
+     - **ACTIVE :** Noyau actuellement configuré
+     - **RUNNING :** Noyau actuellement démarré
+     - **AVAILABLE :** Disponible pour activation
 
 2. **Activer un noyau :**
-   - Faites un clic droit sur un noyau et sélectionnez "Activer le noyau"
-   - Confirmez la boîte de dialogue d’activation
-   - La configuration du bootloader est mise à jour automatiquement
+   - Faites un clic droit sur un noyau et sélectionnez "Activate Kernel"
+   - Confirmez la boîte de dialogue d'activation
+   - La configuration du chargeur d'amorçage est mise à jour automatiquement
 
 3. **Supprimer un noyau :**
-   - Faites un clic droit sur un noyau inactif et sélectionnez "Supprimer le noyau"
+   - Faites un clic droit sur un noyau inactif et sélectionnez "Delete Kernel"
    - Confirmez la suppression (action irréversible)
 
 ---
 
-## ⌨️ Méthode 2 : Utilisation de minios-kernel (CLI)
+## Méthode 2 : Utilisation de minios-kernel (CLI)
 
-L’outil en ligne de commande permet une gestion scriptable des noyaux.
+L'outil en ligne de commande permet une gestion scriptable des noyaux.
 
-### ⚠️ **Privilèges administrateur requis :**
+### **Privilèges administratifs requis :**
 
-L’outil CLI nécessite les droits root et les vérifie automatiquement. Exécutez les commandes avec `sudo` ou via `pkexec` :
+L'outil CLI nécessite les droits root et les vérifie automatiquement. Exécutez les commandes avec `sudo` ou via `pkexec` :
 
 ```bash
 sudo minios-kernel list
@@ -136,9 +142,9 @@ sudo minios-kernel list
 pkexec minios-kernel activate 6.12.38+deb13-amd64
 ```
 
-### 📝 **Commandes de base :**
+### **Commandes de base :**
 
-#### 1. 📋 **Lister les noyaux disponibles**
+#### 1. **Lister les noyaux disponibles**
 
 ```bash
 sudo minios-kernel list
@@ -146,7 +152,7 @@ sudo minios-kernel list
 
 Affiche tous les noyaux empaquetés avec leur statut.
 
-#### 2. 📦 **Empaqueter un noyau**
+#### 2. **Créer un paquet noyau**
 
 **Depuis le dépôt :**
 ```bash
@@ -163,36 +169,36 @@ sudo minios-kernel package --deb /path/to/kernel.deb -o /tmp/kernel-output
 sudo minios-kernel package --repo linux-image-6.12.38+deb13-rt-amd64 --sqfs-comp lz4 -o /tmp/kernel-output
 ```
 
-#### 3. 🔄 **Activer un noyau**
+#### 3. **Activer un noyau**
 
 ```bash
 sudo minios-kernel activate 6.12.38+deb13-amd64
 ```
 
-#### 4. 🗑️ **Supprimer un noyau**
+#### 4. **Supprimer un noyau**
 
 ```bash
 sudo minios-kernel delete 6.12.38+deb13-amd64
 ```
 
-#### 5. 📊 **Vérifier le statut**
+#### 5. **Vérifier le statut**
 
 ```bash
 sudo minios-kernel status
 ```
 
-Affiche le statut du répertoire MiniOS et les informations sur le noyau en cours.
+Affiche le statut du répertoire MiniOS et les informations sur le noyau actuel.
 
-#### 6. ℹ️ **Afficher les informations du noyau**
+#### 6. **Afficher les informations du noyau**
 
 ```bash
 sudo minios-kernel info                           # Information about current active kernel
 sudo minios-kernel info 6.12.38+deb13-amd64     # Information about specific kernel
 ```
 
-Affiche des informations détaillées sur un noyau spécifique, y compris son statut et sa disponibilité.
+Affiche des informations détaillées sur un noyau donné, y compris son statut et sa disponibilité.
 
-### 🔧 **Options avancées du CLI :**
+### **Options avancées de la CLI :**
 
 #### **Sortie JSON (pour les scripts) :**
 
@@ -229,61 +235,59 @@ sudo minios-kernel delete --help        # Delete command help
 
 ---
 
-## 🔧 Dépannage
+## Dépannage
 
 ### Problèmes courants et solutions :
 
-#### **🚫 Répertoire MiniOS introuvable**
+#### **Répertoire MiniOS introuvable**
 
 - **Cause :** Les outils ne trouvent pas le répertoire MiniOS
-- **Solution :** Vérifiez que vous êtes bien sur un système MiniOS ou que la clé USB est correctement montée
+- **Solution :** Vérifiez que vous êtes sur un système MiniOS ou que la clé USB est bien montée
 - **Vérification :** Exécutez `sudo minios-kernel status` pour vérifier la détection du répertoire
 
-#### **🔒 Permission refusée**
+#### **Permission refusée**
 
 - **Cause :** Le répertoire MiniOS est en lecture seule ou les droits sont insuffisants
-- **Solution :** Assurez-vous d’avoir les droits administrateur et que le système de fichiers est accessible en écriture
-- **Vérification :** Vérifiez le statut du répertoire MiniOS dans le GUI ou le CLI
+- **Solution :** Assurez-vous d'avoir les droits administrateur et que le système de fichiers est accessible en écriture
+- **Vérification :** Vérifiez le statut du répertoire MiniOS dans l'interface graphique ou en ligne de commande
 
-#### **📦 Échec de l’installation du paquet**
+#### **Échec de l'installation du paquet**
 
-- **Cause :** Paquet corrompu, problèmes réseau ou dépendances manquantes
+- **Cause :** Paquet corrompu, problème réseau ou dépendances manquantes
 - **Solution :**
-  - Vérifiez l’intégrité du fichier du paquet
-  - Contrôlez la connectivité réseau pour les paquets du dépôt
+  - Vérifiez l'intégrité du fichier paquet
+  - Vérifiez la connectivité réseau pour les paquets du dépôt
   - Mettez à jour la liste des paquets : `sudo apt update`
 
-#### **💥 Panique du noyau après activation**
+#### **Panic du noyau après activation**
 
 - **Cause :** Noyau incompatible ou pilotes manquants
 - **Solution :**
-  - Suivez [Récupération au démarrage](/administration/Boot-Recovery.md) pour démarrer sur un support de secours compatible et activer un ensemble de noyaux fonctionnel connu
+  - Suivez [Récupération du démarrage](/administration/Boot-Recovery.md) pour démarrer un support de secours compatible et activer un ensemble de noyaux fonctionnels connus
   - Vérifiez la compatibilité du noyau avec votre matériel
 
-#### **🔄 Le système démarre sur l’ancien noyau**
+#### **Le système démarre sur l'ancien noyau**
 
-- **Cause :** La configuration du chargeur d’amorçage n’a pas été correctement mise à jour
+- **Cause :** La configuration du chargeur d'amorçage n'a pas été correctement mise à jour
 - **Solution :**
-  - Relancez l’activation du noyau : `sudo minios-kernel activate <version>`
+  - Relancez l'activation du noyau : `sudo minios-kernel activate <version>`
   - Vérifiez que le noyau a bien été empaqueté et installé
 
-#### **⚠️ Matériel non fonctionnel après changement de noyau**
+#### **Matériel non fonctionnel après changement de noyau**
 
 - **Cause :** Pilotes manquants dans le nouveau noyau
 - **Solution :**
-  - Vérifiez que le module noyau SquashFS a été installé
+  - Vérifiez que le fichier module du noyau SquashFS a été installé
   - Vérifiez si le nouveau noyau prend en charge votre matériel
-  - Envisagez d’utiliser une autre variante de noyau
+  - Envisagez d'utiliser une autre variante de noyau
 
-#### **🚨 Récupération du noyau à partir de l’image MiniOS d’origine**
+#### **Récupération du noyau à partir de l’image MiniOS d’origine**
 
-Ne récupérez pas en copiant une image de noyau individuelle, un initramfs ou un module `01-kernel-*.sb`. Une version amorçable nécessite le triplet coordonné, et l’activation doit mettre à jour la configuration du chargeur d’amorçage comme une opération prise en charge. Suivez la procédure
-[Retour arrière du noyau modulaire](/administration/Boot-Recovery.md)
-pour utiliser un support de secours compatible et activer un ensemble complet et fonctionnel connu. Si un ensemble complet correspondant n’est pas disponible, réinstallez plutôt que d’assembler des éléments de démarrage partiels.
+Ne récupérez pas en copiant une image de noyau individuelle, un initramfs ou un module `01-kernel-*.sb`. Une version amorçable nécessite le triplet coordonné, et l’activation doit mettre à jour la configuration du chargeur d’amorçage comme l’une des opérations prises en charge. Suivez la procédure [Restauration modulaire du noyau](/administration/Boot-Recovery.md) pour utiliser un support de secours compatible et activer un ensemble complet et fonctionnel connu. Si aucun ensemble complet avec des versions correspondantes n’est disponible, réinstallez le système ; n’assemblez pas d’éléments de démarrage partiels.
 
-### 🔍 **Commandes de diagnostic :**
+### **Commandes de diagnostic :**
 
-**Vérifier l’état actuel du système :**
+**Vérifier l'état actuel du système :**
 ```bash
 sudo minios-kernel status
 sudo minios-kernel info     # Current active kernel info
@@ -298,16 +302,16 @@ ls -la /minios/kernels/     # List packaged kernels
 ls -la /minios/boot/        # List boot files
 ```
 
-**Vérifier la configuration du chargeur d’amorçage :**
+**Vérifier la configuration du chargeur d'amorçage :**
 ```bash
 grep -r "vmlinuz" /minios/boot/  # Find kernel references in boot configs
 ```
 
 ---
 
-## 📋 Aperçu de la structure des fichiers
+## Aperçu de la structure des fichiers
 
-Le gestionnaire de noyau MiniOS gère automatiquement ces fichiers :
+Le gestionnaire de noyau MiniOS gère automatiquement les fichiers suivants :
 
 ### **Structure du dépôt de noyaux :**
 
@@ -338,16 +342,16 @@ Le gestionnaire de noyau MiniOS gère automatiquement ces fichiers :
 
 ### **Opérations automatiques :**
 
-- ✅ Packaging et compression du kernel
-- ✅ Génération de l’initramfs avec les bons pilotes
-- ✅ Installation dans le dépôt MiniOS
-- ✅ Mise à jour de la configuration du bootloader
-- ✅ Gestion des liens symboliques pour les kernels actifs
-- ✅ Nettoyage des fichiers temporaires
+- Empaquetage et compression du noyau
+- Génération de l'initramfs avec les bons pilotes
+- Installation dans le dépôt MiniOS
+- Mise à jour de la configuration du chargeur d'amorçage
+- Gestion des liens symboliques pour les noyaux actifs
+- Nettoyage des fichiers temporaires
 
 ---
 
-## 🎯 Bonnes pratiques
+## Bonnes pratiques
 
 ### **Sélection du kernel :**
 

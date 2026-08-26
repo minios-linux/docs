@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # MiniOS-Anwendungen und -Werkzeuge
 
 MiniOS enthält Werkzeuge zur Konfiguration, Installation, Wartung und Remastering von MiniOS-Systemen. Verwenden Sie diese Seite, um ein Werkzeug auszuwählen, und folgen Sie dann dem verlinkten Leitfaden für Anforderungen, Sicherheitshinweise und Befehlsdetails.

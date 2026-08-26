@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Endurecimiento de la seguridad
 
 MiniOS puede ejecutarse como un sistema de recuperación en vivo, un sistema portátil persistente o una instalación nativa. Los controles adecuados dependen de cómo se utilice el sistema. Protege la sesión en ejecución, los datos persistentes, el medio de arranque y cualquier configuración que se aplique al inicio.

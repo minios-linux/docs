@@ -1,4 +1,9 @@
+---
+updated: 2026-08-26
+---
+
 # About MiniOS
+
 
 MiniOS is a Debian-based Linux distribution designed to run from removable
 media or a local disk. Its read-only system is assembled from SquashFS modules,

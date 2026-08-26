@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Häufig gestellte Fragen
 
 ## Welche Edition soll ich wählen und warum fehlt eine Anwendung?

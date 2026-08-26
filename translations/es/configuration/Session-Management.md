@@ -1,3 +1,10 @@
+---
+updated: 2026-08-26
+program_commits:
+    minios-session-manager: 69436959d893a9870aca23e91b346d06b49eb98d
+    minios-tools: 7cdd0e10c0f610ebc581efa82105b747437a6125
+---
+
 # Gestión de sesiones en MiniOS
 
 Las sesiones de MiniOS conservan los cambios realizados en el sistema en vivo tras reinicios. Cada

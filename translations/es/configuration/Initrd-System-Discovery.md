@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Descubrimiento del sistema Initrd
 
 Después de que el gestor de arranque carga el kernel y el initramfs, el initramfs debe localizar el árbol de datos de MiniOS que proporciona los módulos del sistema `.sb`. Esto ocurre antes de que estén activos la pila de red de usuarios, el escritorio y la sesión persistente normales.

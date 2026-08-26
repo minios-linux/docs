@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Backup und Wiederherstellung
 
 Kein einzelnes Backup schützt alle Bereiche eines MiniOS-Systems. Persönliche Dateien, Konfiguration, persistente Sitzungen, Module und das Speichermedium erfordern unterschiedliche Wiederherstellungsverfahren. Bewahren Sie mehr als eine Kopie auf, halten Sie mindestens eine Kopie auf einem anderen Gerät vor und testen Sie die Wiederherstellung, bevor das Original benötigt wird.

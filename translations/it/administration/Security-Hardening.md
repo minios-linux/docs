@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Rafforzamento della sicurezza
 
 MiniOS può essere eseguito come sistema di recupero live, sistema portatile persistente o installazione nativa. I controlli appropriati dipendono da come viene utilizzato il sistema. Proteggi la sessione in esecuzione, i dati persistenti, il supporto di avvio e qualsiasi configurazione applicata all'avvio.

@@ -1,10 +1,14 @@
+---
+updated: 2026-08-26
+---
+
 # Utilisation de UNetbootin
 
 UNetbootin est un utilitaire open source multiplateforme qui vous permet de créer des clés USB amorçables pour différentes distributions Linux, y compris MiniOS.
 
 ## Important
 
-⚠️ **Avertissement :** Une mauvaise sélection du périphérique entraînera une perte de données ! Vérifiez toujours le lecteur sélectionné et sauvegardez vos données importantes.
+**Avertissement :** Une mauvaise sélection du périphérique entraînera une perte de données ! Vérifiez toujours attentivement le lecteur sélectionné et sauvegardez vos données importantes.
 
 ## Exigences pour le lecteur
 

@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Arquitetura do sistema MiniOS
 
 O MiniOS inicializa um sistema operacional somente leitura montado a partir de módulos SquashFS e adiciona uma camada gravável para a sessão atual. O initramfs é responsável por localizar a mídia, selecionar módulos e persistência, construir o sistema de arquivos raiz, aplicar configurações iniciais e transferir o controle para o sistema de inicialização instalado.

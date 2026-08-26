@@ -1,4 +1,9 @@
+---
+updated: 2026-08-26
+---
+
 # Installing MiniOS
+
 
 There are two separate tasks that are often called installation:
 
@@ -19,7 +24,7 @@ Choose a method for your operating system:
 - [`dd`](/installation/tools/dd.md) on Linux or macOS
 - [Drive Utility](/installation/tools/Drive-Utility.md) on Linux
 - [UNetbootin](/installation/tools/UNetbootin.md) on Windows, Linux, or macOS
-- [Original method](/installation/tools/Original-Method.md) for a file-based MiniOS layout
+- [File-based USB installation](/installation/tools/File-Based-USB-Installation.md) for a manually prepared MiniOS layout
 
 Writing an image with Rufus, Etcher, `dd`, or Drive Utility is destructive. Confirm the device path, model, and capacity before starting. A raw image write reproduces the image layout; it does not by itself configure persistence or perform a live or native deployment with MiniOS Installer.
 

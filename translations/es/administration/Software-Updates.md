@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Actualizaciones de software
 
 MiniOS combina módulos de imagen SquashFS de solo lectura con una superposición de ejecución escribible. El método de actualización debe coincidir con la capa que se va a modificar. Actualizar paquetes dentro de una sesión en ejecución no es lo mismo que reemplazar los módulos en el medio de MiniOS.

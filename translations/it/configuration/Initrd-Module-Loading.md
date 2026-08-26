@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Caricamento dei moduli nell'initrd
 
 MiniOS seleziona e monta il proprio set di moduli nell'initrd, prima che la root unificata venga consegnata al sistema init installato. Questa pagina descrive il comportamento attuale dell'initrd. È utile quando un modulo visualizzato sul supporto di avvio non compare in `noload=`, `bext=` o `toram=trim` oppure modifica inaspettatamente l'avvio.

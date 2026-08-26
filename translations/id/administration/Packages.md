@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Paket dan edisi
 
 Konten paket MiniOS dihasilkan dari daftar sumber bersyarat. Daftar ini dapat berbeda tergantung pada suite distribusi, arsitektur, sistem init, lingkungan desktop, lokal, opsi kernel, dan ketersediaan repositori. Halaman ini menjelaskan pewarisan edisi dan contoh isi representatif; ini bukanlah tabel paket rilis yang lengkap.

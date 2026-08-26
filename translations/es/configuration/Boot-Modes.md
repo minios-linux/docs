@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Modos de arranque de MiniOS
 
 Los modos de arranque describen de dónde proviene el sistema live, si su capa de escritura es temporal o persistente, y si MiniOS copia su origen en la RAM. No describen un firmware o protocolo de gestor de arranque diferente. GRUB, Syslinux, Ventoy o un cargador PXE inician el mismo flujo básico de early-userspace de MiniOS cargando un kernel y un initramfs con una línea de comandos del kernel.

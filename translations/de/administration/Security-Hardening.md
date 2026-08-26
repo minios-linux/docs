@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Härtung der Sicherheit
 
 MiniOS kann als Live-Wiederherstellungssystem, als persistentes portables System oder als native Installation betrieben werden. Die passenden Schutzmaßnahmen hängen von der jeweiligen Nutzung ab. Schützen Sie die laufende Sitzung, persistente Daten, das Boot-Medium sowie alle Konfigurationen, die beim Start angewendet werden.

@@ -1,3 +1,10 @@
+---
+updated: 2026-08-26
+program_commits:
+    minios-image-builder: 48f882998f2f8f3cd9fdd0367697f999fa3b402c
+    minios-tools: 7cdd0e10c0f610ebc581efa82105b747437a6125
+---
+
 # MiniOS ISO-Abbilder über die Kommandozeile erstellen
 
 `minios-image-compose` ist das Kommandozeilen-Backend, das mit dem MiniOS Image Builder ausgeliefert wird. Es ersetzt das eingestellte Dienstprogramm `sb2iso`. Der Befehl remastert einen bestehenden MiniOS-Inhaltsbaum, ändert optional das Modulsatz und die unterstützte Konfiguration, prüft das Ergebnis und veröffentlicht ein bootfähiges ISO.

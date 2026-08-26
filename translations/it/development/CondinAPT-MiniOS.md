@@ -1,8 +1,14 @@
+---
+updated: 2026-08-26
+program_commits:
+    minios-live: 039ddd0f3e82651069756370e5f3addebce43984
+---
+
 # CondinAPT in MiniOS: Guida all'integrazione
 
 Questo documento descrive gli aspetti specifici dell'utilizzo di CondinAPT nel sistema di build di MiniOS.
 
-> **📚 Documentazione principale:** Per le funzionalità di base di CondinAPT, consulta il documento principale `CondinAPT.md`
+> **Documentazione principale:** Per le funzionalità di base di CondinAPT, consulta il documento principale `CondinAPT.md`
 
 ## Indice
 
@@ -66,24 +72,24 @@ kl=KEEP_LOCALES
 
 ### Variabili di configurazione di MiniOS
 
-**Principali variabili da `build.conf`:**
+**Variabili principali da `build.conf`:**
 - `DISTRIBUTION` - distribuzione di destinazione (bookworm, trixie, jammy, noble)
 - `DISTRIBUTION_ARCH` - architettura (amd64, i386, i386-pae)
 - `DESKTOP_ENVIRONMENT` - ambiente desktop (core, flux, xfce, lxqt)
 - `PACKAGE_VARIANT` - variante del pacchetto (minimum, standard, toolbox, ultra)
 - `INSTALL_KERNEL` - installa il pacchetto kernel (true/false)
-- `KERNEL_FLAVOUR` - tipo di kernel (none, rt, cloud)
+- `KERNEL_FLAVOUR` - flavour del kernel (none, rt, cloud)
 - `KERNEL_AUFS` - supporto AUFS (true/false)
-- `KERNEL_BUILD_DKMS` - compila moduli DKMS (true/false)
-- `INITRAMFS_BUILDER` - generatore initramfs (livekit, dracut)
+- `KERNEL_BUILD_DKMS` - build dei moduli DKMS (true/false)
+- `INITRAMFS_BUILDER` - builder initramfs (livekit, dracut)
 - `LOCALE` - locale di sistema (C, en_US, ru_RU, es_ES, pt_BR)
 - `MULTILINGUAL` - supporto multilingua (true/false)
-- `KEEP_LOCALES` - mantieni le localizzazioni (true/false)
+- `KEEP_LOCALES` - mantieni le locali (true/false)
 
 **Variabili calcolate automaticamente (da `minioslib`):**
 - `DISTRIBUTION_TYPE` - tipo di distribuzione (debian, ubuntu) - determinato automaticamente in base a `DISTRIBUTION`
   - `legacy`: stretch, buster, orel, bionic
-  - `current`: bullseye, bookworm, focal, jammy, noble  
+  - `current`: bullseye, bookworm, focal, jammy, noble
   - `future`: trixie, kali-rolling, sid
 
 ## Utilizzo nei moduli
@@ -234,6 +240,10 @@ fi
 ```
 
 ---
+
+
+
+
 
 
 **Per informazioni complete sulle funzionalità di CondinAPT, consulta il documento principale `CondinAPT.md`**

@@ -1,4 +1,9 @@
-# Original installation method (Windows/Linux, legacy)
+---
+updated: 2026-08-26
+---
+
+# Manual file-based USB installation (Windows/Linux, legacy)
+
 
 This legacy MiniOS installation method involves copying system files directly to the drive and installing the bootloader. Prefer a current method from [Installing MiniOS](/installation/Installing-MiniOS.md) unless a file-based layout is specifically required.
 

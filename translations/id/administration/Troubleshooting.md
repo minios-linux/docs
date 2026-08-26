@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Pemecahan Masalah
 
 Mulailah dengan observasi dan pengujian yang dapat dibatalkan. Jangan melakukan repartisi, format ulang, perbaikan sistem berkas, menghapus sesi, atau menimpa file boot sebelum data penting dicadangkan dan perangkat yang bermasalah telah diidentifikasi berdasarkan model, ukuran, sistem berkas, dan titik mount.

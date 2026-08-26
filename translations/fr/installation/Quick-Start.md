@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Démarrage rapide
 
 Ce guide explique comment télécharger, écrire, démarrer et effectuer la configuration initiale de MiniOS.
@@ -20,23 +24,21 @@ Vérifiez son empreinte avant utilisation ; voir
 
 ## 2. Préparer un périphérique cible
 
-Utilisez un support suffisamment grand pour l’ISO sélectionné ainsi que pour toute donnée ou session persistante que vous souhaitez conserver. La taille des ISO varie selon les versions, vérifiez donc la taille du téléchargement et de l’outil d’écriture plutôt que de vous fier à une taille fixe indiquée dans un guide. Sauvegardez d’abord le périphérique cible : la plupart des méthodes d’installation écrasent tout ou partie de son contenu.
+Utilisez un périphérique suffisamment grand pour l’ISO sélectionné ainsi que pour toute donnée ou session persistante que vous souhaitez conserver. La taille des ISO varie selon les versions, il est donc préférable de vérifier la taille lors du téléchargement et avec l’outil d’écriture, plutôt que de se fier à une taille fixe indiquée dans un guide. Sauvegardez d’abord le périphérique cible : la plupart des méthodes d’installation écrasent tout ou partie de son contenu.
 
 Choisissez une méthode et lisez son guide avant de sélectionner un périphérique :
 
 - Windows : [Rufus](/installation/tools/Rufus.md),
-  [Balena Etcher](/installation/tools/Balena-Etcher.md) ou
+  [Balena Etcher](/installation/tools/Balena-Etcher.md), ou
   [Ventoy](/installation/tools/Ventoy.md)
 - Linux : [`dd`](/installation/tools/dd.md),
-  [Balena Etcher](/installation/tools/Balena-Etcher.md) ou
+  [Balena Etcher](/installation/tools/Balena-Etcher.md), ou
   [Drive Utility](/installation/tools/Drive-Utility.md)
 - macOS : [`dd`](/installation/tools/dd.md) ou
   [Balena Etcher](/installation/tools/Balena-Etcher.md)
 - Depuis MiniOS : [MiniOS Installer](/installation/MiniOS-Installer.md)
 
-D’autres méthodes documentées sont [UNetbootin](/installation/tools/UNetbootin.md) et la [méthode originale](/installation/tools/Original-Method.md). Consultez
-[Outils de création USB](/installation/tools/USB-Creation-Tools.md) pour une comparaison et
-[Installation de MiniOS](/installation/Installing-MiniOS.md) pour un aperçu de l’installation.
+D’autres méthodes documentées sont [UNetbootin](/installation/tools/UNetbootin.md) et [Installation USB basée sur des fichiers](/installation/tools/File-Based-USB-Installation.md). Consultez [Outils de création USB](/installation/tools/USB-Creation-Tools.md) pour une comparaison et [Installer MiniOS](/installation/Installing-MiniOS.md) pour un aperçu de l’installation.
 
 ## 3. Comprendre la persistance avant d’écrire
 

@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Modos de boot do MiniOS
 
 Os modos de boot descrevem de onde o sistema live é carregado, se sua camada gravável é temporária ou persistente, e se o MiniOS copia sua fonte para a RAM. Eles não definem um firmware ou protocolo de bootloader diferente. GRUB, Syslinux, Ventoy ou um carregador PXE iniciam o mesmo pipeline básico do MiniOS no early-userspace ao carregar o kernel e o initramfs com a linha de comando do kernel.

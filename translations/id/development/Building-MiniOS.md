@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Membangun MiniOS
 
 Panduan ini membahas proses lengkap untuk membangun MiniOS, termasuk pembuatan sistem, pengembangan modul, dan opsi konfigurasi lanjutan.
@@ -76,19 +80,9 @@ Skrip build inti yang mengatur proses build langkah demi langkah:
 
 Untuk informasi penggunaan lebih detail, lihat [dokumentasi minios-live](https://github.com/minios-linux/minios-live/blob/master/docs/minios-live.md).
 
-### Dokumentasi Bantuan Offline
-
-`submodules/docs/` adalah satu-satunya sumber yang dapat diedit untuk dokumentasi MiniOS. Sebelum merilis `minios-help`, perbarui salinan offline yang dikemas dengan:
-
-```bash
-submodules/minios-help/tools/sync-from-docs.sh
-```
-
-Tree `submodules/minios-help/share/docs/` yang dihasilkan dikomit bersama aplikasi dan digunakan langsung oleh paket sumber Debian-nya. Proses build image MiniOS biasa tidak menjalankan VitePress, Node.js, atau sinkronisasi dokumentasi; mereka menginstal paket `minios-help` yang sudah dipublikasikan seperti paket desktop lainnya.
-
 ## Struktur Proyek
 
-Sistem build MiniOS diorganisasi sebagai berikut:
+Sistem build MiniOS diorganisasikan sebagai berikut:
 
 ```plaintext
 minios-live/
@@ -122,27 +116,27 @@ flowchart TD
     A --> A1[Generate build.conf]
     A1 --> B
 
-    B --> PreCheck{🌐 Internet Check<br/>Network Required}
-    PreCheck -->|❌ No Internet| NetworkFail[❌ Build Cannot Start<br/>• Check network connection<br/>• Verify DNS resolution<br/>• Configure proxy if needed]
-    PreCheck -->|✅ Connected| C1
+    B --> PreCheck{Internet Check<br/>Network Required}
+    PreCheck -->|No Internet| NetworkFail[Build Cannot Start<br/>• Check network connection<br/>• Verify DNS resolution<br/>• Configure proxy if needed]
+    PreCheck -->|Connected| C1
 
     NetworkFail --> PreCheck
 
-    C1[build-bootstrap<br/>📦 Create Base System<br/>• Run debootstrap<br/>• Install core packages<br/>• Setup chroot environment]
+    C1[build-bootstrap<br/>Create Base System<br/>• Run debootstrap<br/>• Install core packages<br/>• Setup chroot environment]
 
-    C1 --> C2[build-chroot<br/>🔧 Configure System<br/>• Install base packages<br/>• Configure settings<br/><br/>]
+    C1 --> C2[build-chroot<br/>Configure System<br/>• Install base packages<br/>• Configure settings<br/><br/>]
 
-    C2 --> C3[build-live<br/>🗜️ Create Core SquashFS<br/>• Compress base system<br/>• Create 00-core.sb module<br/>• Prepare live environment]
+    C2 --> C3[build-live<br/>Create Core SquashFS<br/>• Compress base system<br/>• Create 00-core.sb module<br/>• Prepare live environment]
 
-    C3 --> C4[build-modules<br/>📚 Build Environment Modules<br/>• Process linked modules<br/>• Create SquashFS files<br/>• Apply conditional packages]
+    C3 --> C4[build-modules<br/>Build Environment Modules<br/>• Process linked modules<br/>• Create SquashFS files<br/>• Apply conditional packages]
 
-    C4 --> C5[build-boot<br/>🥾 Prepare Boot System<br/>• Setup GRUB & ISOLINUX<br/>• Create initramfs<br/>• Configure boot parameters]
+    C4 --> C5[build-boot<br/>Prepare Boot System<br/>• Setup GRUB & ISOLINUX<br/>• Create initramfs<br/>• Configure boot parameters]
 
-    C5 --> C6[build-config<br/>⚙️ Generate Boot Configs<br/>• Create menu entries<br/>• Configure live options<br/><br/>]
+    C5 --> C6[build-config<br/>Generate Boot Configs<br/>• Create menu entries<br/>• Configure live options<br/><br/>]
 
-    C6 --> C7[build-iso<br/>💿 Create Final ISO<br/>• Combine all components<br/>• Generate bootable image<br/><br/>]
+    C6 --> C7[build-iso<br/>Create Final ISO<br/>• Combine all components<br/>• Generate bootable image<br/><br/>]
 
-    C7 --> Success([✅ Final ISO Ready<br/>📁 build/iso/])
+    C7 --> Success([Final ISO Ready<br/>build/iso/])
 
     %% Alternative paths
     C1 -.->|Skip to specific stage| C4
@@ -178,12 +172,12 @@ flowchart TD
 ### Penjelasan Tahapan Build
 
 1. **`build-bootstrap`** - Membuat sistem dasar minimal menggunakan debootstrap
-2. **`build-chroot`** - Menginstal paket dan mengonfigurasi sistem dalam lingkungan chroot
+2. **`build-chroot`** - Menginstal paket dan mengonfigurasi sistem di lingkungan chroot
 3. **`build-live`** - Membuat image utama SquashFS dengan sistem inti
 4. **`build-modules`** - Membangun modul SquashFS tambahan untuk perangkat lunak ekstra
 5. **`build-boot`** - Menyiapkan file bootloader dan kernel
 6. **`build-config`** - Menghasilkan file konfigurasi boot
-7. **`build-iso`** - Membuat ISO image final yang dapat di-boot
+7. **`build-iso`** - Membuat image ISO final yang dapat di-boot
 
 ### Opsi Build
 
@@ -219,8 +213,8 @@ flowchart TD
 #### Konfigurasi Utama: `linux-live/build.conf`
 
 Ini adalah file konfigurasi utama yang mendefinisikan:
-- **Pengaturan distribusi**: Target distribusi (buster, bookworm, trixie, sid)
-- **Arsitektur**: amd64, i386, i386-pae (hanya untuk bookworm dan sebelumnya; trixie dan sid hanya mendukung amd64)
+- **Pengaturan distribusi**: Distribusi target (buster, bookworm, trixie, sid)
+- **Arsitektur**: amd64, i386, i386-pae (khusus bookworm dan sebelumnya; trixie dan sid hanya mendukung amd64)
 - **Lingkungan desktop**: core, flux, xfce, lxqt
 - **Varian paket**: minimum, standard, toolbox, ultra
 - **Kompresi**: xz, lzo, gz, lz4, zstd
@@ -229,7 +223,7 @@ Ini adalah file konfigurasi utama yang mendefinisikan:
 
 #### Konfigurasi Runtime: `minios_build.conf`
 
-Dibuat secara otomatis selama proses build dan berisi pengaturan runtime khusus untuk lingkungan chroot.
+Dibuat secara otomatis selama proses build dan berisi pengaturan khusus runtime untuk lingkungan chroot.
 
 ### Varian Paket
 
@@ -271,25 +265,25 @@ Setiap direktori modul berisi:
 
 - **`packages.list`**: Daftar paket yang akan diinstal dengan marker kondisional
 - **`install`**: Skrip Bash yang dijalankan saat build modul
-- **`rootcopy-install/`**: File yang disalin ke sistem saat build
+- **`rootcopy-install/`**: File yang disalin ke sistem selama build
 - **`rootcopy-postinstall/`**: File yang disalin setelah instalasi paket
 - **`.minios-ownership`**: Manifest kepemilikan opsional di dalam direktori `rootcopy-*` untuk file yang memerlukan pemilik non-root
 - **`skip_conditions.conf`**: Kondisi untuk melewati build modul
 - **`patches/`**: Patch yang diterapkan sebelum build (tidak tersedia untuk 00-core)
 
-File di `rootcopy-install/` dan `rootcopy-postinstall/` disalin sebagai template build. Kepemilikan checkout host tidak dipertahankan; file biasanya menjadi `root:root` di tree target. Jika file atau direktori membutuhkan pemilik non-root, buat `.minios-ownership` di direktori rootcopy terkait:
+File di `rootcopy-install/` dan `rootcopy-postinstall/` disalin sebagai template build. Kepemilikan checkout host tidak dipertahankan; file biasanya menjadi `root:root` di pohon target. Jika file atau direktori membutuhkan pemilik non-root, buat `.minios-ownership` di direktori rootcopy terkait:
 
 ```text
 owner:group relative/path
 ```
 
-Path bersifat relatif terhadap direktori rootcopy tersebut. Path absolut dan path yang mengandung `../` akan ditolak. Owner dan grup harus sudah ada saat manifest diterapkan. Jika dibuat oleh paket yang diinstal kemudian, gunakan `rootcopy-postinstall/` atau atur kepemilikan di `install`/`postinstall`.
+Path bersifat relatif terhadap direktori rootcopy tersebut. Path absolut dan path yang mengandung `../` akan ditolak. Pemilik dan grup harus sudah ada saat manifest diterapkan. Jika dibuat oleh paket yang diinstal kemudian, gunakan `rootcopy-postinstall/` atau atur kepemilikan di `install`/`postinstall`.
 
 ### Contoh Template Modul
 
 Modul **`10-example/`** berfungsi sebagai template untuk membuat modul baru. Modul ini berisi:
 
-- `packages.list` lengkap dengan contoh marker kondisional
+- File `packages.list` lengkap dengan contoh marker kondisional
 - Skrip dasar `install` yang menunjukkan penggunaan condinapt yang benar
 - Contoh direktori `rootcopy-install/` dan `rootcopy-postinstall/`
 - Komentar dokumentasi yang menjelaskan setiap komponen
@@ -303,7 +297,7 @@ Template ini digunakan di seluruh dokumentasi ini dan merupakan titik awal terba
 
 ### Pemuatan Modul Berdasarkan Lingkungan
 
-Sistem modul bekerja melalui konfigurasi lingkungan di `linux-live/environments/`. Setiap direktori lingkungan berisi symbolic link ke modul-modul yang harus dimasukkan untuk lingkungan desktop dan varian paket tertentu.
+Sistem modul bekerja melalui konfigurasi lingkungan di `linux-live/environments/`. Setiap direktori lingkungan berisi symbolic link ke modul-modul yang harus disertakan untuk lingkungan desktop dan varian paket tertentu.
 
 #### Lingkungan yang Tersedia
 
@@ -346,9 +340,9 @@ Untuk membangun modul, gunakan perintah `build-modules`:
 ### Skrip Instalasi Modul
 
 Skrip `install` di setiap modul:
-- Melakukan source `/minioslib` untuk fungsi umum
-- Melakukan source `/minios_build.conf` untuk konfigurasi build
-- Menyiapkan seleksi debconf untuk konfigurasi paket otomatis
+- Memuat `/minioslib` untuk fungsi umum
+- Memuat `/minios_build.conf` untuk konfigurasi build
+- Mengatur seleksi debconf untuk konfigurasi paket otomatis
 - Melakukan konfigurasi kustom dan modifikasi file
 - Menggunakan warna konsol untuk format output
 
@@ -411,7 +405,7 @@ Penggunaan standar di skrip instalasi modul:
 
 ### Dokumentasi Lengkap
 
-Untuk dokumentasi CondinAPT yang komprehensif termasuk sintaks lanjutan, filter, antrean prioritas, mode debugging, dan contoh dunia nyata, lihat: **[CondinAPT.md](/development/CondinAPT.md)**
+Untuk dokumentasi CondinAPT yang komprehensif termasuk sintaks lanjutan, filter, antrean prioritas, mode debugging, dan contoh nyata, lihat: **[CondinAPT.md](/development/CondinAPT.md)**
 
 ### Filter Kondisi Umum
 
@@ -437,7 +431,7 @@ sudo apt-get update
 sudo apt-get install sudo binutils debootstrap squashfs-tools xz-utils lz4 zstd xorriso mtools rsync grub-efi-amd64-bin grub-pc-bin
 ```
 
-3. **Build dengan minios-cmd (direkomendasikan):**
+3. **Build dengan minios-cmd (disarankan):**
 ```bash
 ./minios-cmd -d bookworm -a amd64 -de xfce -pv standard
 ```
@@ -611,7 +605,7 @@ BUILD_CONF=linux-live/build-gnome.conf ./minios-live -
 
 Saat membuat lingkungan kustom:
 
-- **Modul dasar** (01-03): Biasanya sama di semua lingkungan
+- **Modul dasar** (01-03): Biasanya sama untuk semua lingkungan
 - **Modul desktop** (04): Berisi paket dan konfigurasi inti lingkungan desktop
 - **Modul aplikasi** (05): Aplikasi khusus desktop
 - **Modul opsional** (06+): Paket perangkat lunak tambahan
@@ -660,7 +654,7 @@ ln -s ../../scripts/06-custom-module linux-live/environments/xfce/06-custom-modu
 ### Masalah Umum
 
 1. **Build gagal dimulai - Koneksi internet diperlukan:**
-   - **Masalah**: `minios-live` melakukan pengecekan koneksi internet wajib saat startup
+   - **Masalah**: `minios-live` melakukan pengecekan konektivitas internet wajib saat startup
    - **Solusi**: Pastikan koneksi internet stabil sebelum memulai build
    - **Cek**: Verifikasi resolusi DNS: `nslookup deb.debian.org`
    - **Proxy**: Atur pengaturan proxy jika berada di balik firewall perusahaan
@@ -688,7 +682,7 @@ ln -s ../../scripts/06-custom-module linux-live/environments/xfce/06-custom-modu
 
 ### Mode Debug
 
-Aktifkan output debug dengan mengatur level verbosity di konfigurasi build Anda:
+Aktifkan output debug dengan mengatur tingkat verbosity di konfigurasi build Anda:
 
 **Opsi 1: Edit build.conf**
 ```bash
@@ -713,10 +707,10 @@ sed -i 's/DEBUG_SET_ROOT_PASSWORD="false"/DEBUG_SET_ROOT_PASSWORD="true"/' linux
 BUILD_CONF=linux-live/build-debug.conf ./minios-live -
 ```
 
-**Level verbosity:**
+**Tingkat verbosity:**
 - `0`: Output minimal - hanya pesan penting
 - `1`: Output verbose - informasi build standar (default)
-- `2`: Output sangat verbose - tracing detail dengan debugging bash diaktifkan
+- `2`: Output sangat verbose - tracing detail dengan debugging bash aktif
 
 ### File Log
 
@@ -733,4 +727,4 @@ Log build disimpan di:
 
 - **[Membuat Modul](/development/Creating-Modules.md)** - Pelajari cara membuat modul SquashFS kustom dengan perangkat lunak tambahan
 - **[Menyusun image ISO](/development/Rebuilding-ISO.md)** - Remaster sistem MiniOS yang sudah ada dengan `minios-image-compose`
-- **[CondinAPT](/development/CondinAPT.md)** - Pahami sistem manajemen paket kondisional yang digunakan dalam build
+- **[CondinAPT](/development/CondinAPT.md)** - Pahami sistem manajemen paket kondisional yang digunakan dalam proses build

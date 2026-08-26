@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Verifica dei download
 
 Le release di MiniOS sono pubblicate sulla [pagina ufficiale dei rilasci GitHub](https://github.com/minios-linux/minios-live/releases). Ogni asset ISO della release ha un file corrispondente il cui nome termina con `.iso.sha256`.

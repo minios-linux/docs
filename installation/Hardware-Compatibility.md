@@ -1,4 +1,9 @@
+---
+updated: 2026-08-26
+---
+
 # Hardware compatibility guide
+
 
 Hardware support depends on the MiniOS release and image: its base distribution,
 kernel, firmware, included modules, and edition all matter. Check the release

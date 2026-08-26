@@ -1,3 +1,9 @@
+---
+updated: 2026-08-26
+program_commits:
+    minios-live: 039ddd0f3e82651069756370e5f3addebce43984
+---
+
 # CondinAPT: Guida Completa all’Installazione Condizionale dei Pacchetti
 
 **CondinAPT** è uno strumento versatile per automatizzare l’installazione dei pacchetti su qualsiasi sistema basato su Debian (Debian, Ubuntu e le loro derivate). La sua caratteristica principale è la possibilità di definire condizioni e regole complesse per l’installazione di ciascun pacchetto in base a configurazioni di sistema arbitrarie.

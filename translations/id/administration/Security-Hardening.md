@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Penguatan Keamanan
 
 MiniOS dapat dijalankan sebagai sistem pemulihan live, sistem portabel persisten, atau instalasi native. Pengendalian yang tepat bergantung pada bagaimana sistem digunakan. Lindungi sesi yang sedang berjalan, data persisten, media boot, dan setiap konfigurasi yang diterapkan saat startup.

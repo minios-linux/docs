@@ -1,3 +1,9 @@
+---
+updated: 2026-08-26
+program_commits:
+    minios-installer: 1b4c3df8b7aad7cec67b30263a6bb3929d98a77c
+---
+
 # Utilisation de l’installateur MiniOS
 
 L’installateur MiniOS est un assistant GTK avec un backend en ligne de commande permettant de déployer MiniOS à partir d’une session live MiniOS. Il installe le système sur un disque cible ; ce n’est pas la même chose qu’écrire une image ISO sur un support amorçable.

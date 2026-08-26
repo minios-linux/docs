@@ -1,10 +1,14 @@
+---
+updated: 2026-08-26
+---
+
 # Uso del comando `dd`
 
 `dd` es una utilidad de línea de comandos versátil para copiar datos bit a bit entre archivos y dispositivos. Se utiliza principalmente para grabar imágenes ISO en unidades USB, crear copias de seguridad y recuperación de datos.
 
 ## Importante
 
-⚠️ **Advertencia:** ¡La selección incorrecta del dispositivo resultará en pérdida de datos! Verifica siempre dos veces la unidad seleccionada y haz copia de seguridad de la información importante.
+**Advertencia:** ¡Seleccionar el dispositivo incorrecto provocará la pérdida de datos! Verifica siempre dos veces la unidad seleccionada y haz una copia de seguridad de tus datos importantes.
 
 ## Requisitos de la unidad
 

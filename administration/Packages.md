@@ -1,4 +1,9 @@
+---
+updated: 2026-08-26
+---
+
 # Packages and editions
+
 
 MiniOS package contents are generated from conditional source lists. They vary
 by distribution suite, architecture, init system, desktop environment, locale,

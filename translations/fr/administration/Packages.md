@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Packages et éditions
 
 Le contenu des paquets MiniOS est généré à partir de listes sources conditionnelles. Il varie selon la suite de distribution, l’architecture, le système d’initialisation, l’environnement de bureau, la langue, les options du noyau et la disponibilité des dépôts. Cette page décrit l’héritage des éditions et présente des exemples de contenus représentatifs ; il ne s’agit pas d’une table exhaustive des paquets publiés.

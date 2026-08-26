@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Architecture système de MiniOS
 
 MiniOS démarre un système d’exploitation en lecture seule assemblé à partir de modules SquashFS et ajoute une couche inscriptible pour la session en cours. L’initramfs est chargé de détecter le support, sélectionner les modules et la persistance, construire le système de fichiers racine, appliquer la configuration initiale, puis transférer le contrôle au système d’init installé.

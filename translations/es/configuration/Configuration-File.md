@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Archivo de configuración
 
 Los medios de arranque de MiniOS almacenan la configuración principal en `minios/config.conf`. Durante el arranque, el initramfs la sincroniza a `/etc/live/config.conf` en la raíz viva ensamblada. Por lo tanto, los scripts en el sistema en ejecución deben leer `/etc/live/config.conf`; `/etc/minios/config.conf` y `config/config.conf` no son rutas de configuración utilizadas por el código de arranque actual.
@@ -37,39 +41,39 @@ EXPORT_LOGS="false"
 ## Descripción de los parámetros
 
 **Leyenda:**
-- 🔒 **Solo una vez** - Se aplica únicamente en el primer arranque, no se puede modificar en arranques posteriores
-- 🔄 **Reconfigurable** - Se puede cambiar en cada arranque y volver a aplicar
+- **Solo en el primer arranque** – Se aplica únicamente en el primer arranque y no se vuelve a aplicar en los siguientes
+- **Sí** – Puede modificarse y aplicarse en cada arranque
 
 | Parámetro | Reconfigurable | Significado | Ejemplo |
 | --------- | -------------- | ---------- | ------- |
-| LIVE_CONFIG_CMDLINE | 🔄 | Opciones adicionales para live-config. `nottyautologin` se almacena aquí en lugar de estar codificado en cada entrada de arranque. Consulta `man 7 live-config`. | LIVE_CONFIG_CMDLINE="components nottyautologin" |
-| LIVE_HOSTNAME | 🔄 | Nombre del nodo asociado al sistema. Consulta `man 7 live-config`. | LIVE_HOSTNAME="minios" |
-| LIVE_USERNAME | 🔒 | Nombre del usuario cuyo perfil se creará en el primer arranque. Si especificas el nombre de usuario <strong>root</strong>, no se creará ningún perfil de usuario y el inicio de sesión se realizará usando el perfil <strong>root</strong>. Consulta `man 7 live-config`. | LIVE_USERNAME="live" |
-| LIVE_USER_FULLNAME | 🔒 | Nombre completo para el usuario principal. Consulta `man 7 live-config`. | LIVE_USER_FULLNAME="MiniOS Live User" |
-| LIVE_USER_DEFAULT_GROUPS | 🔒 | Lista separada por comas de los grupos del usuario principal. Consulta `man 7 live-config`. | LIVE_USER_DEFAULT_GROUPS="dialout,cdrom,floppy..." |
-| LIVE_USER_PASSWORD_CRYPTED | 🔒 | Contraseña del usuario principal en forma cifrada (hash). Usa `mkpasswd -m yescrypt` para generarla. Consulta `man 7 live-config`. | LIVE_USER_PASSWORD_CRYPTED='$y$j9T$...' |
-| LIVE_ROOT_PASSWORD_CRYPTED | 🔒 | Contraseña del usuario privilegiado **root** en forma cifrada (hash). Usa `mkpasswd -m yescrypt` para generarla. Consulta `man 7 live-config`. | LIVE_ROOT_PASSWORD_CRYPTED='$y$j9T$...' |
-| LIVE_CONFIG_NOROOT | 🔒 | Si se establece, desactiva el inicio de sesión de la cuenta root y deshabilita sudo/policykit para el usuario. Consulta `man 7 live-config`. | LIVE_CONFIG_NOROOT="" |
-| LIVE_LOCALES | 🔄 | Establece la configuración regional. Se pueden separar varios valores por comas. Consulta `man 7 live-config`. | LIVE_LOCALES="en_US.UTF-8" |
-| LIVE_TIMEZONE | 🔄 | Establece la zona horaria (por ejemplo, "Europe/Berlin", "Etc/UTC"). Consulta `man 7 live-config`. | LIVE_TIMEZONE="Etc/UTC" |
-| LIVE_KEYBOARD_MODEL | 🔄 | Establece el modelo de teclado (por ejemplo, "pc105"). Consulta `man 7 live-config`. | LIVE_KEYBOARD_MODEL="pc105" |
-| LIVE_KEYBOARD_LAYOUTS | 🔄 | Establece las distribuciones de teclado (separadas por comas, por ejemplo, "us,de"). Consulta `man 7 live-config`. | LIVE_KEYBOARD_LAYOUTS="us,de" |
-| LIVE_KEYBOARD_OPTIONS | 🔄 | Establece opciones de teclado (por ejemplo, "grp:alt_shift_toggle,grp_led:scroll"). Consulta `man 7 live-config`. | LIVE_KEYBOARD_OPTIONS="grp:alt_shift_toggle,grp_led:scroll" |
-| LIVE_KEYBOARD_VARIANTS | 🔄 | Establece las variantes de teclado (separadas por comas, pueden estar vacías o coincidir con las distribuciones). Consulta `man 7 live-config`. | LIVE_KEYBOARD_VARIANTS="," |
-| LIVE_CONFIG_DEBUG | 🔄 | Activa la salida de depuración para live-config. Consulta `man 7 live-config`. | LIVE_CONFIG_DEBUG="true" |
-| LIVE_LINK_USER_DIRS | 🔄 | Si es verdadero, los directorios de usuario se enlazarán desde la ruta especificada. | LIVE_LINK_USER_DIRS="false" |
-| LIVE_BIND_USER_DIRS | 🔄 | Si es verdadero, los directorios de usuario se montarán mediante bind desde la ruta especificada. | LIVE_BIND_USER_DIRS="false" |
-| LIVE_USER_DIRS_PATH | 🔄 | Ruta a los directorios de datos de usuario en la unidad flash. | LIVE_USER_DIRS_PATH="/minios/userdata" |
-| LIVE_MODULE_MODE | 🔄 | Selecciona el modo de funcionamiento del sistema. Si planeas instalar software exclusivamente mediante módulos, usa "merged". Si deseas instalar software usando apt, usa "simple". El valor predeterminado es "merged". | LIVE_MODULE_MODE="merged" |
-| DEFAULT_TARGET | 🔄 | Objetivo de systemd para arrancar. Consulta `man systemd.special`. | DEFAULT_TARGET="graphical" |
-| ENABLE_SERVICES | 🔄 | Habilita servicios al arrancar (separados por comas). | ENABLE_SERVICES="ssh" |
-| DISABLE_SERVICES | 🔄 | Desactiva servicios al arrancar (separados por comas). | DISABLE_SERVICES="" |
-| EXPORT_LOGS | 🔄 | Si es verdadero y el directorio de datos seleccionado de MiniOS es escribible, los registros de arranque se copian a `minios/log/YYYYMMDD_HHMMSS/`. | EXPORT_LOGS="false" |
+| LIVE_CONFIG_CMDLINE | Sí | Opciones adicionales para live-config. `nottyautologin` se almacena aquí en lugar de estar predefinido en cada entrada de arranque. Ver `man 7 live-config`. | LIVE_CONFIG_CMDLINE="components nottyautologin" |
+| LIVE_HOSTNAME | Sí | Nombre del nodo asociado al sistema. Ver `man 7 live-config`. | LIVE_HOSTNAME="minios" |
+| LIVE_USERNAME | Solo en el primer arranque | Nombre del usuario cuyo perfil se creará en el primer arranque. Si especificas el nombre de usuario <strong>root</strong>, no se creará ningún perfil de usuario y el inicio de sesión se realizará usando el perfil <strong>root</strong>. Ver `man 7 live-config`. | LIVE_USERNAME="live" |
+| LIVE_USER_FULLNAME | Solo en el primer arranque | Nombre completo para el usuario principal. Ver `man 7 live-config`. | LIVE_USER_FULLNAME="MiniOS Live User" |
+| LIVE_USER_DEFAULT_GROUPS | Solo en el primer arranque | Lista separada por comas de los grupos para el usuario principal. Ver `man 7 live-config`. | LIVE_USER_DEFAULT_GROUPS="dialout,cdrom,floppy..." |
+| LIVE_USER_PASSWORD_CRYPTED | Solo en el primer arranque | Contraseña del usuario principal en forma cifrada (hash). Usa `mkpasswd -m yescrypt` para generar. Ver `man 7 live-config`. | LIVE_USER_PASSWORD_CRYPTED='$y$j9T$...' |
+| LIVE_ROOT_PASSWORD_CRYPTED | Solo en el primer arranque | Contraseña del usuario privilegiado **root** en forma cifrada (hash). Usa `mkpasswd -m yescrypt` para generar. Ver `man 7 live-config`. | LIVE_ROOT_PASSWORD_CRYPTED='$y$j9T$...' |
+| LIVE_CONFIG_NOROOT | Solo en el primer arranque | Si está definido, deshabilita el inicio de sesión de la cuenta root y desactiva sudo/policykit para el usuario. Ver `man 7 live-config`. | LIVE_CONFIG_NOROOT="" |
+| LIVE_LOCALES | Sí | Establece la configuración regional. Se pueden separar varios valores por comas. Ver `man 7 live-config`. | LIVE_LOCALES="en_US.UTF-8" |
+| LIVE_TIMEZONE | Sí | Establece la zona horaria (por ejemplo, "Europe/Berlin", "Etc/UTC"). Ver `man 7 live-config`. | LIVE_TIMEZONE="Etc/UTC" |
+| LIVE_KEYBOARD_MODEL | Sí | Establece el modelo de teclado (por ejemplo, "pc105"). Ver `man 7 live-config`. | LIVE_KEYBOARD_MODEL="pc105" |
+| LIVE_KEYBOARD_LAYOUTS | Sí | Establece las distribuciones de teclado (separadas por comas, por ejemplo, "us,de"). Ver `man 7 live-config`. | LIVE_KEYBOARD_LAYOUTS="us,de" |
+| LIVE_KEYBOARD_OPTIONS | Sí | Establece las opciones del teclado (por ejemplo, "grp:alt_shift_toggle,grp_led:scroll"). Ver `man 7 live-config`. | LIVE_KEYBOARD_OPTIONS="grp:alt_shift_toggle,grp_led:scroll" |
+| LIVE_KEYBOARD_VARIANTS | Sí | Establece las variantes de teclado (separadas por comas, pueden estar vacías o coincidir con las distribuciones). Ver `man 7 live-config`. | LIVE_KEYBOARD_VARIANTS="," |
+| LIVE_CONFIG_DEBUG | Sí | Activa la salida de depuración para live-config. Ver `man 7 live-config`. | LIVE_CONFIG_DEBUG="true" |
+| LIVE_LINK_USER_DIRS | Sí | Si es verdadero, los directorios de usuario se enlazarán desde la ruta especificada. | LIVE_LINK_USER_DIRS="false" |
+| LIVE_BIND_USER_DIRS | Sí | Si es verdadero, los directorios de usuario se montarán mediante bind desde la ruta especificada. | LIVE_BIND_USER_DIRS="false" |
+| LIVE_USER_DIRS_PATH | Sí | Ruta a los directorios de datos de usuario en la unidad flash. | LIVE_USER_DIRS_PATH="/minios/userdata" |
+| LIVE_MODULE_MODE | Sí | Selecciona el modo de operación del sistema. Si planeas instalar software exclusivamente mediante módulos, usa "merged". Si deseas instalar software usando apt, usa "simple". El valor predeterminado es "merged". | LIVE_MODULE_MODE="merged" |
+| DEFAULT_TARGET | Sí | El target de systemd al que arrancar. Ver `man systemd.special`. | DEFAULT_TARGET="graphical" |
+| ENABLE_SERVICES | Sí | Habilita servicios al arrancar (separados por comas). | ENABLE_SERVICES="ssh" |
+| DISABLE_SERVICES | Sí | Desactiva servicios al arrancar (separados por comas). | DISABLE_SERVICES="" |
+| EXPORT_LOGS | Sí | Si es verdadero y el directorio de datos de MiniOS seleccionado es escribible, los registros de arranque se copian en `minios/log/YYYYMMDD_HHMMSS/`. | EXPORT_LOGS="false" |
 
 
 **Para más detalles sobre la mayoría de los parámetros, consulta:**
 - `man 7 live-config` ([live-config](/configuration/live-config.md))
-- Para objetivos systemd: `man systemd.special`
+- Para los targets de systemd: `man systemd.special`
 
 ## ¡Importante!
 

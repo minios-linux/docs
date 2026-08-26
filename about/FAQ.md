@@ -1,4 +1,9 @@
+---
+updated: 2026-08-26
+---
+
 # Frequently asked questions
+
 
 ## Which edition should I choose, and why is an application missing?
 

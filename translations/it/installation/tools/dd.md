@@ -1,10 +1,14 @@
+---
+updated: 2026-08-26
+---
+
 # Utilizzo del comando `dd`
 
 `dd` è un potente strumento da riga di comando per la copia bit a bit di dati tra file e dispositivi. Viene utilizzato principalmente per scrivere immagini ISO su unità USB, creare backup e per il recupero dati.
 
 ## Importante
 
-⚠️ **Attenzione:** La selezione errata del dispositivo comporta la perdita dei dati! Controlla sempre con attenzione l’unità selezionata e salva una copia dei dati importanti.
+**Attenzione:** La selezione errata del dispositivo comporterà la perdita dei dati! Controlla sempre attentamente l’unità selezionata e fai una copia di backup dei dati importanti.
 
 ## Requisiti dell’unità
 

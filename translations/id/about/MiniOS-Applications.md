@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Aplikasi dan alat MiniOS
 
 MiniOS menyertakan alat untuk mengonfigurasi, menginstal, memelihara, dan meremaster sistem MiniOS. Gunakan halaman ini untuk memilih alat yang diinginkan, lalu ikuti panduan yang terhubung untuk mengetahui persyaratan, batasan keamanan, dan detail perintahnya.

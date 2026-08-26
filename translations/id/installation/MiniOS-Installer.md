@@ -1,3 +1,9 @@
+---
+updated: 2026-08-26
+program_commits:
+    minios-installer: 1b4c3df8b7aad7cec67b30263a6bb3929d98a77c
+---
+
 # Menggunakan MiniOS Installer
 
 MiniOS Installer adalah wizard berbasis GTK dan backend command-line untuk melakukan instalasi MiniOS dari sesi live MiniOS. Aplikasi ini menginstal ke disk target; ini berbeda dengan menulis file ISO ke media bootable.

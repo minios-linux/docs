@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Guida alla compatibilità hardware
 
 Il supporto hardware dipende dalla release e dall’immagine di MiniOS: la distribuzione di base, il kernel, il firmware, i moduli inclusi e l’edizione sono tutti fattori rilevanti. Consulta la descrizione della release relativa all’immagine che hai scaricato, quindi testa una sessione live pulita prima di modificare i dischi o affidarti alla macchina per attività persistenti.

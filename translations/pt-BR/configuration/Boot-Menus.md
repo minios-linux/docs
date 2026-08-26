@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Guia dos Menus de Boot do MiniOS
 
 Os menus de boot do MiniOS oferecem opções práticas para modos comuns de inicialização ao vivo. Este guia explica como selecionar e editar essas opções.
@@ -31,13 +35,13 @@ Estes são seletores, não garantias de que o armazenamento será gravável, que
 
 ### Seleção de Idioma (GRUB)
 
-Se seu pendrive MiniOS suporta vários idiomas:
+Se o seu pendrive MiniOS oferece suporte a vários idiomas:
 1. A primeira tela exibirá as opções de idioma
 2. Selecione o idioma de sua preferência
-3. O menu de boot aparecerá no idioma selecionado
-4. A seleção também pode passar as configurações de localidade para a inicialização, mas não garante que todas as mensagens de boot ou aplicativos estejam traduzidas
+3. O menu de inicialização aparecerá no idioma selecionado
+4. A seleção também pode repassar as configurações de localidade para a próxima inicialização, mas não garante que todas as mensagens de boot ou dos aplicativos estejam traduzidas
 
-⚠️ **Importante:** O menu multilíngue substitui qualquer configuração de localidade especificada em `config.conf`. O idioma escolhido no menu de boot tem prioridade sobre as configurações de localidade pré-configuradas. Consulte **[Arquivo de Configuração](/configuration/Configuration-File.md)** e **[live-config](/configuration/live-config.md)** para detalhes sobre os arquivos de configuração do sistema.
+**Importante:** O menu multilíngue substitui qualquer configuração de localidade especificada em `config.conf`. O idioma escolhido no menu de inicialização tem prioridade sobre as configurações de localidade pré-configuradas. Veja **[Arquivo de Configuração](/configuration/Configuration-File.md)** e **[live-config](/configuration/live-config.md)** para detalhes sobre os arquivos de configuração do sistema.
 
 ## Personalizando as Opções de Boot
 
@@ -83,7 +87,7 @@ Para uma lista completa de parâmetros disponíveis, consulte **[Parâmetros de 
 
 ### Editando Arquivos de Configuração
 
-⚠️ **Atenção:** Só edite os arquivos de configuração de boot se souber o que está fazendo. Alterações incorretas podem tornar seu pendrive inutilizável para boot.
+**Atenção:** Só edite arquivos de configuração de boot se souber o que está fazendo. Alterações incorretas podem tornar seu pendrive inutilizável para inicialização.
 
 **Para editar a configuração do GRUB:**
 1. Monte seu pendrive MiniOS

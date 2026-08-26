@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Cadangan dan pemulihan
 
 Tidak ada satu cadangan pun yang melindungi seluruh bagian sistem MiniOS. File pribadi, konfigurasi, sesi persisten, modul, dan perangkat penyimpanan memiliki prosedur pemulihan yang berbeda. Simpan lebih dari satu salinan, pastikan setidaknya satu salinan berada di perangkat lain, dan uji proses pemulihan sebelum salinan asli benar-benar dibutuhkan.

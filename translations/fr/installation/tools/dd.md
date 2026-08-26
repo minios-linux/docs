@@ -1,10 +1,14 @@
+---
+updated: 2026-08-26
+---
+
 # Utilisation de la commande `dd`
 
 `dd` est un utilitaire en ligne de commande polyvalent permettant de copier des données bit à bit entre des fichiers et des périphériques. Il est le plus souvent utilisé pour écrire des images ISO sur des clés USB, créer des sauvegardes ou pour la récupération de données.
 
 ## Important
 
-⚠️ **Avertissement :** Une mauvaise sélection du périphérique entraînera une perte de données ! Vérifiez toujours le lecteur sélectionné et sauvegardez vos données importantes.
+**Avertissement :** Une mauvaise sélection du périphérique entraînera une perte de données ! Vérifiez toujours attentivement le disque sélectionné et sauvegardez vos données importantes.
 
 ## Exigences pour le lecteur
 

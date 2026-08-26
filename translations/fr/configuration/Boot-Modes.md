@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Modes de démarrage MiniOS
 
 Les modes de démarrage décrivent l’origine du système live, si sa couche inscriptible est temporaire ou persistante, et si MiniOS copie sa source en RAM. Ils ne définissent pas un firmware ou un protocole de bootloader différent. GRUB, Syslinux, Ventoy ou un chargeur PXE lancent tous le même pipeline MiniOS en espace utilisateur initial, en chargeant un noyau et un initramfs avec une ligne de commande du noyau.

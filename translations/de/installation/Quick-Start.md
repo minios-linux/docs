@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Schnellstart
 
 Diese Anleitung beschreibt das Herunterladen, Schreiben, Booten und die Ersteinrichtung von MiniOS.
@@ -20,9 +24,9 @@ Lade ein ISO von [minios.dev](https://minios.dev) oder der
 
 ## 2. Zielgerät vorbereiten
 
-Verwenden Sie ein Gerät, das groß genug für das gewählte ISO sowie für Daten oder eine persistente Sitzung ist, die Sie behalten möchten. Die ISO-Größe variiert je nach Release, daher sollten Sie die tatsächliche Downloadgröße und das Schreibwerkzeug prüfen, statt sich auf eine feste Angabe zu verlassen. Sichern Sie das Zielgerät vorher: Die meisten Installationsmethoden überschreiben es ganz oder teilweise.
+Verwenden Sie ein Gerät, das groß genug für das ausgewählte ISO sowie für alle Daten oder eine persistente Sitzung ist, die Sie behalten möchten. Die ISO-Größen variieren zwischen den Versionen, daher sollten Sie die Größe beim Download und im Schreibwerkzeug überprüfen, anstatt sich auf eine feste Größe in einer Anleitung zu verlassen. Sichern Sie das Zielgerät vorher: Bei den meisten Installationsmethoden werden Teile oder das gesamte Gerät überschrieben.
 
-Wählen Sie eine Methode und lesen Sie die jeweilige Anleitung, bevor Sie das Gerät auswählen:
+Wählen Sie eine Methode aus und lesen Sie die entsprechende Anleitung, bevor Sie das Gerät auswählen:
 
 - Windows: [Rufus](/installation/tools/Rufus.md),
   [Balena Etcher](/installation/tools/Balena-Etcher.md) oder
@@ -34,10 +38,7 @@ Wählen Sie eine Methode und lesen Sie die jeweilige Anleitung, bevor Sie das Ge
   [Balena Etcher](/installation/tools/Balena-Etcher.md)
 - Aus MiniOS: [MiniOS Installer](/installation/MiniOS-Installer.md)
 
-Weitere dokumentierte Methoden sind [UNetbootin](/installation/tools/UNetbootin.md)
-und die [Originalmethode](/installation/tools/Original-Method.md). Einen Vergleich finden Sie unter
-[USB-Erstellungstools](/installation/tools/USB-Creation-Tools.md) und einen Überblick zur Installation unter
-[MiniOS installieren](/installation/Installing-MiniOS.md).
+Weitere dokumentierte Methoden sind [UNetbootin](/installation/tools/UNetbootin.md) und [Dateibasierte USB-Installation](/installation/tools/File-Based-USB-Installation.md). Einen Vergleich finden Sie unter [USB-Erstellungstools](/installation/tools/USB-Creation-Tools.md) und einen Überblick zur Installation unter [Installing MiniOS](/installation/Installing-MiniOS.md).
 
 ## 3. Persistenz verstehen, bevor Sie schreiben
 

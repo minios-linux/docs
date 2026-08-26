@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Sobre o MiniOS
 
 O MiniOS é uma distribuição Linux baseada no Debian, projetada para rodar a partir de mídia removível ou disco local. Seu sistema somente leitura é montado a partir de módulos SquashFS, com sessões opcionais graváveis para arquivos, configurações e pacotes instalados. O MiniOS oferece suporte a sistemas x86 de 64 bits e pode inicializar via UEFI ou BIOS legado.

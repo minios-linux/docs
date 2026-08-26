@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Backup e ripristino
 
 Nessun singolo backup protegge ogni parte di un sistema MiniOS. File personali,

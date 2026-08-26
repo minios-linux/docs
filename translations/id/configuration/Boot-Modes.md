@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Mode boot MiniOS
 
 Mode boot menjelaskan asal sistem live, apakah lapisan writable-nya bersifat sementara atau persisten, dan apakah MiniOS menyalin sumbernya ke RAM. Mode ini tidak menggambarkan firmware atau protokol bootloader yang berbeda. GRUB, Syslinux, Ventoy, atau PXE loader akan memulai pipeline early-userspace MiniOS yang sama dengan memuat kernel dan initramfs beserta kernel command line.

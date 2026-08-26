@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Installation de MiniOS
 
 Il existe deux opérations distinctes souvent appelées installation :
@@ -19,11 +23,11 @@ Choisissez une méthode adaptée à votre système d’exploitation :
 - [`dd`](/installation/tools/dd.md) sous Linux ou macOS
 - [Drive Utility](/installation/tools/Drive-Utility.md) sous Linux
 - [UNetbootin](/installation/tools/UNetbootin.md) sous Windows, Linux ou macOS
-- [Méthode originale](/installation/tools/Original-Method.md) pour une disposition MiniOS basée sur des fichiers
+- [Installation USB basée sur des fichiers](/installation/tools/File-Based-USB-Installation.md) pour une préparation manuelle du schéma MiniOS
 
-L’écriture d’une image avec Rufus, Etcher, `dd` ou Drive Utility est destructive. Vérifiez le chemin du périphérique, le modèle et la capacité avant de commencer. Une écriture brute de l’image reproduit la structure de l’image ; elle ne configure pas la persistance ni ne réalise une installation live ou native avec MiniOS Installer.
+L’écriture d’une image avec Rufus, Etcher, `dd` ou Drive Utility est destructive. Vérifiez le chemin du périphérique, le modèle et la capacité avant de commencer. Une écriture brute de l’image reproduit la structure de l’image ; cela ne configure pas la persistance ni ne réalise à lui seul un déploiement live ou natif avec l’installateur MiniOS.
 
-Ventoy fonctionne différemment : installez Ventoy sur le périphérique, puis copiez l’ISO dans sa partition de données. Cela préserve la structure multiboot de Ventoy.
+Ventoy fonctionne différemment : installez Ventoy sur le périphérique, puis copiez l’ISO sur sa partition de données. Cela préserve la structure multiboot de Ventoy.
 
 ## Démarrer la session live
 

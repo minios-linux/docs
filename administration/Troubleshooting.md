@@ -1,4 +1,9 @@
+---
+updated: 2026-08-26
+---
+
 # Troubleshooting
+
 
 Start with observation and reversible tests. Do not repartition, reformat,
 repair a filesystem, delete a session, or overwrite boot files until important

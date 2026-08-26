@@ -1,37 +1,44 @@
-# Kernel Management in MiniOS 🔧
+---
+updated: 2026-08-26
+program_commits:
+  minios-kernel-manager: a5bd09e2d1b2cbb6e44a690bf12047c93bf1a87b
+---
 
-## 🤔 Why Replace the Kernel?
+# Kernel Management in MiniOS
+
+
+## Why Replace the Kernel?
 
 MiniOS comes with a default kernel, but there are several reasons why you might want to replace it:
 
-### 🔧 **Different Debian Kernel Flavours**
+### **Different Debian Kernel Flavours**
 Debian provides several kernel variants optimized for different use cases:
 
 - **`linux-image-6.12.38+deb13-amd64`** - Standard kernel for 64-bit systems (default in MiniOS)
 - **`linux-image-6.12.38+deb13-rt-amd64`** - Real-time kernel for time-critical applications
 - **`linux-image-6.12.38+deb13-cloud-amd64`** - Optimized for cloud and virtualized environments
 
-> **📝 Note:** Version numbers (like `6.12.38+deb13`) change with updates. To find current available kernels:
+> **Note:** Version numbers (like `6.12.38+deb13`) change with updates. To find current available kernels:
 > ```bash
 > apt search linux-image-.*-amd64
 > apt search linux-image-.*-rt-amd64
 > apt search linux-image-.*-cloud-amd64
 > ```
 
-### 🎯 **Specialized Use Cases**
+### **Specialized Use Cases**
 - **Real-time computing** - RT kernels for audio production, industrial control
 - **Gaming and low-latency** - Custom kernels with gaming optimizations
 - **Security hardening** - Kernels with additional security patches (grsecurity, etc.)
 - **Hardware compatibility** - Newer kernels for recent hardware support
 - **Performance tuning** - Custom-compiled kernels with specific optimizations
 
-### 🛠️ **Custom Kernel Features**
+### **Custom Kernel Features**
 - **Custom patches** - Apply specific patches for your hardware or use case
 - **Kernel modules** - Add support for specialized hardware or filesystems
 - **Compiler optimizations** - Build with different optimization flags
 - **Size optimization** - Remove unnecessary drivers to reduce kernel size
 
-### 📈 **Common Scenarios**
+### **Common Scenarios**
 - **Audio production workstations** - Use RT kernel for minimal audio latency
 - **Gaming systems** - Apply gaming-specific patches and optimizations
 - **Server environments** - Use cloud-optimized kernels for better virtualization
@@ -40,12 +47,12 @@ Debian provides several kernel variants optimized for different use cases:
 
 ---
 
-## ⚙️ MiniOS Kernel Manager Overview
+## MiniOS Kernel Manager Overview
 
 MiniOS provides two tools for kernel management:
 
-1. **🖥️ MiniOS Kernel Manager (GUI):** A user-friendly graphical application for packaging, installing, and managing kernels
-2. **⌨️ minios-kernel (CLI):** A command-line tool for advanced users and automation
+1. **MiniOS Kernel Manager (GUI):** A user-friendly graphical application for packaging, installing, and managing kernels
+2. **minios-kernel (CLI):** A command-line tool for advanced users and automation
 
 Both tools automatically handle:
 - **Kernel packaging** into SquashFS format
@@ -60,29 +67,29 @@ installed kernel packages, GRUB, and initramfs instead; see
 kernel behavior, see
 [Initrd module loading](/configuration/Initrd-Module-Loading.md).
 
-### ⚠️ **Important Considerations:**
+### **Important Considerations:**
 
-- **🔑 Administrative Privileges:** Both tools require administrative privileges and will prompt for authentication via PolicyKit
-- **🔗 Kernel Compatibility:** Ensure kernels are compatible with MiniOS. Repository kernels are recommended
-- **💾 MiniOS Directory:** Tools automatically detect the MiniOS directory (`/minios/`) and verify write permissions
-- **🔄 Automatic Updates:** Bootloader configurations are updated automatically when kernels are activated
+- **Administrative Privileges:** Both tools require administrative privileges and will prompt for authentication via PolicyKit
+- **Kernel Compatibility:** Ensure kernels are compatible with MiniOS. Repository kernels are recommended
+- **MiniOS Directory:** Tools automatically detect the MiniOS directory (`/minios/`) and verify write permissions
+- **Automatic Updates:** Bootloader configurations are updated automatically when kernels are activated
 
 ---
 
-## 🖥️ Method 1: Using MiniOS Kernel Manager (GUI)
+## Method 1: Using MiniOS Kernel Manager (GUI)
 
 The graphical kernel manager provides an intuitive interface for all kernel operations.
 
-### 📝 **Steps:**
+### **Steps:**
 
-#### 1. 🚀 **Launch the Application**
+#### 1. **Launch the Application**
 ```bash
 minios-kernel-manager
 ```
 
 Or search for "MiniOS Kernel Manager" in your application menu.
 
-#### 2. 📦 **Package a New Kernel**
+#### 2. **Package a New Kernel**
 
 **Using the Package Kernel Tab:**
 
@@ -98,7 +105,7 @@ Or search for "MiniOS Kernel Manager" in your application menu.
    - Monitor progress in the packaging log
    - Files are automatically installed to the MiniOS repository
 
-#### 3. 🔄 **Manage Installed Kernels**
+#### 3. **Manage Installed Kernels**
 
 **Using the Manage Kernels Tab:**
 
@@ -119,11 +126,11 @@ Or search for "MiniOS Kernel Manager" in your application menu.
 
 ---
 
-## ⌨️ Method 2: Using minios-kernel (CLI)
+## Method 2: Using minios-kernel (CLI)
 
 The command-line tool provides scriptable kernel management capabilities.
 
-### ⚠️ **Administrative Privileges Required:**
+### **Administrative Privileges Required:**
 
 The CLI tool requires root privileges and will automatically check for them. Run commands with `sudo` or through `pkexec`:
 
@@ -133,16 +140,16 @@ sudo minios-kernel list
 pkexec minios-kernel activate 6.12.38+deb13-amd64
 ```
 
-### 📝 **Basic Commands:**
+### **Basic Commands:**
 
-#### 1. 📋 **List Available Kernels**
+#### 1. **List Available Kernels**
 ```bash
 sudo minios-kernel list
 ```
 
 Shows all packaged kernels with their status.
 
-#### 2. 📦 **Package a Kernel**
+#### 2. **Package a Kernel**
 
 **From Repository:**
 ```bash
@@ -159,24 +166,24 @@ sudo minios-kernel package --deb /path/to/kernel.deb -o /tmp/kernel-output
 sudo minios-kernel package --repo linux-image-6.12.38+deb13-rt-amd64 --sqfs-comp lz4 -o /tmp/kernel-output
 ```
 
-#### 3. 🔄 **Activate a Kernel**
+#### 3. **Activate a Kernel**
 ```bash
 sudo minios-kernel activate 6.12.38+deb13-amd64
 ```
 
-#### 4. 🗑️ **Delete a Kernel**
+#### 4. **Delete a Kernel**
 ```bash
 sudo minios-kernel delete 6.12.38+deb13-amd64
 ```
 
-#### 5. 📊 **Check Status**
+#### 5. **Check Status**
 ```bash
 sudo minios-kernel status
 ```
 
 Shows MiniOS directory status and current kernel information.
 
-#### 6. ℹ️ **Show Kernel Information**
+#### 6. **Show Kernel Information**
 ```bash
 sudo minios-kernel info                           # Information about current active kernel
 sudo minios-kernel info 6.12.38+deb13-amd64     # Information about specific kernel
@@ -184,7 +191,7 @@ sudo minios-kernel info 6.12.38+deb13-amd64     # Information about specific ker
 
 Shows detailed information about a specific kernel including its status and availability.
 
-### 🔧 **Advanced CLI Options:**
+### **Advanced CLI Options:**
 
 #### **JSON Output (for scripting):**
 ```bash
@@ -218,57 +225,57 @@ sudo minios-kernel delete --help        # Delete command help
 
 ---
 
-## 🔧 Troubleshooting
+## Troubleshooting
 
 ### Common Issues and Solutions:
 
-#### **🚫 MiniOS Directory Not Found**
+#### **MiniOS Directory Not Found**
 - **Cause:** Tools cannot locate the MiniOS directory
 - **Solution:** Ensure you're running from a MiniOS system or the USB drive is properly mounted
 - **Check:** Run `sudo minios-kernel status` to verify directory detection
 
-#### **🔒 Permission Denied**
+#### **Permission Denied**
 - **Cause:** MiniOS directory is read-only or insufficient permissions
 - **Solution:** Ensure you have administrative privileges and the filesystem is writable
 - **Check:** Verify the MiniOS directory status in the GUI or CLI
 
-#### **📦 Package Installation Failed**
+#### **Package Installation Failed**
 - **Cause:** Corrupted package, network issues, or dependency problems
 - **Solution:**
   - Verify the package file integrity
   - Check network connectivity for repository packages
   - Update package lists: `sudo apt update`
 
-#### **💥 Kernel Panic After Activation**
+#### **Kernel Panic After Activation**
 - **Cause:** Incompatible kernel or missing drivers
 - **Solution:**
   - Follow [Boot recovery](/administration/Boot-Recovery.md) to start compatible rescue media and activate a known working kernel set
   - Check kernel compatibility with your hardware
 
-#### **🔄 System Boots Old Kernel**
+#### **System Boots Old Kernel**
 - **Cause:** Bootloader configuration not updated properly
 - **Solution:**
   - Re-run kernel activation: `sudo minios-kernel activate <version>`
   - Check that the kernel was properly packaged and installed
 
-#### **⚠️ Hardware Not Working After Kernel Change**
+#### **Hardware Not Working After Kernel Change**
 - **Cause:** Missing drivers in the new kernel
 - **Solution:**
   - Verify the SquashFS kernel module file was installed
   - Check if the new kernel supports your hardware
   - Consider using a different kernel variant
 
-#### **🚨 Kernel Recovery from Original MiniOS Image**
+#### **Kernel Recovery from Original MiniOS Image**
 Do not recover by copying an individual kernel image, initramfs, or
 `01-kernel-*.sb` module. A bootable version requires the coordinated triplet,
 and activation must update its bootloader configuration as one supported
 operation. Follow
 [Modular kernel rollback](/administration/Boot-Recovery.md)
-to use compatible rescue media and activate a complete known-working set. If a
-complete matching set is unavailable, reinstall rather than assembling partial
-boot assets.
+to use compatible rescue media and activate a complete known-working set. If no
+complete set with matching versions is available, reinstall the system; do not
+assemble partial boot assets.
 
-### 🔍 **Diagnostic Commands:**
+### **Diagnostic Commands:**
 
 **Check Current System Status:**
 ```bash
@@ -292,7 +299,7 @@ grep -r "vmlinuz" /minios/boot/  # Find kernel references in boot configs
 
 ---
 
-## 📋 File Structure Overview
+## File Structure Overview
 
 The MiniOS Kernel Manager automatically manages these files:
 
@@ -322,16 +329,16 @@ The MiniOS Kernel Manager automatically manages these files:
 - **AVAILABLE:** Packaged and ready for activation
 
 ### **Automatic Operations:**
-- ✅ Kernel packaging and compression
-- ✅ Initramfs generation with proper drivers
-- ✅ Installation to MiniOS repository
-- ✅ Bootloader configuration updates
-- ✅ Symlink management for active kernels
-- ✅ Cleanup of temporary files
+- Kernel packaging and compression
+- Initramfs generation with proper drivers
+- Installation to MiniOS repository
+- Bootloader configuration updates
+- Symlink management for active kernels
+- Cleanup of temporary files
 
 ---
 
-## 🎯 Best Practices
+## Best Practices
 
 ### **Kernel Selection:**
 - Use kernels from official Debian/Ubuntu repositories when possible

@@ -1,3 +1,9 @@
+---
+updated: 2026-08-26
+program_commits:
+    minios-live: 039ddd0f3e82651069756370e5f3addebce43984
+---
+
 # Commandes de construction
 
 MiniOS propose deux interfaces de construction en ligne de commande. Exécutez les commandes depuis le répertoire source `minios-live` sauf si vous utilisez une copie installée.

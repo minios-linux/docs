@@ -1,3 +1,10 @@
+---
+updated: 2026-08-26
+program_commits:
+    minios-session-manager: 69436959d893a9870aca23e91b346d06b49eb98d
+    minios-tools: 7cdd0e10c0f610ebc581efa82105b747437a6125
+---
+
 # Manajemen sesi di MiniOS
 
 Sesi MiniOS mempertahankan perubahan yang dilakukan pada sistem live setelah reboot. Setiap sesi adalah direktori bernomor di bawah `minios/changes/`; modul MiniOS yang hanya-baca tetap tidak berubah dan sesi yang dipilih menyediakan lapisan union filesystem yang dapat ditulis.

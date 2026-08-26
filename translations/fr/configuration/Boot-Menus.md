@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Guide des menus de démarrage MiniOS
 
 Les menus de démarrage MiniOS offrent des entrées pratiques pour les modes de démarrage live courants. Ce guide explique comment sélectionner et modifier ces entrées.
@@ -32,12 +36,12 @@ Ce sont des sélecteurs, sans garantir que le stockage soit accessible en écrit
 ### Sélection de la langue (GRUB)
 
 Si votre clé USB MiniOS prend en charge plusieurs langues :
-1. L'écran d'accueil affichera les options de langue
+1. Le premier écran affichera les options de langue
 2. Sélectionnez votre langue préférée
-3. Le menu de démarrage s'affichera dans la langue choisie
-4. La sélection peut également transmettre les paramètres régionaux au démarrage, mais cela ne garantit pas que chaque message du système ou des applications soit traduit
+3. Le menu de démarrage apparaîtra dans la langue choisie
+4. La sélection peut également transmettre les paramètres régionaux aux étapes suivantes du démarrage, mais cela ne garantit pas que tous les messages de démarrage ou d’application soient traduits
 
-⚠️ **Important :** Le menu multilingue remplace toute configuration régionale spécifiée dans `config.conf`. La langue choisie dans le menu de démarrage a priorité sur les paramètres régionaux préconfigurés. Consultez **[Fichier de configuration](/configuration/Configuration-File.md)** et **[live-config](/configuration/live-config.md)** pour plus de détails sur les fichiers de configuration système.
+**Important :** Le menu multilingue remplace tous les paramètres régionaux spécifiés dans `config.conf`. La langue choisie dans le menu de démarrage prévaut sur les paramètres régionaux préconfigurés. Consultez **[Fichier de configuration](/configuration/Configuration-File.md)** et **[live-config](/configuration/live-config.md)** pour plus de détails sur les fichiers de configuration système.
 
 ## Personnalisation des options de démarrage
 
@@ -83,15 +87,15 @@ Pour la liste complète des paramètres de démarrage disponibles, consultez **[
 
 ### Modification des fichiers de configuration
 
-⚠️ **Attention :** N'éditez les fichiers de configuration de démarrage que si vous savez ce que vous faites. Des modifications incorrectes peuvent rendre votre clé USB non amorçable.
+**Avertissement :** N’éditez les fichiers de configuration de démarrage que si vous savez ce que vous faites. Des modifications incorrectes peuvent rendre votre clé USB inutilisable au démarrage.
 
-**Pour modifier la configuration GRUB :**
+**Pour modifier la configuration de GRUB :**
 1. Montez votre clé USB MiniOS
 2. Accédez à `/minios/boot/grub/`
 3. Modifiez `grub.cfg` avec un éditeur de texte
 4. Enregistrez et éjectez la clé USB en toute sécurité
 
 **Modifications courantes :**
-- Modifier la directive de délai utilisée par le menu GRUB ou Syslinux actif
-- Modifier `set default=0` pour changer l'option de menu par défaut
+- Modifier la directive de temporisation utilisée par le menu GRUB ou Syslinux actif
+- Changer `set default=0` pour modifier l’option de menu par défaut
 - Ajouter des entrées de menu personnalisées

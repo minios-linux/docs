@@ -1,4 +1,9 @@
+---
+updated: 2026-08-26
+---
+
 # Configuration file
+
 
 MiniOS boot media store the main configuration at `minios/config.conf`. During boot, the initramfs synchronizes it to `/etc/live/config.conf` in the assembled live root. Scripts in the running system should therefore read `/etc/live/config.conf`; `/etc/minios/config.conf` and `config/config.conf` are not configuration paths used by the current boot code.
 
@@ -38,34 +43,34 @@ EXPORT_LOGS="false"
 ## Description of Parameters
 
 **Legend:**
-- 🔒 **One-time only** - Applied only on first boot, cannot be changed on subsequent boots
-- 🔄 **Reconfigurable** - Can be changed on every boot and reapplied
+- **First boot only** - Applied only on first boot and not reapplied on subsequent boots
+- **Yes** - Can be changed and reapplied on every boot
 
 | Parameter | Reconfigurable | Meaning | Example |
 | --------- | -------------- | ------- | ------- |
-| LIVE_CONFIG_CMDLINE | 🔄 | Additional live-config options. `nottyautologin` is stored here instead of being hard-coded into every boot entry. See `man 7 live-config`. | LIVE_CONFIG_CMDLINE="components nottyautologin" |
-| LIVE_HOSTNAME | 🔄 | The name of the node associated with the system. See `man 7 live-config`. | LIVE_HOSTNAME="minios" |
-| LIVE_USERNAME | 🔒 | The name of the user whose profile will be created on first boot. If you specify the username <strong>root</strong>, then no user profile will be created, and login will be performed using the <strong>root</strong> profile. See `man 7 live-config`. | LIVE_USERNAME="live" |
-| LIVE_USER_FULLNAME | 🔒 | Full name for the main user. See `man 7 live-config`. | LIVE_USER_FULLNAME="MiniOS Live User" |
-| LIVE_USER_DEFAULT_GROUPS | 🔒 | Comma-separated list of groups for the main user. See `man 7 live-config`. | LIVE_USER_DEFAULT_GROUPS="dialout,cdrom,floppy..." |
-| LIVE_USER_PASSWORD_CRYPTED | 🔒 | The password of a main user in encrypted form (hash). Use `mkpasswd -m yescrypt` to generate. See `man 7 live-config`. | LIVE_USER_PASSWORD_CRYPTED='$y$j9T$...' |
-| LIVE_ROOT_PASSWORD_CRYPTED | 🔒 | Password of the privileged user **root** in encrypted form (hash). Use `mkpasswd -m yescrypt` to generate. See `man 7 live-config`. | LIVE_ROOT_PASSWORD_CRYPTED='$y$j9T$...' |
-| LIVE_CONFIG_NOROOT | 🔒 | If set, disables root account login and disables sudo/policykit for the user. See `man 7 live-config`. | LIVE_CONFIG_NOROOT="" |
-| LIVE_LOCALES | 🔄 | Sets the locale. Multiple values can be comma-separated. See `man 7 live-config`. | LIVE_LOCALES="en_US.UTF-8" |
-| LIVE_TIMEZONE | 🔄 | Sets the timezone (e.g. "Europe/Berlin", "Etc/UTC"). See `man 7 live-config`. | LIVE_TIMEZONE="Etc/UTC" |
-| LIVE_KEYBOARD_MODEL | 🔄 | Sets the keyboard model (e.g. "pc105"). See `man 7 live-config`. | LIVE_KEYBOARD_MODEL="pc105" |
-| LIVE_KEYBOARD_LAYOUTS | 🔄 | Sets the keyboard layouts (comma-separated, e.g. "us,de"). See `man 7 live-config`. | LIVE_KEYBOARD_LAYOUTS="us,de" |
-| LIVE_KEYBOARD_OPTIONS | 🔄 | Sets keyboard options (e.g. "grp:alt_shift_toggle,grp_led:scroll"). See `man 7 live-config`. | LIVE_KEYBOARD_OPTIONS="grp:alt_shift_toggle,grp_led:scroll" |
-| LIVE_KEYBOARD_VARIANTS | 🔄 | Sets the keyboard variants (comma-separated, can be empty or match layouts). See `man 7 live-config`. | LIVE_KEYBOARD_VARIANTS="," |
-| LIVE_CONFIG_DEBUG | 🔄 | Enables debug output for live-config. See `man 7 live-config`. | LIVE_CONFIG_DEBUG="true" |
-| LIVE_LINK_USER_DIRS | 🔄 | If true, user directories will be linked from the specified path. | LIVE_LINK_USER_DIRS="false" |
-| LIVE_BIND_USER_DIRS | 🔄 | If true, user directories will be bind-mounted from the specified path. | LIVE_BIND_USER_DIRS="false" |
-| LIVE_USER_DIRS_PATH | 🔄 | Path to user data directories on the flash drive. | LIVE_USER_DIRS_PATH="/minios/userdata" |
-| LIVE_MODULE_MODE | 🔄 | Select the operating mode of the system. If you plan to install software exclusively by modules, use "merged". If you want to install software using apt, use "simple". The default is "merged". | LIVE_MODULE_MODE="merged" |
-| DEFAULT_TARGET | 🔄 | The systemd target to boot into. See `man systemd.special`. | DEFAULT_TARGET="graphical" |
-| ENABLE_SERVICES | 🔄 | Enable services on boot (comma-separated). | ENABLE_SERVICES="ssh" |
-| DISABLE_SERVICES | 🔄 | Turn off services on boot (comma-separated). | DISABLE_SERVICES="" |
-| EXPORT_LOGS | 🔄 | If true and the selected MiniOS data directory is writable, boot logs are copied to `minios/log/YYYYMMDD_HHMMSS/`. | EXPORT_LOGS="false" |
+| LIVE_CONFIG_CMDLINE | Yes | Additional live-config options. `nottyautologin` is stored here instead of being hard-coded into every boot entry. See `man 7 live-config`. | LIVE_CONFIG_CMDLINE="components nottyautologin" |
+| LIVE_HOSTNAME | Yes | The name of the node associated with the system. See `man 7 live-config`. | LIVE_HOSTNAME="minios" |
+| LIVE_USERNAME | First boot only | The name of the user whose profile will be created on first boot. If you specify the username <strong>root</strong>, then no user profile will be created, and login will be performed using the <strong>root</strong> profile. See `man 7 live-config`. | LIVE_USERNAME="live" |
+| LIVE_USER_FULLNAME | First boot only | Full name for the main user. See `man 7 live-config`. | LIVE_USER_FULLNAME="MiniOS Live User" |
+| LIVE_USER_DEFAULT_GROUPS | First boot only | Comma-separated list of groups for the main user. See `man 7 live-config`. | LIVE_USER_DEFAULT_GROUPS="dialout,cdrom,floppy..." |
+| LIVE_USER_PASSWORD_CRYPTED | First boot only | The password of a main user in encrypted form (hash). Use `mkpasswd -m yescrypt` to generate. See `man 7 live-config`. | LIVE_USER_PASSWORD_CRYPTED='$y$j9T$...' |
+| LIVE_ROOT_PASSWORD_CRYPTED | First boot only | Password of the privileged user **root** in encrypted form (hash). Use `mkpasswd -m yescrypt` to generate. See `man 7 live-config`. | LIVE_ROOT_PASSWORD_CRYPTED='$y$j9T$...' |
+| LIVE_CONFIG_NOROOT | First boot only | If set, disables root account login and disables sudo/policykit for the user. See `man 7 live-config`. | LIVE_CONFIG_NOROOT="" |
+| LIVE_LOCALES | Yes | Sets the locale. Multiple values can be comma-separated. See `man 7 live-config`. | LIVE_LOCALES="en_US.UTF-8" |
+| LIVE_TIMEZONE | Yes | Sets the timezone (e.g. "Europe/Berlin", "Etc/UTC"). See `man 7 live-config`. | LIVE_TIMEZONE="Etc/UTC" |
+| LIVE_KEYBOARD_MODEL | Yes | Sets the keyboard model (e.g. "pc105"). See `man 7 live-config`. | LIVE_KEYBOARD_MODEL="pc105" |
+| LIVE_KEYBOARD_LAYOUTS | Yes | Sets the keyboard layouts (comma-separated, e.g. "us,de"). See `man 7 live-config`. | LIVE_KEYBOARD_LAYOUTS="us,de" |
+| LIVE_KEYBOARD_OPTIONS | Yes | Sets keyboard options (e.g. "grp:alt_shift_toggle,grp_led:scroll"). See `man 7 live-config`. | LIVE_KEYBOARD_OPTIONS="grp:alt_shift_toggle,grp_led:scroll" |
+| LIVE_KEYBOARD_VARIANTS | Yes | Sets the keyboard variants (comma-separated, can be empty or match layouts). See `man 7 live-config`. | LIVE_KEYBOARD_VARIANTS="," |
+| LIVE_CONFIG_DEBUG | Yes | Enables debug output for live-config. See `man 7 live-config`. | LIVE_CONFIG_DEBUG="true" |
+| LIVE_LINK_USER_DIRS | Yes | If true, user directories will be linked from the specified path. | LIVE_LINK_USER_DIRS="false" |
+| LIVE_BIND_USER_DIRS | Yes | If true, user directories will be bind-mounted from the specified path. | LIVE_BIND_USER_DIRS="false" |
+| LIVE_USER_DIRS_PATH | Yes | Path to user data directories on the flash drive. | LIVE_USER_DIRS_PATH="/minios/userdata" |
+| LIVE_MODULE_MODE | Yes | Select the operating mode of the system. If you plan to install software exclusively by modules, use "merged". If you want to install software using apt, use "simple". The default is "merged". | LIVE_MODULE_MODE="merged" |
+| DEFAULT_TARGET | Yes | The systemd target to boot into. See `man systemd.special`. | DEFAULT_TARGET="graphical" |
+| ENABLE_SERVICES | Yes | Enable services on boot (comma-separated). | ENABLE_SERVICES="ssh" |
+| DISABLE_SERVICES | Yes | Turn off services on boot (comma-separated). | DISABLE_SERVICES="" |
+| EXPORT_LOGS | Yes | If true and the selected MiniOS data directory is writable, boot logs are copied to `minios/log/YYYYMMDD_HHMMSS/`. | EXPORT_LOGS="false" |
 
 
 **For more details on most parameters, see:**

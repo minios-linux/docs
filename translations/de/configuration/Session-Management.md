@@ -1,3 +1,10 @@
+---
+updated: 2026-08-26
+program_commits:
+    minios-session-manager: 69436959d893a9870aca23e91b346d06b49eb98d
+    minios-tools: 7cdd0e10c0f610ebc581efa82105b747437a6125
+---
+
 # Sitzungsverwaltung in MiniOS
 
 MiniOS-Sitzungen bewahren Änderungen am Live-System über Neustarts hinweg. Jede Sitzung ist ein nummeriertes Verzeichnis unter `minios/changes/`; die schreibgeschützten MiniOS-Module bleiben unverändert und die gewählte Sitzung stellt die beschreibbare Union-Filesystem-Schicht bereit.

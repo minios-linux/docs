@@ -1,10 +1,14 @@
+---
+updated: 2026-08-26
+---
+
 # Usando Rufus (Windows)
 
 Rufus es una utilidad popular para Windows que ayuda a formatear y crear unidades USB booteables.
 
 ## Importante
 
-⚠️ **Advertencia:** ¡Seleccionar el dispositivo incorrecto resultará en la pérdida de datos! Siempre verifica dos veces la unidad seleccionada y haz una copia de seguridad de tus datos importantes.
+**Advertencia:** ¡La selección incorrecta del dispositivo resultará en la pérdida de datos! Siempre verifica dos veces la unidad seleccionada y haz una copia de seguridad de los datos importantes.
 
 ## Requisitos de la unidad
 
@@ -42,12 +46,12 @@ Rufus ofrece dos métodos para grabar MiniOS en una unidad USB:
    - Haz clic en el botón "SELECCIONAR"
    - Busca y selecciona el archivo ISO de MiniOS descargado
 4. **Elige el modo de escritura**:
-   - En el diálogo "Imagen ISO híbrida detectada", selecciona **"Escribir en modo imagen ISO"**
+   - En el cuadro de diálogo "Imagen ISO híbrida detectada", selecciona **"Escribir en modo Imagen ISO"**
 5. **Configura los ajustes**:
    - **Sistema de archivos**: FAT32 (recomendado) o NTFS
-   - ⚠️ **Al elegir NTFS**: El arranque en modo EFI puede no estar disponible
+   - **Si eliges NTFS**: El arranque en modo EFI puede no estar disponible
 6. **Inicia el proceso**: Haz clic en el botón "INICIAR"
-7. **Confirma el formateo** - todos los datos de la unidad serán eliminados
+7. **Confirma el formateo** - todos los datos en la unidad serán eliminados
 
 ## Resultado y persistencia
 

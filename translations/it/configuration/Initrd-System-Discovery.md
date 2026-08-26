@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Rilevamento del sistema Initrd
 
 Dopo che il bootloader ha caricato il kernel e l'initramfs, l'initramfs deve individuare

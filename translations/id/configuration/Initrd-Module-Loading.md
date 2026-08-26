@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Pemuatan modul initrd
 
 MiniOS memilih dan me-mount set modulnya di initrd, sebelum root union diserahkan ke sistem init yang terpasang. Halaman ini menjelaskan perilaku initrd saat ini. Informasi ini berguna jika ada modul yang ditampilkan pada media boot namun tidak muncul di `noload=`, `bext=`, atau `toram=trim` sehingga menyebabkan boot berubah secara tak terduga.

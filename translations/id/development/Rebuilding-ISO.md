@@ -1,3 +1,10 @@
+---
+updated: 2026-08-26
+program_commits:
+    minios-image-builder: 48f882998f2f8f3cd9fdd0367697f999fa3b402c
+    minios-tools: 7cdd0e10c0f610ebc581efa82105b747437a6125
+---
+
 # Membuat Citra ISO MiniOS dari Command Line
 
 `minios-image-compose` adalah backend command-line yang disediakan bersama MiniOS Image Builder. Perintah ini menggantikan utilitas `sb2iso` yang sudah tidak digunakan lagi. Perintah ini melakukan remaster pada pohon konten MiniOS yang sudah ada, secara opsional mengubah set modul dan konfigurasi yang didukung, memverifikasi hasilnya, dan menerbitkan ISO yang dapat di-boot.

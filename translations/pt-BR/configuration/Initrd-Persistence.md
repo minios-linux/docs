@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Persistência do Initrd
 
 O MiniOS constrói o sistema raiz ao vivo a partir de módulos somente leitura e uma camada superior gravável. O initrd decide se essa camada superior será uma sessão persistente numerada ou um diretório temporário em RAM. Esta página descreve essa decisão e o caminho de ativação durante a inicialização. Para os controles voltados ao usuário, consulte [Modos de Inicialização](./Boot-Modes.md) e [Parâmetros de Inicialização](./Boot-Parameters.md).
@@ -88,9 +92,13 @@ O modo raw utiliza uma imagem ext4 `changes.img` fixa. Novas imagens são alocad
 
 ### LUKS
 
-O modo LUKS utiliza um contêiner LUKS2 `changes.luks` com ext4 diretamente dentro dele. Só está disponível quando o initrd inclui o marcador de suporte a criptografia e as ferramentas necessárias. A criação solicita confirmação de entrada correspondente. Um contêiner existente permite três tentativas de desbloqueio no console de boot.
+O modo LUKS utiliza um contêiner LUKS2 `changes.luks` com ext4 diretamente dentro dele.
+Está disponível apenas quando o initrd inclui o marcador de suporte a crypt e as ferramentas necessárias.
+A criação solicita uma confirmação de entrada correspondente. Um contêiner existente permite três tentativas de desbloqueio no console de boot.
 
-O initrd autentica antes de expandir um arquivo criptografado existente, depois verifica e expande o ext4 antes de montá-lo. Se a criação, desbloqueio, verificação, redimensionamento ou montagem falhar, o MiniOS limpa o mapeamento e continua em RAM. Nunca recai para nativo, DynFileFS, raw ou qualquer outra persistência não criptografada. As senhas não são armazenadas nos metadados da sessão nem passadas como argumentos de comando. Veja [Segurança](../administration/Security-Hardening.md).
+O initrd autentica antes de expandir um arquivo criptografado existente, depois verifica e expande o ext4 antes de montá-lo. Se a criação, desbloqueio, verificação, redimensionamento ou montagem falhar, o MiniOS limpa o mapeamento e continua em RAM. Nunca faz fallback para nativo, DynFileFS, raw ou qualquer outra persistência não criptografada.
+As senhas não são armazenadas em metadados de sessão nem passadas como argumentos de comando.
+Consulte [Segurança](/administration/Security-Hardening.md).
 
 ### SquashFS
 
@@ -104,18 +112,19 @@ O Gerenciador de Sessões e o backend de salvamento do sistema criam e substitue
 
 ## Ativação da união e limite de recuperação
 
-Para AUFS, a raiz de alterações ativada torna-se o branch gravável zero. Para OverlayFS, o initrd constrói `upperdir` e `workdir` abaixo da raiz de alterações ativada e monta os módulos somente leitura como diretórios inferiores. O initrd então verifica o branch AUFS ativo ou o `upperdir` do OverlayFS antes de publicar a persistência como ativa.
+Para AUFS, a raiz de alterações ativada torna-se o branch zero gravável. Para OverlayFS, o initrd constrói `upperdir` e `workdir` abaixo da raiz de alterações ativada e monta os módulos somente leitura como diretórios inferiores. O initrd então verifica o branch AUFS ativo ou o `upperdir` do OverlayFS antes de publicar a persistência como ativa.
 
-Se um backend de persistência, atualização de metadados ou essa verificação falhar, as montagens são desfeitas quando possível, nenhuma autoridade de tempo de execução bem-sucedida é publicada e o boot gravável continua em RAM. Falha ao construir a união raiz entra no shell fatal do initramfs. Sair desse shell pode permitir que a configuração continue com uma raiz inválida; isso não é um reparo nem um fallback seguro. O AUFS mantém a melhor tentativa de anexar módulos, mas uma união incompleta cruza o limite de recuperação: o MiniOS não publica autoridade de persistência bem-sucedida.
+Se um backend de persistência, atualização de metadados ou essa verificação falhar, seus pontos de montagem são desfeitos quando possível, nenhuma autoridade de runtime bem-sucedida é publicada e o boot gravável continua em RAM. A falha ao construir a união raiz leva à shell fatal do initramfs. Sair dessa shell pode permitir que a configuração continue com uma raiz inválida; isso não é um reparo nem um fallback seguro. O AUFS mantém a tentativa de anexar branches de módulo, mas uma união incompleta cruza o limite de recuperação: o MiniOS não publica autoridade de persistência bem-sucedida.
 
-Falhas de verificação de contêiner evitam deliberadamente a recuperação gravável. Preserve a sessão e siga [Recuperação de backup](../administration/Backup-Recovery.md), [Recuperação do DynFileFS](./DynFileFS-Recovery.md) ou [Solução de problemas](../administration/Troubleshooting.md) em vez de substituir arquivos de sessão durante o boot.
+Falhas na verificação do contêiner evitam deliberadamente a recuperação gravável. Preserve a sessão e siga [Recuperação de backup](/administration/Backup-Recovery.md), [Recuperação DynFileFS](./DynFileFS-Recovery.md) ou [Solução de problemas](/administration/Troubleshooting.md) em vez de substituir arquivos de sessão durante o boot.
 
-## Estado ativo, em execução e do boot atual
+## Estado ativo, em execução e de boot atual
 
-Nos metadados duráveis da sessão, `default=` é a sessão **ativa** selecionada para a próxima retomada, enquanto `running=` é a sessão registrada como fornecedora do boot atual. A ativação grava ambos os campos e marca essa sessão como `dirty`. Após os pontos de montagem de persistência desaparecerem durante um desligamento limpo, o MiniOS remove `running=` e marca a sessão como `clean`.
+Nos metadados de sessão duráveis, `default=` é a sessão **ativa** selecionada para o próximo resume, enquanto `running=` é a sessão registrada como fornecedora do boot atual. A ativação grava ambos os campos e marca essa sessão `dirty`.
+Após os pontos de montagem de persistência desaparecerem durante um desligamento limpo, o MiniOS remove `running=` e marca a sessão `clean`.
 
-Esses campos de metadados podem ficar desatualizados após uma falha, falha na gravação dos metadados, falha na construção da união, cópia do armazenamento ou desligamento interrompido. Consumidores em tempo de execução que precisam autorizar salvamento não confiam apenas em `running=`. Eles usam o estado protegido do boot atual do initrd, vinculado ao ID do boot, sessão numérica, modo, identidade real do armazenamento, status de gravação, durabilidade e geração ativa verificada. Um registro de boot atual com falha ou ausente significa que a persistência não deve ser tratada como destino autorizado de salvamento.
+Esses campos de metadados podem estar desatualizados após uma falha, gravação de metadados malsucedida, falha na construção da união, cópia da store ou desligamento interrompido. Consumidores de runtime que precisam autorizar salvamento não confiam apenas em `running=`. Eles usam o estado protegido de boot atual do initrd, vinculado ao ID de boot, sessão numérica, modo, identidade real da store, status de gravação, durabilidade e geração ativa verificada. Um registro de boot atual ausente ou com falha significa que a persistência não deve ser tratada como destino autorizado para salvamento.
 
-Com `toram` e uma solicitação de persistência reconhecida, o armazenamento de sessões é copiado para a RAM antes da ativação. A sessão copiada pode ser gravável e pode fornecer a camada superior em execução, mas seu estado de boot atual é marcado como não durável. Alterações nessa cópia em RAM não retornam ao dispositivo original e são perdidas no desligamento.
+Com `toram` e uma solicitação de persistência reconhecida, a store da sessão é copiada para a RAM antes da ativação. A sessão copiada pode ser gravável e pode fornecer o upper em execução, mas seu estado de boot atual é marcado como não durável. Alterações nessa cópia em RAM não retornam ao dispositivo original e são perdidas no desligamento.
 
-Para orientações operacionais relacionadas, veja [Modos de Inicialização](./Boot-Modes.md), [Parâmetros de Inicialização](./Boot-Parameters.md), [Gerenciamento de Sessões](./Session-Management.md), [Recuperação do DynFileFS](./DynFileFS-Recovery.md), [Recuperação de Backup](../administration/Backup-Recovery.md), [Segurança](../administration/Security-Hardening.md) e [Solução de problemas](../administration/Troubleshooting.md).
+Para orientações operacionais relacionadas, consulte [Modos de boot](./Boot-Modes.md), [Parâmetros de boot](./Boot-Parameters.md), [Gerenciamento de sessões](./Session-Management.md), [Recuperação DynFileFS](./DynFileFS-Recovery.md), [Recuperação de backup](/administration/Backup-Recovery.md), [Segurança](/administration/Security-Hardening.md) e [Solução de problemas](/administration/Troubleshooting.md).

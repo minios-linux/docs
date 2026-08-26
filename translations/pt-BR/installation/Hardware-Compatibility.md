@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Guia de compatibilidade de hardware
 
 O suporte a hardware depende da versão e da imagem do MiniOS: a distribuição base,

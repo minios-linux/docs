@@ -1,5 +1,6 @@
 ---
 layout: beranda
+updated: 2026-08-26
 hero:
     name: "MiniOS Wiki"
     text: "Linux portabel yang andal dan mudah digunakan"

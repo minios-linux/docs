@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Dépannage
 
 Commencez par observer et effectuer des tests réversibles. Ne reconfigurez pas les partitions, ne reformatez pas, ne réparez pas un système de fichiers, ne supprimez pas une session et ne remplacez pas les fichiers de démarrage tant que les données importantes ne sont pas sauvegardées et que le périphérique défaillant n’a pas été identifié par modèle, taille, système de fichiers et point de montage.

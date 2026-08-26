@@ -1,3 +1,10 @@
+---
+updated: 2026-08-26
+program_commits:
+    dynblk: 25f627f2cf86b79c35a185999af90e5e1aa08d17
+    dynfilefs-app: 7b2a6b69edeedcc24e0847df44e9060796c0af4b
+---
+
 # Memulihkan Penyimpanan DynFileFS dan dynblk
 
 DynFileFS dan `dynblk` menyediakan image blok `virtual.dat` yang dialokasikan secara dinamis, di mana datanya disimpan dalam serangkaian file `changes.dat`. MiniOS memformat `virtual.dat` sebagai ext4 dan menggunakannya untuk perubahan yang persisten. `dynblk` adalah implementasi yang dipelihara dari format penyimpanan yang sama; MiniOS mempertahankan nama mode persistensi `dynfilefs` dan perintah kompatibilitas `@mount.dynfilefs` jika diperlukan.

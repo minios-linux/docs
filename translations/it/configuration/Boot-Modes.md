@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Modalità di avvio di MiniOS
 
 Le modalità di avvio descrivono da dove proviene il sistema live, se il suo layer scrivibile è temporaneo o persistente e se MiniOS copia la sua sorgente in RAM. Non descrivono un firmware o un protocollo di bootloader diverso. GRUB, Syslinux, Ventoy o un loader PXE avviano la stessa pipeline di early-userspace di MiniOS caricando un kernel e un initramfs con una riga di comando del kernel.

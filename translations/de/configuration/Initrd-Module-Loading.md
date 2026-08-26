@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Initrd-Modulladen
 
 MiniOS wählt und mountet seinen Modulsatz im Initrd, bevor das Union-Root an das installierte Init-System übergeben wird. Diese Seite beschreibt das aktuelle Verhalten des Initrd. Dies ist hilfreich, wenn ein auf dem Boot-Medium angezeigtes Modul nicht in `noload=`, `bext=` oder `toram=trim` erscheint oder ein Bootvorgang unerwartet verändert wird.

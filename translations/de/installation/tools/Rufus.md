@@ -1,10 +1,14 @@
+---
+updated: 2026-08-26
+---
+
 # Verwendung von Rufus (Windows)
 
 Rufus ist ein beliebtes Tool für Windows, das beim Formatieren und Erstellen von bootfähigen USB-Laufwerken hilft.
 
 ## Wichtig
 
-⚠️ **Warnung:** Eine falsche Laufwerksauswahl führt zu Datenverlust! Überprüfen Sie immer das ausgewählte Laufwerk und sichern Sie wichtige Daten.
+**Warnung:** Eine falsche Geräteauswahl führt zu Datenverlust! Überprüfen Sie immer das ausgewählte Laufwerk und sichern Sie wichtige Daten.
 
 ## Laufwerksanforderungen
 
@@ -36,17 +40,17 @@ Rufus bietet zwei Methoden, um MiniOS auf einen USB-Stick zu schreiben:
 
 ### Methode 2: ISO-Modus (Alternative)
 
-1. **Starten Sie Rufus** als Administrator
-2. **Wählen Sie das USB-Laufwerk** im Feld „Gerät“ aus
-3. **Wählen Sie die MiniOS-ISO-Datei**:
+1. **Rufus** als Administrator starten
+2. **USB-Laufwerk** im Feld „Gerät“ auswählen
+3. **MiniOS ISO-Datei auswählen**:
    - Klicken Sie auf die Schaltfläche „AUSWÄHLEN“
-   - Suchen und wählen Sie die heruntergeladene MiniOS-ISO-Datei aus
+   - Suchen und wählen Sie die heruntergeladene MiniOS ISO-Datei aus
 4. **Schreibmodus wählen**:
-   - Im Dialog „Hybrid-ISO-Image erkannt“ wählen Sie **„Im ISO-Image-Modus schreiben“**
+   - Im Dialog „Hybrides ISO-Image erkannt“ **„Im ISO-Abbild-Modus schreiben“** auswählen
 5. **Einstellungen konfigurieren**:
    - **Dateisystem**: FAT32 (empfohlen) oder NTFS
-   - ⚠️ **Bei Auswahl von NTFS**: Start im EFI-Modus ist möglicherweise nicht verfügbar
-6. **Vorgang starten**: Klicken Sie auf die Schaltfläche „START“
+   - **Bei Auswahl von NTFS**: EFI-Modus-Boot kann nicht verfügbar sein
+6. **Vorgang starten**: Auf die Schaltfläche „START“ klicken
 7. **Formatierung bestätigen** – alle Daten auf dem Laufwerk werden gelöscht
 
 ## Ergebnis und Persistenz

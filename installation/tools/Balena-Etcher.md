@@ -1,11 +1,16 @@
+---
+updated: 2026-08-26
+---
+
 # Using Balena Etcher
+
 
 Balena Etcher is a convenient cross-platform program for writing ISO images to USB drives. Suitable for Windows, macOS, and Linux.
 
 
 ## Important
 
-⚠️ **Warning:** Incorrect device selection will result in data loss! Always double-check the selected drive and backup important data.
+**Warning:** Incorrect device selection will result in data loss! Always double-check the selected drive and backup important data.
 
 
 ## Drive Requirements

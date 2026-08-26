@@ -1,10 +1,14 @@
+---
+updated: 2026-08-26
+---
+
 # Usando o Rufus (Windows)
 
 Rufus é uma ferramenta popular para Windows que auxilia na formatação e criação de pendrives USB inicializáveis.
 
 ## Importante
 
-⚠️ **Atenção:** Selecionar o dispositivo incorreto resultará em perda de dados! Sempre confira o drive selecionado e faça backup dos dados importantes.
+**Atenção:** Selecionar o dispositivo incorreto resultará em perda de dados! Sempre confira o drive selecionado e faça backup dos dados importantes.
 
 ## Requisitos do Drive
 
@@ -37,17 +41,17 @@ O Rufus oferece dois métodos para gravar o MiniOS em um pendrive USB:
 ### Método 2: Modo ISO (Alternativo)
 
 1. **Abra o Rufus** como administrador
-2. **Selecione o pendrive USB** no campo "Dispositivo"
+2. **Selecione o pendrive** no campo "Dispositivo"
 3. **Selecione o arquivo ISO do MiniOS**:
    - Clique no botão "SELECIONAR"
    - Localize e selecione o arquivo ISO do MiniOS baixado
 4. **Escolha o modo de gravação**:
-   - Na janela "Imagem ISO híbrida detectada", selecione **"Gravar no modo de imagem ISO"**
+   - Na janela "Imagem ISO híbrida detectada", selecione **"Gravar no modo Imagem ISO"**
 5. **Configure as opções**:
    - **Sistema de arquivos**: FAT32 (recomendado) ou NTFS
-   - ⚠️ **Ao escolher NTFS**: a inicialização em modo EFI pode não estar disponível
+   - **Ao escolher NTFS**: a inicialização em modo EFI pode não estar disponível
 6. **Inicie o processo**: Clique no botão "INICIAR"
-7. **Confirme a formatação** - todos os dados do drive serão apagados
+7. **Confirme a formatação** – todos os dados do drive serão apagados
 
 ## Resultado e persistência
 

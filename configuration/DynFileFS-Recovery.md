@@ -1,4 +1,12 @@
+---
+updated: 2026-08-26
+program_commits:
+  dynblk: 25f627f2cf86b79c35a185999af90e5e1aa08d17
+  dynfilefs-app: 7b2a6b69edeedcc24e0847df44e9060796c0af4b
+---
+
 # Recovering DynFileFS and dynblk Storage
+
 
 DynFileFS and `dynblk` expose a dynamically allocated `virtual.dat` block image
 whose data is stored in a set of `changes.dat` files. MiniOS formats

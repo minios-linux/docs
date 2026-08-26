@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Pertanyaan yang Sering Diajukan
 
 ## Edisi mana yang sebaiknya saya pilih, dan mengapa ada aplikasi yang tidak tersedia?

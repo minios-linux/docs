@@ -1,3 +1,10 @@
+---
+updated: 2026-08-26
+program_commits:
+    dynblk: 25f627f2cf86b79c35a185999af90e5e1aa08d17
+    dynfilefs-app: 7b2a6b69edeedcc24e0847df44e9060796c0af4b
+---
+
 # Wiederherstellung von DynFileFS- und dynblk-Speicher
 
 DynFileFS und `dynblk` stellen ein dynamisch zugewiesenes `virtual.dat`-Block-Image bereit, dessen Daten in einer Reihe von `changes.dat`-Dateien gespeichert werden. MiniOS formatiert `virtual.dat` mit ext4 und nutzt es für persistente Änderungen. `dynblk` ist die gepflegte Implementierung desselben Speicherformats; MiniOS behält den Namen des Persistenzmodus `dynfilefs` und den Kompatibilitätsbefehl `@mount.dynfilefs` dort bei, wo es erforderlich ist.

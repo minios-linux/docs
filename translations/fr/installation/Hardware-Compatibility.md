@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Guide de compatibilité matérielle
 
 La prise en charge du matériel dépend de la version et de l’image MiniOS : la distribution de base, le noyau, le microprogramme, les modules inclus et l’édition sont tous importants. Consultez la description de la version correspondant à l’image que vous avez téléchargée, puis testez une session live neuve avant de modifier les disques ou de compter sur la machine pour un usage persistant.

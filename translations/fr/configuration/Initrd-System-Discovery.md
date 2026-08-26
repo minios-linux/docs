@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Découverte du système Initrd
 
 Après que le bootloader a chargé le kernel et l'initramfs, l'initramfs doit localiser l'arborescence de données MiniOS qui fournit les modules système `.sb`. Cette étape intervient avant l'activation normale de la pile réseau en espace utilisateur, du bureau et de la session persistante.

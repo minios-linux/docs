@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Arquivo de configuração
 
 A mídia de boot do MiniOS armazena a configuração principal em `minios/config.conf`. Durante a inicialização, o initramfs sincroniza esse arquivo para `/etc/live/config.conf` no sistema live montado. Portanto, scripts no sistema em execução devem ler `/etc/live/config.conf`; `/etc/minios/config.conf` e `config/config.conf` não são caminhos de configuração utilizados pelo código de boot atual.
@@ -37,34 +41,34 @@ EXPORT_LOGS="false"
 ## Descrição dos Parâmetros
 
 **Legenda:**
-- 🔒 **Apenas uma vez** – Aplicado somente no primeiro boot, não pode ser alterado nos boots seguintes
-- 🔄 **Reconfigurável** – Pode ser alterado a cada boot e reaplicado
+- **Somente no primeiro boot** – Aplicado apenas no primeiro boot e não reaplicado nos boots seguintes
+- **Sim** – Pode ser alterado e reaplicado em todo boot
 
 | Parâmetro | Reconfigurável | Significado | Exemplo |
 | --------- | -------------- | ---------- | ------- |
-| LIVE_CONFIG_CMDLINE | 🔄 | Opções adicionais do live-config. `nottyautologin` é armazenado aqui em vez de ser fixado em cada entrada de boot. Veja `man 7 live-config`. | LIVE_CONFIG_CMDLINE="components nottyautologin" |
-| LIVE_HOSTNAME | 🔄 | Nome do nó associado ao sistema. Veja `man 7 live-config`. | LIVE_HOSTNAME="minios" |
-| LIVE_USERNAME | 🔒 | Nome do usuário cujo perfil será criado no primeiro boot. Se você especificar o nome de usuário <strong>root</strong>, nenhum perfil de usuário será criado e o login será realizado usando o perfil <strong>root</strong>. Veja `man 7 live-config`. | LIVE_USERNAME="live" |
-| LIVE_USER_FULLNAME | 🔒 | Nome completo do usuário principal. Veja `man 7 live-config`. | LIVE_USER_FULLNAME="MiniOS Live User" |
-| LIVE_USER_DEFAULT_GROUPS | 🔒 | Lista de grupos para o usuário principal, separados por vírgula. Veja `man 7 live-config`. | LIVE_USER_DEFAULT_GROUPS="dialout,cdrom,floppy..." |
-| LIVE_USER_PASSWORD_CRYPTED | 🔒 | Senha do usuário principal em formato criptografado (hash). Use `mkpasswd -m yescrypt` para gerar. Veja `man 7 live-config`. | LIVE_USER_PASSWORD_CRYPTED='$y$j9T$...' |
-| LIVE_ROOT_PASSWORD_CRYPTED | 🔒 | Senha do usuário privilegiado **root** em formato criptografado (hash). Use `mkpasswd -m yescrypt` para gerar. Veja `man 7 live-config`. | LIVE_ROOT_PASSWORD_CRYPTED='$y$j9T$...' |
-| LIVE_CONFIG_NOROOT | 🔒 | Se definido, desabilita o login da conta root e desativa sudo/policykit para o usuário. Veja `man 7 live-config`. | LIVE_CONFIG_NOROOT="" |
-| LIVE_LOCALES | 🔄 | Define o locale. Vários valores podem ser separados por vírgula. Veja `man 7 live-config`. | LIVE_LOCALES="en_US.UTF-8" |
-| LIVE_TIMEZONE | 🔄 | Define o fuso horário (ex.: "Europe/Berlin", "Etc/UTC"). Veja `man 7 live-config`. | LIVE_TIMEZONE="Etc/UTC" |
-| LIVE_KEYBOARD_MODEL | 🔄 | Define o modelo do teclado (ex.: "pc105"). Veja `man 7 live-config`. | LIVE_KEYBOARD_MODEL="pc105" |
-| LIVE_KEYBOARD_LAYOUTS | 🔄 | Define os layouts de teclado (separados por vírgula, ex.: "us,de"). Veja `man 7 live-config`. | LIVE_KEYBOARD_LAYOUTS="us,de" |
-| LIVE_KEYBOARD_OPTIONS | 🔄 | Define opções de teclado (ex.: "grp:alt_shift_toggle,grp_led:scroll"). Veja `man 7 live-config`. | LIVE_KEYBOARD_OPTIONS="grp:alt_shift_toggle,grp_led:scroll" |
-| LIVE_KEYBOARD_VARIANTS | 🔄 | Define as variantes do teclado (separadas por vírgula, pode ser vazio ou corresponder aos layouts). Veja `man 7 live-config`. | LIVE_KEYBOARD_VARIANTS="," |
-| LIVE_CONFIG_DEBUG | 🔄 | Ativa a saída de debug para o live-config. Veja `man 7 live-config`. | LIVE_CONFIG_DEBUG="true" |
-| LIVE_LINK_USER_DIRS | 🔄 | Se verdadeiro, os diretórios de usuário serão vinculados a partir do caminho especificado. | LIVE_LINK_USER_DIRS="false" |
-| LIVE_BIND_USER_DIRS | 🔄 | Se verdadeiro, os diretórios de usuário serão montados via bind a partir do caminho especificado. | LIVE_BIND_USER_DIRS="false" |
-| LIVE_USER_DIRS_PATH | 🔄 | Caminho para os diretórios de dados do usuário no pendrive. | LIVE_USER_DIRS_PATH="/minios/userdata" |
-| LIVE_MODULE_MODE | 🔄 | Seleciona o modo de operação do sistema. Se pretende instalar softwares exclusivamente por módulos, use "merged". Se quiser instalar softwares usando apt, use "simple". O padrão é "merged". | LIVE_MODULE_MODE="merged" |
-| DEFAULT_TARGET | 🔄 | Target do systemd para inicialização. Veja `man systemd.special`. | DEFAULT_TARGET="graphical" |
-| ENABLE_SERVICES | 🔄 | Habilita serviços na inicialização (separados por vírgula). | ENABLE_SERVICES="ssh" |
-| DISABLE_SERVICES | 🔄 | Desativa serviços na inicialização (separados por vírgula). | DISABLE_SERVICES="" |
-| EXPORT_LOGS | 🔄 | Se verdadeiro e o diretório de dados do MiniOS selecionado for gravável, os logs de boot são copiados para `minios/log/YYYYMMDD_HHMMSS/`. | EXPORT_LOGS="false" |
+| LIVE_CONFIG_CMDLINE | Sim | Opções adicionais do live-config. `nottyautologin` é armazenado aqui em vez de ser fixado em cada entrada de boot. Veja `man 7 live-config`. | LIVE_CONFIG_CMDLINE="components nottyautologin" |
+| LIVE_HOSTNAME | Sim | Nome do nó associado ao sistema. Veja `man 7 live-config`. | LIVE_HOSTNAME="minios" |
+| LIVE_USERNAME | Somente no primeiro boot | Nome do usuário cujo perfil será criado no primeiro boot. Se você especificar o nome de usuário <strong>root</strong>, nenhum perfil de usuário será criado e o login será feito usando o perfil <strong>root</strong>. Veja `man 7 live-config`. | LIVE_USERNAME="live" |
+| LIVE_USER_FULLNAME | Somente no primeiro boot | Nome completo do usuário principal. Veja `man 7 live-config`. | LIVE_USER_FULLNAME="MiniOS Live User" |
+| LIVE_USER_DEFAULT_GROUPS | Somente no primeiro boot | Lista de grupos do usuário principal, separados por vírgula. Veja `man 7 live-config`. | LIVE_USER_DEFAULT_GROUPS="dialout,cdrom,floppy..." |
+| LIVE_USER_PASSWORD_CRYPTED | Somente no primeiro boot | Senha do usuário principal em formato criptografado (hash). Use `mkpasswd -m yescrypt` para gerar. Veja `man 7 live-config`. | LIVE_USER_PASSWORD_CRYPTED='$y$j9T$...' |
+| LIVE_ROOT_PASSWORD_CRYPTED | Somente no primeiro boot | Senha do usuário privilegiado **root** em formato criptografado (hash). Use `mkpasswd -m yescrypt` para gerar. Veja `man 7 live-config`. | LIVE_ROOT_PASSWORD_CRYPTED='$y$j9T$...' |
+| LIVE_CONFIG_NOROOT | Somente no primeiro boot | Se definido, desativa o login da conta root e desativa sudo/policykit para o usuário. Veja `man 7 live-config`. | LIVE_CONFIG_NOROOT="" |
+| LIVE_LOCALES | Sim | Define o locale. Vários valores podem ser separados por vírgula. Veja `man 7 live-config`. | LIVE_LOCALES="en_US.UTF-8" |
+| LIVE_TIMEZONE | Sim | Define o fuso horário (por exemplo, "Europe/Berlin", "Etc/UTC"). Veja `man 7 live-config`. | LIVE_TIMEZONE="Etc/UTC" |
+| LIVE_KEYBOARD_MODEL | Sim | Define o modelo do teclado (por exemplo, "pc105"). Veja `man 7 live-config`. | LIVE_KEYBOARD_MODEL="pc105" |
+| LIVE_KEYBOARD_LAYOUTS | Sim | Define os layouts de teclado (separados por vírgula, por exemplo, "us,de"). Veja `man 7 live-config`. | LIVE_KEYBOARD_LAYOUTS="us,de" |
+| LIVE_KEYBOARD_OPTIONS | Sim | Define opções do teclado (por exemplo, "grp:alt_shift_toggle,grp_led:scroll"). Veja `man 7 live-config`. | LIVE_KEYBOARD_OPTIONS="grp:alt_shift_toggle,grp_led:scroll" |
+| LIVE_KEYBOARD_VARIANTS | Sim | Define variantes do teclado (separadas por vírgula, pode ser vazio ou corresponder aos layouts). Veja `man 7 live-config`. | LIVE_KEYBOARD_VARIANTS="," |
+| LIVE_CONFIG_DEBUG | Sim | Ativa a saída de depuração para o live-config. Veja `man 7 live-config`. | LIVE_CONFIG_DEBUG="true" |
+| LIVE_LINK_USER_DIRS | Sim | Se verdadeiro, os diretórios do usuário serão vinculados a partir do caminho especificado. | LIVE_LINK_USER_DIRS="false" |
+| LIVE_BIND_USER_DIRS | Sim | Se verdadeiro, os diretórios do usuário serão montados via bind a partir do caminho especificado. | LIVE_BIND_USER_DIRS="false" |
+| LIVE_USER_DIRS_PATH | Sim | Caminho para os diretórios de dados do usuário no pendrive. | LIVE_USER_DIRS_PATH="/minios/userdata" |
+| LIVE_MODULE_MODE | Sim | Seleciona o modo de operação do sistema. Se pretende instalar software exclusivamente por módulos, use "merged". Se deseja instalar software usando apt, use "simple". O padrão é "merged". | LIVE_MODULE_MODE="merged" |
+| DEFAULT_TARGET | Sim | Target do systemd para inicialização. Veja `man systemd.special`. | DEFAULT_TARGET="graphical" |
+| ENABLE_SERVICES | Sim | Ativa serviços na inicialização (separados por vírgula). | ENABLE_SERVICES="ssh" |
+| DISABLE_SERVICES | Sim | Desativa serviços na inicialização (separados por vírgula). | DISABLE_SERVICES="" |
+| EXPORT_LOGS | Sim | Se verdadeiro e o diretório de dados selecionado do MiniOS for gravável, os logs de boot serão copiados para `minios/log/YYYYMMDD_HHMMSS/`. | EXPORT_LOGS="false" |
 
 
 **Para mais detalhes sobre a maioria dos parâmetros, consulte:**

@@ -1,10 +1,14 @@
+---
+updated: 2026-08-26
+---
+
 # Verwendung von UNetbootin
 
 UNetbootin ist ein plattformübergreifendes Open-Source-Tool, mit dem Sie bootfähige USB-Laufwerke für verschiedene Linux-Distributionen erstellen können, einschließlich MiniOS.
 
 ## Wichtig
 
-⚠️ **Warnung:** Eine falsche Laufwerksauswahl führt zu Datenverlust! Überprüfen Sie immer das ausgewählte Laufwerk und sichern Sie wichtige Daten.
+**Warnung:** Eine falsche Geräteauswahl führt zu Datenverlust! Überprüfen Sie immer das ausgewählte Laufwerk und sichern Sie wichtige Daten.
 
 ## Laufwerksanforderungen
 

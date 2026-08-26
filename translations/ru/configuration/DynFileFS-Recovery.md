@@ -1,3 +1,10 @@
+---
+updated: 2026-08-26
+program_commits:
+    dynblk: 25f627f2cf86b79c35a185999af90e5e1aa08d17
+    dynfilefs-app: 7b2a6b69edeedcc24e0847df44e9060796c0af4b
+---
+
 # Восстановление DynFileFS и dynblk-хранилища
 
 DynFileFS и `dynblk` предоставляют динамически выделяемый образ блока `virtual.dat`,

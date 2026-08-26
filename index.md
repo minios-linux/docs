@@ -1,5 +1,6 @@
 ---
 layout: home
+updated: 2026-08-26
 
 hero:
   name: "MiniOS Wiki"
@@ -21,5 +22,3 @@ features:
   - title: Debian-based
     details: Stable and compatible foundation.
 ---
-
-

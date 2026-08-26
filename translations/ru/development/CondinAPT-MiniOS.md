@@ -1,8 +1,14 @@
+---
+updated: 2026-08-26
+program_commits:
+    minios-live: 039ddd0f3e82651069756370e5f3addebce43984
+---
+
 # CondinAPT в MiniOS: Руководство по интеграции
 
 В этом документе описаны особенности использования CondinAPT в системе сборки MiniOS.
 
-> **📚 Основная документация:** Для базовых возможностей CondinAPT смотрите основной документ `CondinAPT.md`
+> **Основная документация:** Для базовых возможностей CondinAPT см. основной документ `CondinAPT.md`
 
 ## Оглавление
 
@@ -70,7 +76,7 @@ kl=KEEP_LOCALES
 - `DISTRIBUTION` — целевая дистрибуция (bookworm, trixie, jammy, noble)
 - `DISTRIBUTION_ARCH` — архитектура (amd64, i386, i386-pae)
 - `DESKTOP_ENVIRONMENT` — рабочее окружение (core, flux, xfce, lxqt)
-- `PACKAGE_VARIANT` — вариант набора пакетов (minimum, standard, toolbox, ultra)
+- `PACKAGE_VARIANT` — вариант пакета (minimum, standard, toolbox, ultra)
 - `INSTALL_KERNEL` — устанавливать пакет ядра (true/false)
 - `KERNEL_FLAVOUR` — вариант ядра (none, rt, cloud)
 - `KERNEL_AUFS` — поддержка AUFS (true/false)
@@ -83,7 +89,7 @@ kl=KEEP_LOCALES
 **Автоматически вычисляемые переменные (из `minioslib`):**
 - `DISTRIBUTION_TYPE` — тип дистрибуции (debian, ubuntu) — определяется автоматически на основе `DISTRIBUTION`
   - `legacy`: stretch, buster, orel, bionic
-  - `current`: bullseye, bookworm, focal, jammy, noble  
+  - `current`: bullseye, bookworm, focal, jammy, noble
   - `future`: trixie, kali-rolling, sid
 
 ## Использование в модулях
@@ -234,6 +240,8 @@ fi
 ```
 
 ---
+
+
 
 
 **Для получения полной информации о возможностях CondinAPT смотрите основной документ `CondinAPT.md`**

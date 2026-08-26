@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Guía de menús de arranque de MiniOS
 
 Los menús de arranque de MiniOS ofrecen accesos directos para los modos de arranque en vivo más comunes. Esta guía explica cómo seleccionar y editar esas entradas.
@@ -35,9 +39,9 @@ Si tu unidad USB de MiniOS admite varios idiomas:
 1. La primera pantalla mostrará las opciones de idioma
 2. Selecciona tu idioma preferido
 3. El menú de arranque aparecerá en el idioma seleccionado
-4. La selección también puede pasar la configuración regional al inicio posterior, pero no garantiza que todos los mensajes de arranque o de aplicaciones estén traducidos
+4. La selección también puede pasar la configuración regional al arranque posterior, pero no garantiza que todos los mensajes de arranque o de las aplicaciones estén traducidos
 
-⚠️ **Importante:** El menú multilingüe sobrescribe cualquier configuración regional especificada en `config.conf`. El idioma seleccionado en el menú de arranque tiene prioridad sobre las configuraciones regionales predefinidas. Consulta **[Archivo de configuración](/configuration/Configuration-File.md)** y **[live-config](/configuration/live-config.md)** para obtener detalles sobre los archivos de configuración del sistema.
+**Importante:** El menú multilingüe sobrescribe cualquier configuración regional especificada en `config.conf`. El idioma seleccionado en el menú de arranque tiene prioridad sobre la configuración regional predefinida. Consulta **[Archivo de configuración](/configuration/Configuration-File.md)** y **[live-config](/configuration/live-config.md)** para más detalles sobre los archivos de configuración del sistema.
 
 ## Personalización de las opciones de arranque
 
@@ -83,15 +87,15 @@ Para ver la lista completa de parámetros de arranque disponibles, consulta **[P
 
 ### Edición de archivos de configuración
 
-⚠️ **Advertencia:** Solo edita los archivos de configuración de arranque si sabes lo que estás haciendo. Cambios incorrectos pueden hacer que tu unidad USB no arranque.
+**Advertencia:** Solo edita los archivos de configuración de arranque si sabes lo que estás haciendo. Cambios incorrectos pueden hacer que tu unidad USB no sea arrancable.
 
 **Para editar la configuración de GRUB:**
 1. Monta tu unidad USB de MiniOS
 2. Navega a `/minios/boot/grub/`
 3. Edita `grub.cfg` con un editor de texto
-4. Guarda y extrae la unidad USB de forma segura
+4. Guarda y extrae de forma segura la unidad USB
 
 **Cambios comunes:**
-- Modificar la directiva de temporizador utilizada por el menú activo de GRUB o Syslinux
+- Modificar la directiva de tiempo de espera utilizada por el menú activo de GRUB o Syslinux
 - Cambiar `set default=0` para modificar la opción de menú predeterminada
-- Añadir entradas personalizadas al menú
+- Agregar entradas personalizadas al menú

@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Pacchetti ed edizioni
 
 I contenuti dei pacchetti MiniOS vengono generati da elenchi sorgente condizionali. Variano

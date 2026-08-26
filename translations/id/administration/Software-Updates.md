@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Pembaruan perangkat lunak
 
 MiniOS menggabungkan modul image SquashFS hanya-baca dengan overlay runtime yang dapat ditulis. Metode pembaruan harus sesuai dengan lapisan yang diubah. Memperbarui paket di dalam sesi yang sedang berjalan tidak sama dengan mengganti modul pada media MiniOS.

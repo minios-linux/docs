@@ -1,10 +1,14 @@
+---
+updated: 2026-08-26
+---
+
 # Verwendung des Befehls `dd`
 
 `dd` ist ein vielseitiges Kommandozeilen-Tool zum bitgenauen Kopieren von Daten zwischen Dateien und Geräten. Am häufigsten wird es zum Schreiben von ISO-Abbildern auf USB-Sticks, zur Erstellung von Backups und zur Datenwiederherstellung eingesetzt.
 
 ## Wichtig
 
-⚠️ **Warnung:** Eine falsche Laufwerksauswahl führt zu Datenverlust! Überprüfen Sie immer das ausgewählte Laufwerk und sichern Sie wichtige Daten.
+**Warnung:** Eine falsche Geräteauswahl führt zu Datenverlust! Überprüfen Sie immer das ausgewählte Laufwerk und sichern Sie wichtige Daten.
 
 ## Laufwerksanforderungen
 

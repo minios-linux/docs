@@ -1,3 +1,9 @@
+---
+updated: 2026-08-26
+program_commits:
+    minios-live: 039ddd0f3e82651069756370e5f3addebce43984
+---
+
 # CondinAPT: Panduan Lengkap Instalasi Paket Bersyarat
 
 **CondinAPT** adalah alat serbaguna untuk mengotomatisasi instalasi paket di sistem berbasis Debian (Debian, Ubuntu, dan turunannya). Fitur utamanya adalah kemampuan untuk mendefinisikan kondisi dan aturan kompleks untuk instalasi setiap paket berdasarkan konfigurasi sistem apa pun.

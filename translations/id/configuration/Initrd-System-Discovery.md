@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Penemuan sistem Initrd
 
 Setelah bootloader memuat kernel dan initramfs, initramfs harus menemukan pohon data MiniOS yang menyediakan modul sistem `.sb`. Proses ini terjadi sebelum stack jaringan userspace normal, desktop, dan sesi persisten aktif.

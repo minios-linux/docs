@@ -103,7 +103,7 @@ function nav(locale = 'root') {
             { text: message(locale, 'nav.rufus'), link: p('/installation/tools/Rufus') },
             { text: message(locale, 'nav.ventoy'), link: p('/installation/tools/Ventoy') },
             { text: message(locale, 'nav.balenaEtcher'), link: p('/installation/tools/Balena-Etcher') },
-            { text: message(locale, 'nav.originalMethod'), link: p('/installation/tools/Original-Method') }
+            { text: message(locale, 'nav.fileBasedInstallation'), link: p('/installation/tools/File-Based-USB-Installation') }
           ]
         }
       ]
@@ -331,6 +331,12 @@ function normalizeHomeFrontmatter(pageData: { relativePath: string; frontmatter:
 export default withMermaid(defineConfig({
   base,
   cleanUrls: true,
+  vite: {
+    server: {
+      // Allow access via reverse proxies without listing each hostname.
+      allowedHosts: true
+    }
+  },
   title: message('root', 'site.title'),
   description: message('root', 'site.description'),
   mermaid: {

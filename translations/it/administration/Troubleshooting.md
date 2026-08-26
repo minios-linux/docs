@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Risoluzione dei problemi
 
 Inizia con l’osservazione e test reversibili. Non ripartizionare, riformattare,

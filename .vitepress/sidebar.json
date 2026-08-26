@@ -96,9 +96,9 @@
             "link": "/installation/tools/Drive-Utility"
           },
           {
-            "key": "sidebar.originalMethod",
-            "text": "Original Method",
-            "link": "/installation/tools/Original-Method"
+            "key": "sidebar.fileBasedInstallation",
+            "text": "File-based USB installation",
+            "link": "/installation/tools/File-Based-USB-Installation"
           }
         ]
       }

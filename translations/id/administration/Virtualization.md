@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Panduan Virtualisasi MiniOS
 
 Panduan ini membahas cara menjalankan MiniOS di mesin virtual, mengoptimalkan performa, dan menggunakan MiniOS sebagai host virtualisasi. MiniOS berbasis Debian 13 "Trixie" dan sudah dilengkapi dengan driver virtualisasi serta guest tools bawaan untuk performa optimal.

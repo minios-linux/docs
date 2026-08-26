@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Paramètres de démarrage
 
 ## Comment utiliser les paramètres de démarrage

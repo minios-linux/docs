@@ -1,8 +1,14 @@
+---
+updated: 2026-08-26
+program_commits:
+    minios-live: 039ddd0f3e82651069756370e5f3addebce43984
+---
+
 # CondinAPT dans MiniOS : Guide d'intégration
 
-Ce document décrit les aspects spécifiques de l'utilisation de CondinAPT dans le système de construction MiniOS.
+Ce document décrit les aspects spécifiques de l'utilisation de CondinAPT dans le système de build MiniOS.
 
-> **📚 Documentation principale :** Pour les fonctionnalités de base de CondinAPT, consultez le document principal `CondinAPT.md`
+> **Documentation principale :** Pour les fonctionnalités de base de CondinAPT, consultez le document principal `CondinAPT.md`
 
 ## Table des matières
 
@@ -66,13 +72,13 @@ kl=KEEP_LOCALES
 
 ### Variables de configuration MiniOS
 
-**Principales variables depuis `build.conf` :**
+**Variables principales de `build.conf` :**
 - `DISTRIBUTION` - distribution cible (bookworm, trixie, jammy, noble)
 - `DISTRIBUTION_ARCH` - architecture (amd64, i386, i386-pae)
 - `DESKTOP_ENVIRONMENT` - environnement de bureau (core, flux, xfce, lxqt)
-- `PACKAGE_VARIANT` - variante de paquet (minimum, standard, toolbox, ultra)
-- `INSTALL_KERNEL` - installer le paquet kernel (true/false)
-- `KERNEL_FLAVOUR` - variante du kernel (none, rt, cloud)
+- `PACKAGE_VARIANT` - variante du paquet (minimum, standard, toolbox, ultra)
+- `INSTALL_KERNEL` - installer le paquet noyau (true/false)
+- `KERNEL_FLAVOUR` - saveur du noyau (none, rt, cloud)
 - `KERNEL_AUFS` - support AUFS (true/false)
 - `KERNEL_BUILD_DKMS` - compiler les modules DKMS (true/false)
 - `INITRAMFS_BUILDER` - générateur d'initramfs (livekit, dracut)
@@ -83,7 +89,7 @@ kl=KEEP_LOCALES
 **Variables calculées automatiquement (depuis `minioslib`) :**
 - `DISTRIBUTION_TYPE` - type de distribution (debian, ubuntu) - déterminé automatiquement selon `DISTRIBUTION`
   - `legacy` : stretch, buster, orel, bionic
-  - `current` : bullseye, bookworm, focal, jammy, noble  
+  - `current` : bullseye, bookworm, focal, jammy, noble
   - `future` : trixie, kali-rolling, sid
 
 ## Utilisation dans les modules
@@ -234,6 +240,10 @@ fi
 ```
 
 ---
+
+
+
+
 
 
 **Pour toute information complète sur les fonctionnalités de CondinAPT, veuillez consulter le document principal `CondinAPT.md`**

@@ -1,8 +1,14 @@
+---
+updated: 2026-08-26
+program_commits:
+    minios-live: 039ddd0f3e82651069756370e5f3addebce43984
+---
+
 # CondinAPT in MiniOS: Integrationsleitfaden
 
-Dieses Dokument beschreibt die spezifischen Aspekte der Nutzung von CondinAPT im MiniOS-Build-System.
+Dieses Dokument beschreibt die spezifischen Aspekte der Verwendung von CondinAPT im MiniOS-Buildsystem.
 
-> **📚 Hauptdokumentation:** Für grundlegende Funktionen von CondinAPT siehe das Hauptdokument `CondinAPT.md`
+> **Hauptdokumentation:** Für grundlegende Funktionen von CondinAPT siehe das Hauptdokument `CondinAPT.md`
 
 ## Inhaltsverzeichnis
 
@@ -77,13 +83,13 @@ kl=KEEP_LOCALES
 - `KERNEL_BUILD_DKMS` – DKMS-Module bauen (true/false)
 - `INITRAMFS_BUILDER` – Initramfs-Builder (livekit, dracut)
 - `LOCALE` – System-Locale (C, en_US, ru_RU, es_ES, pt_BR)
-- `MULTILINGUAL` – Mehrsprachigkeit (true/false)
+- `MULTILINGUAL` – Mehrsprachige Unterstützung (true/false)
 - `KEEP_LOCALES` – Locales beibehalten (true/false)
 
 **Automatisch berechnete Variablen (aus `minioslib`):**
-- `DISTRIBUTION_TYPE` – Distributions-Typ (debian, ubuntu) – wird automatisch anhand von `DISTRIBUTION` bestimmt
+- `DISTRIBUTION_TYPE` – Distributionstyp (debian, ubuntu) – wird automatisch anhand von `DISTRIBUTION` bestimmt
   - `legacy`: stretch, buster, orel, bionic
-  - `current`: bullseye, bookworm, focal, jammy, noble  
+  - `current`: bullseye, bookworm, focal, jammy, noble
   - `future`: trixie, kali-rolling, sid
 
 ## Verwendung in Modulen
@@ -234,6 +240,10 @@ fi
 ```
 
 ---
+
+
+
+
 
 
 **Für vollständige Informationen zu den Funktionen von CondinAPT siehe das Hauptdokument `CondinAPT.md`**

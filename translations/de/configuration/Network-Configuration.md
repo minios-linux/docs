@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Netzwerkkonfiguration
 
 Nach dem Start von MiniOS verwaltet NetworkManager in der Regel kabelgebundene und WLAN-Verbindungen. Dies ist getrennt vom initramfs-Netzwerk, das für das Herunterladen eines PXE- oder HTTP-ISO-Systems verwendet wird. Insbesondere erstellt der PXE-Parameter `ip=` kein NetworkManager-Profil und setzt keine dauerhafte Sitzungsadresse. Weitere Informationen zur Netzwerkverbindung beim Systemstart finden Sie unter [Netzwerk-Boot](/installation/Network-Boot.md).

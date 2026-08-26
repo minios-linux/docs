@@ -1,4 +1,9 @@
+---
+updated: 2026-08-26
+---
+
 # Performance optimization
+
 
 Performance tuning in MiniOS is mainly a tradeoff between boot time, RAM use,
 runtime reads, persistence overhead, and storage durability. For exact option

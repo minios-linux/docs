@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Sauvegarde et restauration
 
 Aucune sauvegarde unique ne protège chaque composant d’un système MiniOS. Les fichiers personnels, la configuration, les sessions persistantes, les modules et le périphérique de stockage nécessitent chacun des procédures de restauration différentes. Conservez plusieurs copies, gardez au moins une copie sur un autre appareil et testez la restauration avant d’en avoir réellement besoin.

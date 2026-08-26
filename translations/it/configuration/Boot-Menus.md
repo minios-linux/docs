@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Guida ai menu di avvio di MiniOS
 
 I menu di avvio di MiniOS offrono voci pratiche per le modalità di avvio live più comuni. Questa guida spiega come selezionare ed eventualmente modificare tali voci.
@@ -34,10 +38,10 @@ Questi sono selettori, non garanzie che lo storage sia scrivibile, che la sessio
 Se la tua chiavetta USB MiniOS supporta più lingue:
 1. La prima schermata mostrerà le opzioni di lingua
 2. Seleziona la lingua preferita
-3. Il menu di avvio apparirà nella lingua scelta
-4. La selezione può anche trasmettere le impostazioni della lingua all’avvio successivo, ma non garantisce che ogni messaggio di avvio o applicazione sia tradotto
+3. Il menu di avvio apparirà nella lingua selezionata
+4. La selezione può anche trasmettere le impostazioni locali alle fasi successive dell'avvio, ma non garantisce che ogni messaggio di avvio o applicazione sia tradotto
 
-⚠️ **Importante:** Il menu multilingue ha la precedenza su qualsiasi impostazione locale specificata in `config.conf`. La lingua selezionata nel menu di avvio prevale sulle impostazioni locali preconfigurate. Consulta **[File di configurazione](/configuration/Configuration-File.md)** e **[live-config](/configuration/live-config.md)** per dettagli sui file di configurazione del sistema.
+**Importante:** Il menu multilingue sovrascrive qualsiasi impostazione locale specificata in `config.conf`. La lingua selezionata nel menu di avvio ha la precedenza sulle impostazioni locali preconfigurate. Consulta **[File di configurazione](/configuration/Configuration-File.md)** e **[live-config](/configuration/live-config.md)** per dettagli sui file di configurazione di sistema.
 
 ## Personalizzazione delle opzioni di avvio
 
@@ -83,15 +87,15 @@ Per l’elenco completo dei parametri di avvio disponibili, consulta **[Parametr
 
 ### Modifica dei file di configurazione
 
-⚠️ **Attenzione:** Modifica i file di configurazione di avvio solo se sai cosa stai facendo. Modifiche errate possono rendere la chiavetta USB non avviabile.
+**Attenzione:** Modifica i file di configurazione dell'avvio solo se sai cosa stai facendo. Modifiche errate possono rendere la tua chiavetta USB inutilizzabile all'avvio.
 
 **Per modificare la configurazione di GRUB:**
-1. Monta la chiavetta USB MiniOS
+1. Monta la tua chiavetta USB MiniOS
 2. Vai a `/minios/boot/grub/`
 3. Modifica `grub.cfg` con un editor di testo
-4. Salva ed espelli in sicurezza la chiavetta USB
+4. Salva ed espelli la chiavetta USB in modo sicuro
 
 **Modifiche comuni:**
-- Modifica la direttiva di timeout utilizzata dal menu GRUB o Syslinux attivo
-- Cambia `set default=0` per modificare l’opzione di menu predefinita
-- Aggiungi voci di menu personalizzate
+- Modificare la direttiva di timeout utilizzata dal menu GRUB o Syslinux attivo
+- Cambiare `set default=0` per modificare l'opzione di menu predefinita
+- Aggiungere voci personalizzate al menu

@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Optimisation des performances
 
 L’optimisation des performances dans MiniOS consiste principalement à trouver un équilibre entre le temps de démarrage, l’utilisation de la RAM, les lectures en temps réel, la surcharge de la persistance et la durabilité du stockage. Pour connaître la signification exacte des options et leurs limites de sécurité, consultez [Modes de démarrage](/configuration/Boot-Modes.md), [Chargement des modules Initrd](/configuration/Initrd-Module-Loading.md) et [Persistance Initrd](/configuration/Initrd-Persistence.md).

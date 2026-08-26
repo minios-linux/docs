@@ -1,4 +1,11 @@
+---
+updated: 2026-08-26
+program_commits:
+  minios-installer: 1b4c3df8b7aad7cec67b30263a6bb3929d98a77c
+---
+
 # Using MiniOS Installer
+
 
 MiniOS Installer is a GTK wizard and command-line backend for deploying MiniOS from a MiniOS live session. It installs to a target disk; it is not the same as writing an ISO to bootable media.
 

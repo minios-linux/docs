@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Ripristino dell'avvio
 
 La riparazione dell'avvio dipende da come MiniOS è stato installato sul dispositivo e se il firmware lo avvia in modalità BIOS o UEFI. Una procedura adatta a una configurazione può danneggiarne un'altra. Esegui il backup dei file importanti prima di scrivere un settore di avvio, modificare un flag di partizione, sostituire la struttura EFI o reinstallare GRUB. Consulta [Backup e ripristino](/administration/Backup-Recovery.md). Se il tipo di installazione non è certo, confrontalo con [Modalità di avvio](/configuration/Boot-Modes.md) prima di scegliere una procedura di riparazione.

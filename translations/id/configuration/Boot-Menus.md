@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Panduan Menu Boot MiniOS
 
 Menu boot MiniOS menyediakan entri praktis untuk mode live boot yang umum. Panduan ini menjelaskan cara memilih dan mengedit entri-entri tersebut.
@@ -32,12 +36,12 @@ Ini adalah selector, bukan jaminan bahwa media penyimpanan dapat ditulis, sesi k
 ### Pemilihan Bahasa (GRUB)
 
 Jika USB drive MiniOS Anda mendukung beberapa bahasa:
-1. Layar pertama akan menampilkan pilihan bahasa
+1. Layar pertama akan menampilkan opsi bahasa
 2. Pilih bahasa yang Anda inginkan
 3. Menu boot akan muncul dalam bahasa yang dipilih
-4. Pilihan ini juga dapat meneruskan pengaturan lokal ke proses startup berikutnya, namun tidak menjamin semua pesan boot atau aplikasi sudah diterjemahkan
+4. Pilihan ini juga dapat meneruskan pengaturan lokal ke proses startup berikutnya, namun tidak menjamin semua pesan boot atau aplikasi akan diterjemahkan
 
-⚠️ **Penting:** Menu multibahasa akan menimpa pengaturan lokal yang ditentukan di `config.conf`. Bahasa yang dipilih di menu boot akan menjadi prioritas dibandingkan pengaturan lokal yang sudah dikonfigurasi sebelumnya. Lihat **[Configuration File](/configuration/Configuration-File.md)** dan **[live-config](/configuration/live-config.md)** untuk detail file konfigurasi sistem.
+**Penting:** Menu multibahasa akan menimpa pengaturan lokal apa pun yang ditentukan di `config.conf`. Bahasa yang dipilih di menu boot akan menjadi prioritas dibandingkan pengaturan lokal yang sudah dikonfigurasi sebelumnya. Lihat **[Configuration File](/configuration/Configuration-File.md)** dan **[live-config](/configuration/live-config.md)** untuk detail mengenai file konfigurasi sistem.
 
 ## Kustomisasi Opsi Boot
 
@@ -83,15 +87,15 @@ Untuk daftar lengkap parameter boot yang tersedia, lihat **[Boot Parameters](/co
 
 ### Mengedit File Konfigurasi
 
-⚠️ **Peringatan:** Hanya edit file konfigurasi boot jika Anda benar-benar memahami apa yang Anda lakukan. Perubahan yang salah dapat membuat USB drive Anda tidak bisa boot.
+**Peringatan:** Hanya edit file konfigurasi boot jika Anda benar-benar memahami apa yang Anda lakukan. Perubahan yang salah dapat membuat USB drive Anda tidak bisa melakukan booting.
 
 **Untuk mengedit konfigurasi GRUB:**
 1. Mount USB drive MiniOS Anda
 2. Arahkan ke `/minios/boot/grub/`
-3. Edit `grub.cfg` dengan text editor
-4. Simpan dan eject USB drive dengan aman
+3. Edit `grub.cfg` menggunakan editor teks
+4. Simpan dan keluarkan USB drive dengan aman
 
 **Perubahan umum:**
-- Ubah direktif timeout yang digunakan oleh menu GRUB atau Syslinux aktif
-- Ubah `set default=0` untuk mengganti opsi menu default
+- Mengubah direktif timeout yang digunakan oleh menu GRUB atau Syslinux aktif
+- Ubah `set default=0` untuk mengubah opsi menu default
 - Tambahkan entri menu kustom

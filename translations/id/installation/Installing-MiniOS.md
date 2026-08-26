@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Instalasi MiniOS
 
 Ada dua tugas terpisah yang sering disebut instalasi:
@@ -19,11 +23,11 @@ Pilih metode sesuai sistem operasi Anda:
 - [`dd`](/installation/tools/dd.md) di Linux atau macOS
 - [Drive Utility](/installation/tools/Drive-Utility.md) di Linux
 - [UNetbootin](/installation/tools/UNetbootin.md) di Windows, Linux, atau macOS
-- [Metode asli](/installation/tools/Original-Method.md) untuk layout MiniOS berbasis file
+- [Instalasi USB berbasis file](/installation/tools/File-Based-USB-Installation.md) untuk tata letak MiniOS yang disiapkan manual
 
-Menulis image dengan Rufus, Etcher, `dd`, atau Drive Utility bersifat destruktif. Pastikan jalur perangkat, model, dan kapasitas sudah benar sebelum memulai. Penulisan image mentah akan mereproduksi layout image; proses ini tidak secara otomatis mengatur persistensi atau melakukan deployment live maupun native dengan MiniOS Installer.
+Menulis image dengan Rufus, Etcher, `dd`, atau Drive Utility bersifat destruktif. Pastikan jalur perangkat, model, dan kapasitas sudah benar sebelum memulai. Penulisan image mentah akan menyalin tata letak image; proses ini tidak secara otomatis mengatur persistensi atau melakukan deployment live maupun native dengan MiniOS Installer.
 
-Ventoy berbeda: instal Ventoy di perangkat, lalu salin file ISO ke partisi data Ventoy. Ini akan mempertahankan layout multiboot Ventoy.
+Ventoy berbeda: instal Ventoy di perangkat, lalu salin file ISO ke partisi data Ventoy. Ini akan mempertahankan tata letak multiboot Ventoy.
 
 ## Boot sesi live
 

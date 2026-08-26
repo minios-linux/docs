@@ -1,8 +1,14 @@
+---
+updated: 2026-08-26
+program_commits:
+    minios-live: 039ddd0f3e82651069756370e5f3addebce43984
+---
+
 # CondinAPT en MiniOS: Guía de Integración
 
 Este documento describe los aspectos específicos del uso de CondinAPT en el sistema de construcción de MiniOS.
 
-> **📚 Documentación principal:** Para las funciones básicas de CondinAPT, consulta el documento principal `CondinAPT.md`
+> **Documentación principal:** Para las funciones básicas de CondinAPT, consulta el documento principal `CondinAPT.md`
 
 ## Tabla de Contenidos
 
@@ -70,7 +76,7 @@ kl=KEEP_LOCALES
 - `DISTRIBUTION` - distribución objetivo (bookworm, trixie, jammy, noble)
 - `DISTRIBUTION_ARCH` - arquitectura (amd64, i386, i386-pae)
 - `DESKTOP_ENVIRONMENT` - entorno de escritorio (core, flux, xfce, lxqt)
-- `PACKAGE_VARIANT` - variante de paquetes (minimum, standard, toolbox, ultra)
+- `PACKAGE_VARIANT` - variante de paquete (minimum, standard, toolbox, ultra)
 - `INSTALL_KERNEL` - instalar paquete de kernel (true/false)
 - `KERNEL_FLAVOUR` - tipo de kernel (none, rt, cloud)
 - `KERNEL_AUFS` - soporte AUFS (true/false)
@@ -78,12 +84,12 @@ kl=KEEP_LOCALES
 - `INITRAMFS_BUILDER` - generador de initramfs (livekit, dracut)
 - `LOCALE` - configuración regional del sistema (C, en_US, ru_RU, es_ES, pt_BR)
 - `MULTILINGUAL` - soporte multilingüe (true/false)
-- `KEEP_LOCALES` - conservar locales (true/false)
+- `KEEP_LOCALES` - conservar configuraciones regionales (true/false)
 
 **Variables calculadas automáticamente (de `minioslib`):**
 - `DISTRIBUTION_TYPE` - tipo de distribución (debian, ubuntu) - determinado automáticamente según `DISTRIBUTION`
   - `legacy`: stretch, buster, orel, bionic
-  - `current`: bullseye, bookworm, focal, jammy, noble  
+  - `current`: bullseye, bookworm, focal, jammy, noble
   - `future`: trixie, kali-rolling, sid
 
 ## Uso en módulos
@@ -234,6 +240,10 @@ fi
 ```
 
 ---
+
+
+
+
 
 
 **Para información completa sobre las funciones de CondinAPT, consulta el documento principal `CondinAPT.md`**

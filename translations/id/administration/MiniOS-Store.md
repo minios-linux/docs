@@ -1,3 +1,9 @@
+---
+updated: 2026-08-26
+program_commits:
+    minios-store: 2226f08d65dffd251ae016664239164a3b237fc0
+---
+
 # MiniOS Store
 
 MiniOS Store menyediakan katalog resep aplikasi di [store.minios.dev](https://store.minios.dev). Di MiniOS, resep-resep ini dapat diinstal langsung ke sistem yang sedang berjalan atau digunakan untuk membangun satu atau lebih modul SquashFS (`.sb`).

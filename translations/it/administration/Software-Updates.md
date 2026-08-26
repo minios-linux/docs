@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Aggiornamenti software
 
 MiniOS combina moduli immagine SquashFS in sola lettura con un overlay runtime scrivibile. Il metodo di aggiornamento deve corrispondere al layer che si desidera modificare. Aggiornare i pacchetti all'interno di una sessione attiva non equivale a sostituire i moduli presenti sul supporto MiniOS.

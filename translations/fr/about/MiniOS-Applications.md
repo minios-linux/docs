@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Applications et outils MiniOS
 
 MiniOS inclut des outils pour configurer, installer, maintenir et remasteriser

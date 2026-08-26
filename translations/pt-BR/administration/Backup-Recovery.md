@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Backup e recuperação
 
 Nenhum backup único protege todas as partes de um sistema MiniOS. Arquivos pessoais, configurações, sessões persistentes, módulos e o dispositivo de armazenamento possuem procedimentos de restauração diferentes. Mantenha mais de uma cópia, guarde pelo menos uma cópia em outro dispositivo e teste a restauração antes que seja realmente necessária.

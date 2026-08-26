@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Initrd-Systemerkennung
 
 Nachdem der Bootloader den Kernel und das initramfs geladen hat, muss das initramfs den MiniOS-Datenbaum finden, der die `.sb` Systemmodule bereitstellt. Dies geschieht, bevor der normale Userspace-Netzwerkstack, der Desktop und die persistente Sitzung aktiv sind.

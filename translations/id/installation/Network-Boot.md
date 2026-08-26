@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Network boot
 
 Halaman ini menjelaskan **cara memuat MiniOS melalui jaringan**: PXE (kernel + initrd + data MiniOS) dan HTTP ISO (`from=http://…`). Ini adalah satu-satunya tujuan penggunaan jaringan di dalam initramfs MiniOS.

@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Файл конфигурации
 
 Загрузочный носитель MiniOS хранит основную конфигурацию в `minios/config.conf`. Во время загрузки initramfs синхронизирует её с `/etc/live/config.conf` в собранном live root. Поэтому скрипты в работающей системе должны читать `/etc/live/config.conf`; `/etc/minios/config.conf` и `config/config.conf` не являются путями к конфигурации, используемыми текущим загрузочным кодом.
@@ -37,34 +41,34 @@ EXPORT_LOGS="false"
 ## Описание параметров
 
 **Легенда:**
-- 🔒 **Однократно** — применяется только при первой загрузке, не может быть изменён при последующих загрузках
-- 🔄 **Перенастраиваемый** — можно изменять при каждой загрузке и применять повторно
+- **Только при первом запуске** — применяется только при первом запуске и не применяется повторно при последующих загрузках
+- **Да** — может быть изменён и применяется при каждой загрузке
 
-| Параметр | Перенастраиваемый | Значение | Пример |
-| --------- | ---------------- | -------- | ------ |
-| LIVE_CONFIG_CMDLINE | 🔄 | Дополнительные опции live-config. `nottyautologin` сохраняется здесь вместо жёсткой прописки в каждом загрузочном пункте. См. `man 7 live-config`. | LIVE_CONFIG_CMDLINE="components nottyautologin" |
-| LIVE_HOSTNAME | 🔄 | Имя узла, связанного с системой. См. `man 7 live-config`. | LIVE_HOSTNAME="minios" |
-| LIVE_USERNAME | 🔒 | Имя пользователя, чей профиль будет создан при первой загрузке. Если указать имя пользователя <strong>root</strong>, профиль пользователя создан не будет, и вход будет осуществляться с использованием профиля <strong>root</strong>. См. `man 7 live-config`. | LIVE_USERNAME="live" |
-| LIVE_USER_FULLNAME | 🔒 | Полное имя основного пользователя. См. `man 7 live-config`. | LIVE_USER_FULLNAME="MiniOS Live User" |
-| LIVE_USER_DEFAULT_GROUPS | 🔒 | Список групп для основного пользователя через запятую. См. `man 7 live-config`. | LIVE_USER_DEFAULT_GROUPS="dialout,cdrom,floppy..." |
-| LIVE_USER_PASSWORD_CRYPTED | 🔒 | Пароль основного пользователя в зашифрованном виде (хэш). Для генерации используйте `mkpasswd -m yescrypt`. См. `man 7 live-config`. | LIVE_USER_PASSWORD_CRYPTED='$y$j9T$...' |
-| LIVE_ROOT_PASSWORD_CRYPTED | 🔒 | Пароль пользователя с привилегиями **root** в зашифрованном виде (хэш). Для генерации используйте `mkpasswd -m yescrypt`. См. `man 7 live-config`. | LIVE_ROOT_PASSWORD_CRYPTED='$y$j9T$...' |
-| LIVE_CONFIG_NOROOT | 🔒 | Если задано, отключает вход под root и запрещает sudo/policykit для пользователя. См. `man 7 live-config`. | LIVE_CONFIG_NOROOT="" |
-| LIVE_LOCALES | 🔄 | Устанавливает локаль. Можно указать несколько значений через запятую. См. `man 7 live-config`. | LIVE_LOCALES="en_US.UTF-8" |
-| LIVE_TIMEZONE | 🔄 | Устанавливает часовой пояс (например, "Europe/Berlin", "Etc/UTC"). См. `man 7 live-config`. | LIVE_TIMEZONE="Etc/UTC" |
-| LIVE_KEYBOARD_MODEL | 🔄 | Устанавливает модель клавиатуры (например, "pc105"). См. `man 7 live-config`. | LIVE_KEYBOARD_MODEL="pc105" |
-| LIVE_KEYBOARD_LAYOUTS | 🔄 | Устанавливает раскладки клавиатуры (через запятую, например, "us,de"). См. `man 7 live-config`. | LIVE_KEYBOARD_LAYOUTS="us,de" |
-| LIVE_KEYBOARD_OPTIONS | 🔄 | Устанавливает параметры клавиатуры (например, "grp:alt_shift_toggle,grp_led:scroll"). См. `man 7 live-config`. | LIVE_KEYBOARD_OPTIONS="grp:alt_shift_toggle,grp_led:scroll" |
-| LIVE_KEYBOARD_VARIANTS | 🔄 | Устанавливает варианты раскладок клавиатуры (через запятую, может быть пустым или совпадать с раскладками). См. `man 7 live-config`. | LIVE_KEYBOARD_VARIANTS="," |
-| LIVE_CONFIG_DEBUG | 🔄 | Включает вывод отладки для live-config. См. `man 7 live-config`. | LIVE_CONFIG_DEBUG="true" |
-| LIVE_LINK_USER_DIRS | 🔄 | Если true, пользовательские каталоги будут связаны из указанного пути. | LIVE_LINK_USER_DIRS="false" |
-| LIVE_BIND_USER_DIRS | 🔄 | Если true, пользовательские каталоги будут примонтированы с помощью bind из указанного пути. | LIVE_BIND_USER_DIRS="false" |
-| LIVE_USER_DIRS_PATH | 🔄 | Путь к пользовательским данным на флеш-накопителе. | LIVE_USER_DIRS_PATH="/minios/userdata" |
-| LIVE_MODULE_MODE | 🔄 | Выбор режима работы системы. Если планируете устанавливать ПО только модулями, используйте "merged". Если хотите устанавливать ПО через apt, используйте "simple". По умолчанию — "merged". | LIVE_MODULE_MODE="merged" |
-| DEFAULT_TARGET | 🔄 | Целевой systemd-режим загрузки. См. `man systemd.special`. | DEFAULT_TARGET="graphical" |
-| ENABLE_SERVICES | 🔄 | Включить сервисы при загрузке (через запятую). | ENABLE_SERVICES="ssh" |
-| DISABLE_SERVICES | 🔄 | Отключить сервисы при загрузке (через запятую). | DISABLE_SERVICES="" |
-| EXPORT_LOGS | 🔄 | Если true и выбранный каталог данных MiniOS доступен для записи, журналы загрузки копируются в `minios/log/YYYYMMDD_HHMMSS/`. | EXPORT_LOGS="false" |
+| Параметр | Переконфигурируемый | Значение | Пример |
+| --------- | ------------------- | -------- | ------ |
+| LIVE_CONFIG_CMDLINE | Да | Дополнительные параметры live-config. `nottyautologin` сохраняется здесь вместо жёсткого прописывания в каждом загрузочном пункте. См. `man 7 live-config`. | LIVE_CONFIG_CMDLINE="components nottyautologin" |
+| LIVE_HOSTNAME | Да | Имя узла, связанного с системой. См. `man 7 live-config`. | LIVE_HOSTNAME="minios" |
+| LIVE_USERNAME | Только при первом запуске | Имя пользователя, чей профиль будет создан при первом запуске. Если указать имя пользователя <strong>root</strong>, профиль пользователя создан не будет, и вход будет выполнен с использованием профиля <strong>root</strong>. См. `man 7 live-config`. | LIVE_USERNAME="live" |
+| LIVE_USER_FULLNAME | Только при первом запуске | Полное имя основного пользователя. См. `man 7 live-config`. | LIVE_USER_FULLNAME="MiniOS Live User" |
+| LIVE_USER_DEFAULT_GROUPS | Только при первом запуске | Список групп для основного пользователя через запятую. См. `man 7 live-config`. | LIVE_USER_DEFAULT_GROUPS="dialout,cdrom,floppy..." |
+| LIVE_USER_PASSWORD_CRYPTED | Только при первом запуске | Пароль основного пользователя в зашифрованном виде (хеш). Для генерации используйте `mkpasswd -m yescrypt`. См. `man 7 live-config`. | LIVE_USER_PASSWORD_CRYPTED='$y$j9T$...' |
+| LIVE_ROOT_PASSWORD_CRYPTED | Только при первом запуске | Пароль привилегированного пользователя **root** в зашифрованном виде (хеш). Для генерации используйте `mkpasswd -m yescrypt`. См. `man 7 live-config`. | LIVE_ROOT_PASSWORD_CRYPTED='$y$j9T$...' |
+| LIVE_CONFIG_NOROOT | Только при первом запуске | Если задан, отключает вход под root и запрещает sudo/policykit для пользователя. См. `man 7 live-config`. | LIVE_CONFIG_NOROOT="" |
+| LIVE_LOCALES | Да | Устанавливает локаль. Можно указать несколько значений через запятую. См. `man 7 live-config`. | LIVE_LOCALES="en_US.UTF-8" |
+| LIVE_TIMEZONE | Да | Устанавливает часовой пояс (например, "Europe/Berlin", "Etc/UTC"). См. `man 7 live-config`. | LIVE_TIMEZONE="Etc/UTC" |
+| LIVE_KEYBOARD_MODEL | Да | Устанавливает модель клавиатуры (например, "pc105"). См. `man 7 live-config`. | LIVE_KEYBOARD_MODEL="pc105" |
+| LIVE_KEYBOARD_LAYOUTS | Да | Устанавливает раскладки клавиатуры (через запятую, например, "us,de"). См. `man 7 live-config`. | LIVE_KEYBOARD_LAYOUTS="us,de" |
+| LIVE_KEYBOARD_OPTIONS | Да | Устанавливает параметры клавиатуры (например, "grp:alt_shift_toggle,grp_led:scroll"). См. `man 7 live-config`. | LIVE_KEYBOARD_OPTIONS="grp:alt_shift_toggle,grp_led:scroll" |
+| LIVE_KEYBOARD_VARIANTS | Да | Устанавливает варианты раскладки клавиатуры (через запятую, может быть пустым или совпадать с раскладками). См. `man 7 live-config`. | LIVE_KEYBOARD_VARIANTS="," |
+| LIVE_CONFIG_DEBUG | Да | Включает вывод отладки для live-config. См. `man 7 live-config`. | LIVE_CONFIG_DEBUG="true" |
+| LIVE_LINK_USER_DIRS | Да | Если true, пользовательские каталоги будут связаны из указанного пути. | LIVE_LINK_USER_DIRS="false" |
+| LIVE_BIND_USER_DIRS | Да | Если true, пользовательские каталоги будут примонтированы через bind из указанного пути. | LIVE_BIND_USER_DIRS="false" |
+| LIVE_USER_DIRS_PATH | Да | Путь к пользовательским каталогам данных на флеш-накопителе. | LIVE_USER_DIRS_PATH="/minios/userdata" |
+| LIVE_MODULE_MODE | Да | Выбор режима работы системы. Если планируете устанавливать ПО только модулями — используйте "merged". Если хотите устанавливать ПО через apt — используйте "simple". По умолчанию — "merged". | LIVE_MODULE_MODE="merged" |
+| DEFAULT_TARGET | Да | Целевой systemd-таргет для загрузки. См. `man systemd.special`. | DEFAULT_TARGET="graphical" |
+| ENABLE_SERVICES | Да | Включить сервисы при загрузке (через запятую). | ENABLE_SERVICES="ssh" |
+| DISABLE_SERVICES | Да | Отключить сервисы при загрузке (через запятую). | DISABLE_SERVICES="" |
+| EXPORT_LOGS | Да | Если true и выбранная директория данных MiniOS доступна для записи, журналы загрузки копируются в `minios/log/YYYYMMDD_HHMMSS/`. | EXPORT_LOGS="false" |
 
 
 **Подробнее о большинстве параметров см.:**

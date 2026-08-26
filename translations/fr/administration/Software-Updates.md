@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Mises à jour logicielles
 
 MiniOS combine des modules d’image SquashFS en lecture seule avec une superposition d’exécution en écriture. La méthode de mise à jour doit correspondre à la couche modifiée. Mettre à jour les paquets au sein d’une session en cours n’est pas équivalent à remplacer les modules sur le support MiniOS.

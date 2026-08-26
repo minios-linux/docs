@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Panduan kompatibilitas perangkat keras
 
 Dukungan perangkat keras bergantung pada rilis dan image MiniOS: distribusi dasar, kernel, firmware, modul yang disertakan, dan edisi semuanya berpengaruh. Periksa deskripsi rilis untuk image yang Anda unduh, lalu uji sesi live baru sebelum mengganti disk atau menggunakan mesin tersebut untuk pekerjaan yang bersifat persisten.

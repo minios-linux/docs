@@ -1,4 +1,9 @@
+---
+updated: 2026-08-26
+---
+
 # Network boot
+
 
 This page describes **how to load MiniOS over the network**: PXE (kernel + initrd + MiniOS data) and HTTP ISO (`from=http://…`). That is the only purpose of networking inside the MiniOS initramfs.
 

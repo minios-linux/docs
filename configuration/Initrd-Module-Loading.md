@@ -1,4 +1,9 @@
+---
+updated: 2026-08-26
+---
+
 # Initrd module loading
+
 
 MiniOS selects and mounts its module set in the initrd, before the union root is
 handed to the installed init system. This page describes the current initrd

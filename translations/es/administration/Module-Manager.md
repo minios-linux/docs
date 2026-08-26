@@ -1,3 +1,9 @@
+---
+updated: 2026-08-26
+program_commits:
+    minios-module-manager: e277da00c0b2f5fa5f41af140af118e361d2044c
+---
+
 # MiniOS Module Manager
 
 MiniOS Module Manager es la aplicación gráfica para inspeccionar, crear y gestionar módulos `.sb` de MiniOS. Cuenta con dos espacios de trabajo: **Módulos** para la composición del sistema y **Crear** para la creación de nuevos módulos.

@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Recuperação de boot
 
 O reparo do boot depende de como o MiniOS foi colocado no dispositivo e se o firmware o inicia em modo BIOS ou UEFI. Um procedimento para uma configuração pode danificar outra. Faça backup dos arquivos importantes antes de gravar um setor de boot, alterar uma flag de partição, substituir uma árvore EFI ou reinstalar o GRUB. Consulte [Backup e recuperação](/administration/Backup-Recovery.md). Se o tipo de instalação for incerto, compare com [Modos de boot](/configuration/Boot-Modes.md) antes de escolher um fluxo de reparo.

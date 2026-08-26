@@ -1,8 +1,15 @@
+---
+updated: 2026-08-26
+program_commits:
+  minios-live: 039ddd0f3e82651069756370e5f3addebce43984
+---
+
 # CondinAPT in MiniOS: Integration Guide
+
 
 This document describes the specific aspects of using CondinAPT in the MiniOS build system.
 
-> **📚 Main Documentation:** For basic CondinAPT features, see the main document `CondinAPT.md`
+> **Main Documentation:** For basic CondinAPT features, see the main document `CondinAPT.md`
 
 ## Table of Contents
 
@@ -83,7 +90,7 @@ kl=KEEP_LOCALES
 **Automatically calculated variables (from `minioslib`):**
 - `DISTRIBUTION_TYPE` - distribution type (debian, ubuntu) - automatically determined based on `DISTRIBUTION`
   - `legacy`: stretch, buster, orel, bionic
-  - `current`: bullseye, bookworm, focal, jammy, noble  
+  - `current`: bullseye, bookworm, focal, jammy, noble
   - `future`: trixie, kali-rolling, sid
 
 ## Usage in Modules

@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # MiniOS Virtualisierungsleitfaden
 
 Dieser Leitfaden behandelt das Ausführen von MiniOS in virtuellen Maschinen, die Optimierung der Performance und die Nutzung von MiniOS als Virtualisierungshost. MiniOS basiert auf Debian 13 "Trixie" und enthält integrierte Virtualisierungstreiber sowie Gast-Tools für optimale Leistung.

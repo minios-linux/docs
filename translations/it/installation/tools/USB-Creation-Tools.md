@@ -1,25 +1,29 @@
+---
+updated: 2026-08-26
+---
+
 # Strumenti per la creazione USB
 
 MiniOS può essere installato su una chiavetta USB utilizzando diversi strumenti a seconda del tuo sistema operativo.
 
 ## Strumenti consigliati
 
-### 🖥️ Windows
+### Windows
 
 - **[Rufus](Rufus.md)** - Affidabile e versatile. Consigliato per la maggior parte degli utenti.
 - **[Balena Etcher](Balena-Etcher.md)** - Interfaccia semplice, multipiattaforma e moderna.
-- **[Ventoy](Ventoy.md)** - Permette di inserire più file ISO su una sola unità senza doverla riformattare.
+- **[Ventoy](Ventoy.md)** - Permette di inserire più ISO su un'unica unità senza doverla riformattare.
 
-### 🐧 Linux
+### Linux
 
-- **[Comando dd](dd.md)** - Strumento universale da riga di comando. Veloce e preinstallato sulla maggior parte delle distribuzioni.
-- **[Balena Etcher](Balena-Etcher.md)** - Interfaccia grafica intuitiva.
-- **[Metodo originale](Original-Method.md)** - Utilizzando gli strumenti standard di Linux (`cp`, `tar`).
+- **[dd command](dd.md)** - Strumento universale da riga di comando. Veloce e preinstallato sulla maggior parte delle distribuzioni.
+- **[Balena Etcher](Balena-Etcher.md)** - Interfaccia grafica semplice.
+- **[Installazione USB basata su file](File-Based-USB-Installation.md)** - Copia manuale dei file di MiniOS e installazione del bootloader SYSLINUX.
 
-### 🍎 macOS
+### macOS
 
 - **[Balena Etcher](Balena-Etcher.md)** - Il modo più semplice per gli utenti Mac.
-- **[Comando dd](dd.md)** - Per utenti esperti che hanno dimestichezza con il terminale.
+- **[dd command](dd.md)** - Per utenti esperti che hanno familiarità con il terminale.
 
 ## Altri strumenti
 

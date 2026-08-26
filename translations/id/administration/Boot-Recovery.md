@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Pemulihan Boot
 
 Perbaikan boot tergantung pada bagaimana MiniOS ditempatkan di perangkat dan apakah firmware memulainya dalam mode BIOS atau UEFI. Prosedur untuk satu tata letak dapat merusak tata letak lain. Cadangkan file penting sebelum menulis sektor boot, mengubah flag partisi, mengganti pohon EFI, atau menginstal ulang GRUB. Lihat [Backup dan pemulihan](/administration/Backup-Recovery.md). Jika jenis instalasi tidak pasti, bandingkan dengan [Mode Boot](/configuration/Boot-Modes.md) sebelum memilih alur kerja perbaikan.

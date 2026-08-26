@@ -1,10 +1,14 @@
+---
+updated: 2026-08-26
+---
+
 # Usando o comando `dd`
 
 O `dd` é uma ferramenta de linha de comando versátil para copiar dados bit a bit entre arquivos e dispositivos. É mais comumente utilizado para gravar imagens ISO em pendrives USB, criar backups e recuperar dados.
 
 ## Importante
 
-⚠️ **Atenção:** Selecionar o dispositivo incorreto resultará em perda de dados! Sempre confira cuidadosamente o drive selecionado e faça backup dos dados importantes.
+**Atenção:** Selecionar o dispositivo incorreto resultará em perda de dados! Sempre confira o drive selecionado e faça backup dos dados importantes.
 
 ## Requisitos do Drive
 

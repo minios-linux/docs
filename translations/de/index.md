@@ -1,5 +1,6 @@
 ---
 layout: Startseite
+updated: 2026-08-26
 hero:
     name: "MiniOS Wiki"
     text: "Zuverlässiges und benutzerfreundliches portables Linux"

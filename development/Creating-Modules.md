@@ -1,4 +1,11 @@
+---
+updated: 2026-08-26
+program_commits:
+  minios-tools: 7cdd0e10c0f610ebc581efa82105b747437a6125
+---
+
 # Creating modules
+
 
 MiniOS modules are read-only SquashFS filesystem images, conventionally named with the `.sb` extension. At boot, MiniOS orders selected modules into a layered root filesystem. Files in a higher-priority layer can supplement or hide files from lower layers. This is the modular live pipeline described in [Boot modes](/configuration/Boot-Modes.md), not the package layout of a native installation.
 

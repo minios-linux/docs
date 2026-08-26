@@ -1,4 +1,11 @@
+---
+updated: 2026-08-26
+program_commits:
+  minios-live: 039ddd0f3e82651069756370e5f3addebce43984
+---
+
 # Build commands
+
 
 MiniOS has two command-line build interfaces. Run commands from the `minios-live` source directory unless using an installed copy.
 

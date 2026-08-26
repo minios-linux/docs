@@ -1,3 +1,9 @@
+---
+updated: 2026-08-26
+program_commits:
+    minios-tools: 7cdd0e10c0f610ebc581efa82105b747437a6125
+---
+
 # Création de modules
 
 Les modules MiniOS sont des images de système de fichiers SquashFS en lecture seule, généralement nommées avec l’extension `.sb`. Au démarrage, MiniOS organise les modules sélectionnés en un système de fichiers racine superposé par couches. Les fichiers d’une couche prioritaire peuvent compléter ou masquer ceux des couches inférieures. Il s’agit du pipeline modulaire live décrit dans [Modes de démarrage](/configuration/Boot-Modes.md), qui diffère de la structure des paquets d’une installation native.

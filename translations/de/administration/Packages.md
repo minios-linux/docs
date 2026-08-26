@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Pakete und Editionen
 
 Die Inhalte der MiniOS-Pakete werden aus bedingten Quelllisten generiert. Sie variieren je nach Distributionssuite, Architektur, Init-System, Desktop-Umgebung, Spracheinstellung, Kernel-Optionen und Verfügbarkeit der Repositories. Diese Seite beschreibt die Vererbung der Editionen und repräsentative Inhalte; sie stellt keine vollständige Paketübersicht für alle Releases dar.

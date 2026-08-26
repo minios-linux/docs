@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Solución de problemas
 
 Comience observando y realizando pruebas reversibles. No reparta, reformatee,

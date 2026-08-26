@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Parameter Boot
 
 ## Cara menggunakan parameter boot

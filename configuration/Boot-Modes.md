@@ -1,4 +1,9 @@
+---
+updated: 2026-08-26
+---
+
 # MiniOS boot modes
+
 
 Boot modes describe where the live system comes from, whether its writable
 layer is temporary or persistent, and whether MiniOS copies its source into

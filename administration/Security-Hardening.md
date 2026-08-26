@@ -1,4 +1,9 @@
+---
+updated: 2026-08-26
+---
+
 # Security hardening
+
 
 MiniOS can run as a live recovery system, a persistent portable system, or a
 native installation. The appropriate controls depend on how the system is used.

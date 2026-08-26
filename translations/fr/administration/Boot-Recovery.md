@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Récupération du démarrage
 
 La réparation du démarrage dépend de la façon dont MiniOS a été installé sur l’appareil et du mode de démarrage du firmware (BIOS ou UEFI). Une procédure adaptée à une configuration peut endommager une autre. Sauvegardez les fichiers importants avant d’écrire un secteur de démarrage, de modifier un drapeau de partition, de remplacer un arbre EFI ou de réinstaller GRUB. Consultez la page [Sauvegarde et récupération](/administration/Backup-Recovery.md). Si le type d’installation est incertain, comparez-le avec les [modes de démarrage](/configuration/Boot-Modes.md) avant de choisir une procédure de réparation.

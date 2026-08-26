@@ -1,3 +1,9 @@
+---
+updated: 2026-08-26
+program_commits:
+    minios-installer: 1b4c3df8b7aad7cec67b30263a6bb3929d98a77c
+---
+
 # Utilizzo di MiniOS Installer
 
 MiniOS Installer è una procedura guidata GTK con backend a riga di comando per il deployment di MiniOS da una sessione live di MiniOS. Installa su un disco di destinazione; non è lo stesso che scrivere un file ISO su un supporto avviabile.

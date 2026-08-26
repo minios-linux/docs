@@ -1,10 +1,14 @@
+---
+updated: 2026-08-26
+---
+
 # Utilisation de Balena Etcher
 
 Balena Etcher est un programme multiplateforme pratique pour écrire des images ISO sur des clés USB. Compatible avec Windows, macOS et Linux.
 
 ## Important
 
-⚠️ **Avertissement :** Une mauvaise sélection du périphérique entraînera une perte de données ! Vérifiez toujours le lecteur sélectionné et sauvegardez vos données importantes.
+**Avertissement :** Une mauvaise sélection du périphérique entraînera une perte de données ! Vérifiez toujours le lecteur sélectionné et sauvegardez vos données importantes.
 
 ## Exigences pour le lecteur
 

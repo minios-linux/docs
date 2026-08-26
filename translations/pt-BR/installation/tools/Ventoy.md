@@ -1,12 +1,16 @@
+---
+updated: 2026-08-26
+---
+
 # Usando o Ventoy
 
 Ventoy é uma ferramenta popular para criar pendrives bootáveis que permite armazenar múltiplos arquivos ISO em um único dispositivo e inicializar a partir de qualquer um deles.
 
 ## Importante
 
-⚠️ **Atenção:** Selecionar o dispositivo incorreto resultará em perda de dados! Sempre confira o drive selecionado e faça backup dos dados importantes.
+**Atenção:** Selecionar o dispositivo incorreto resultará em perda de dados! Sempre confira cuidadosamente o drive selecionado e faça backup dos dados importantes.
 
-⚠️ **Requisito de modo de boot:** Para que o MiniOS funcione corretamente com o Ventoy, você DEVE selecionar o **modo GRUB2** ao inicializar, ou renomear seu arquivo ISO com o sufixo `VTGRUB2` (exemplo: `minios-standard-amd64_VTGRUB2.iso`) para forçar automaticamente o modo GRUB2.
+**Requisito de Modo de Boot:** Para o MiniOS funcionar corretamente com o Ventoy, você DEVE selecionar o **modo GRUB2** ao iniciar, ou renomear seu arquivo ISO com o sufixo `VTGRUB2` (por exemplo, `minios-standard-amd64_VTGRUB2.iso`) para forçar o modo GRUB2 automaticamente.
 
 ## Requisitos do Drive
 
@@ -48,11 +52,11 @@ A persistência só é ativada quando uma entrada de boot ou uma linha de comand
 
 ### Inicialização
 
-Após instalar o Ventoy e copiar o arquivo ISO do MiniOS para o dispositivo:
+Após instalar o Ventoy e copiar o arquivo ISO do MiniOS para o drive:
 
-1. **Inicie pelo pendrive** – selecione-o na BIOS/UEFI
+1. **Inicie pelo pendrive** – selecione-o no BIOS/UEFI
 2. **Selecione o MiniOS** na lista de arquivos ISO disponíveis no menu do Ventoy
-3. **⚠️ IMPORTANTE: Selecione o modo GRUB2** quando solicitado pelo Ventoy
+3. **IMPORTANTE: Selecione o modo GRUB2** quando solicitado pelo Ventoy
 4. **Aguarde o carregamento do MiniOS**
 
 ### **Requisitos de Modo de Boot do Ventoy**

@@ -1,12 +1,16 @@
+---
+updated: 2026-08-26
+---
+
 # Usando Ventoy
 
 Ventoy es una herramienta popular para crear unidades USB booteables que te permite almacenar múltiples archivos ISO en un solo dispositivo y arrancar desde cualquiera de ellos.
 
 ## Importante
 
-⚠️ **Advertencia:** ¡La selección incorrecta del dispositivo resultará en pérdida de datos! Verifica siempre dos veces la unidad seleccionada y haz una copia de seguridad de tus datos importantes.
+**Advertencia:** ¡La selección incorrecta del dispositivo resultará en pérdida de datos! Verifica siempre dos veces la unidad seleccionada y haz una copia de seguridad de los datos importantes.
 
-⚠️ **Requisito de modo de arranque:** Para que MiniOS funcione correctamente con Ventoy, DEBES seleccionar el **modo GRUB2** al arrancar, o renombrar tu archivo ISO con el sufijo `VTGRUB2` (por ejemplo, `minios-standard-amd64_VTGRUB2.iso`) para forzar el modo GRUB2 automáticamente.
+**Requisito de modo de arranque:** Para que MiniOS funcione correctamente con Ventoy, DEBES seleccionar el **modo GRUB2** al arrancar, o renombrar tu archivo ISO con el sufijo `VTGRUB2` (por ejemplo, `minios-standard-amd64_VTGRUB2.iso`) para forzar el modo GRUB2 automáticamente.
 
 ## Requisitos de la unidad
 
@@ -48,12 +52,12 @@ La persistencia solo se activa cuando una entrada de arranque o una línea de co
 
 ### Arranque
 
-Después de instalar Ventoy y copiar el archivo ISO de MiniOS en la unidad:
+Después de instalar Ventoy y copiar el archivo ISO de MiniOS a la unidad:
 
-1. **Arranca desde la unidad USB** - selecciónala en el BIOS/UEFI
+1. **Arranca desde la unidad USB** - selecciónala en la BIOS/UEFI
 2. **Selecciona MiniOS** de la lista de archivos ISO disponibles en el menú de Ventoy
-3. **⚠️ IMPORTANTE: Selecciona el modo GRUB2** cuando Ventoy lo solicite
-4. **Espera a que cargue MiniOS**
+3. **IMPORTANTE: Selecciona el modo GRUB2** cuando Ventoy lo solicite
+4. **Espera a que MiniOS cargue**
 
 ### **Requisitos de modo de arranque de Ventoy**
 

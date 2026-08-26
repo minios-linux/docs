@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Berkas konfigurasi
 
 Media boot MiniOS menyimpan konfigurasi utama di `minios/config.conf`. Saat boot, initramfs menyinkronkannya ke `/etc/live/config.conf` di live root yang telah dirakit. Oleh karena itu, skrip di sistem yang sedang berjalan sebaiknya membaca `/etc/live/config.conf`; `/etc/minios/config.conf` dan `config/config.conf` bukan jalur konfigurasi yang digunakan oleh kode boot saat ini.
@@ -37,34 +41,34 @@ EXPORT_LOGS="false"
 ## Deskripsi Parameter
 
 **Legenda:**
-- 🔒 **Sekali saja** - Diterapkan hanya pada boot pertama, tidak dapat diubah pada boot berikutnya
-- 🔄 **Dapat dikonfigurasi ulang** - Dapat diubah pada setiap boot dan diterapkan kembali
+- **Hanya saat boot pertama** - Diterapkan hanya pada boot pertama dan tidak diterapkan ulang pada boot berikutnya
+- **Ya** - Dapat diubah dan diterapkan ulang setiap kali boot
 
-| Parameter | Dapat dikonfigurasi ulang | Arti | Contoh |
-| --------- | ------------------------ | ----- | ------ |
-| LIVE_CONFIG_CMDLINE | 🔄 | Opsi tambahan live-config. `nottyautologin` disimpan di sini, bukan ditulis langsung pada setiap entri boot. Lihat `man 7 live-config`. | LIVE_CONFIG_CMDLINE="components nottyautologin" |
-| LIVE_HOSTNAME | 🔄 | Nama node yang terhubung dengan sistem. Lihat `man 7 live-config`. | LIVE_HOSTNAME="minios" |
-| LIVE_USERNAME | 🔒 | Nama pengguna yang profilnya akan dibuat pada boot pertama. Jika Anda menentukan username <strong>root</strong>, maka tidak ada profil pengguna yang dibuat, dan login akan dilakukan menggunakan profil <strong>root</strong>. Lihat `man 7 live-config`. | LIVE_USERNAME="live" |
-| LIVE_USER_FULLNAME | 🔒 | Nama lengkap untuk pengguna utama. Lihat `man 7 live-config`. | LIVE_USER_FULLNAME="MiniOS Live User" |
-| LIVE_USER_DEFAULT_GROUPS | 🔒 | Daftar grup untuk pengguna utama, dipisahkan koma. Lihat `man 7 live-config`. | LIVE_USER_DEFAULT_GROUPS="dialout,cdrom,floppy..." |
-| LIVE_USER_PASSWORD_CRYPTED | 🔒 | Password pengguna utama dalam bentuk terenkripsi (hash). Gunakan `mkpasswd -m yescrypt` untuk menghasilkan. Lihat `man 7 live-config`. | LIVE_USER_PASSWORD_CRYPTED='$y$j9T$...' |
-| LIVE_ROOT_PASSWORD_CRYPTED | 🔒 | Password untuk pengguna dengan hak istimewa **root** dalam bentuk terenkripsi (hash). Gunakan `mkpasswd -m yescrypt` untuk menghasilkan. Lihat `man 7 live-config`. | LIVE_ROOT_PASSWORD_CRYPTED='$y$j9T$...' |
-| LIVE_CONFIG_NOROOT | 🔒 | Jika diaktifkan, login akun root dinonaktifkan dan sudo/policykit untuk pengguna juga dinonaktifkan. Lihat `man 7 live-config`. | LIVE_CONFIG_NOROOT="" |
-| LIVE_LOCALES | 🔄 | Mengatur locale. Bisa beberapa nilai, dipisahkan koma. Lihat `man 7 live-config`. | LIVE_LOCALES="en_US.UTF-8" |
-| LIVE_TIMEZONE | 🔄 | Mengatur zona waktu (misal: "Europe/Berlin", "Etc/UTC"). Lihat `man 7 live-config`. | LIVE_TIMEZONE="Etc/UTC" |
-| LIVE_KEYBOARD_MODEL | 🔄 | Mengatur model keyboard (misal: "pc105"). Lihat `man 7 live-config`. | LIVE_KEYBOARD_MODEL="pc105" |
-| LIVE_KEYBOARD_LAYOUTS | 🔄 | Mengatur layout keyboard (dipisahkan koma, misal: "us,de"). Lihat `man 7 live-config`. | LIVE_KEYBOARD_LAYOUTS="us,de" |
-| LIVE_KEYBOARD_OPTIONS | 🔄 | Mengatur opsi keyboard (misal: "grp:alt_shift_toggle,grp_led:scroll"). Lihat `man 7 live-config`. | LIVE_KEYBOARD_OPTIONS="grp:alt_shift_toggle,grp_led:scroll" |
-| LIVE_KEYBOARD_VARIANTS | 🔄 | Mengatur varian keyboard (dipisahkan koma, bisa kosong atau sesuai layout). Lihat `man 7 live-config`. | LIVE_KEYBOARD_VARIANTS="," |
-| LIVE_CONFIG_DEBUG | 🔄 | Mengaktifkan output debug untuk live-config. Lihat `man 7 live-config`. | LIVE_CONFIG_DEBUG="true" |
-| LIVE_LINK_USER_DIRS | 🔄 | Jika true, direktori pengguna akan di-link dari path yang ditentukan. | LIVE_LINK_USER_DIRS="false" |
-| LIVE_BIND_USER_DIRS | 🔄 | Jika true, direktori pengguna akan di-bind-mount dari path yang ditentukan. | LIVE_BIND_USER_DIRS="false" |
-| LIVE_USER_DIRS_PATH | 🔄 | Path ke direktori data pengguna di flash drive. | LIVE_USER_DIRS_PATH="/minios/userdata" |
-| LIVE_MODULE_MODE | 🔄 | Pilih mode operasi sistem. Jika Anda hanya ingin menginstal software lewat modul, gunakan "merged". Jika ingin menginstal software menggunakan apt, gunakan "simple". Default-nya adalah "merged". | LIVE_MODULE_MODE="merged" |
-| DEFAULT_TARGET | 🔄 | Target systemd untuk boot. Lihat `man systemd.special`. | DEFAULT_TARGET="graphical" |
-| ENABLE_SERVICES | 🔄 | Mengaktifkan layanan saat boot (dipisahkan koma). | ENABLE_SERVICES="ssh" |
-| DISABLE_SERVICES | 🔄 | Mematikan layanan saat boot (dipisahkan koma). | DISABLE_SERVICES="" |
-| EXPORT_LOGS | 🔄 | Jika true dan direktori data MiniOS yang dipilih dapat ditulis, log boot akan disalin ke `minios/log/YYYYMMDD_HHMMSS/`. | EXPORT_LOGS="false" |
+| Parameter | Dapat Dikonfigurasi Ulang | Arti | Contoh |
+| --------- | ------------------------ | ----- | ------- |
+| LIVE_CONFIG_CMDLINE | Ya | Opsi tambahan untuk live-config. `nottyautologin` disimpan di sini, bukan di-hardcode pada setiap entri boot. Lihat `man 7 live-config`. | LIVE_CONFIG_CMDLINE="components nottyautologin" |
+| LIVE_HOSTNAME | Ya | Nama node yang terkait dengan sistem. Lihat `man 7 live-config`. | LIVE_HOSTNAME="minios" |
+| LIVE_USERNAME | Hanya saat boot pertama | Nama pengguna yang profilnya akan dibuat pada boot pertama. Jika Anda menentukan username <strong>root</strong>, maka profil pengguna tidak akan dibuat, dan login akan dilakukan menggunakan profil <strong>root</strong>. Lihat `man 7 live-config`. | LIVE_USERNAME="live" |
+| LIVE_USER_FULLNAME | Hanya saat boot pertama | Nama lengkap untuk pengguna utama. Lihat `man 7 live-config`. | LIVE_USER_FULLNAME="MiniOS Live User" |
+| LIVE_USER_DEFAULT_GROUPS | Hanya saat boot pertama | Daftar grup untuk pengguna utama, dipisahkan koma. Lihat `man 7 live-config`. | LIVE_USER_DEFAULT_GROUPS="dialout,cdrom,floppy..." |
+| LIVE_USER_PASSWORD_CRYPTED | Hanya saat boot pertama | Password pengguna utama dalam bentuk terenkripsi (hash). Gunakan `mkpasswd -m yescrypt` untuk menghasilkan. Lihat `man 7 live-config`. | LIVE_USER_PASSWORD_CRYPTED='$y$j9T$...' |
+| LIVE_ROOT_PASSWORD_CRYPTED | Hanya saat boot pertama | Password pengguna dengan hak istimewa **root** dalam bentuk terenkripsi (hash). Gunakan `mkpasswd -m yescrypt` untuk menghasilkan. Lihat `man 7 live-config`. | LIVE_ROOT_PASSWORD_CRYPTED='$y$j9T$...' |
+| LIVE_CONFIG_NOROOT | Hanya saat boot pertama | Jika diatur, login akun root akan dinonaktifkan dan sudo/policykit untuk pengguna juga dinonaktifkan. Lihat `man 7 live-config`. | LIVE_CONFIG_NOROOT="" |
+| LIVE_LOCALES | Ya | Mengatur locale. Beberapa nilai dapat dipisahkan koma. Lihat `man 7 live-config`. | LIVE_LOCALES="en_US.UTF-8" |
+| LIVE_TIMEZONE | Ya | Mengatur zona waktu (misal: "Europe/Berlin", "Etc/UTC"). Lihat `man 7 live-config`. | LIVE_TIMEZONE="Etc/UTC" |
+| LIVE_KEYBOARD_MODEL | Ya | Mengatur model keyboard (misal: "pc105"). Lihat `man 7 live-config`. | LIVE_KEYBOARD_MODEL="pc105" |
+| LIVE_KEYBOARD_LAYOUTS | Ya | Mengatur layout keyboard (dipisahkan koma, misal: "us,de"). Lihat `man 7 live-config`. | LIVE_KEYBOARD_LAYOUTS="us,de" |
+| LIVE_KEYBOARD_OPTIONS | Ya | Mengatur opsi keyboard (misal: "grp:alt_shift_toggle,grp_led:scroll"). Lihat `man 7 live-config`. | LIVE_KEYBOARD_OPTIONS="grp:alt_shift_toggle,grp_led:scroll" |
+| LIVE_KEYBOARD_VARIANTS | Ya | Mengatur varian keyboard (dipisahkan koma, bisa kosong atau sesuai layout). Lihat `man 7 live-config`. | LIVE_KEYBOARD_VARIANTS="," |
+| LIVE_CONFIG_DEBUG | Ya | Mengaktifkan output debug untuk live-config. Lihat `man 7 live-config`. | LIVE_CONFIG_DEBUG="true" |
+| LIVE_LINK_USER_DIRS | Ya | Jika true, direktori pengguna akan di-link dari path yang ditentukan. | LIVE_LINK_USER_DIRS="false" |
+| LIVE_BIND_USER_DIRS | Ya | Jika true, direktori pengguna akan di-bind-mount dari path yang ditentukan. | LIVE_BIND_USER_DIRS="false" |
+| LIVE_USER_DIRS_PATH | Ya | Path ke direktori data pengguna di flash drive. | LIVE_USER_DIRS_PATH="/minios/userdata" |
+| LIVE_MODULE_MODE | Ya | Pilih mode operasi sistem. Jika Anda berencana menginstal software hanya melalui modul, gunakan "merged". Jika ingin menginstal software menggunakan apt, gunakan "simple". Default-nya adalah "merged". | LIVE_MODULE_MODE="merged" |
+| DEFAULT_TARGET | Ya | Target systemd untuk boot. Lihat `man systemd.special`. | DEFAULT_TARGET="graphical" |
+| ENABLE_SERVICES | Ya | Mengaktifkan layanan saat boot (dipisahkan koma). | ENABLE_SERVICES="ssh" |
+| DISABLE_SERVICES | Ya | Mematikan layanan saat boot (dipisahkan koma). | DISABLE_SERVICES="" |
+| EXPORT_LOGS | Ya | Jika true dan direktori data MiniOS yang dipilih dapat ditulis, log boot akan disalin ke `minios/log/YYYYMMDD_HHMMSS/`. | EXPORT_LOGS="false" |
 
 
 **Untuk detail lebih lanjut tentang sebagian besar parameter, lihat:**

@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Сборка MiniOS
 
 В этом руководстве описан полный процесс сборки MiniOS, включая сборку системы, разработку модулей и расширенные параметры конфигурации.
@@ -76,16 +80,6 @@ minios-cmd -d bookworm -a amd64 -de xfce -pv toolbox -c zstd -l en_US -tz "Europ
 
 Подробную информацию смотрите в [документации minios-live](https://github.com/minios-linux/minios-live/blob/master/docs/minios-live.md).
 
-### Оффлайн-документация по справке
-
-`submodules/docs/` — это единый редактируемый источник документации для MiniOS. Перед выпуском `minios-help` обновите встроенную оффлайн-версию с помощью:
-
-```bash
-submodules/minios-help/tools/sync-from-docs.sh
-```
-
-Сгенерированное дерево `submodules/minios-help/share/docs/` коммитится вместе с приложением и используется напрямую исходным пакетом Debian. Обычные сборки образа MiniOS не запускают VitePress, Node.js или синхронизатор документации; они устанавливают уже опубликованный пакет `minios-help` как и любой другой пакет рабочего стола.
-
 ## Структура проекта
 
 Система сборки MiniOS организована следующим образом:
@@ -122,27 +116,27 @@ flowchart TD
     A --> A1[Generate build.conf]
     A1 --> B
 
-    B --> PreCheck{🌐 Internet Check<br/>Network Required}
-    PreCheck -->|❌ No Internet| NetworkFail[❌ Build Cannot Start<br/>• Check network connection<br/>• Verify DNS resolution<br/>• Configure proxy if needed]
-    PreCheck -->|✅ Connected| C1
+    B --> PreCheck{Internet Check<br/>Network Required}
+    PreCheck -->|No Internet| NetworkFail[Build Cannot Start<br/>• Check network connection<br/>• Verify DNS resolution<br/>• Configure proxy if needed]
+    PreCheck -->|Connected| C1
 
     NetworkFail --> PreCheck
 
-    C1[build-bootstrap<br/>📦 Create Base System<br/>• Run debootstrap<br/>• Install core packages<br/>• Setup chroot environment]
+    C1[build-bootstrap<br/>Create Base System<br/>• Run debootstrap<br/>• Install core packages<br/>• Setup chroot environment]
 
-    C1 --> C2[build-chroot<br/>🔧 Configure System<br/>• Install base packages<br/>• Configure settings<br/><br/>]
+    C1 --> C2[build-chroot<br/>Configure System<br/>• Install base packages<br/>• Configure settings<br/><br/>]
 
-    C2 --> C3[build-live<br/>🗜️ Create Core SquashFS<br/>• Compress base system<br/>• Create 00-core.sb module<br/>• Prepare live environment]
+    C2 --> C3[build-live<br/>Create Core SquashFS<br/>• Compress base system<br/>• Create 00-core.sb module<br/>• Prepare live environment]
 
-    C3 --> C4[build-modules<br/>📚 Build Environment Modules<br/>• Process linked modules<br/>• Create SquashFS files<br/>• Apply conditional packages]
+    C3 --> C4[build-modules<br/>Build Environment Modules<br/>• Process linked modules<br/>• Create SquashFS files<br/>• Apply conditional packages]
 
-    C4 --> C5[build-boot<br/>🥾 Prepare Boot System<br/>• Setup GRUB & ISOLINUX<br/>• Create initramfs<br/>• Configure boot parameters]
+    C4 --> C5[build-boot<br/>Prepare Boot System<br/>• Setup GRUB & ISOLINUX<br/>• Create initramfs<br/>• Configure boot parameters]
 
-    C5 --> C6[build-config<br/>⚙️ Generate Boot Configs<br/>• Create menu entries<br/>• Configure live options<br/><br/>]
+    C5 --> C6[build-config<br/>Generate Boot Configs<br/>• Create menu entries<br/>• Configure live options<br/><br/>]
 
-    C6 --> C7[build-iso<br/>💿 Create Final ISO<br/>• Combine all components<br/>• Generate bootable image<br/><br/>]
+    C6 --> C7[build-iso<br/>Create Final ISO<br/>• Combine all components<br/>• Generate bootable image<br/><br/>]
 
-    C7 --> Success([✅ Final ISO Ready<br/>📁 build/iso/])
+    C7 --> Success([Final ISO Ready<br/>build/iso/])
 
     %% Alternative paths
     C1 -.->|Skip to specific stage| C4
@@ -177,13 +171,13 @@ flowchart TD
 
 ### Описание этапов сборки
 
-1. **`build-bootstrap`** — Создание минимальной базовой системы с помощью debootstrap
-2. **`build-chroot`** — Установка пакетов и настройка системы в chroot-окружении
-3. **`build-live`** — Создание основного SquashFS-образа с ядром системы
-4. **`build-modules`** — Сборка дополнительных модулей SquashFS для дополнительного ПО
-5. **`build-boot`** — Подготовка файлов загрузчика и ядра
-6. **`build-config`** — Генерация файлов конфигурации загрузки
-7. **`build-iso`** — Создание финального загрузочного ISO-образа
+1. **`build-bootstrap`** – Создаёт минимальную базовую систему с помощью debootstrap
+2. **`build-chroot`** – Устанавливает пакеты и настраивает систему в окружении chroot
+3. **`build-live`** – Создаёт основной образ SquashFS с ядром системы
+4. **`build-modules`** – Собирает дополнительные модули SquashFS для дополнительного ПО
+5. **`build-boot`** – Подготавливает файлы загрузчика и ядра
+6. **`build-config`** – Генерирует файлы конфигурации загрузки
+7. **`build-iso`** – Создаёт финальный загрузочный ISO-образ
 
 ### Параметры сборки
 
@@ -220,7 +214,7 @@ flowchart TD
 
 Это основной конфигурационный файл, который определяет:
 - **Параметры дистрибутива**: целевой дистрибутив (buster, bookworm, trixie, sid)
-- **Архитектура**: amd64, i386, i386-pae (только для bookworm и ниже; trixie и sid поддерживают только amd64)
+- **Архитектура**: amd64, i386, i386-pae (только для bookworm и более ранних; trixie и sid поддерживают только amd64)
 - **Окружение рабочего стола**: core, flux, xfce, lxqt
 - **Вариант пакетов**: minimum, standard, toolbox, ultra
 - **Сжатие**: xz, lzo, gz, lz4, zstd
@@ -235,10 +229,10 @@ flowchart TD
 
 MiniOS поддерживает различные варианты пакетов, определяющие, какое ПО будет включено:
 
-- **minimum**: Только необходимые пакеты
-- **standard**: Стандартные приложения рабочего стола
+- **minimum**: Только самые необходимые пакеты
+- **standard**: Стандартные приложения для рабочего стола
 - **toolbox**: Инструменты для разработки и расширенные утилиты
-- **ultra**: Полный набор программ с дополнительными приложениями
+- **ultra**: Полный комплект программ с дополнительными приложениями
 
 Выбор пакетов управляется с помощью условных маркеров в файлах `packages.list`:
 ```
@@ -253,7 +247,7 @@ basic-tool +pv=minimum
 
 ### Структура модулей
 
-Система сборки использует пронумерованную структуру модулей, расположенных в `linux-live/scripts/`:
+Система сборки использует пронумерованную структуру модулей, расположенную в `linux-live/scripts/`:
 
 ```
 00-core/          # Base system packages
@@ -275,35 +269,35 @@ basic-tool +pv=minimum
 - **`rootcopy-postinstall/`**: Файлы, копируемые после установки пакетов
 - **`.minios-ownership`**: Необязательный манифест владельцев внутри директории `rootcopy-*` для файлов, которым требуется не-root владелец
 - **`skip_conditions.conf`**: Условия для пропуска сборки модуля
-- **`patches/`**: Патчи, применяемые перед сборкой (недоступно для 00-core)
+- **`patches/`**: Патчи, применяемые до сборки (недоступно для 00-core)
 
-Файлы в `rootcopy-install/` и `rootcopy-postinstall/` копируются как шаблоны сборки. Владение файлами при копировании с хоста не сохраняется; файлы обычно становятся `root:root` в целевом дереве. Если файлу или директории требуется не-root владелец, создайте `.minios-ownership` в соответствующей директории rootcopy:
+Файлы из `rootcopy-install/` и `rootcopy-postinstall/` копируются как шаблоны сборки. Владение файлами при выгрузке из хоста не сохраняется; в целевом дереве файлы обычно становятся `root:root`. Если файлу или директории требуется не-root владелец, создайте `.minios-ownership` в соответствующей директории rootcopy:
 
 ```text
 owner:group relative/path
 ```
 
-Пути указываются относительно этой директории rootcopy. Абсолютные пути и пути с `../` не допускаются. Владелец и группа должны существовать на момент применения манифеста. Если они создаются пакетом, устанавливаемым позже, используйте `rootcopy-postinstall/` или задайте владельца в `install`/`postinstall`.
+Пути указываются относительно этой директории rootcopy. Абсолютные пути и пути с `../` отклоняются. Владелец и группа должны существовать на момент применения манифеста. Если они создаются пакетом, устанавливаемым позже, используйте `rootcopy-postinstall/` или задайте владельца в `install`/`postinstall`.
 
 ### Пример шаблона модуля
 
-Модуль **`10-example/`** служит шаблоном для создания новых модулей. Он содержит:
+Модуль **`10-example/`** служит шаблоном для создания новых модулей. В его составе:
 
 - Полный `packages.list` с примерами условных маркеров
-- Базовый скрипт `install` с правильным использованием condinapt
-- Примеры директорий `rootcopy-install/` и `rootcopy-postinstall/`
-- Документированные комментарии, объясняющие каждый компонент
+- Базовый скрипт `install`, демонстрирующий правильное использование condinapt
+- Примерные директории `rootcopy-install/` и `rootcopy-postinstall/`
+- Документированные комментарии с объяснением каждого компонента
 
-**Для создания нового модуля**: Скопируйте директорию `10-example` и измените её под свои нужды:
+**Чтобы создать новый модуль**: Скопируйте директорию `10-example` и измените её под свои задачи:
 ```bash
 cp -r linux-live/scripts/10-example linux-live/scripts/06-my-module
 ```
 
-Этот шаблон используется во всей документации и является лучшей отправной точкой для пользовательских модулей.
+Этот шаблон используется по всему руководству и является лучшей отправной точкой для собственных модулей.
 
 ### Загрузка модулей на основе окружения
 
-Система модулей работает через конфигурации окружения в `linux-live/environments/`. Каждая директория окружения содержит символические ссылки на модули, которые должны быть включены для данного рабочего стола и варианта пакетов.
+Система модулей работает через конфигурации окружения в `linux-live/environments/`. Каждая директория окружения содержит символические ссылки на модули, которые должны быть включены для выбранного окружения рабочего стола и варианта пакетов.
 
 #### Доступные окружения
 
@@ -349,8 +343,8 @@ linux-live/environments/xfce/
 - Подключает `/minioslib` для общих функций
 - Подключает `/minios_build.conf` для конфигурации сборки
 - Настраивает debconf для автоматической конфигурации пакетов
-- Выполняет пользовательские настройки и модификации файлов
-- Использует цвета консоли для форматирования вывода
+- Выполняет пользовательскую настройку и модификацию файлов
+- Использует цветной вывод в консоли для форматирования
 
 Пример структуры:
 ```bash
@@ -381,11 +375,11 @@ done
 
 ## Управление пакетами с помощью CondinAPT
 
-CondinAPT — это система условной установки пакетов MiniOS, которая управляет выбором пакетов на основе параметров сборки, таких как окружение рабочего стола, дистрибутив и вариант пакетов.
+CondinAPT — это система условной установки пакетов в MiniOS, которая определяет выбор пакетов на основе параметров сборки, таких как окружение рабочего стола, дистрибутив и вариант пакетов.
 
-### Основное использование
+### Основы использования
 
-Каждый модуль содержит файл `packages.list` с условными спецификациями пакетов:
+В каждом модуле есть файл `packages.list` с условными спецификациями пакетов:
 
 ```bash
 # Basic syntax examples
@@ -398,7 +392,7 @@ preferred-pkg || fallback-pkg  # Try first, use second if unavailable
 
 ### Использование CondinAPT в скриптах модулей
 
-Стандартное использование в скриптах установки модулей:
+Стандартный способ использования в скриптах установки модулей:
 
 ```bash
 # Load MiniOS library and install packages
@@ -411,15 +405,15 @@ preferred-pkg || fallback-pkg  # Try first, use second if unavailable
 
 ### Полная документация
 
-Для получения полной документации по CondinAPT, включая расширенный синтаксис, фильтры, очереди приоритетов, режимы отладки и реальные примеры, смотрите: **[CondinAPT.md](/development/CondinAPT.md)**
+Полную документацию по CondinAPT, включая расширенный синтаксис, фильтры, очереди приоритетов, режимы отладки и реальные примеры, смотрите здесь: **[CondinAPT.md](/development/CondinAPT.md)**
 
 ### Часто используемые фильтры условий
 
-- `+pv=variant` — Вариант пакетов (minimum, standard, toolbox, ultra)
-- `+d=distribution` — Дистрибутив (bookworm, trixie, jammy, noble)
-- `+de=desktop` — Окружение рабочего стола (core, flux, xfce, lxqt)
-- `+da=architecture` — Архитектура (amd64, i386)
-- `+dt=type` — Тип дистрибутива (debian, ubuntu)
+- `+pv=variant` – Вариант пакетов (minimum, standard, toolbox, ultra)
+- `+d=distribution` – Дистрибутив (bookworm, trixie, jammy, noble)
+- `+de=desktop` – Окружение рабочего стола (core, flux, xfce, lxqt)
+- `+da=architecture` – Архитектура (amd64, i386)
+- `+dt=type` – Тип дистрибутива (debian, ubuntu)
 
 ## Сборка вашего первого ISO
 
@@ -447,7 +441,7 @@ sudo apt-get install sudo binutils debootstrap squashfs-tools xz-utils lz4 zstd 
 ./minios-live -
 ```
 
-### Кастомизация сборки
+### Настройка своей сборки
 
 1. **Скопируйте и отредактируйте конфигурацию:**
 ```bash
@@ -464,7 +458,7 @@ BUILD_CONF=linux-live/build-custom.conf ./minios-live -
 
 ### Создание пользовательских окружений
 
-Вы можете создать полностью новое окружение рабочего стола, создав новую директорию окружения и настроив соответствующие модули. Вот пример создания окружения GNOME:
+Вы можете создать полностью новое окружение рабочего стола, создав новую директорию окружения и настроив соответствующие модули. Пример создания окружения GNOME:
 
 1. **Создайте директорию окружения:**
 ```bash
@@ -612,9 +606,9 @@ BUILD_CONF=linux-live/build-gnome.conf ./minios-live -
 При создании пользовательских окружений:
 
 - **Базовые модули** (01-03): Обычно одинаковы для всех окружений
-- **Модуль рабочего стола** (04): Содержит основные пакеты и настройки рабочего стола
+- **Модуль рабочего стола** (04): Содержит основные пакеты и настройки окружения рабочего стола
 - **Модуль приложений** (05): Приложения, специфичные для рабочего стола
-- **Дополнительные модули** (06+): Дополнительные пакеты
+- **Необязательные модули** (06+): Дополнительные программные пакеты
 
 **Рекомендации по именованию модулей:**
 - Используйте формат `04-{desktop}-desktop` для основного модуля рабочего стола
@@ -622,9 +616,9 @@ BUILD_CONF=linux-live/build-gnome.conf ./minios-live -
 - Дополнительные модули нумеруйте по порядку (06, 07, 08 и т.д.)
 
 **Конфигурационные особенности:**
-- Для каждого окружения нужны соответствующие условия пропуска в модулях
+- Для каждого окружения нужны соответствующие условия skip в модулях
 - Пакеты, специфичные для рабочего стола, должны использовать условия `+de={environment}`
-- Тестируйте на разных вариантах пакетов (minimum, standard, toolbox, ultra)
+- Тестируйте сборку с разными вариантами пакетов (minimum, standard, toolbox, ultra)
 
 ### Добавление пользовательских модулей
 
@@ -655,18 +649,18 @@ ln -s ../../scripts/06-custom-module linux-live/environments/xfce/06-custom-modu
 ./minios-live build-modules
 ```
 
-## Поиск и устранение неисправностей
+## Устранение неполадок
 
 ### Частые проблемы
 
-1. **Сборка не запускается — требуется интернет-соединение:**
+1. **Сборка не запускается – требуется интернет-соединение:**
    - **Проблема**: `minios-live` при запуске обязательно проверяет наличие интернет-соединения
-   - **Решение**: Убедитесь, что соединение с интернетом стабильно перед запуском сборки
+   - **Решение**: Убедитесь, что интернет-соединение стабильно перед запуском сборки
    - **Проверка**: Проверьте разрешение DNS: `nslookup deb.debian.org`
-   - **Прокси**: Настройте параметры прокси, если находитесь за корпоративным файерволом
-   - **Примечание**: Сборка невозможна без доступа к интернету
+   - **Прокси**: Настройте параметры прокси, если находитесь за корпоративным файрволом
+   - **Примечание**: Без доступа к интернету сборка невозможна
 
-2. **Сборка прерывается на этапе bootstrap:**
+2. **Сборка останавливается на этапе bootstrap:**
    - Проверьте доступность репозиториев целевого дистрибутива
    - Убедитесь, что все зависимости установлены
    - Тест: `wget -q --spider http://deb.debian.org`
@@ -674,23 +668,23 @@ ln -s ../../scripts/06-custom-module linux-live/environments/xfce/06-custom-modu
 3. **Ошибки при сборке модулей:**
    - Проверьте наличие пакетов в целевом дистрибутиве
    - Проверьте синтаксис условных маркеров
-   - Проверьте скрипт установки на наличие ошибок
+   - Проверьте скрипт установки на ошибки
 
 4. **Отсутствуют пакеты:**
    - Проверьте условия condinapt
-   - Проверьте имена пакетов для целевого дистрибутива
+   - Убедитесь в правильности имён пакетов для целевого дистрибутива
    - Проверьте настройки варианта пакетов
 
 5. **Проблемы с загрузкой:**
    - Проверьте конфигурацию GRUB
-   - Проверьте генерацию ядра и initramfs
+   - Убедитесь в генерации ядра и initramfs
    - Проверьте файлы загрузчика
 
 ### Режим отладки
 
-Включите вывод отладки, установив уровень подробности в конфигурации сборки:
+Включите вывод отладочной информации, установив уровень подробности в вашей конфигурации сборки:
 
-**Вариант 1: Редактировать build.conf**
+**Вариант 1: Измените build.conf**
 ```bash
 # Edit linux-live/build.conf and set:
 VERBOSITY_LEVEL=2   # Very verbose output with detailed tracing
@@ -700,7 +694,7 @@ VERBOSITY_LEVEL=1   # Verbose output (default)
 VERBOSITY_LEVEL=0   # Minimal output
 ```
 
-**Вариант 2: Создать пользовательский конфиг с настройками отладки**
+**Вариант 2: Создайте собственный конфиг с параметрами отладки**
 ```bash
 cp linux-live/build.conf linux-live/build-debug.conf
 sed -i 's/VERBOSITY_LEVEL=.*/VERBOSITY_LEVEL=2/' linux-live/build-debug.conf
@@ -721,16 +715,16 @@ BUILD_CONF=linux-live/build-debug.conf ./minios-live -
 ### Файлы журналов
 
 Журналы сборки сохраняются в:
-- `build/log/` — Общие журналы сборки
+- `build/log/` – Общие журналы сборки
 
-### Получение помощи
+### Где получить помощь
 
 - Ознакомьтесь с [официальной вики](https://github.com/minios-linux/minios-live/wiki)
-- Просмотрите существующие обращения на GitHub
-- Присоединяйтесь к форуму сообщества на [minios.dev](https://minios.dev)
+- Просмотрите существующие вопросы на GitHub
+- Присоединяйтесь к сообществу на форуме [minios.dev](https://minios.dev)
 
 ## Связанная документация
 
 - **[Создание модулей](/development/Creating-Modules.md)** — Узнайте, как создавать пользовательские модули SquashFS с дополнительным ПО
 - **[Сборка ISO-образов](/development/Rebuilding-ISO.md)** — Пересоберите существующую систему MiniOS с помощью `minios-image-compose`
-- **[CondinAPT](/development/CondinAPT.md)** — Ознакомьтесь с системой условного управления пакетами, используемой при сборке
+- **[CondinAPT](/development/CondinAPT.md)** — Познакомьтесь с системой условного управления пакетами, используемой при сборке

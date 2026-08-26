@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Copia de seguridad y recuperación
 
 Ninguna copia de seguridad única protege todas las partes de un sistema MiniOS. Los archivos personales, la configuración, las sesiones persistentes, los módulos y el dispositivo de almacenamiento requieren procedimientos de restauración diferentes. Mantén más de una copia, guarda al menos una copia en otro dispositivo y prueba la restauración antes de necesitar el original.

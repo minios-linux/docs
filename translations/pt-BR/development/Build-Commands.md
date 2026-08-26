@@ -1,3 +1,9 @@
+---
+updated: 2026-08-26
+program_commits:
+    minios-live: 039ddd0f3e82651069756370e5f3addebce43984
+---
+
 # Comandos de build
 
 O MiniOS possui duas interfaces de linha de comando para build. Execute os comandos a partir do diretório-fonte `minios-live`, a menos que esteja usando uma cópia instalada.

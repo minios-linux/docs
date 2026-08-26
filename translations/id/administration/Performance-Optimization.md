@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Optimasi Performa
 
 Penyesuaian performa di MiniOS terutama merupakan kompromi antara waktu boot, penggunaan RAM, pembacaan saat runtime, overhead persistensi, dan daya tahan penyimpanan. Untuk detail opsi, makna, dan batasan keamanannya, gunakan [Boot modes](/configuration/Boot-Modes.md), [Initrd module loading](/configuration/Initrd-Module-Loading.md), dan [Initrd persistence](/configuration/Initrd-Persistence.md).

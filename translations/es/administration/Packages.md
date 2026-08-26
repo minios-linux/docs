@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Paquetes y ediciones
 
 El contenido de los paquetes de MiniOS se genera a partir de listas de fuentes condicionales. Varían según la suite de la distribución, la arquitectura, el sistema de inicio, el entorno de escritorio, el idioma, las opciones del kernel y la disponibilidad de los repositorios. Esta página describe la herencia entre ediciones y contenidos representativos; no es una tabla exhaustiva de paquetes por versión.

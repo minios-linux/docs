@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Parametri di avvio
 
 ## Come utilizzare i parametri di avvio

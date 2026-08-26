@@ -1,12 +1,16 @@
+---
+updated: 2026-08-26
+---
+
 # Utilisation de Ventoy
 
 Ventoy est un outil populaire pour créer des clés USB bootables permettant de stocker plusieurs fichiers ISO sur un même support et de démarrer depuis n'importe lequel d'entre eux.
 
 ## Important
 
-⚠️ **Avertissement :** Une mauvaise sélection du périphérique entraînera une perte de données ! Vérifiez toujours attentivement le lecteur sélectionné et sauvegardez vos données importantes.
+**Avertissement :** Une mauvaise sélection du périphérique entraînera une perte de données ! Vérifiez toujours soigneusement le disque sélectionné et sauvegardez vos données importantes.
 
-⚠️ **Exigence du mode de démarrage :** Pour que MiniOS fonctionne correctement avec Ventoy, vous DEVEZ sélectionner le **mode GRUB2** lors du démarrage, ou renommer votre fichier ISO avec le suffixe `VTGRUB2` (ex. : `minios-standard-amd64_VTGRUB2.iso`) pour forcer automatiquement le mode GRUB2.
+**Exigence du mode de démarrage :** Pour que MiniOS fonctionne correctement avec Ventoy, vous DEVEZ sélectionner le **mode GRUB2** lors du démarrage, ou renommer votre fichier ISO avec le suffixe `VTGRUB2` (par exemple, `minios-standard-amd64_VTGRUB2.iso`) pour forcer automatiquement le mode GRUB2.
 
 ## Exigences pour le lecteur
 
@@ -48,12 +52,12 @@ La persistance n’est activée que lorsqu’une entrée de démarrage ou une li
 
 ### Démarrage
 
-Après avoir installé Ventoy et copié le fichier ISO de MiniOS sur la clé :
+Après avoir installé Ventoy et copié le fichier ISO de MiniOS sur le disque :
 
 1. **Démarrez depuis la clé USB** – sélectionnez-la dans le BIOS/UEFI
 2. **Sélectionnez MiniOS** dans la liste des fichiers ISO disponibles dans le menu Ventoy
-3. **⚠️ IMPORTANT : Sélectionnez le mode GRUB2** lorsque Ventoy le demande
-4. **Attendez le chargement de MiniOS**
+3. **IMPORTANT : Sélectionnez le mode GRUB2** lorsque Ventoy vous le demande
+4. **Attendez que MiniOS se charge**
 
 ### **Exigences du mode de démarrage Ventoy**
 

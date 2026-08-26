@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Ottimizzazione delle prestazioni
 
 L’ottimizzazione delle prestazioni in MiniOS è principalmente un bilanciamento tra tempo di avvio, uso della RAM, letture in fase di esecuzione, overhead della persistenza e durabilità dello storage. Per i dettagli sulle opzioni disponibili e i limiti di sicurezza, consulta [Modalità di avvio](/configuration/Boot-Modes.md), [Caricamento moduli Initrd](/configuration/Initrd-Module-Loading.md) e [Persistenza Initrd](/configuration/Initrd-Persistence.md).

@@ -1,10 +1,14 @@
+---
+updated: 2026-08-26
+---
+
 # Utilisation de Rufus (Windows)
 
 Rufus est un utilitaire populaire pour Windows qui permet de formater et de créer des clés USB bootables.
 
 ## Important
 
-⚠️ **Avertissement :** Une mauvaise sélection du périphérique entraînera une perte de données ! Vérifiez toujours le lecteur sélectionné et sauvegardez vos données importantes.
+**Avertissement :** Une sélection incorrecte du périphérique entraînera une perte de données ! Vérifiez toujours soigneusement le lecteur sélectionné et sauvegardez vos données importantes.
 
 ## Exigences pour le lecteur
 
@@ -36,16 +40,16 @@ Rufus propose deux méthodes pour écrire MiniOS sur une clé USB :
 
 ### Méthode 2 : Mode ISO (Alternative)
 
-1. **Lancez Rufus** en tant qu’administrateur
+1. **Lancez Rufus** en tant qu'administrateur
 2. **Sélectionnez la clé USB** dans le champ « Périphérique »
 3. **Sélectionnez le fichier ISO de MiniOS** :
    - Cliquez sur le bouton « SÉLECTIONNER »
-   - Recherchez et sélectionnez le fichier ISO MiniOS téléchargé
-4. **Choisissez le mode d’écriture** :
-   - Dans la boîte de dialogue « Image ISO hybride détectée », sélectionnez **« Écrire en mode image ISO »**
+   - Recherchez et sélectionnez le fichier ISO de MiniOS téléchargé
+4. **Choisissez le mode d'écriture** :
+   - Dans la boîte de dialogue « Image ISO hybride détectée », sélectionnez **« Écrire en mode Image ISO »**
 5. **Configurez les paramètres** :
    - **Système de fichiers** : FAT32 (recommandé) ou NTFS
-   - ⚠️ **Si vous choisissez NTFS** : le démarrage en mode EFI peut ne pas être disponible
+   - **Si vous choisissez NTFS** : le démarrage en mode EFI peut ne pas être disponible
 6. **Démarrez le processus** : cliquez sur le bouton « DÉMARRER »
 7. **Confirmez le formatage** – toutes les données sur le lecteur seront supprimées
 

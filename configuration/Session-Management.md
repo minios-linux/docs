@@ -1,4 +1,12 @@
+---
+updated: 2026-08-26
+program_commits:
+  minios-session-manager: 69436959d893a9870aca23e91b346d06b49eb98d
+  minios-tools: 7cdd0e10c0f610ebc581efa82105b747437a6125
+---
+
 # Session management in MiniOS
+
 
 MiniOS sessions keep changes made to the live system across reboots. Each
 session is a numbered directory under `minios/changes/`; the read-only MiniOS

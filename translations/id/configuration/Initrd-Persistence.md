@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Persistensi Initrd
 
 MiniOS membangun root live dari modul hanya-baca dan satu lapisan atas yang dapat ditulis.
@@ -92,10 +96,14 @@ Mode raw menggunakan image ext4 `changes.img` yang tetap. Image baru akan dialok
 
 ### LUKS
 
-Mode LUKS menggunakan container LUKS2 `changes.luks` dengan ext4 langsung di dalamnya.
-Tersedia hanya jika initrd menyertakan marker dukungan crypt dan tools yang dibutuhkan. Pembuatan meminta input konfirmasi yang cocok. Container yang sudah ada mengizinkan tiga kali percobaan unlock di konsol boot.
+Mode LUKS menggunakan kontainer LUKS2 `changes.luks` dengan ext4 langsung di dalamnya.
+Fitur ini hanya tersedia jika initrd sudah menyertakan penanda dukungan crypt dan
+tools yang dibutuhkan. Saat pembuatan, pengguna diminta memasukkan konfirmasi yang sesuai. Kontainer yang sudah ada memungkinkan tiga kali percobaan membuka kunci di konsol boot.
 
-Initrd melakukan autentikasi sebelum memperbesar file terenkripsi yang ada, lalu mengecek dan memperluas ext4 sebelum mount. Jika pembuatan, unlock, pengecekan, resize, atau mount gagal, MiniOS akan membersihkan mapping dan melanjutkan di RAM. Tidak pernah kembali ke native, DynFileFS, raw, atau persistensi tanpa enkripsi lainnya. Passphrase tidak disimpan di metadata sesi maupun dikirim sebagai argumen perintah. Lihat [Keamanan](../administration/Security-Hardening.md).
+Initrd melakukan autentikasi sebelum memperbesar file terenkripsi yang sudah ada, lalu memeriksa
+dan memperluas ext4 sebelum melakukan mounting. Jika proses pembuatan, membuka kunci, pemeriksaan, perubahan ukuran, atau mounting gagal, MiniOS akan membersihkan pemetaan dan melanjutkan di RAM. Sistem tidak pernah beralih ke native, DynFileFS, raw, atau mode persistensi tidak terenkripsi lainnya.
+Passphrase tidak disimpan di metadata sesi atau dikirimkan sebagai argumen perintah.
+Lihat [Keamanan](/administration/Security-Hardening.md).
 
 ### SquashFS
 
@@ -107,20 +115,50 @@ Sesi yang ditandai `dirty` berarti boot sebelumnya tidak menyelesaikan transisi 
 
 Session Manager dan backend penyimpanan sistem membuat dan mengganti snapshot SquashFS secara atomik menggunakan capture yang persis. Aktivasi boot dapat membaca snapshot yang ada dari penyimpanan FAT, exFAT, atau NTFS yang dapat ditulis karena ekstraksi dilakukan di ext4 upper sementara. Pembuatan dan penyimpanan persis tetap bergantung pada filesystem: area staging privatnya harus mempertahankan link, kepemilikan, mode, xattr, ACL, capabilities, dan union whiteout, sehingga penyimpanan saat ini memerlukan filesystem POSIX yang sesuai. Lihat [Manajemen Sesi](./Session-Management.md).
 
-## Aktivasi Union dan Batas Pemulihan
+## Batas aktivasi union dan pemulihan
 
-Untuk AUFS, root perubahan yang diaktifkan menjadi branch writable nol. Untuk OverlayFS, initrd membangun `upperdir` dan `workdir` di bawah root perubahan yang diaktifkan dan me-mount modul hanya-baca sebagai direktori bawah. Initrd kemudian memverifikasi branch AUFS live atau `upperdir` OverlayFS sebelum mempublikasikan persistensi sebagai aktif.
+Untuk AUFS, root perubahan yang diaktifkan menjadi branch nol yang dapat ditulis. Untuk
+OverlayFS, initrd membangun `upperdir` dan `workdir` di bawah root perubahan yang diaktifkan
+dan me-mount modul read-only sebagai direktori bawah. Initrd
+kemudian memverifikasi branch AUFS live atau OverlayFS `upperdir` sebelum mempublikasikan
+persistensi sebagai aktif.
 
-Jika backend persistensi, pembaruan metadata, atau verifikasi ini gagal, mount akan dibatalkan jika memungkinkan, tidak ada otoritas runtime yang berhasil dipublikasikan, dan boot writable berlanjut di RAM. Kegagalan membangun root union akan masuk ke shell fatal initramfs. Keluar dari shell tersebut dapat membuat setup berlanjut dengan root yang tidak valid; ini bukan perbaikan atau fallback yang aman. AUFS tetap mempertahankan penambahan branch modul best-effort, tetapi union yang tidak lengkap melewati batas pemulihan: MiniOS tidak mempublikasikan otoritas persistensi yang berhasil.
+Jika backend persistensi, pembaruan metadata, atau verifikasi ini gagal, mount
+yang terkait akan dilepas jika memungkinkan, tidak ada otoritas runtime yang berhasil
+dipublikasikan, dan boot writable akan tetap berjalan di RAM. Kegagalan membangun
+union root akan masuk ke shell initramfs fatal. Keluar dari shell tersebut dapat membuat setup
+berlanjut dengan root yang tidak valid; ini bukan perbaikan atau fallback yang aman. AUFS
+mempertahankan penambahan branch modul sebisa mungkin, namun union yang tidak lengkap melewati
+batas pemulihan: MiniOS tidak mempublikasikan otoritas persistensi yang berhasil.
 
-Kegagalan pengecekan container sengaja menghindari pemulihan writable. Simpan sesi dan ikuti [Pemulihan Backup](../administration/Backup-Recovery.md), [Pemulihan DynFileFS](./DynFileFS-Recovery.md), atau [Troubleshooting](../administration/Troubleshooting.md) daripada mengganti file sesi saat boot.
+Kegagalan pemeriksaan kontainer secara sengaja menghindari pemulihan writable. Simpan
+sesi dan ikuti [Pemulihan backup](/administration/Backup-Recovery.md),
+[pemulihan DynFileFS](./DynFileFS-Recovery.md), atau
+[Pemecahan masalah](/administration/Troubleshooting.md) daripada mengganti
+file sesi saat boot.
 
-## Status Aktif, Berjalan, dan Current-Boot
+## Status aktif, berjalan, dan boot saat ini
 
-Dalam metadata sesi yang tahan lama, `default=` adalah sesi **aktif** yang dipilih untuk resume berikutnya, sedangkan `running=` adalah sesi yang dicatat sebagai penyedia boot saat ini. Aktivasi menulis kedua field dan menandai sesi tersebut `dirty`. Setelah mount persistensi menghilang selama shutdown bersih, MiniOS menghapus `running=` dan menandai sesi `clean`.
+Pada metadata sesi yang tahan lama, `default=` adalah sesi **aktif** yang dipilih untuk
+resume berikutnya, sedangkan `running=` adalah sesi yang dicatat sebagai penyedia
+boot saat ini. Aktivasi menulis kedua field dan menandai sesi tersebut `dirty`.
+Setelah mount persistensi menghilang saat shutdown yang bersih, MiniOS
+menghapus `running=` dan menandai sesi sebagai `clean`.
 
-Field metadata tersebut bisa saja usang setelah crash, penulisan metadata gagal, konstruksi union gagal, penyimpanan yang disalin, atau shutdown yang terputus. Konsumen runtime yang perlu mengotorisasi penyimpanan tidak mempercayai `running=` saja. Mereka menggunakan status current-boot yang dilindungi oleh initrd, terikat pada boot ID, sesi numerik, mode, identitas penyimpanan aktual, status writable, durabilitas, dan generasi aktif yang terverifikasi. Catatan current-boot yang gagal atau hilang berarti persistensi tidak boleh diperlakukan sebagai target penyimpanan yang sah.
+Field metadata tersebut bisa saja usang setelah crash, kegagalan penulisan metadata,
+kegagalan konstruksi union, penyalinan store, atau shutdown yang terputus. Konsumen runtime
+yang perlu mengotorisasi penyimpanan tidak hanya mempercayai `running=` saja. Mereka menggunakan
+status boot-saat-ini yang dilindungi oleh initrd, terikat pada boot ID, nomor sesi,
+mode, identitas store yang sebenarnya, status writable, durabilitas, dan generasi aktif yang terverifikasi. Catatan boot-saat-ini yang gagal atau hilang berarti persistensi tidak boleh
+diperlakukan sebagai target penyimpanan yang sah.
 
-Dengan `toram` dan permintaan persistensi yang dikenali, penyimpanan sesi akan disalin ke RAM sebelum aktivasi. Sesi yang disalin dapat writable dan dapat menjadi upper yang berjalan, tetapi status current-boot-nya ditandai non-durable. Perubahan pada salinan RAM tersebut tidak kembali ke perangkat asli dan akan hilang saat shutdown.
+Dengan `toram` dan permintaan persistensi yang dikenali, store sesi akan disalin
+ke RAM sebelum aktivasi. Sesi yang disalin ini bisa writable dan dapat menjadi upper yang berjalan, namun status boot-saat-ininya ditandai sebagai non-durable. Perubahan pada salinan RAM ini tidak akan kembali ke perangkat asli dan akan hilang saat shutdown.
 
-Untuk panduan operasional terkait, lihat [Mode Boot](./Boot-Modes.md), [Parameter Boot](./Boot-Parameters.md), [Manajemen Sesi](./Session-Management.md), [Pemulihan DynFileFS](./DynFileFS-Recovery.md), [Pemulihan Backup](../administration/Backup-Recovery.md), [Keamanan](../administration/Security-Hardening.md), dan [Troubleshooting](../administration/Troubleshooting.md).
+Untuk panduan operasional terkait, lihat [Mode boot](./Boot-Modes.md),
+[Parameter boot](./Boot-Parameters.md),
+[Manajemen sesi](./Session-Management.md),
+[pemulihan DynFileFS](./DynFileFS-Recovery.md),
+[pemulihan backup](/administration/Backup-Recovery.md),
+[Keamanan](/administration/Security-Hardening.md), dan
+[Pemecahan masalah](/administration/Troubleshooting.md).

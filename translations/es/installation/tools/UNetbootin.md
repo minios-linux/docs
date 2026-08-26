@@ -1,10 +1,14 @@
+---
+updated: 2026-08-26
+---
+
 # Usando UNetbootin
 
 UNetbootin es una utilidad de código abierto y multiplataforma que te permite crear unidades USB booteables para varias distribuciones de Linux, incluyendo MiniOS.
 
 ## Importante
 
-⚠️ **Advertencia:** ¡La selección incorrecta del dispositivo resultará en la pérdida de datos! Siempre verifica dos veces la unidad seleccionada y haz una copia de seguridad de la información importante.
+**Advertencia:** ¡La selección incorrecta del dispositivo resultará en la pérdida de datos! Verifica siempre la unidad seleccionada y haz una copia de seguridad de la información importante.
 
 ## Requisitos de la unidad
 

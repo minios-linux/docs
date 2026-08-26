@@ -1,3 +1,7 @@
+---
+updated: 2026-08-26
+---
+
 # Aplicativos e ferramentas MiniOS
 
 O MiniOS inclui ferramentas para configurar, instalar, manter e remasterizar sistemas MiniOS. Use esta página para escolher uma ferramenta e, em seguida, siga o guia vinculado para requisitos, limites de segurança e detalhes dos comandos.
