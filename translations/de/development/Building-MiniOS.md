@@ -37,13 +37,13 @@ MiniOS stellt zwei Hauptwerkzeuge für den Build-Prozess bereit:
 
 ### minios-cmd (Empfohlen)
 
-Ein Kommandozeilen-Tool, das die Konfiguration und den Start des Build-Prozesses vereinfacht. Es bietet eine benutzerfreundliche Oberfläche zur Einstellung verschiedener Build-Parameter:
+Ein Kommandozeilen-Tool, das die Konfiguration und den Start von Builds vereinfacht. Es bietet eine benutzerfreundliche Oberfläche zur Einstellung verschiedener Build-Parameter:
 
-- Ziel-Distribution (buster, bookworm, trixie, etc.)
+- Ziel-Distribution (buster, bookworm, trixie usw.)
 - Architektur (amd64, i386)
 - Desktop-Umgebung (core, flux, xfce, lxqt)
 - Paketvariante (minimum, standard, toolbox, ultra)
-- Kernel-Optionen
+- Kernel-Anbieter, MiniOS-Kernel-Serie, Payload-Modus und optionale DKMS-Builds
 - Locale- und Zeitzoneneinstellungen
 
 **Verwendung:**
@@ -53,6 +53,9 @@ minios-cmd -d bookworm -a amd64 -de xfce -pv standard
 
 # Build with custom options
 minios-cmd -d bookworm -a amd64 -de xfce -pv toolbox -c zstd -l en_US -tz "Europe/Prague"
+
+# Build with the AUFS-enabled MiniOS kernel and optional DKMS drivers
+minios-cmd -d bookworm -a amd64 -de xfce -pv standard -mk -dkms
 ```
 
 Detaillierte Informationen zur Nutzung finden Sie in der [minios-cmd Dokumentation](https://github.com/minios-linux/minios-live/blob/master/docs/minios-cmd.md).
@@ -218,12 +221,19 @@ Dies ist die primäre Konfigurationsdatei, die Folgendes definiert:
 - **Desktop-Umgebung**: core, flux, xfce, lxqt
 - **Paketvariante**: minimum, standard, toolbox, ultra
 - **Komprimierung**: xz, lzo, gz, lz4, zstd
-- **Kernel-Einstellungen**: Typ, AUFS-Unterstützung, DKMS-Kompilierung
-- **Locale-Einstellungen**: Sprache, Zeitzone, Tastaturbelegung
+- **Kernel-Einstellungen**: Distribution- oder MiniOS-Anbieter, MiniOS-Serie, Runtime- oder Full-Payload sowie optionale DKMS-Kompilierung
+- **Locale-Einstellungen**: Sprache, Zeitzone, Tastaturlayout
 
 #### Laufzeitkonfiguration: `minios_build.conf`
 
-Wird während des Build-Prozesses automatisch generiert und enthält laufzeitspezifische Einstellungen für die chroot-Umgebung.
+Wird während des Build-Prozesses automatisch erzeugt und enthält laufzeitspezifische Einstellungen für die chroot-Umgebung.
+
+AUFS wird von `KERNEL_PROVIDER=minios` bereitgestellt; es ist kein separater aktueller
+Kernel-Umschalter. Distributions-Kernel werden mit einem signierten, isolierten APT-
+Paket-Closure bezogen. Ist DKMS aktiviert, werden passende Header zusammen mit dem
+Kernel bezogen und nur während des Baus der externen Module verwendet. Siehe
+[Build-Befehle](/development/Build-Commands.md#kernel-selection) für die
+Frontend-Optionen und Payload-Regeln.
 
 ### Paketvarianten
 
@@ -407,13 +417,13 @@ Standardverwendung in Modul-Installationsskripten:
 
 Umfassende CondinAPT-Dokumentation mit fortgeschrittener Syntax, Filtern, Prioritätswarteschlangen, Debugging-Modi und Praxisbeispielen finden Sie hier: **[CondinAPT.md](/development/CondinAPT.md)**
 
-### Gängige Bedingungsfilter
+### Allgemeine Bedingungsfilter
 
 - `+pv=variant` – Paketvariante (minimum, standard, toolbox, ultra)
 - `+d=distribution` – Distribution (bookworm, trixie, jammy, noble)
 - `+de=desktop` – Desktop-Umgebung (core, flux, xfce, lxqt)
 - `+da=architecture` – Architektur (amd64, i386)
-- `+dt=type` – Distributions-Typ (debian, ubuntu)
+- `+dp=profile` – Paketfamilie (debian, ubuntu)
 
 ## Ihr erstes ISO erstellen
 

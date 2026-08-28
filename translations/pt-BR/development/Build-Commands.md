@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-26
+updated: 2026-08-28
 program_commits:
     minios-live: 039ddd0f3e82651069756370e5f3addebce43984
 ---
@@ -30,9 +30,9 @@ sudo ./minios-cmd -d trixie -a amd64 -de xfce -pv standard
 
 O backend verifica e instala os pré-requisitos do host listados em `linux-live/prerequisites.list`, a menos que `SKIP_SETUP_HOST=true` esteja definido na configuração.
 
-## Builds pelo frontend
+## Builds do frontend
 
-Uma chamada padrão de `minios-cmd` exige as quatro opções de seleção de destino:
+Uma chamada normal de `minios-cmd` exige todas as quatro opções de seleção de destino:
 
 - `-d`, `--distribution`
 - `-a`, `--architecture`
@@ -45,9 +45,35 @@ Por exemplo:
 sudo ./minios-cmd -d trixie -a amd64 -de xfce -pv standard
 ```
 
-Configurações opcionais comuns incluem compressão, comportamento do kernel, localidade, fuso horário, construtor do initramfs, idioma do menu de boot e diretório de build. Verifique `./minios-cmd --help` em vez de presumir que uma opção existe.
+Configurações opcionais comuns incluem compressão, comportamento do kernel, localidade, fuso horário, construtor do initramfs, idioma do menu de boot e diretório de build. Verifique `./minios-cmd --help` em vez de assumir que uma opção existe.
 
-O frontend copia o template de configuração, grava os valores fornecidos do frontend na cópia e invoca `minios-live -`. Por padrão, a cópia de trabalho para este exemplo é:
+### Seleção do kernel
+
+O frontend expõe diretamente as configurações atuais do kernel:
+
+| Opção | Efeito |
+| --- | --- |
+| `-kp`, `--kernel-provider` | Seleciona `distribution` ou `minios` |
+| `-mk`, `--minios-kernel` | Seleciona o kernel do MiniOS com AUFS ativado e seleção automática da série |
+| `-mks`, `--minios-kernel-series` | Seleciona `auto`, `6.1` ou `6.12` e implica o provedor MiniOS |
+| `-kpm`, `--kernel-payload-mode` | Seleciona o payload do módulo de kernel `runtime` ou `full` |
+| `-dkms`, `--kernel-build-dkms` | Compila os drivers DKMS opcionais selecionados para o kernel real |
+
+Por exemplo:
+
+```bash
+sudo ./minios-cmd -d bookworm -a amd64 -de xfce -pv standard \
+  -mks 6.1 -kpm runtime -dkms
+```
+
+O provedor `distribution` resolve um pacote de kernel assinado em um ambiente APT isolado. Quando o DKMS está ativado, esse pacote também fornece headers compatíveis com o kernel selecionado; a etapa posterior do DKMS não os substitui pelo metapacote genérico de headers da distribuição do userspace. Os endpoints normais de arquivos do kernel usam HTTP para que o apt-cacher-ng possa armazenar o conteúdo dos pacotes em cache. O APT ainda valida os metadados assinados `InRelease` e os hashes dos pacotes.
+
+O provedor `minios` instala `linux-image-SERIES-mos-ARCH`, verifica se o kernel tem suporte a AUFS e usa `linux-headers-SERIES-mos-ARCH` para DKMS.
+`KERNEL_FLAVOUR` deve ser `none`, as arquiteturas do pacote de userspace e do kernel devem coincidir, e a política de atualização é congelada. A seleção automática da série usa 6.1 para i386, Buster, Bullseye, Bookworm e Jammy; outros destinos suportados usam 6.12. Kernels MiniOS i386 suportam apenas a série 6.1.
+
+`KERNEL_PAYLOAD_MODE=runtime` publica a árvore de módulos do kernel, configuração do kernel, System.map, metadados de implantação e arquivos de integração de runtime em `modprobe.d`, `modules-load.d` e `udev/rules.d`. São excluídos o banco de dados dpkg em uso, headers, links de build, fontes do DKMS, toolchain do compilador, pacotes initramfs e firmware. O firmware pertence a `02-firmware`. O modo `full` mantém um payload de diagnóstico mais amplo.
+
+O frontend copia o template de configuração, grava os valores fornecidos do frontend na cópia e executa `minios-live -`. Por padrão, a cópia de trabalho para este exemplo é:
 
 ```text
 build/trixie-standard-amd64/build.conf
@@ -60,21 +86,21 @@ sudo ./minios-cmd --config-only \
   -d trixie -a amd64 -de xfce -pv standard
 ```
 
-Sem outro destino, isso grava `build/build.conf`.
+Sem outro destino, isso grava em `build/build.conf`.
 
-`--config-file FILE` seleciona um arquivo de configuração. A ajuda do comando atual informa que todas as outras opções são ignoradas neste modo, portanto, não combine com opções de destino ou ajuste:
+`--config-file FILE` seleciona um arquivo de configuração. A ajuda do comando atual informa que todas as outras opções são ignoradas neste modo, então não combine com opções de destino ou ajuste:
 
 ```bash
 sudo ./minios-cmd --config-file /absolute/path/build-trixie.conf
 ```
 
-No modo de opções do frontend, valores explícitos da linha de comando sobrescrevem os valores correspondentes do template. No modo de arquivo de configuração, trate o arquivo selecionado como entrada da configuração, sem tentar sobrescrevê-lo com outras flags do frontend.
+No modo de opções do frontend, valores explícitos de linha de comando sobrescrevem os valores correspondentes do template. No modo de arquivo de configuração, trate o arquivo selecionado como entrada da configuração em vez de tentar sobrescrevê-lo com outras flags do frontend.
 
 ## Configuração do backend
 
 Em um checkout do código-fonte, `minios-live` lê `linux-live/build.conf` por padrão. Uma cópia instalada usa `/etc/minios-live/build.conf`. O backend carrega o arquivo selecionado antes de calcular os caminhos de destino e não possui flags de linha de comando para sobrescrever configurações individuais.
 
-Selecione outro arquivo usando `BUILD_CONF`. Use um caminho absoluto ao atravessar o limite de `sudo`:
+Selecione um arquivo diferente usando `BUILD_CONF`. Use um caminho absoluto ao cruzar o limite de `sudo`:
 
 ```bash
 sudo env BUILD_CONF=/absolute/path/build-trixie.conf ./minios-live -
@@ -89,11 +115,11 @@ sudo env \
   ./minios-live -
 ```
 
-Não edite arquivos gerados dentro de um diretório de trabalho de destino como substituto para manter a configuração selecionada. Veja `linux-live/build.conf` para opções avançadas de kernel, bootloader, localidade, cache, snapshot, módulos, limpeza e publicação.
+Não edite arquivos gerados em um diretório de trabalho de destino como substituto para manter a configuração selecionada. Veja `linux-live/build.conf` para opções avançadas de kernel, bootloader, localidade, cache, snapshot, módulos, limpeza e publicação.
 
-## Etapas do backend
+## Estágios do backend
 
-As etapas são executadas nesta ordem:
+Os estágios são executados nesta ordem:
 
 1. `build-bootstrap`
 2. `build-chroot`
@@ -104,7 +130,7 @@ As etapas são executadas nesta ordem:
 7. `build-iso`
 8. `remove-sources`
 
-Nomes de etapas com hífen exibidos na ajuda são aceitos pelo script.
+Nomes de estágios com hífen mostrados pela ajuda são aceitos pelo script.
 
 Execute o pipeline completo:
 
@@ -112,7 +138,7 @@ Execute o pipeline completo:
 sudo ./minios-live -
 ```
 
-Execute apenas uma etapa:
+Execute apenas um estágio:
 
 ```bash
 sudo ./minios-live build-iso
@@ -124,13 +150,13 @@ Execute um intervalo inclusivo:
 sudo ./minios-live build-chroot - build-live
 ```
 
-Execute da primeira etapa até uma etapa selecionada:
+Execute do primeiro estágio até um estágio selecionado:
 
 ```bash
 sudo ./minios-live - build-live
 ```
 
-Execute de uma etapa selecionada até a etapa final:
+Execute de um estágio selecionado até o estágio final:
 
 ```bash
 sudo ./minios-live build-modules -
@@ -138,11 +164,11 @@ sudo ./minios-live build-modules -
 
 Esses exemplos de backend usam o destino selecionado na configuração ativa. Para os exemplos desta página, defina `DISTRIBUTION="trixie"`, `DISTRIBUTION_ARCH="amd64"`, `DESKTOP_ENVIRONMENT="xfce"` e `PACKAGE_VARIANT="standard"` primeiro.
 
-## Dependências de etapas
+## Dependências entre estágios
 
-Um comando parcial não recria saídas de etapas anteriores omitidas. Etapas posteriores consomem o sistema de arquivos raiz, módulos SquashFS, arquivos de boot e configuração produzidos por etapas anteriores.
+Um comando parcial não recria saídas de estágios anteriores omitidos. Estágios posteriores consomem o sistema de arquivos raiz, módulos SquashFS, arquivos de boot e configurações produzidas pelos estágios anteriores.
 
-Reconstruir uma etapa anterior pode, portanto, tornar todas as saídas dependentes posteriores desatualizadas. Reconstrua até a última etapa afetada e não mantenha módulos de número superior após alterar um módulo inferior sobre o qual eles foram construídos. Em especial, `build-iso` empacota dados de imagem preparados anteriormente; ele não reconstrói esses dados.
+Reconstruir um estágio anterior pode, portanto, tornar obsoleta toda saída dependente posterior. Reconstrua até o último estágio afetado e não mantenha módulos de número superior após alterar um módulo inferior sobre o qual foram construídos. Em especial, `build-iso` empacota dados de imagem previamente preparados; ele não reconstrói esses dados.
 
 Use um build completo para um novo destino ou quando as saídas anteriores necessárias não existirem:
 
@@ -156,21 +182,21 @@ Com a configuração padrão do checkout e raiz de build, o exemplo trixie utili
 
 - `build/trixie-standard-amd64/core/` para o sistema de arquivos principal mutável
 - `build/trixie-standard-amd64/image/` para a árvore ISO preparada
-- `build/trixie-standard-amd64/image/minios/` para módulos e payload do MiniOS gerados
+- `build/trixie-standard-amd64/image/minios/` para módulos e payload gerados do MiniOS
 - `build/iso/` para arquivos ISO e seus sidecars `.iso.sha256`
 - `build/log/build-YYYYMMDD-HHMMSS.log` para o log de build capturado
 
-Todos os caminhos são relativos a `BUILD_DIR`. Os nomes base dos ISOs incluem configurações de build e, para builds que não sejam de release, um timestamp; utilize o caminho impresso pelo build bem-sucedido em vez de tentar prever o nome completo do arquivo.
+Todos os caminhos são relativos a `BUILD_DIR`. Os nomes base dos ISOs incluem configurações de build e, para builds que não são de release, um timestamp; use o caminho impresso pelo build bem-sucedido em vez de tentar prever o nome completo do arquivo.
 
 ## Tokens do Ubuntu Pro
 
-`--ubuntu-pro-token` habilita o uso do Ubuntu Pro durante um build pelo frontend. O código de build anexa dentro do chroot, depois desanexa e remove o estado do Pro, autenticação de repositório, preferências e rastros de keyring antes de criar a imagem. Essa limpeza não torna o token seguro para exposição no host.
+`--ubuntu-pro-token` ativa o uso do Ubuntu Pro durante um build do frontend. O código de build anexa dentro do chroot, depois remove e limpa o estado Pro, autenticação de repositório, preferências e rastros do keyring antes de criar a imagem. Essa limpeza não torna o token seguro para exposição no host.
 
-Não coloque um token real em documentação, controle de versão, histórico do shell, saída de CI ou linha de comando compartilhada. Prefira um arquivo de configuração privado fora do repositório, restrinja-o apenas ao proprietário e passe apenas o caminho dele:
+Não coloque um token real em documentação, controle de versão, histórico do shell, saída de CI ou linha de comando compartilhada. Prefira um arquivo de configuração privado fora do repositório, restrinja-o ao proprietário e passe apenas o caminho dele:
 
 ```bash
 install -m 600 linux-live/build.conf /private/path/build-trixie.conf
 sudo env BUILD_CONF=/private/path/build-trixie.conf ./minios-live -
 ```
 
-Defina `USE_UBUNTU_PRO="true"` e `UBUNTU_PRO_TOKEN="..."` nesse arquivo privado. Proteja e remova qualquer configuração de trabalho no host que contenha o token quando não for mais necessário e verifique se nenhum token ou dado de autenticação Pro está presente em artefatos publicados.
+Defina `USE_UBUNTU_PRO="true"` e `UBUNTU_PRO_TOKEN="..."` nesse arquivo privado. Proteja e remova qualquer configuração de trabalho no host que contenha o token quando não for mais necessária e verifique se nenhum token ou dado de autenticação Pro está presente em artefatos publicados.

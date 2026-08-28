@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-26
+updated: 2026-08-28
 program_commits:
     minios-live: 039ddd0f3e82651069756370e5f3addebce43984
 ---
@@ -57,12 +57,14 @@ XX-module-name/
 ```text
 d=DISTRIBUTION
 da=DISTRIBUTION_ARCH
-dt=DISTRIBUTION_TYPE
+dp=DISTRIBUTION_PROFILE
+is=INIT_SYSTEM
 de=DESKTOP_ENVIRONMENT
 pv=PACKAGE_VARIANT
 ik=INSTALL_KERNEL
 kf=KERNEL_FLAVOUR
-ka=KERNEL_AUFS
+kp=KERNEL_PROVIDER
+kc=KERNEL_CAPABILITIES
 kbd=KERNEL_BUILD_DKMS
 ib=INITRAMFS_BUILDER
 lo=LOCALE
@@ -79,7 +81,9 @@ kl=KEEP_LOCALES
 - `PACKAGE_VARIANT` – Paketvariante (minimum, standard, toolbox, ultra)
 - `INSTALL_KERNEL` – Kernel-Paket installieren (true/false)
 - `KERNEL_FLAVOUR` – Kernel-Variante (none, rt, cloud)
-- `KERNEL_AUFS` – AUFS-Unterstützung (true/false)
+- `KERNEL_PROVIDER` – Kernel-Paket-Provider (distribution, minios)
+- `MINIOS_KERNEL_SERIES` – MiniOS-Kernel-Serie (auto, 6.1, 6.12)
+- `KERNEL_PAYLOAD_MODE` – Kernel-Payload-Modus (runtime, full)
 - `KERNEL_BUILD_DKMS` – DKMS-Module bauen (true/false)
 - `INITRAMFS_BUILDER` – Initramfs-Builder (livekit, dracut)
 - `LOCALE` – System-Locale (C, en_US, ru_RU, es_ES, pt_BR)
@@ -87,10 +91,15 @@ kl=KEEP_LOCALES
 - `KEEP_LOCALES` – Locales beibehalten (true/false)
 
 **Automatisch berechnete Variablen (aus `minioslib`):**
-- `DISTRIBUTION_TYPE` – Distributionstyp (debian, ubuntu) – wird automatisch anhand von `DISTRIBUTION` bestimmt
-  - `legacy`: stretch, buster, orel, bionic
-  - `current`: bullseye, bookworm, focal, jammy, noble
-  - `future`: trixie, kali-rolling, sid
+- `DISTRIBUTION_PROFILE` – Paketfamilie (debian oder ubuntu)
+- `INIT_SYSTEM` – Init-System für das Ziel (systemd oder sysvinit)
+
+`KERNEL_CAPABILITIES` unterscheidet sich von den normalen `build.conf`-Variablen. Das
+`01-kernel`-Build-Skript erstellt dieses Array, nachdem der ausgewählte Kernel
+installiert und geprüft wurde. CondinAPT verwendet `kc` als exakten Array-Mitgliedschaftsfilter
+bei der Auswahl optionaler Build-Tools und DKMS-Pakete. Aktuelle Werte
+beinhalten `aufs`, `ntfs3`, `btf_modules` sowie die unterstützten In-Tree-`rtw88_*`
+Treiber.
 
 ## Verwendung in Modulen
 
@@ -167,16 +176,17 @@ language-pack-fr +lo=fr_FR
 
 **`packages.list`:**
 ```text
-# DKMS modules with kernel and distribution conditions
-ntfs3-dkms -ka=true -d=buster -d=trixie -d=sid
+# Kernel build tools and DKMS modules selected from actual kernel capabilities
+pahole +kc=btf_modules || dwarves +kc=btf_modules
+ntfs3-dkms -kc=ntfs3
 zfs-dkms +{pv=toolbox|pv=ultra} +da=amd64 +kbd=true -kf=none
 
-# Drivers for old systems
-broadcom-sta-dkms -d=jammy -ka=true -da=i386
-aufs-dkms +dt=debian +d=buster
+# Distribution filters remain where package availability or compatibility requires them
+broadcom-sta-dkms -d=jammy -da=i386
+aufs-dkms +dp=debian +d=buster +d=beowulf -kc=aufs
 
-# Exclusion for new distributions
-realtek-rtl8821cu-dkms -d=trixie -d=sid
+# Do not build a vendor driver already provided by the selected kernel
+realtek-rtl8821cu-dkms -kc=rtw88_8821cu
 firmware-b43-installer -d=bionic
 
 # Complex alternatives with filters
@@ -184,9 +194,9 @@ exfatprogs -pv=minimum || exfat-utils -pv=minimum && exfat-fuse -pv=minimum
 
 # Localization with exclusions and conditions
 vlc-l10n -lo=en_US +{pv=toolbox|pv=ultra}
-language-pack-gnome-ru-base +lo=ru_RU +dt=ubuntu
-language-pack-gnome-ru-base +ml=true +dt=ubuntu
-language-pack-gnome-ru-base +kl=true +dt=ubuntu
+language-pack-gnome-ru-base +lo=ru_RU +dp=ubuntu
+language-pack-gnome-ru-base +ml=true +dp=ubuntu
+language-pack-gnome-ru-base +kl=true +dp=ubuntu
 ```
 
 ### Optimierung für MiniOS
@@ -240,6 +250,8 @@ fi
 ```
 
 ---
+
+
 
 
 

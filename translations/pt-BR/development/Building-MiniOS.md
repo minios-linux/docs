@@ -37,13 +37,13 @@ O MiniOS oferece duas principais ferramentas para compilação:
 
 ### minios-cmd (Recomendado)
 
-Uma ferramenta de linha de comando que simplifica a configuração e o início das compilações. Oferece uma interface amigável para definir vários parâmetros de compilação:
+Uma ferramenta de linha de comando que simplifica a configuração e a inicialização de builds. Oferece uma interface amigável para definir vários parâmetros de build:
 
-- Distribuição alvo (buster, bookworm, trixie, etc.)
+- Distribuição de destino (buster, bookworm, trixie, etc.)
 - Arquitetura (amd64, i386)
-- Ambiente desktop (core, flux, xfce, lxqt)
-- Variante de pacotes (minimum, standard, toolbox, ultra)
-- Opções do kernel
+- Ambiente de desktop (core, flux, xfce, lxqt)
+- Variante de pacote (minimum, standard, toolbox, ultra)
+- Provedor do kernel, série do kernel MiniOS, modo de payload e builds opcionais com DKMS
 - Configurações de localidade e fuso horário
 
 **Uso:**
@@ -53,6 +53,9 @@ minios-cmd -d bookworm -a amd64 -de xfce -pv standard
 
 # Build with custom options
 minios-cmd -d bookworm -a amd64 -de xfce -pv toolbox -c zstd -l en_US -tz "Europe/Prague"
+
+# Build with the AUFS-enabled MiniOS kernel and optional DKMS drivers
+minios-cmd -d bookworm -a amd64 -de xfce -pv standard -mk -dkms
 ```
 
 Para informações detalhadas de uso, consulte a [documentação do minios-cmd](https://github.com/minios-linux/minios-live/blob/master/docs/minios-cmd.md).
@@ -213,17 +216,21 @@ flowchart TD
 #### Configuração Principal: `linux-live/build.conf`
 
 Este é o arquivo de configuração principal que define:
-- **Configurações da distribuição**: Distribuição alvo (buster, bookworm, trixie, sid)
-- **Arquitetura**: amd64, i386, i386-pae (apenas bookworm e anteriores; trixie e sid suportam apenas amd64)
+- **Configurações de distribuição**: Distribuição de destino (buster, bookworm, trixie, sid)
+- **Arquitetura**: amd64, i386, i386-pae (apenas para bookworm e anteriores; trixie e sid suportam apenas amd64)
 - **Ambiente de desktop**: core, flux, xfce, lxqt
 - **Variante de pacote**: minimum, standard, toolbox, ultra
 - **Compressão**: xz, lzo, gz, lz4, zstd
-- **Configurações do kernel**: tipo, suporte a AUFS, compilação DKMS
+- **Configurações do kernel**: provedor de distribuição ou MiniOS, série MiniOS, payload em tempo de execução ou completo, e compilação opcional com DKMS
 - **Configurações de localidade**: idioma, fuso horário, layout do teclado
 
-#### Configuração de Runtime: `minios_build.conf`
+#### Configuração de Execução: `minios_build.conf`
 
-Gerado automaticamente durante o processo de build e contém configurações específicas de runtime para o ambiente chroot.
+Gerado automaticamente durante o processo de build e contém configurações específicas de execução para o ambiente chroot.
+
+AUFS é fornecido por `KERNEL_PROVIDER=minios`; não é uma opção separada do kernel atual.
+Os kernels das distribuições são obtidos com um fechamento de pacote APT assinado e isolado. Se o DKMS estiver ativado, os headers correspondentes são obtidos junto com o kernel e usados apenas durante a compilação dos módulos externos. Veja
+[Comandos de build](/development/Build-Commands.md#kernel-selection) para as opções do frontend e regras de payload.
 
 ### Variantes de Pacotes
 
@@ -407,13 +414,13 @@ Uso padrão em scripts de instalação de módulos:
 
 Para uma documentação abrangente do CondinAPT incluindo sintaxe avançada, filtros, filas de prioridade, modos de depuração e exemplos reais, consulte: **[CondinAPT.md](/development/CondinAPT.md)**
 
-### Filtros de Condição Comuns
+### Filtros Comuns de Condição
 
 - `+pv=variant` - Variante de pacote (minimum, standard, toolbox, ultra)
 - `+d=distribution` - Distribuição (bookworm, trixie, jammy, noble)
 - `+de=desktop` - Ambiente de desktop (core, flux, xfce, lxqt)
 - `+da=architecture` - Arquitetura (amd64, i386)
-- `+dt=type` - Tipo de distribuição (debian, ubuntu)
+- `+dp=profile` - Família de pacotes (debian, ubuntu)
 
 ## Construindo Sua Primeira ISO
 

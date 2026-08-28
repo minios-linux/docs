@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-26
+updated: 2026-08-28
 program_commits:
     minios-live: 039ddd0f3e82651069756370e5f3addebce43984
 ---
@@ -57,12 +57,14 @@ XX-module-name/
 ```text
 d=DISTRIBUTION
 da=DISTRIBUTION_ARCH
-dt=DISTRIBUTION_TYPE
+dp=DISTRIBUTION_PROFILE
+is=INIT_SYSTEM
 de=DESKTOP_ENVIRONMENT
 pv=PACKAGE_VARIANT
 ik=INSTALL_KERNEL
 kf=KERNEL_FLAVOUR
-ka=KERNEL_AUFS
+kp=KERNEL_PROVIDER
+kc=KERNEL_CAPABILITIES
 kbd=KERNEL_BUILD_DKMS
 ib=INITRAMFS_BUILDER
 lo=LOCALE
@@ -72,25 +74,27 @@ kl=KEEP_LOCALES
 
 ### Variabili di configurazione di MiniOS
 
-**Variabili principali da `build.conf`:**
+**Principali variabili da `build.conf`:**
 - `DISTRIBUTION` - distribuzione di destinazione (bookworm, trixie, jammy, noble)
 - `DISTRIBUTION_ARCH` - architettura (amd64, i386, i386-pae)
 - `DESKTOP_ENVIRONMENT` - ambiente desktop (core, flux, xfce, lxqt)
 - `PACKAGE_VARIANT` - variante del pacchetto (minimum, standard, toolbox, ultra)
 - `INSTALL_KERNEL` - installa il pacchetto kernel (true/false)
-- `KERNEL_FLAVOUR` - flavour del kernel (none, rt, cloud)
-- `KERNEL_AUFS` - supporto AUFS (true/false)
-- `KERNEL_BUILD_DKMS` - build dei moduli DKMS (true/false)
-- `INITRAMFS_BUILDER` - builder initramfs (livekit, dracut)
+- `KERNEL_FLAVOUR` - tipo di kernel (none, rt, cloud)
+- `KERNEL_PROVIDER` - fornitore del pacchetto kernel (distribution, minios)
+- `MINIOS_KERNEL_SERIES` - serie kernel MiniOS (auto, 6.1, 6.12)
+- `KERNEL_PAYLOAD_MODE` - modalità payload kernel (runtime, full)
+- `KERNEL_BUILD_DKMS` - compila moduli DKMS (true/false)
+- `INITRAMFS_BUILDER` - generatore initramfs (livekit, dracut)
 - `LOCALE` - locale di sistema (C, en_US, ru_RU, es_ES, pt_BR)
 - `MULTILINGUAL` - supporto multilingua (true/false)
-- `KEEP_LOCALES` - mantieni le locali (true/false)
+- `KEEP_LOCALES` - mantieni le localizzazioni (true/false)
 
 **Variabili calcolate automaticamente (da `minioslib`):**
-- `DISTRIBUTION_TYPE` - tipo di distribuzione (debian, ubuntu) - determinato automaticamente in base a `DISTRIBUTION`
-  - `legacy`: stretch, buster, orel, bionic
-  - `current`: bullseye, bookworm, focal, jammy, noble
-  - `future`: trixie, kali-rolling, sid
+- `DISTRIBUTION_PROFILE` - famiglia del pacchetto (debian o ubuntu)
+- `INIT_SYSTEM` - sistema di init selezionato per la destinazione (systemd o sysvinit)
+
+`KERNEL_CAPABILITIES` è diversa dalle normali variabili `build.conf`. Lo script di build `01-kernel` crea questo array dopo che il kernel selezionato è stato installato e analizzato. CondinAPT utilizza `kc` come filtro esatto di appartenenza all’array durante la selezione degli strumenti di build opzionali e dei pacchetti DKMS. I valori attuali includono `aufs`, `ntfs3`, `btf_modules` e i driver in-tree supportati `rtw88_*`.
 
 ## Utilizzo nei moduli
 
@@ -167,16 +171,17 @@ language-pack-fr +lo=fr_FR
 
 **`packages.list`:**
 ```text
-# DKMS modules with kernel and distribution conditions
-ntfs3-dkms -ka=true -d=buster -d=trixie -d=sid
+# Kernel build tools and DKMS modules selected from actual kernel capabilities
+pahole +kc=btf_modules || dwarves +kc=btf_modules
+ntfs3-dkms -kc=ntfs3
 zfs-dkms +{pv=toolbox|pv=ultra} +da=amd64 +kbd=true -kf=none
 
-# Drivers for old systems
-broadcom-sta-dkms -d=jammy -ka=true -da=i386
-aufs-dkms +dt=debian +d=buster
+# Distribution filters remain where package availability or compatibility requires them
+broadcom-sta-dkms -d=jammy -da=i386
+aufs-dkms +dp=debian +d=buster +d=beowulf -kc=aufs
 
-# Exclusion for new distributions
-realtek-rtl8821cu-dkms -d=trixie -d=sid
+# Do not build a vendor driver already provided by the selected kernel
+realtek-rtl8821cu-dkms -kc=rtw88_8821cu
 firmware-b43-installer -d=bionic
 
 # Complex alternatives with filters
@@ -184,9 +189,9 @@ exfatprogs -pv=minimum || exfat-utils -pv=minimum && exfat-fuse -pv=minimum
 
 # Localization with exclusions and conditions
 vlc-l10n -lo=en_US +{pv=toolbox|pv=ultra}
-language-pack-gnome-ru-base +lo=ru_RU +dt=ubuntu
-language-pack-gnome-ru-base +ml=true +dt=ubuntu
-language-pack-gnome-ru-base +kl=true +dt=ubuntu
+language-pack-gnome-ru-base +lo=ru_RU +dp=ubuntu
+language-pack-gnome-ru-base +ml=true +dp=ubuntu
+language-pack-gnome-ru-base +kl=true +dp=ubuntu
 ```
 
 ### Ottimizzazione per MiniOS
@@ -240,6 +245,9 @@ fi
 ```
 
 ---
+
+
+
 
 
 

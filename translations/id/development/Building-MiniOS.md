@@ -37,14 +37,14 @@ MiniOS menyediakan dua alat utama untuk proses build:
 
 ### minios-cmd (Direkomendasikan)
 
-Utilitas command-line yang memudahkan konfigurasi dan inisiasi build. Alat ini menyediakan antarmuka yang ramah pengguna untuk mengatur berbagai parameter build:
+Utilitas baris perintah yang memudahkan konfigurasi dan inisiasi proses build. Alat ini menyediakan antarmuka yang ramah pengguna untuk mengatur berbagai parameter build:
 
 - Distribusi target (buster, bookworm, trixie, dll.)
 - Arsitektur (amd64, i386)
 - Lingkungan desktop (core, flux, xfce, lxqt)
 - Varian paket (minimum, standard, toolbox, ultra)
-- Opsi kernel
-- Pengaturan lokal dan zona waktu
+- Penyedia kernel, seri kernel MiniOS, mode payload, dan opsi build DKMS
+- Pengaturan locale dan zona waktu
 
 **Penggunaan:**
 ```bash
@@ -53,6 +53,9 @@ minios-cmd -d bookworm -a amd64 -de xfce -pv standard
 
 # Build with custom options
 minios-cmd -d bookworm -a amd64 -de xfce -pv toolbox -c zstd -l en_US -tz "Europe/Prague"
+
+# Build with the AUFS-enabled MiniOS kernel and optional DKMS drivers
+minios-cmd -d bookworm -a amd64 -de xfce -pv standard -mk -dkms
 ```
 
 Untuk informasi penggunaan lebih detail, lihat [dokumentasi minios-cmd](https://github.com/minios-linux/minios-live/blob/master/docs/minios-cmd.md).
@@ -218,12 +221,15 @@ Ini adalah file konfigurasi utama yang mendefinisikan:
 - **Lingkungan desktop**: core, flux, xfce, lxqt
 - **Varian paket**: minimum, standard, toolbox, ultra
 - **Kompresi**: xz, lzo, gz, lz4, zstd
-- **Pengaturan kernel**: tipe, dukungan AUFS, kompilasi DKMS
-- **Pengaturan lokal**: bahasa, zona waktu, tata letak keyboard
+- **Pengaturan kernel**: penyedia distribusi atau MiniOS, seri MiniOS, payload runtime atau full, dan opsi kompilasi DKMS
+- **Pengaturan locale**: bahasa, zona waktu, tata letak keyboard
 
 #### Konfigurasi Runtime: `minios_build.conf`
 
 Dibuat secara otomatis selama proses build dan berisi pengaturan khusus runtime untuk lingkungan chroot.
+
+AUFS disediakan oleh `KERNEL_PROVIDER=minios`; ini bukan toggle kernel terpisah saat ini.
+Kernel distribusi didapatkan dengan paket APT yang terisolasi dan ditandatangani. Jika DKMS diaktifkan, header yang sesuai akan diambil bersama kernel dan hanya digunakan saat modul eksternal dibangun. Lihat [Perintah Build](/development/Build-Commands.md#kernel-selection) untuk opsi frontend dan aturan payload.
 
 ### Varian Paket
 
@@ -413,7 +419,7 @@ Untuk dokumentasi CondinAPT yang komprehensif termasuk sintaks lanjutan, filter,
 - `+d=distribution` - Distribusi (bookworm, trixie, jammy, noble)
 - `+de=desktop` - Lingkungan desktop (core, flux, xfce, lxqt)
 - `+da=architecture` - Arsitektur (amd64, i386)
-- `+dt=type` - Tipe distribusi (debian, ubuntu)
+- `+dp=profile` - Keluarga paket (debian, ubuntu)
 
 ## Membangun ISO Pertama Anda
 

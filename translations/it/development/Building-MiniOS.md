@@ -37,13 +37,13 @@ MiniOS fornisce due strumenti principali per la compilazione:
 
 ### minios-cmd (Consigliato)
 
-Un'utility da linea di comando che semplifica la configurazione e l'avvio delle build. Offre un'interfaccia intuitiva per impostare vari parametri di compilazione:
+Un'utilità da riga di comando che semplifica la configurazione e l'avvio delle build. Offre un'interfaccia intuitiva per impostare vari parametri di build:
 
 - Distribuzione di destinazione (buster, bookworm, trixie, ecc.)
 - Architettura (amd64, i386)
 - Ambiente desktop (core, flux, xfce, lxqt)
 - Variante pacchetti (minimum, standard, toolbox, ultra)
-- Opzioni del kernel
+- Fornitore kernel, serie kernel MiniOS, modalità payload e build DKMS opzionali
 - Impostazioni di lingua e fuso orario
 
 **Utilizzo:**
@@ -53,6 +53,9 @@ minios-cmd -d bookworm -a amd64 -de xfce -pv standard
 
 # Build with custom options
 minios-cmd -d bookworm -a amd64 -de xfce -pv toolbox -c zstd -l en_US -tz "Europe/Prague"
+
+# Build with the AUFS-enabled MiniOS kernel and optional DKMS drivers
+minios-cmd -d bookworm -a amd64 -de xfce -pv standard -mk -dkms
 ```
 
 Per informazioni dettagliate sull'utilizzo, consulta la [documentazione di minios-cmd](https://github.com/minios-linux/minios-live/blob/master/docs/minios-cmd.md).
@@ -218,12 +221,16 @@ Questo è il file di configurazione principale che definisce:
 - **Ambiente desktop**: core, flux, xfce, lxqt
 - **Variante pacchetti**: minimum, standard, toolbox, ultra
 - **Compressione**: xz, lzo, gz, lz4, zstd
-- **Impostazioni kernel**: tipo, supporto AUFS, compilazione DKMS
+- **Impostazioni kernel**: fornitore della distribuzione o MiniOS, serie MiniOS, payload runtime o completo, e compilazione DKMS opzionale
 - **Impostazioni locali**: lingua, fuso orario, layout tastiera
 
 #### Configurazione runtime: `minios_build.conf`
 
-Generato automaticamente durante il processo di build e contiene le impostazioni specifiche di runtime per l'ambiente chroot.
+Generato automaticamente durante il processo di build e contiene impostazioni specifiche per l'ambiente chroot in fase di esecuzione.
+
+AUFS è fornito da `KERNEL_PROVIDER=minios`; non è un'opzione kernel separata e attuale.
+I kernel della distribuzione vengono acquisiti tramite una chiusura di pacchetti APT firmata e isolata. Se DKMS è abilitato, le intestazioni corrispondenti vengono acquisite insieme al kernel e utilizzate solo durante la compilazione dei moduli esterni. Consulta
+[Comandi di build](/development/Build-Commands.md#kernel-selection) per le opzioni del frontend e le regole del payload.
 
 ### Varianti di pacchetto
 
@@ -407,13 +414,13 @@ Utilizzo standard negli script di installazione dei moduli:
 
 Per la documentazione completa di CondinAPT, inclusa sintassi avanzata, filtri, code di priorità, modalità di debug ed esempi reali, consulta: **[CondinAPT.md](/development/CondinAPT.md)**
 
-### Filtri condizionali comuni
+### Filtri di condizione comuni
 
-- `+pv=variant` - Variante di pacchetto (minimum, standard, toolbox, ultra)
+- `+pv=variant` - Variante pacchetti (minimum, standard, toolbox, ultra)
 - `+d=distribution` - Distribuzione (bookworm, trixie, jammy, noble)
 - `+de=desktop` - Ambiente desktop (core, flux, xfce, lxqt)
 - `+da=architecture` - Architettura (amd64, i386)
-- `+dt=type` - Tipo di distribuzione (debian, ubuntu)
+- `+dp=profile` - Famiglia pacchetti (debian, ubuntu)
 
 ## Creare la tua prima ISO
 

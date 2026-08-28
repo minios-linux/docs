@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-26
+updated: 2026-08-28
 program_commits:
     minios-live: 039ddd0f3e82651069756370e5f3addebce43984
 ---
@@ -57,12 +57,14 @@ XX-module-name/
 ```text
 d=DISTRIBUTION
 da=DISTRIBUTION_ARCH
-dt=DISTRIBUTION_TYPE
+dp=DISTRIBUTION_PROFILE
+is=INIT_SYSTEM
 de=DESKTOP_ENVIRONMENT
 pv=PACKAGE_VARIANT
 ik=INSTALL_KERNEL
 kf=KERNEL_FLAVOUR
-ka=KERNEL_AUFS
+kp=KERNEL_PROVIDER
+kc=KERNEL_CAPABILITIES
 kbd=KERNEL_BUILD_DKMS
 ib=INITRAMFS_BUILDER
 lo=LOCALE
@@ -73,13 +75,15 @@ kl=KEEP_LOCALES
 ### Variáveis de Configuração do MiniOS
 
 **Principais variáveis de `build.conf`:**
-- `DISTRIBUTION` - distribuição alvo (bookworm, trixie, jammy, noble)
+- `DISTRIBUTION` - distribuição de destino (bookworm, trixie, jammy, noble)
 - `DISTRIBUTION_ARCH` - arquitetura (amd64, i386, i386-pae)
 - `DESKTOP_ENVIRONMENT` - ambiente de desktop (core, flux, xfce, lxqt)
-- `PACKAGE_VARIANT` - variante do pacote (minimum, standard, toolbox, ultra)
+- `PACKAGE_VARIANT` - variante de pacote (minimum, standard, toolbox, ultra)
 - `INSTALL_KERNEL` - instalar pacote do kernel (true/false)
 - `KERNEL_FLAVOUR` - flavor do kernel (none, rt, cloud)
-- `KERNEL_AUFS` - suporte a AUFS (true/false)
+- `KERNEL_PROVIDER` - provedor do pacote do kernel (distribution, minios)
+- `MINIOS_KERNEL_SERIES` - série do kernel MiniOS (auto, 6.1, 6.12)
+- `KERNEL_PAYLOAD_MODE` - modo de payload do kernel (runtime, full)
 - `KERNEL_BUILD_DKMS` - compilar módulos DKMS (true/false)
 - `INITRAMFS_BUILDER` - construtor do initramfs (livekit, dracut)
 - `LOCALE` - localidade do sistema (C, en_US, ru_RU, es_ES, pt_BR)
@@ -87,10 +91,11 @@ kl=KEEP_LOCALES
 - `KEEP_LOCALES` - manter localidades (true/false)
 
 **Variáveis calculadas automaticamente (de `minioslib`):**
-- `DISTRIBUTION_TYPE` - tipo de distribuição (debian, ubuntu) - determinado automaticamente com base em `DISTRIBUTION`
-  - `legacy`: stretch, buster, orel, bionic
-  - `current`: bullseye, bookworm, focal, jammy, noble
-  - `future`: trixie, kali-rolling, sid
+- `DISTRIBUTION_PROFILE` - família de pacotes (debian ou ubuntu)
+- `INIT_SYSTEM` - sistema de inicialização selecionado para o destino (systemd ou sysvinit)
+
+`KERNEL_CAPABILITIES` é diferente das variáveis normais `build.conf`. O script de build
+`01-kernel` cria esse array após o kernel selecionado ter sido instalado e inspecionado. O CondinAPT usa `kc` como um filtro exato de pertencimento ao array ao selecionar ferramentas de build opcionais e pacotes DKMS. Os valores atuais incluem `aufs`, `ntfs3`, `btf_modules` e os drivers suportados in-tree `rtw88_*`.
 
 ## Uso em Módulos
 
@@ -167,16 +172,17 @@ language-pack-fr +lo=fr_FR
 
 **`packages.list`:**
 ```text
-# DKMS modules with kernel and distribution conditions
-ntfs3-dkms -ka=true -d=buster -d=trixie -d=sid
+# Kernel build tools and DKMS modules selected from actual kernel capabilities
+pahole +kc=btf_modules || dwarves +kc=btf_modules
+ntfs3-dkms -kc=ntfs3
 zfs-dkms +{pv=toolbox|pv=ultra} +da=amd64 +kbd=true -kf=none
 
-# Drivers for old systems
-broadcom-sta-dkms -d=jammy -ka=true -da=i386
-aufs-dkms +dt=debian +d=buster
+# Distribution filters remain where package availability or compatibility requires them
+broadcom-sta-dkms -d=jammy -da=i386
+aufs-dkms +dp=debian +d=buster +d=beowulf -kc=aufs
 
-# Exclusion for new distributions
-realtek-rtl8821cu-dkms -d=trixie -d=sid
+# Do not build a vendor driver already provided by the selected kernel
+realtek-rtl8821cu-dkms -kc=rtw88_8821cu
 firmware-b43-installer -d=bionic
 
 # Complex alternatives with filters
@@ -184,9 +190,9 @@ exfatprogs -pv=minimum || exfat-utils -pv=minimum && exfat-fuse -pv=minimum
 
 # Localization with exclusions and conditions
 vlc-l10n -lo=en_US +{pv=toolbox|pv=ultra}
-language-pack-gnome-ru-base +lo=ru_RU +dt=ubuntu
-language-pack-gnome-ru-base +ml=true +dt=ubuntu
-language-pack-gnome-ru-base +kl=true +dt=ubuntu
+language-pack-gnome-ru-base +lo=ru_RU +dp=ubuntu
+language-pack-gnome-ru-base +ml=true +dp=ubuntu
+language-pack-gnome-ru-base +kl=true +dp=ubuntu
 ```
 
 ### Otimização para MiniOS
@@ -240,6 +246,9 @@ fi
 ```
 
 ---
+
+
+
 
 
 

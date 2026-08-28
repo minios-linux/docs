@@ -37,13 +37,13 @@ MiniOS fournit deux outils principaux pour la construction :
 
 ### minios-cmd (Recommandé)
 
-Un utilitaire en ligne de commande qui simplifie la configuration et le lancement des constructions. Il offre une interface conviviale pour définir divers paramètres de construction :
+Un utilitaire en ligne de commande qui simplifie la configuration et le lancement des compilations. Il offre une interface conviviale pour définir divers paramètres de build :
 
 - Distribution cible (buster, bookworm, trixie, etc.)
 - Architecture (amd64, i386)
 - Environnement de bureau (core, flux, xfce, lxqt)
-- Variante de paquets (minimum, standard, toolbox, ultra)
-- Options du noyau
+- Variante de paquet (minimum, standard, toolbox, ultra)
+- Fournisseur du noyau, série du noyau MiniOS, mode de payload et builds DKMS optionnels
 - Paramètres de langue et de fuseau horaire
 
 **Utilisation :**
@@ -53,9 +53,12 @@ minios-cmd -d bookworm -a amd64 -de xfce -pv standard
 
 # Build with custom options
 minios-cmd -d bookworm -a amd64 -de xfce -pv toolbox -c zstd -l en_US -tz "Europe/Prague"
+
+# Build with the AUFS-enabled MiniOS kernel and optional DKMS drivers
+minios-cmd -d bookworm -a amd64 -de xfce -pv standard -mk -dkms
 ```
 
-Pour plus d'informations sur l'utilisation, consultez la [documentation minios-cmd](https://github.com/minios-linux/minios-live/blob/master/docs/minios-cmd.md).
+Pour plus d’informations sur l’utilisation, consultez la [documentation minios-cmd](https://github.com/minios-linux/minios-live/blob/master/docs/minios-cmd.md).
 
 ### minios-live (Avancé)
 
@@ -216,14 +219,18 @@ Il s'agit du fichier de configuration principal qui définit :
 - **Paramètres de distribution** : distribution cible (buster, bookworm, trixie, sid)
 - **Architecture** : amd64, i386, i386-pae (bookworm et versions antérieures uniquement ; trixie et sid prennent uniquement en charge amd64)
 - **Environnement de bureau** : core, flux, xfce, lxqt
-- **Variante de paquets** : minimum, standard, toolbox, ultra
+- **Variante de paquet** : minimum, standard, toolbox, ultra
 - **Compression** : xz, lzo, gz, lz4, zstd
-- **Paramètres du noyau** : type, support AUFS, compilation DKMS
-- **Paramètres de locale** : langue, fuseau horaire, disposition du clavier
+- **Paramètres du noyau** : fournisseur de distribution ou MiniOS, série MiniOS, mode runtime ou payload complet, et compilation DKMS optionnelle
+- **Paramètres de langue** : langue, fuseau horaire, disposition du clavier
 
-#### Configuration d'exécution : `minios_build.conf`
+#### Configuration d’exécution : `minios_build.conf`
 
-Générée automatiquement lors du processus de build et contient les paramètres spécifiques à l'exécution pour l'environnement chroot.
+Générée automatiquement lors du processus de build, elle contient les paramètres spécifiques à l’exécution pour l’environnement chroot.
+
+AUFS est fourni par `KERNEL_PROVIDER=minios`; ce n’est pas un paramètre séparé pour le noyau actuel.
+Les noyaux de distribution sont obtenus avec une clôture de paquet APT signée et isolée. Si DKMS est activé, les en-têtes correspondants sont récupérés avec le noyau et utilisés uniquement pendant la compilation des modules externes. Consultez
+[Commandes de build](/development/Build-Commands.md#kernel-selection) pour les options du frontend et les règles de payload.
 
 ### Variantes de paquets
 
@@ -407,13 +414,13 @@ Utilisation standard dans les scripts d'installation de modules :
 
 Pour une documentation complète de CondinAPT incluant la syntaxe avancée, les filtres, les files d'attente de priorité, les modes de débogage et des exemples concrets, consultez : **[CondinAPT.md](/development/CondinAPT.md)**
 
-### Filtres de condition courants
+### Filtres de conditions courants
 
-- `+pv=variant` - Variante de paquets (minimum, standard, toolbox, ultra)
+- `+pv=variant` - Variante de paquet (minimum, standard, toolbox, ultra)
 - `+d=distribution` - Distribution (bookworm, trixie, jammy, noble)
 - `+de=desktop` - Environnement de bureau (core, flux, xfce, lxqt)
 - `+da=architecture` - Architecture (amd64, i386)
-- `+dt=type` - Type de distribution (debian, ubuntu)
+- `+dp=profile` - Famille de paquets (debian, ubuntu)
 
 ## Construire votre première ISO
 

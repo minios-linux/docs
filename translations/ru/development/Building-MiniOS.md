@@ -35,15 +35,15 @@ sudo apt-get install grub-efi-amd64-bin grub-pc-bin
 
 MiniOS предоставляет два основных инструмента для сборки:
 
-### minios-cmd (рекомендуется)
+### minios-cmd (Рекомендуется)
 
-Утилита командной строки, упрощающая настройку и запуск сборки. Предлагает удобный интерфейс для задания различных параметров:
+Утилита командной строки, которая упрощает настройку и запуск сборок. Предоставляет удобный интерфейс для задания различных параметров сборки:
 
 - Целевая дистрибуция (buster, bookworm, trixie и др.)
 - Архитектура (amd64, i386)
 - Окружение рабочего стола (core, flux, xfce, lxqt)
-- Вариант пакетов (minimum, standard, toolbox, ultra)
-- Параметры ядра
+- Вариант пакета (minimum, standard, toolbox, ultra)
+- Провайдер ядра, серия ядра MiniOS, режим payload и опциональная сборка DKMS
 - Настройки локали и часового пояса
 
 **Использование:**
@@ -53,9 +53,12 @@ minios-cmd -d bookworm -a amd64 -de xfce -pv standard
 
 # Build with custom options
 minios-cmd -d bookworm -a amd64 -de xfce -pv toolbox -c zstd -l en_US -tz "Europe/Prague"
+
+# Build with the AUFS-enabled MiniOS kernel and optional DKMS drivers
+minios-cmd -d bookworm -a amd64 -de xfce -pv standard -mk -dkms
 ```
 
-Подробную информацию смотрите в [документации minios-cmd](https://github.com/minios-linux/minios-live/blob/master/docs/minios-cmd.md).
+Подробную информацию по использованию смотрите в [документации minios-cmd](https://github.com/minios-linux/minios-live/blob/master/docs/minios-cmd.md).
 
 ### minios-live (для продвинутых пользователей)
 
@@ -213,17 +216,19 @@ flowchart TD
 #### Основная конфигурация: `linux-live/build.conf`
 
 Это основной конфигурационный файл, который определяет:
-- **Параметры дистрибутива**: целевой дистрибутив (buster, bookworm, trixie, sid)
+- **Настройки дистрибуции**: целевая дистрибуция (buster, bookworm, trixie, sid)
 - **Архитектура**: amd64, i386, i386-pae (только для bookworm и более ранних; trixie и sid поддерживают только amd64)
 - **Окружение рабочего стола**: core, flux, xfce, lxqt
-- **Вариант пакетов**: minimum, standard, toolbox, ultra
+- **Вариант пакета**: minimum, standard, toolbox, ultra
 - **Сжатие**: xz, lzo, gz, lz4, zstd
-- **Параметры ядра**: тип, поддержка AUFS, компиляция DKMS
-- **Локализация**: язык, часовой пояс, раскладка клавиатуры
+- **Настройки ядра**: провайдер дистрибуции или MiniOS, серия MiniOS, runtime или полный payload, а также опциональная компиляция DKMS
+- **Настройки локали**: язык, часовой пояс, раскладка клавиатуры
 
 #### Конфигурация среды выполнения: `minios_build.conf`
 
-Генерируется автоматически в процессе сборки и содержит параметры среды выполнения для chroot-окружения.
+Генерируется автоматически в процессе сборки и содержит настройки, специфичные для среды выполнения chroot.
+
+AUFS предоставляется `KERNEL_PROVIDER=minios`; это не отдельный переключатель текущего ядра. Ядра дистрибуции получают через подписанный, изолированный closure пакетов APT. Если включён DKMS, соответствующие заголовки ядра загружаются вместе с ядром и используются только на этапе сборки внешних модулей. Подробнее о параметрах фронтенда и правилах payload смотрите в разделе [Build commands](/development/Build-Commands.md#kernel-selection).
 
 ### Варианты пакетов
 
@@ -407,13 +412,13 @@ preferred-pkg || fallback-pkg  # Try first, use second if unavailable
 
 Полную документацию по CondinAPT, включая расширенный синтаксис, фильтры, очереди приоритетов, режимы отладки и реальные примеры, смотрите здесь: **[CondinAPT.md](/development/CondinAPT.md)**
 
-### Часто используемые фильтры условий
+### Общие фильтры условий
 
-- `+pv=variant` – Вариант пакетов (minimum, standard, toolbox, ultra)
-- `+d=distribution` – Дистрибутив (bookworm, trixie, jammy, noble)
-- `+de=desktop` – Окружение рабочего стола (core, flux, xfce, lxqt)
-- `+da=architecture` – Архитектура (amd64, i386)
-- `+dt=type` – Тип дистрибутива (debian, ubuntu)
+- `+pv=variant` — Вариант пакета (minimum, standard, toolbox, ultra)
+- `+d=distribution` — Дистрибуция (bookworm, trixie, jammy, noble)
+- `+de=desktop` — Окружение рабочего стола (core, flux, xfce, lxqt)
+- `+da=architecture` — Архитектура (amd64, i386)
+- `+dp=profile` — Семейство пакетов (debian, ubuntu)
 
 ## Сборка вашего первого ISO
 
