@@ -44,7 +44,7 @@ A command-line utility that simplifies configuration and initiation of builds. I
 - Architecture (amd64, i386)
 - Desktop environment (core, flux, xfce, lxqt)
 - Package variant (minimum, standard, toolbox, ultra)
-- Kernel options
+- Kernel provider, MiniOS kernel series, payload mode, and optional DKMS builds
 - Locale and timezone settings
 
 **Usage:**
@@ -54,6 +54,9 @@ minios-cmd -d bookworm -a amd64 -de xfce -pv standard
 
 # Build with custom options
 minios-cmd -d bookworm -a amd64 -de xfce -pv toolbox -c zstd -l en_US -tz "Europe/Prague"
+
+# Build with the AUFS-enabled MiniOS kernel and optional DKMS drivers
+minios-cmd -d bookworm -a amd64 -de xfce -pv standard -mk -dkms
 ```
 
 For detailed usage information, see the [minios-cmd documentation](https://github.com/minios-linux/minios-live/blob/master/docs/minios-cmd.md).
@@ -219,12 +222,19 @@ This is the primary configuration file that defines:
 - **Desktop environment**: core, flux, xfce, lxqt
 - **Package variant**: minimum, standard, toolbox, ultra
 - **Compression**: xz, lzo, gz, lz4, zstd
-- **Kernel settings**: type, AUFS support, DKMS compilation
+- **Kernel settings**: distribution or MiniOS provider, MiniOS series, runtime or full payload, and optional DKMS compilation
 - **Locale settings**: language, timezone, keyboard layout
 
 #### Runtime Configuration: `minios_build.conf`
 
 Generated automatically during the build process and contains runtime-specific settings for the chroot environment.
+
+AUFS is supplied by `KERNEL_PROVIDER=minios`; it is not a separate current
+kernel toggle. Distribution kernels are acquired with a signed, isolated APT
+package closure. If DKMS is enabled, matching headers are acquired with the
+kernel and used only while the external modules are built. See
+[Build commands](/development/Build-Commands.md#kernel-selection) for the
+frontend options and payload rules.
 
 ### Package Variants
 
@@ -414,7 +424,7 @@ For comprehensive CondinAPT documentation including advanced syntax, filters, pr
 - `+d=distribution` - Distribution (bookworm, trixie, jammy, noble)
 - `+de=desktop` - Desktop environment (core, flux, xfce, lxqt)
 - `+da=architecture` - Architecture (amd64, i386)
-- `+dt=type` - Distribution type (debian, ubuntu)
+- `+dp=profile` - Package family (debian, ubuntu)
 
 ## Building Your First ISO
 

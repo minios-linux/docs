@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-26
+updated: 2026-08-28
 program_commits:
   minios-live: 039ddd0f3e82651069756370e5f3addebce43984
 ---
@@ -47,6 +47,46 @@ sudo ./minios-cmd -d trixie -a amd64 -de xfce -pv standard
 ```
 
 Common optional settings include compression, kernel behavior, locale, timezone, initramfs builder, boot-menu language, and build directory. Check `./minios-cmd --help` rather than assuming an option exists.
+
+### Kernel selection
+
+The frontend exposes the current kernel settings directly:
+
+| Option | Effect |
+| --- | --- |
+| `-kp`, `--kernel-provider` | Select `distribution` or `minios` |
+| `-mk`, `--minios-kernel` | Select the AUFS-enabled MiniOS kernel with automatic series selection |
+| `-mks`, `--minios-kernel-series` | Select `auto`, `6.1`, or `6.12` and imply the MiniOS provider |
+| `-kpm`, `--kernel-payload-mode` | Select the `runtime` or `full` kernel module payload |
+| `-dkms`, `--kernel-build-dkms` | Build the optional DKMS drivers selected for the actual kernel |
+
+For example:
+
+```bash
+sudo ./minios-cmd -d bookworm -a amd64 -de xfce -pv standard \
+  -mks 6.1 -kpm runtime -dkms
+```
+
+The `distribution` provider resolves a signed kernel package closure in an
+isolated APT state. When DKMS is enabled, that closure also supplies headers
+matching the selected kernel; the later DKMS stage does not replace them with
+the userspace distribution's generic header metapackage. Normal kernel archive
+endpoints use HTTP so apt-cacher-ng can cache package content. APT still
+validates signed `InRelease` metadata and package hashes.
+
+The `minios` provider installs `linux-image-SERIES-mos-ARCH`, verifies that the
+kernel has AUFS support, and uses `linux-headers-SERIES-mos-ARCH` for DKMS.
+`KERNEL_FLAVOUR` must be `none`, the userspace and kernel package architectures
+must match, and the update policy is frozen. Automatic series selection uses
+6.1 for i386, Buster, Bullseye, Bookworm, and Jammy; other supported targets use
+6.12. MiniOS i386 kernels support only the 6.1 series.
+
+`KERNEL_PAYLOAD_MODE=runtime` publishes the kernel module tree, kernel config,
+System.map, deployment metadata, and runtime integration files under
+`modprobe.d`, `modules-load.d`, and `udev/rules.d`. It excludes the working dpkg
+database, headers, build links, DKMS sources, compiler toolchain, initramfs
+packages, and firmware. Firmware belongs to `02-firmware`. The `full` mode
+retains a broader diagnostic package payload.
 
 The frontend copies the configuration template, writes the supplied frontend values into the copy, and invokes `minios-live -`. By default the working copy for this example is:
 
