@@ -1,863 +1,330 @@
 ---
-updated: 2026-08-26
+updated: 2026-08-31
 program_commits:
-    minios-live: 039ddd0f3e82651069756370e5f3addebce43984
+    minios-live: f59faa38c0667fbeefdc6dbe899a2db6e131e462
 ---
 
-# CondinAPT: Ein umfassender Leitfaden zur bedingten Paketinstallation
+# CondinAPT
 
-**CondinAPT** ist ein vielseitiges Tool zur Automatisierung der Paketinstallation auf jedem Debian-ähnlichen System (Debian, Ubuntu und deren Derivate). Das Hauptmerkmal ist die Möglichkeit, komplexe Bedingungen und Regeln für die Installation einzelner Pakete basierend auf beliebigen Systemkonfigurationen zu definieren.
+CondinAPT wählt APT-Pakete aus und installiert sie anhand einer Liste, deren Einträge von Bash-Konfigurationsvariablen abhängen können. MiniOS verwendet dies für Host-Voraussetzungsprüfungen, das Kernpaket-Set und gewöhnliche SquashFS-Module.
 
-**Anwendungsbereiche:**
-- Build-Systeme für Linux-Distributionen
-- Automatisierung der Server- und Workstation-Einrichtung
-- Bereitstellung verschiedener Systemkonfigurationen
-- Paketverwaltung in Docker-Containern
-- CI/CD-Pipelines zur Umgebungseinrichtung
-- Erstellung individueller Installationsabbilder
+Diese Seite dokumentiert die Implementierung in `linux-live/condinapt`. CondinAPT ist kein allgemeiner Abhängigkeitslöser: Zuerst werden Filter und Repository-Verfügbarkeit ausgewertet, dann APT-Queues erstellt und schließlich jede ausgewählte Queue in einem `apt-get`-Aufruf installiert.
 
-## Inhaltsverzeichnis
+## Übersicht
 
-### Grundlagen
-
-- [Funktionsweise und Kernkomponenten](#how-it-works-and-core-components)
-- [Schnellstart](#quick-start)
-- [Verwendung](#usage)
-
-### Syntax und Funktionen
-
-- [Syntax der Paketlisten-Datei](#package-list-file-syntax)
-- [Filter und Bedingungen](#filters-and-conditions)
-- [Installationswarteschlangen](#installation-queues)
-- [Prioritätswarteschlange](#priority-queue)
-
-### Betriebsmodi
-
-- [Betriebsmodi und Debugging](#operating-modes-and-debugging)
-- [Fehlerbehandlung und Wiederherstellung](#error-handling-and-recovery)
-
-### Erweiterte Nutzung
-
-- [Erweiterte Funktionen](#advanced-features)
-- [Integration mit Build-Systemen](#integration-with-build-systems)
-
-### Praktische Beispiele
-
-- [Beispiele aus der Praxis](#examples-of-real-world-scenarios)
-- [Optimierungstipps](#optimization-tips)
-- [Fehlerbehebung](#troubleshooting)
-
-**Hauptfunktionen:**
-
-*   **Bedingte Installation:** Installiere Pakete basierend auf flexiblen Filtern (+, -).
-*   **Externe Konfiguration:** Vollständige Trennung von Logik (Paketliste) und Daten (Systemparameter).
-*   **Installationswarteschlangen:** Unterteile den Prozess in aufeinanderfolgende Phasen zur Auflösung von Abhängigkeiten.
-*   **Prioritätswarteschlange:** Gewährleistet die Installation kritischer Pakete zuerst.
-*   **Komplexe Logik:** Unterstützung für "UND" (`&&`), "ODER" (`||`) Operatoren sowie Gruppenfilter (`+{a|b}`, `-{a&b}`).
-*   **Lesbarkeit:** Unterstützung für Kommentare und Leerzeilen zur Strukturierung von Listen.
-*   **Abwärtskompatibilität:** Unterstützt einfache Paketlisten ohne Bedingungen.
-
-## Funktionsweise und Hauptkomponenten
-
-CondinAPT arbeitet mit vier zentralen Dateien:
-
-1.  **`condinapt`-Skript:** Das Kernstück, enthält die gesamte Verarbeitungslogik.
-
-2.  **Hauptkonfigurationsdatei (`-c`):** Eine Datei mit Bash-Variablen, die die aktuelle Umgebung beschreiben.
-
-    Beispiel (`system.conf`):
-
-    ```bash
-    DISTRIBUTION="bookworm"
-    SYSTEM_TYPE="server"
-    ENVIRONMENT="production"
-    LOCALE="en_US"
-    FEATURES="web,database"
-    ```
-
-3.  **Filter-Mapping-Datei (`-m`):** Verknüpft Kurzpräfixe (wie sie in der Paketliste verwendet werden) mit Variablennamen aus der Hauptkonfigurationsdatei. Diese Datei ist **optional**. Ist ein Filter nicht in der Filter-Mapping-Datei vorhanden, wird er als Variablenname aus der Hauptkonfigurationsdatei verwendet. Falls die Variable nicht gefunden wird, setzt CondinAPT sie auf leer.
-
-    Beispiel (`filters.map`):
-
-    ```text
-    d=DISTRIBUTION
-    st=SYSTEM_TYPE
-    env=ENVIRONMENT
-    arch=ARCHITECTURE
-    feat=FEATURES
-    ```
-
-4.  **Paketliste (`-l`):** Die Hauptdatei, die beschreibt, was installiert werden soll und unter welchen Bedingungen.
-
-## Schnellstart
-
-Um CondinAPT schnell kennenzulernen, erstelle ein einfaches Beispiel:
-
-**1. Konfigurationsdatei `config.conf` erstellen:**
 ```bash
-# Basic system parameters
+sudo bash linux-live/condinapt \
+  -l packages.list \
+  -c system.conf \
+  -m filters.map
+```
+
+Die Paketliste und die Konfiguration müssen reguläre, lesbare Dateien sein. Die Mapping- und Prioritätsdateien sind optional.
+
+| Option | Bedeutung |
+| --- | --- |
+| `-l`, `--package-list PATH` | Paketlisten-Datei |
+| `-c`, `--config PATH` | Vertrauenswürdige Bash-Konfiguration |
+| `-m`, `--filter-mapping PATH` | Präfix-zu-Variable-Mapping |
+| `-P`, `--priority-list PATH` | Bash-Reguläre Ausdrücke zur Prioritätsermittlung |
+| `-s`, `--simulation` | Pakete auswählen und anzeigen, ohne sie zu installieren |
+| `-C`, `--check-only` | Installierte Paketnamen prüfen, ohne Installation |
+| `-v`, `--verbose` | Filter- und Queue-Diagnose |
+| `-vv`, `--very-verbose` | Zusätzliche Prioritäts-Queue-Diagnose |
+| `-x`, `--xtrace` | Shell-Tracing aktivieren |
+| `-f`, `--force` | `apt-get update` auch ausführen, wenn `pkgcache.bin` existiert |
+| `-h`, `--help` | Hilfe anzeigen |
+
+CondinAPT führt `apt-get update` aus, wenn nicht im Check-only-Modus und entweder `-f` verwendet wurde oder `/var/cache/apt/pkgcache.bin` nicht existiert. Dies schließt die Simulation ein, daher ist `-s` kein nebenwirkungsfreier Probelauf.
+
+Für eine normale Installation werden Root-Rechte benötigt. Check-only kann ohne erhöhte Rechte ausgeführt werden; Simulation benötigt ebenfalls Root, wenn ein APT-Update ausgelöst wird. Die aktuelle Implementierung gibt einen `apt-get update`-Fehler nicht zuverlässig weiter, daher sollte ein Update-Fehler als fehlgeschlagener Lauf behandelt werden, auch wenn CondinAPT später `0` zurückgibt.
+
+## Eingabedateien
+
+### Konfiguration
+
+Die Datei `-c` wird mit Bash gesourced. Sie enthält ausführbaren Code und ist kein passives Datenformat. Verwenden Sie daher ausschließlich vertrauenswürdige Dateien.
+
+```bash
 DISTRIBUTION="bookworm"
 SYSTEM_TYPE="server"
-ENVIRONMENT="production"
+FEATURES=(web database monitoring)
 ```
 
-**2. Paketliste `packages.list` erstellen:**
-```text
-# Base packages - always installed
-vim
-curl
+Indizierte Arrays ermöglichen Filter nach Mitgliedschaft. Ein Skalar mit Kommas bleibt ein exakter String: `FEATURES="web,database"` entspricht nicht `+feat=web`.
 
-# Packages only for servers
-nginx +SYSTEM_TYPE=server
-mysql-server +SYSTEM_TYPE=server
+Die aktuelle Implementierung parst CLI-Optionen, bevor diese Datei geladen wird.
+Konfigurationsvariablen, die interne Namen von CondinAPT wiederverwenden, wie `VERBOSITY_LEVEL`, können daher den CLI-Zustand überschreiben. Vermeiden Sie solche Namen in generischen Konfigurationen.
 
-# Exclude packages for production environment
-debug-tools -ENVIRONMENT=production
-```
+### Filter-Mapping
 
-**3. Installation ausführen:**
-```bash
-bash
-./condinapt -l packages.list -c config.conf
-```
-
-**4. Oder im Simulationsmodus testen:**
-```bash
-bash
-./condinapt -l packages.list -c config.conf -s
-```
-
-## Verwendung
-
-### Kommandozeile
-
-```bash
-./condinapt [OPTIONS]
-```
-
-| Schalter      | Langer Schalter                | Argument | Beschreibung                                         |
-| :------------ | :----------------------------- | :------- | :--------------------------------------------------- |
-| `-l`          | `--package-list`               | `PFAD`   | **(Erforderlich)** Pfad zur Paketliste.              |
-| `-c`          | `--config`                     | `PFAD`   | **(Erforderlich)** Pfad zur Hauptkonfigurationsdatei.|
-| `-m`          | `--filter-mapping`             | `PFAD`   | (Optional) Pfad zur Filter-Mapping-Datei.            |
-| `-P`          | `--priority-list`              | `PFAD`   | (Optional) Pfad zu einer Prioritätenfilterdatei. Enthält Regex-Muster zur Paketübereinstimmung. Gefundene Pakete werden in die Prioritätenwarteschlange verschoben (Filter bleiben erhalten). |
-| `-s`          | `--simulation`                 |          | Simulationsmodus. Pakete werden nicht installiert.    |
-| `-C`          | `--check-only`                 |          | Prüft nur, ob Pakete bereits installiert sind. Gibt Exit-Code 1 zurück, falls Pakete fehlen. Am Ende wird ein Befehl zum Nachinstallieren ausgegeben. |
-| `-v` / `-vv`  | `--verbose` / `--very-verbose` |          | Ausführliche / sehr ausführliche Ausgabe.             |
-| `-x`          | `--xtrace`                     |          | Aktiviert `set -x` für Kommandoverfolgung.            |
-| `-f`          | `--force`                      |          | Erzwingt ein Update der Paketlisten vor der Installation. Standardmäßig wird das Update übersprungen, wenn `/var/cache/apt/pkgcache.bin` existiert. |
-| `-h`          | `--help`                       |          | Zeigt die Hilfe an.                                   |
-
-## Syntax der Paketliste
-
-### Grundstruktur
-
-Dies ist das Herzstück von CondinAPT. Die gesamte Logik wird hier beschrieben.
-
-Jede Zeile in der Paketliste besteht aus zwei Hauptbestandteilen:
-
-1. **Paketname mit optionaler Versions- und Release-Angabe**
-2. **Bedingungsfilter** – definieren, unter welchen Bedingungen das Paket installiert wird
-
-> **Grundlage für alle folgenden Beispiele:**
-> Für alle nachfolgenden Beispiele wird angenommen, dass die Dateien `system.conf` und `filters.map` aus dem Abschnitt [Funktionsweise und Hauptkomponenten](#how-it-works-and-core-components) verwendet werden.
->
-> *   `DISTRIBUTION` = "bookworm"
-> *   `SYSTEM_TYPE` = "server"
-> *   `ENVIRONMENT` = "production"
-
-### Paketnamensstruktur
-
-**Einfacher Name:**
-```
-vim
-```
-
-**Paketversion:**
-- `package=version` — lockere Versionsangabe. Falls die gewünschte Version nicht verfügbar ist, wird eine verfügbare Version installiert.
-  ```
-  git=2.25.1
-  ```
-- `package==version` — strikte Vorgabe. Ist die Version nicht auffindbar, wird die Installation mit Fehler abgebrochen.
-  ```
-  curl==7.68.0
-  ```
-
-**Release-Angabe:**
-Das Release wird mit dem `@`-Symbol angegeben und ermöglicht die Bindung der Installation an einen bestimmten Repository-Zweig.
-```
-telegram@bookworm-backports
-kernel-image-6.5.0@trixie-backports
-```
-
-### Dateistruktur
-
-*   **Pakete:** Jedes Paket oder jede Bedingung steht in einer neuen Zeile.
-*   **Kommentare:** Zeilen, die mit `#` beginnen, oder Text nach `#` in einer Zeile, werden komplett ignoriert.
-*   **Leere Zeilen:** Werden ignoriert und dienen der Übersichtlichkeit.
-
-```bash
-#=== Multimedia ===
-vlc          # Excellent media player
-audacious    # Another media player
-
-#=== Graphics ===
-gimp
-```
-
-## Filter und Bedingungen
-
-Filter ermöglichen es, zusätzliche Bedingungen für die Paketauswahl zu definieren. Sie vergleichen die Werte von Systemvariablen (Architektur, Distribution, Arbeitsumgebung) mit denen aus der Konfigurationsdatei.
-
-#### Einzelfilter
-
-*   **`+` (Positiv):** Die Bedingung ist erfüllt, wenn der Variablenwert **übereinstimmt**.
-    **Format:** `+<präfix>=<wert>`
-    
-    *   **Zeile:** `nginx +st=server`
-    *   **Analyse:** `SYSTEM_TYPE` ist gleich "server". Die Bedingung ist erfüllt.
-    *   **Ergebnis:** `nginx` wird installiert.
-
-*   **Mehrere positive Filter mit gleichem Präfix:**
-    Wirken als ODER-Bedingungen.
-    **Format:** `+<präfix>=<wert1> +<präfix>=<wert2>`
-    
-    *   **Zeile:** `debug-tools +env=development +env=testing`
-    *   **Analyse:** `ENVIRONMENT` ist "production", entspricht also weder "development" noch "testing". Die Bedingung ist nicht erfüllt.
-    *   **Ergebnis:** `debug-tools` wird nicht installiert.
-
-*   **`-` (Negativ):** Die Bedingung ist erfüllt, wenn der Variablenwert **nicht übereinstimmt**.
-    **Format:** `-<präfix>=<wert>`
-
-    *   **Zeile:** `monitoring-tools -st=desktop`
-    *   **Analyse:** `SYSTEM_TYPE` ist "server", also nicht "desktop". Die Bedingung ist erfüllt.
-    *   **Ergebnis:** `monitoring-tools` wird installiert.
-
-*   **Mehrere negative Filter:**
-    Das Paket wird ausgeschlossen, wenn EINE der Bedingungen zutrifft.
-    **Format:** `-<präfix>=<wert1> -<präfix>=<wert2>`
-    
-    *   **Zeile:** `realtek-driver -d=trixie -d=sid`
-    *   **Analyse:** `DISTRIBUTION` ist "bookworm", also weder "trixie" noch "sid". Die Ausschlussbedingungen greifen nicht.
-    *   **Ergebnis:** `realtek-driver` wird installiert.
-
-#### Gruppenfilter
-
-*   **`+{a|b}` (ODER für Einschluss):** Wahr, wenn **mindestens eine** Bedingung in der Gruppe zutrifft.
-
-    *   **Zeile:** `web-server +{st=server|st=web-server}`
-    *   **Analyse:** `SYSTEM_TYPE` ist "server". Die erste Bedingung ist erfüllt, das reicht aus.
-    *   **Ergebnis:** Das Paket wird installiert.
-
-*   **`+{a&b}` (UND für Einschluss):** Wahr nur, wenn **alle** Bedingungen in der Gruppe erfüllt sind.
-
-    *   **Zeile:** `database-tools +{d=bookworm&st=server}`
-    *   **Analyse:** `DISTRIBUTION` ist "bookworm" (wahr) UND `SYSTEM_TYPE` ist "server" (wahr).
-    *   **Ergebnis:** Das Paket wird installiert.
-
-*   **`-{a|b}` (ODER für Ausschluss):** Das Paket wird ausgeschlossen, wenn **mindestens eine** Bedingung zutrifft.
-
-    *   **Zeile:** `debug-tools -{env=production|st=minimal}`
-    *   **Analyse:** `ENVIRONMENT` ist "production". Die erste Bedingung ist erfüllt, daher wird das Paket ausgeschlossen.
-    *   **Ergebnis:** Das Paket wird nicht installiert.
-
-*   **`-{a&b}` (UND für Ausschluss):** Das Paket wird nur ausgeschlossen, wenn **alle** Bedingungen zutreffen.
-
-    *   **Zeile:** `development-tools -{env=production&st=minimal}`
-    *   **Analyse:** `ENVIRONMENT` ist "production" (wahr), aber `SYSTEM_TYPE` ist nicht "minimal". Die zweite Bedingung ist falsch. Die Gruppe greift nicht für den Ausschluss.
-    *   **Ergebnis:** Das Paket wird installiert (sofern keine weiteren Filter).
-
-### Alternativen
-
-Für dieselbe Funktionalität können je nach Bedingung verschiedene Pakete angeboten und installiert werden. Alternative Optionen werden durch den Operator `||` getrennt.
-
-**Wichtig:** Jede Alternative muss eine vollständige Beschreibung enthalten – Paketname (mit optionaler Version und Release) und einen Filtersatz.
-
-**Beispiel:**
-```
-postgresql +st=database-server || mysql-server +st=web-server
-```
-- Wenn `SYSTEM_TYPE` `database-server` ist, wird **postgresql** ausgewählt.
-- Wenn `SYSTEM_TYPE` `web-server` ist, wird **mysql-server** installiert.
-
-### Logische Operatoren für Pakete
-
-*   **`||` (ODER / Fallback):** Versucht, den linken Teil zu installieren. Falls dies fehlschlägt (Paket nicht gefunden oder gefiltert), wird der rechte Teil versucht.
-
-    *   **Zeile:** `exfatprogs -d=bookworm || exfat-utils`
-    *   **Analyse:** `DISTRIBUTION` ist nicht "bookworm", der linke Teil wird gefiltert. CondinAPT geht zum rechten Teil über. `exfat-utils` hat keine Filter und wird installiert.
-    *   **Ergebnis:** `exfat-utils` wird installiert.
-
-*   **`&&` (UND / Verknüpfung):** Alle Teile müssen die Filterprüfung bestehen, um in die Warteschlange aufgenommen zu werden.
-
-    *   **Zeile:** `nginx +st=web-server && php-fpm`
-    *   **Analyse:** `SYSTEM_TYPE` ist "server", aber die Bedingung erfordert "web-server". Der linke Teil schlägt fehl.
-    *   **Ergebnis:** Es werden keine Pakete installiert.
-
-    *   **Komplexes Beispiel:** `monitoring-tools +env=production && prometheus +env=production && grafana +env=production`
-    *   **Ergebnis:** Alle drei Pakete werden nur installiert, wenn `ENVIRONMENT` `production` ist.
-
-### Spezielle Modifikatoren
-
-*   **`!` (Obligatorisches Paket):** Ist ein Paket mit `!` markiert, aber nicht in den Repositories auffindbar, bricht CondinAPT mit einem Fehler ab.
-
-    *   **Zeile:** `!essential-package`
-
-*   **`@` (Release-Angabe):** Installiert ein Paket aus einem bestimmten Debian/Ubuntu-Release (z. B. `bookworm-backports`).
-
-    *   **Zeile:** `kernel-image-6.5.0 @trixie-backports`
-
-### Paketversionsspezifikation
-
-CondinAPT ermöglicht eine präzise Kontrolle über die Versionen der installierten Pakete.
-
-*   **Syntax:**
-    *   `package=VERSION`: Versucht, die angegebene Version (`VERSION`) zu installieren. Ist diese in den Repositories nicht verfügbar, installiert CondinAPT eine beliebige verfügbare Version des Pakets.
-        *   Beispiel: `my-app=1.2.3` (versucht 1.2.3 zu installieren, andernfalls z.B. 1.2.4)
-    *   `package==VERSION`: **Strikte** Installation einer bestimmten Version. Ist diese Version nicht in den Repositories verfügbar, wird das Paket **nicht installiert**. Falls das Paket zusätzlich als verpflichtend (`!`) markiert wurde, beendet das Skript die Ausführung mit einem Fehler.
-        *   Beispiel: `another-app==2.0.0` (installiert nur 2.0.0, andernfalls wird das Paket übersprungen oder es tritt ein Fehler auf, wenn verpflichtend)
-
-*   **Verhalten:**
-    1.  CondinAPT prüft zuerst, ob die benötigte Paketversion bereits auf dem System installiert ist. Falls ja, gilt das Paket als installiert und wird übersprungen.
-    2.  Anschließend wird geprüft, ob die angegebene Version in den Repositories verfügbar ist (`apt-cache madison`).
-    3.  **Bei Verwendung von `=` (lockere Version):**
-        *   Ist die angegebene Version nicht verfügbar, gibt CondinAPT eine Warnung aus, dass die exakte Version nicht gefunden wurde.
-        *   Dennoch wird versucht, eine beliebige verfügbare Version des Pakets aus den Repositories zu installieren.
-    4.  **Bei Verwendung von `==` (strikte Version):**
-        *   Ist die angegebene Version nicht verfügbar, wird das Paket von CondinAPT **nicht** installiert.
-        *   Falls das Paket als verpflichtend (`!`) markiert wurde, bricht das Skript die Ausführung mit einem Fehler ab.
-    5.  **Version halten (`apt-mark hold`):**
-        *   Wurde ein Paket erfolgreich mit der **exakt angegebenen Version** installiert (d.h. wenn `package==VERSION` erfolgreich war oder `package=VERSION` genau diese Version gefunden und installiert hat), führt CondinAPT automatisch den Befehl `apt-mark hold` für dieses Paket aus.
-        *   Dadurch werden automatische Updates des Pakets auf eine neue Version bei späteren `apt upgrade`-Vorgängen verhindert.
-
-### Komplexe Filterbeispiele
-
-#### Beispiel 1: Komplexe Filter für ein einzelnes Paket
-
-**Aufgabe:** Installiere `database-tools` für die Distribution `bookworm`, aber nur, wenn der Systemtyp `server` oder `database-server` ist und nicht für die Umgebung `minimal`.
-
-**`packages.list`:**
-
-```bash
-database-tools +d=bookworm +{st=server|st=database-server} -env=minimal
-```
-
-**Analyse (mit unserer Konfiguration):**
-
-1.  `+d=bookworm`: Wahr.
-2.  `+{st=server|st=database-server}`: Wahr, da `SYSTEM_TYPE` "server" ist.
-3.  `-env=minimal`: Wahr, da `ENVIRONMENT` "production" ist.
-    **Ergebnis:** Alle Bedingungen sind erfüllt. Das Paket wird installiert.
-
-#### Beispiel 2: Fallback-Kette mit unterschiedlichen Bedingungen
-
-**Aufgabe:** Für Debian `trixie` soll `firefox-esr` installiert werden. Für `bookworm` wird `firefox` installiert. In allen anderen Fällen wird `w3m` installiert.
-
-**`packages.list`:**
-
-```bash
-firefox-esr +d=trixie || firefox +d=bookworm || w3m
-```
-
-**Analyse:**
-
-1.  `firefox-esr +d=trixie`: Linker Teil. `DISTRIBUTION` ist "bookworm", Bedingung ist falsch.
-2.  `firefox +d=bookworm`: Mittlerer Teil. `DISTRIBUTION` ist "bookworm", Bedingung ist erfüllt.
-3.  Da der zweite Teil der `||`-Kette funktioniert, wird der dritte (`w3m`) ignoriert.
-    **Ergebnis:** `firefox` wird installiert.
-
-#### Beispiel 3: Zusammenspiel von Prioritätswarteschlange und obligatorischem Paket
-
-**Aufgabe:** `dkms` ist kritisch für den Modulbau und muss zuerst installiert werden. In der Hauptliste ist es als obligatorisch markiert, aber mit Bedingung.
-
-*   **`priority.list`:**
-
-    ```text
-^dkms$
-^build-essential$
-```
-
-*   **`packages.list`:**
-
-    ```text
-!dkms +pv=standard # Mandatory, but with a condition
-vim
-```
-
-**Analyse:**
-
-1.  CondinAPT liest die Prioritätsmuster `^dkms$` und `^build-essential$`.
-2.  Die Zeile `!dkms +pv=standard` passt auf das Muster `^dkms$` und wird mit allen Eigenschaften in die Prioritätswarteschlange verschoben: das Pflicht-Flag (`!`) und der Filter (`+pv=standard`).
-3.  **Ablaufplan:**
-
-    *   **Prioritätswarteschlange:** Installiere `!dkms +pv=standard` (Pflicht-Flag und Filter bleiben erhalten).
-    *   **Normale Warteschlange:** `vim`.
-
-**Ergebnis:** `dkms` wird zuerst installiert, aber der Filter `+pv=standard` wird weiterhin geprüft. Wird die Bedingung nicht erfüllt, schlägt die Installation wegen des `!`-Flags fehl.
-
-## Installationswarteschlangen
-
-Der `---`-Separator in einer eigenen Zeile teilt die Liste in Gruppen (Warteschlangen). Pakete aus einer Warteschlange werden gemeinsam in einem `apt`-Aufruf installiert. Die Warteschlangen werden strikt nacheinander abgearbeitet.
-
-### Normale Warteschlangen
-
-**Beispiel:**
+Die optionale Datei `-m` ordnet kurze Präfixe Bash-Variablennamen zu:
 
 ```text
-# Queue 1: Base system
-systemd
-network-manager
----
-# Queue 2: Web server
-nginx
-php-fpm
----
-# Queue 3: Monitoring
-prometheus
-```
-
-### Zielwarteschlangen (mit Release-Angabe)
-
-Pakete mit `@release` werden automatisch in separate Warteschlangen pro Release gruppiert:
-
-```text
-# Regular packages
-vim
-git
----
-# Packages from backports (create a separate queue)
-linux-image-amd64 @bookworm-backports
-nvidia-driver @bookworm-backports
-```
-
-## Prioritätswarteschlange
-
-Dieses Mechanismus dient der priorisierten Installation kritischer Pakete unter Beibehaltung ihrer Filter und Bedingungen.
-
-*   **Prinzip:** Die mit dem `-P`-Schalter angegebene Datei enthält Regex-Muster (ein Muster pro Zeile, keine Filter). CondinAPT durchsucht alle Warteschlangen, findet Pakete, die auf diese Muster passen, und verschiebt sie (mit allen Filtern und Bedingungen) in eine spezielle "Prioritätswarteschlange", die zuerst abgearbeitet wird.
-*   **Musterabgleich:** Verwendet Bash-Regex-Abgleich (`=~`-Operator). Muster können einfache Paketnamen oder komplexe Regex-Ausdrücke sein.
-*   **Kontext erhalten:** Im Gegensatz zu einfachen Prioritätslisten bleiben bei diesem Mechanismus alle Paketbedingungen, Filter und Release-Angaben aus der ursprünglichen Paketliste erhalten.
-*   **Überschreiben:** Gefundene Pakete werden automatisch aus ihren ursprünglichen Warteschlangen (sowohl regulär als auch Zielwarteschlangen mit `@release`) entfernt und in Prioritätswarteschlangen verschoben. Zielreleases werden in separaten Prioritäts-Zielwarteschlangen erhalten.
-
-**Beispiel 1: Einfacher Paketnamenabgleich**
-
-*   **`packages.list`:**
-
-    ```text
-git +st=full-server   # Will only be installed for full servers
-gpg -st=minimal       # Will be installed in all types except minimal
-curl                  # Always installed
-wget +d=trixie        # Only for trixie
-vim +env=development  # Only for development environment
-```
-
-*   **`priority.list`:**
-
-    ```text
-^gpg$
-^git$
-```
-
-*   **Analyse:**
-
-    1.  CondinAPT liest `priority.list` und erkennt, dass Pakete, die auf die Muster `^gpg$` und `^git$` passen, zuerst installiert werden müssen.
-    2.  Es durchsucht `packages.list` und findet die Zeile `git +st=full-server`. Da `git` passt, wird diese gesamte Zeile (mit Filter `+st=full-server`) in die Prioritätswarteschlange verschoben.
-    3.  Ebenso wird `gpg -st=minimal` mit seinem Filter in die Prioritätswarteschlange übernommen.
-    4.  **Endgültiger Plan:**
-
-        *   **Prioritätswarteschlange:** Installiere `git +st=full-server` und `gpg -st=minimal` (Filter werden erhalten und geprüft).
-        *   **Normale Warteschlange:** `curl`, `wget +d=trixie`, `vim +env=development`.
-
-**Beispiel 2: Regex-Musterabgleich**
-
-*   **`packages.list`:**
-
-    ```text
-linux-image-6.1.0-amd64 +arch=amd64
-linux-headers-6.1.0-amd64 +arch=amd64
-firmware-linux
-build-essential
-nginx +st=server
-```
-
-*   **`priority.list`:**
-
-    ```text
-^linux-.*
-^firmware-.*
-```
-
-*   **Analyse:**
-
-    1.  Muster `^linux-.*` passt auf `linux-image-6.1.0-amd64` und `linux-headers-6.1.0-amd64`.
-    2.  Muster `^firmware-.*` passt auf `firmware-linux`.
-    3.  **Endgültiger Plan:**
-
-        *   **Prioritätswarteschlange:** `linux-image-6.1.0-amd64 +arch=amd64`, `linux-headers-6.1.0-amd64 +arch=amd64`, `firmware-linux`.
-        *   **Normale Warteschlange:** `build-essential`, `nginx +st=server`.
-
-## Betriebsmodi und Debugging
-
-#### Simulationsmodus (`-s`)
-
-Ermöglicht, zu sehen, welche Pakete installiert würden, ohne sie tatsächlich zu installieren:
-
-```bash
-./condinapt -l packages.list -c system.conf -s
-```
-
-**Beispielausgabe:**
-```text
-I: Installation Queue #1:
-I: Simulation mode ON. These packages would be installed: firefox-esr vlc htop
-I: Simulation mode ON. No installation will be performed.
-```
-
-**Hinweis:** Im Simulationsmodus beendet das Skript mit Exit-Code 1.
-
-#### Prüfmodus (`-C`)
-
-Überprüft, welche Pakete aus der Liste bereits auf dem System installiert sind:
-
-```bash
-./condinapt -l packages.list -c system.conf -C
-```
-
-**Verhalten:**
-- Zeigt Fehler für nicht installierte Pakete
-- Gibt Exit-Code 1 zurück, wenn Pakete fehlen
-- Gibt am Ende einen Befehl zum Nachinstallieren aus
-
-#### Debugging-Modi
-
-**Ausführliche Ausgabe (`-v`):**
-- Zeigt detaillierte Informationen zu Filterprüfungen
-- Zeigt Ergebnisse für jedes Paket
-
-**Sehr ausführliche Ausgabe (`-vv`):**
-- Maximale Prozessdetails
-- Zeigt alle Zwischenschritte
-
-**Kommandoverfolgung (`-x`):**
-- Aktiviert `set -x` für Skript-Debugging
-- Zeigt jeden ausgeführten Befehl
-
-**Beispiel mit Debugging:**
-```bash
-./condinapt -l packages.list -c system.conf -vv -x
-```
-
-#### Erzwinge Cache-Update (`-f`)
-
-Erzwingt, dass CondinAPT vor der Installation `apt update` ausführt:
-
-```bash
-./condinapt -l packages.list -c system.conf -f
-```
-
-## Erweiterte Funktionen
-
-### Array-Unterstützung in der Konfiguration
-
-CondinAPT kann mit Array-Variablen in der Konfigurationsdatei arbeiten:
-
-**`system.conf`:**
-```bash
-SUPPORTED_ARCHITECTURES=("amd64" "i386" "arm64")
-AVAILABLE_ENVIRONMENTS=("production" "staging" "development")
-```
-
-**`filters.map`:**
-```text
-arch=SUPPORTED_ARCHITECTURES
-env=AVAILABLE_ENVIRONMENTS
-```
-
-**`packages.list`:**
-```text
-# Install for any supported architecture
-multilib-support +arch=amd64
-# Install for any available environment
-monitoring-tools +env=production
-```
-
-### Spezialpakete
-
-CondinAPT bietet integrierte Unterstützung für spezielle Pakete, die eine besondere Behandlung erfordern:
-
-**Virtuelle Pakete:**
-- `qemu-kvm` – wird als virtuelles Paket behandelt
-
-**Behandlungsmechanismus:**
-1. CondinAPT prüft mit `apt-cache show`, ob das Paket virtuell ist
-2. Ist das Paket als "rein virtuell" markiert, gilt es als installierbar
-3. Die Liste der Spezialpakete ist im Array `SPECIAL_PACKAGES` im Skript definiert:
-   ```bash
-   SPECIAL_PACKAGES=("qemu-kvm")
-   ```
-
-**Erweiterung der Liste:** Um neue Spezialpakete hinzuzufügen, muss das Array `SPECIAL_PACKAGES` im CondinAPT-Code angepasst werden.
-
-## Fehlerbehandlung und Wiederherstellung
-
-### Obligatorische Pakete (`!`)
-
-Ist ein Paket als obligatorisch markiert, aber nicht in den Repositories auffindbar, führt CondinAPT folgende Schritte aus:
-1. Gibt eine Fehlermeldung aus
-2. Bricht die Ausführung ab (außer im Simulationsmodus)
-3. Gibt Exit-Code 1 zurück
-
-**Beispiel:**
-```text
-!essential-package +pv=standard
-```
-
-Wird `essential-package` nicht gefunden, wird die Ausführung abgebrochen.
-
-### Umgang mit nicht verfügbaren Versionen
-
-**Lockere Versionen (`=`):**
-- Ist die exakte Version nicht verfügbar, wird eine beliebige verfügbare Version installiert
-- Es wird eine Warnung zur Nichtverfügbarkeit der gewünschten Version ausgegeben
-
-**Strikte Versionen (`==`):**
-- Ist die exakte Version nicht verfügbar, wird das Paket übersprungen
-- Ist das Paket obligatorisch (`!`), wird die Ausführung abgebrochen
-
-### Version halten (`apt-mark hold`)
-
-CondinAPT hält Paketversionen automatisch in folgenden Fällen fest:
-- Wenn exakt die gewünschte Version installiert wurde
-- Für Pakete mit `==VERSION`, falls die Version gefunden und installiert wurde
-- Für Pakete mit `=VERSION`, falls genau diese Version gefunden und installiert wurde
-
-## Integration mit Build-Systemen
-
-### Verwendung in Automationsskripten
-
-CondinAPT lässt sich einfach in Build-Systeme und Automationsskripte integrieren. Details zur Syntax der Paketdatei finden Sie im Abschnitt [Syntax der Paketliste](#package-list-file-syntax).
-
-### Allgemeines Integrationsbeispiel:
-
-**In einem Automationsskript (`install.sh`):**
-```bash
-#!/bin/bash
-set -e
-
-# Define base paths
-SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
-CONFIG_DIR="${SCRIPT_DIR}/config"
-
-# Install packages via CondinAPT
-./condinapt \
-    -l "${SCRIPT_DIR}/packages.list" \
-    -c "${CONFIG_DIR}/system.conf" \
-    -m "${CONFIG_DIR}/filters.map"
-```
-
-### Universelle Konfigurationsbeispiele
-
-**Beispiel Filter-Mapping-Datei (`filters.map`):**
-```text
-# Basic system parameters
 d=DISTRIBUTION
-arch=ARCHITECTURE
 st=SYSTEM_TYPE
-env=ENVIRONMENT
-
-# Additional features
 feat=FEATURES
-locale=LOCALE
-version=VERSION
 ```
 
-**Beispielkonfiguration (`system.conf`):**
-```bash
-# Basic parameters
-DISTRIBUTION="bookworm"
-ARCHITECTURE="amd64"
-SYSTEM_TYPE="server"
-ENVIRONMENT="production"
+Das Format ist exakt `prefix=VariableName`; umgebende Leerzeichen werden nicht entfernt. Leere Zeilen und Zeilen, deren erstes Feld mit `#` beginnt, werden ignoriert.
+Doppelte Präfixe verwenden den letzten Wert.
 
-# System capabilities
-FEATURES="web,database,monitoring"
-LOCALE="en_US"
-VERSION="1.0"
-```
+Ohne Mapping-Eintrag wird das Präfix selbst als Variablenname verwendet. Ein nicht gesetzter Skalar verhält sich wie ein leerer String. Ein falsch geschriebenes Negativ-Filter kann daher stillschweigend ein Paket einschließen. Verwenden Sie daher bevorzugt ein Mapping und führen Sie beim Hinzufügen von Filtern eine ausführliche Simulation durch.
 
-## Beispiele aus der Praxis
+### Paketliste
 
-### Beispiel 1: Multimedia-Server
+Die sichere Zeilengrammatik lautet:
 
-**`packages.list`:**
 ```text
-# Basic multimedia codecs - always
-gstreamer1.0-plugins-base
-gstreamer1.0-plugins-good
-
-# Additional codecs - not for minimal installation
-gstreamer1.0-plugins-bad -st=minimal
-gstreamer1.0-plugins-ugly -st=minimal
-gstreamer1.0-libav -st=minimal
-
-# Professional tools - only for full configuration
-ffmpeg +st=media-server
-vlc +st=media-server
-
----
-
-# Distribution-specific packages from backports for older distributions
-ffmpeg @bookworm-backports +d=bookworm
+[!] package[=version|==version] filters... [&& ...] [|| ...] [@release] [# comment]
 ```
 
-### Beispiel 2: Webserver mit verschiedenen Konfigurationen
+Beispiele:
 
-**`packages.list`:**
 ```text
-# Basic web server components
-nginx
-openssl
-
-# Database - only for full installations
-mysql-server +st=full-server -{env=minimal}
-postgresql +st=database-server
-
-# PHP - for web servers
-php-fpm +feat=php
-php-mysql +{feat=php&st=full-server}
-
-# Monitoring - not for development environment
-prometheus-node-exporter -env=development
-htop +env=production
+curl
+firefox-esr +dp=debian
+firefox +dp=ubuntu
+tool -pv=minimum
+exfatprogs -pv=minimum || exfat-utils -pv=minimum && exfat-fuse -pv=minimum
+!required-package
+package=preferred-version
+package==strict-version
+systemd-timesyncd +d=buster @buster-backports
 ```
 
-### Beispiel 3: Container-Plattform
+Alles ab dem ersten `#` bis zum Zeilenende wird entfernt. Verbleibende Leerzeichen werden normalisiert. Es werden keine Anführungszeichen, Escaping, Klammern, verschachtelte Gruppen oder Leerzeichen innerhalb eines Filter-Tokens unterstützt. Unbekannte nachfolgende Tokens werden nicht abgelehnt, daher ist die obige Grammatik als Einschränkung zu verstehen und nicht als Einladung, sich auf permissives Parsen zu verlassen.
 
-**`packages.list`:**
+Verwenden Sie pro physischer Zeile genau ein Release-Target und platzieren Sie es am Ende. CondinAPT extrahiert das Target, bevor Paket-Alternativen ausgewertet werden. Daher können unterschiedliche `@release`-Werte nicht Alternativen auf derselben Zeile zugewiesen werden.
+
+## Filter
+
+Ein Filter vergleicht einen Konfigurationswert anhand exakter, groß-/kleinschreibungsabhängiger String-Gleichheit. Ist die zugeordnete Variable ein indiziertes Array, reicht die Übereinstimmung mit einem beliebigen Array-Element. Assoziative Arrays sind keine Mitgliedschaftssets.
+
+| Form | Wirkung |
+| --- | --- |
+| `+x=value` | Nur einschließen, wenn `x` übereinstimmt |
+| `-x=value` | Ausschließen, wenn `x` übereinstimmt |
+| `+{a|b}` | Mindestens ein Mitglied muss übereinstimmen |
+| `+{a&b}` | Jedes Mitglied muss übereinstimmen |
+| `-{a|b}` | Ausschließen, wenn ein beliebiges Mitglied übereinstimmt |
+| `-{a&b}` | Nur ausschließen, wenn alle Mitglieder übereinstimmen |
+
+Wiederholte einfache positive Filter mit demselben Präfix sind Alternativen:
+
 ```text
-# Basic containerization tools
-docker.io
-containerd
-
-# Kubernetes - only for cluster installations
-kubectl +st=k8s-node
-kubelet +st=k8s-master
-kubeadm +st=k8s-master
-
-# Container monitoring
-docker-compose +env=development
-portainer +feat=gui
-
-# Network tools - exclude for minimal installations
-bridge-utils -st=minimal
-iptables-persistent -st=minimal
+audacity +pv=toolbox +pv=ultra
 ```
 
-### Beispiel 4: Erweiterte Filteranwendung
+Positive Filter mit unterschiedlichen Präfixen müssen alle bestehen. Jeder einfache negative Filter ist ein unabhängiges Veto:
 
-**`packages.list`:**
 ```text
-# Complex conditions for databases
-postgresql +{st=database-server&env=production} +arch=amd64
-mysql-server +{st=web-server|st=full-server} -env=minimal
-
-# Monitoring with exclusions
-prometheus +env=production -st=desktop
-grafana +{env=production|env=staging} +feat=monitoring
-
-# Alternatives with conditions
-nginx +st=web-server || apache2 +st=legacy-server || lighttpd -st=full-server
-
-# Localization for different environments
-language-pack-en +locale=en_US +env=production
-language-pack-ru +locale=ru_RU -{env=minimal&st=embedded}
-fonts-dejavu +{locale=ru_RU|locale=de_DE} +feat=gui
+driver +da=amd64 -d=bookworm -d=bullseye
 ```
 
-## Optimierungstipps
+Mitglieder einer Gruppe dürfen nur einen Operator-Typ verwenden. Mischen Sie nicht `|` und `&` in einer Gruppe; es gibt keine Priorität oder Verschachtelung innerhalb von Gruppen. Drücken Sie „Flux ausschließen oder mindestens Xfce“ als zwei Filter aus:
 
-### Organisation von Paketlisten
-
-1. **Gruppierung nach Funktionalität:**
 ```text
-#=== System ===
-systemd
-dbus
-
-#=== Network ===
-network-manager
-wireless-tools
-
-#=== Multimedia ===
-pulseaudio
-alsa-utils
+htop -de=flux -{pv=minimum&de=xfce}
 ```
 
-2. **Verwendung von Warteschlangen für Abhängigkeiten:**
+## Alternativen und Konjunktionen
+
+`&&` hat eine höhere Priorität als `||`. CondinAPT trennt zuerst Alternativen und wertet dann jedes Mitglied einer Konjunktion aus, sodass:
+
 ```text
-# Base system - first queue
+A || B && C
+```
+
+bedeutet `A || (B && C)`.
+
+CondinAPT wählt die erste Alternative, deren Filter und Paketverfügbarkeitsprüfungen alle erfolgreich sind. Scheitert ein Mitglied einer Konjunktion, werden bereits ausgewählte Pakete aus dieser Konjunktion zurückgesetzt und die nächste Alternative geprüft.
+
+Dies ist eine Vorauswahl, kein Installations-Retry oder Transaktion. Wenn der spätere Queue-Level-`apt-get install` für die gewählte Alternative fehlschlägt, kehrt CondinAPT nicht zu einem späteren `||`-Zweig zurück.
+
+Jede Alternative muss ihre eigenen Filter wiederholen:
+
+```text
+firefox-esr +dp=debian || firefox +dp=ubuntu
+```
+
+## Obligatorische Pakete
+
+`!` wird nur am Anfang des vollständigen physischen Ausdrucks erkannt und gilt für alle seine Alternativen:
+
+```text
+!preferred-package || fallback-package
+```
+
+Der Ausdruck ist im Normalmodus nur dann fatal, wenn keine Alternative erfolgreich ist und ein aktives Paket oder eine strikte Version nicht verfügbar ist. Filter können eine obligatorische Zeile ohne Fehler deaktivieren. Ein normaler APT-Installationsfehler bricht die zugehörige Queue unabhängig von `!` ab.
+
+In der Simulation wird ein Fehler bei der Verfügbarkeit eines obligatorischen Pakets gemeldet, aber die Queue-Verarbeitung wird nicht gestoppt; die Simulation endet dennoch mit dem dokumentierten Nicht-Null-Status.
+
+## Versionen
+
+| Syntax | Verhalten |
+| --- | --- |
+| `package=VERSION` | Bevorzugt die exakte Version; fällt auf einen unversionierten Kandidaten zurück |
+| `package==VERSION` | Akzeptiert nur die exakte Repository-Version |
+
+Die exakte Verfügbarkeit wird mit dem vollständigen Versionsfeld aus `apt-cache madison` abgeglichen. Ist eine nicht-obligatorische strikte Version nicht verfügbar, schlägt diese Bedingung fehl; eine spätere `||`-Alternative kann dennoch erfolgreich sein, andernfalls wird die Zeile übersprungen. Stellen Sie dem Ausdruck `!` voran, um einen Fehler bei der aktiven Verfügbarkeit fatal zu machen.
+
+Wenn CondinAPT die exakt angeforderte Version installiert, wird `apt-mark hold` nach Erfolg der gesamten APT-Queue geplant. Eine bereits installierte exakte Version gilt als erfüllt und wird nicht erneut gehalten. Fehler beim Halten werden nicht als Exit-Status von CondinAPT weitergegeben.
+
+Bei einem unversionierten installierten Paket vergleicht CondinAPT die installierte Version mit dem Repository-Kandidaten. Weicht der Kandidat ab, wird erneut in die Queue aufgenommen; APT wird mit `--allow-downgrades` aufgerufen.
+
+## Queues
+
+`---` beendet die aktuelle normale Queue. Jedes ausgewählte Paket in einer Queue wird in einem nicht-interaktiven `apt-get install`-Aufruf mit `--force-confdef`, `--force-confold`, `--allow-downgrades` und `--no-install-suggests` übergeben.
+
+```text
 build-essential
 pkg-config
 ---
-# Development libraries - second queue
-libgtk-3-dev
-libqt5-dev
----
-# Applications - third queue
-gedit
-qtcreator
+application
 ```
 
-3. **Optimierung von Bedingungen:**
+Release-Target-Zeilen werden aus dem normalen Queue-Fluss entfernt und global nach Release gruppiert. Zeilen für dasselbe Release werden auch dann zusammengeführt, wenn sie durch `---` getrennt sind.
+Die effektive Ausführungsreihenfolge ist:
+
+1. Nicht-Target-Prioritätsqueue.
+2. Prioritäts-Target-Release-Queues.
+3. Normale Queues in Quellreihenfolge.
+4. Verbleibende Target-Release-Queues in der Reihenfolge des ersten Auftretens.
+
+Daher bildet eine Target-Zeile zwischen zwei normalen Zeilen keine Barriere, und Target-Queues laufen nach allen normalen Queues, sofern sie nicht als Prioritätsarbeit extrahiert wurden.
+
+Repository-Verfügbarkeitsprüfungen im Voraus sind nicht Target-bewusst; nur der finale `apt-get install` erhält `-t RELEASE`. Überprüfen Sie Target-Pakete gegen die konfigurierten Repositories.
+
+## Prioritätsliste
+
+`-P` liest pro Zeile einen Bash-Extended-Regular-Expression. Ein Muster wird mit dem ersten Paketnamen jeder Paketlisten-Ausdruck verglichen. Bei Übereinstimmung wird der gesamte Ausdruck, inklusive Filter, Alternativen, obligatorischem Status und Release-Target, in eine Prioritätsqueue verschoben.
+
 ```text
-# Inefficient
-package1 +st=server +env=production
-package2 +st=server +env=production
-package3 +st=server +env=production
-
-# Better to group
-package1 +{st=server&env=production}
-package2 +{st=server&env=production}
-package3 +{st=server&env=production}
+^dkms$
+^linux-.*
 ```
 
-### Performance
+Muster sind unankert, sofern sie keine Anker enthalten. Das Matchen eines späteren `&&`- oder `||`-Pakets hat keine Auswirkung; nur das erste Paket-Token wird geprüft. Die Prioritäts-Extraktion führt auch Matches aus separaten normalen Queues zusammen, daher sollte sie nicht für Einträge verwendet werden, bei denen die ursprüngliche `---`-Grenze für das Dependency-Staging erforderlich ist.
 
-- Verwenden Sie Prioritätswarteschlangen für kritische Pakete
-- Minimieren Sie die Anzahl der Warteschlangen
-- Fassen Sie zusammengehörige Pakete in einer Warteschlange zusammen
-- Nutzen Sie APT-Caching für große Builds
+Priorität bedeutet frühere Auswertung und Installation, aber keine garantierte Installation. Filter und Verfügbarkeitsprüfungen gelten weiterhin.
+
+## Betriebsmodi und Exit-Status
+
+### Simulation
+
+```bash
+bash linux-live/condinapt \
+  -l packages.list -c system.conf -m filters.map -s -v
+```
+
+Die Simulation wertet Filter, Versionen, Alternativen und Queues aus und gibt dann die Pakete aus, die an APT übergeben würden. Sie garantiert nicht, dass die spätere Installation erfolgreich wäre. Eine gültige Simulation beendet sich absichtlich mit Status `1`, auch wenn die Paketauswahl erfolgreich war.
+
+### Nur-Prüfen
+
+```bash
+bash linux-live/condinapt \
+  -l packages.list -c system.conf -m filters.map -C
+```
+
+Nur-Prüfen wertet Filter und Operatoren aus, prüft aber nur, ob Paketnamen über `dpkg-query` installiert sind. Es prüft nicht die angeforderten Versionen, Repository-Kandidaten oder Release-Targets. Es gibt `0` zurück, wenn jeder aktive Ausdruck erfüllt ist, und `1` andernfalls.
+
+Der ausgegebene `sudo apt install ...`-Befehl ist eine grobe Diagnose. Er verliert Versionen und Target-Releases, kann mehrere fehlgeschlagene Alternativen enthalten und reproduziert nicht garantiert den Originalausdruck.
+
+### Statusübersicht
+
+| Fall | Status |
+| --- | --- |
+| Hilfe | `0` |
+| Erfolgreicher normaler Lauf | `0` |
+| Ungültige Eingabe, Fehler bei obligatorischer Verfügbarkeit oder APT-Queue-Fehler | `1` |
+| Gültige Simulation | `1` |
+| Nur-Prüfen mit fehlenden aktiven Paketen | `1` |
+
+## Spezielle Paketbehandlung
+
+Die Implementierung kennt einen speziellen Paketnamen: `qemu-kvm`. Dieser wird akzeptiert, wenn `apt-cache show qemu-kvm` ihn als rein virtuell meldet. Andere virtuelle Pakete haben keine generische Provider-Auflösung. Verwenden Sie bei Portabilitätsanforderungen bevorzugt explizite Provider-Alternativen.
+
+## MiniOS-Integration
+
+### Modulaufruf
+
+Für ein gewöhnliches Modul kopiert `build-modules` das Installationsskript nach `/install`, CondinAPT nach `/condinapt`, die generierte Konfiguration nach `/minios_build.conf` und das Mapping nach `/condinapt.map`. Ein konventionelles Installationsskript sieht so aus:
+
+```bash
+#!/bin/bash
+set -e
+set -o pipefail
+set -u
+
+. /minioslib || exit 1
+. /minios_build.conf || exit 1
+
+SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
+/condinapt \
+  -l "${SCRIPT_DIR}/packages.list" \
+  -c "${SCRIPT_DIR}/minios_build.conf" \
+  -m "${SCRIPT_DIR}/condinapt.map"
+```
+
+Verwenden Sie `SCRIPT_DIR`; `$CWD` ist nicht Teil des gewöhnlichen Modulvertrags.
+`00-core` ist eine spezielle frühere Build-Stufe und ruft stattdessen die Quellbaum-Kopie unter `/linux-live` auf.
+
+Der aktuelle Builder für gewöhnliche Module kopiert automatisch nur eine Datei namens `packages.list`. Module, die zusätzliche Listendateinamen verwenden, müssen diese Eingaben explizit bereitstellen; gehen Sie nicht davon aus, dass jede Datei neben `install` im Chroot-Root liegt.
+
+### MiniOS-Filter-Mapping
+
+`linux-live/condinapt.map` definiert aktuell:
+
+| Präfix | Variable | Bedeutung |
+| --- | --- | --- |
+| `d` | `DISTRIBUTION` | Ziel-Suite |
+| `da` | `DISTRIBUTION_ARCH` | Zielarchitektur |
+| `dp` | `DISTRIBUTION_PROFILE` | `debian` oder `ubuntu` Paketfamilie |
+| `is` | `INIT_SYSTEM` | Ausgewähltes Init-System |
+| `de` | `DESKTOP_ENVIRONMENT` | Modul-Umgebung |
+| `pv` | `PACKAGE_VARIANT` | Paketvariante |
+| `ik` | `INSTALL_KERNEL` | Kernel-Installationsumschalter |
+| `kf` | `KERNEL_FLAVOUR` | Kernel-Flavour |
+| `kp` | `KERNEL_PROVIDER` | `distribution` oder `minios` |
+| `ks` | `KERNEL_SERIES` | Tatsächliche Kernel-Serie während `01-kernel` DKMS-Auswahl |
+| `kc` | `KERNEL_CAPABILITIES` | Erkannte Capability-Array während `01-kernel` DKMS-Auswahl |
+| `kbd` | `KERNEL_BUILD_DKMS` | DKMS-Build-Umschalter |
+| `ib` | `INITRAMFS_BUILDER` | Initramfs-Implementierung |
+| `lo` | `LOCALE` | System-Locale |
+| `ml` | `MULTILINGUAL` | Mehrsprachigkeitsumschalter |
+| `kl` | `KEEP_LOCALES` | Locale-Beibehaltungsumschalter |
+
+`ks` und `kc` sind spezielle `01-kernel`-Filter. Wenn DKMS-Build aktiviert ist, erkennt das Modul `KERNEL_SERIES` vom installierten Kernel und erstellt das indizierte `KERNEL_CAPABILITIES`-Array in einer temporären Konfiguration, die für die DKMS-Paketauswahl verwendet wird. Sie sind in gewöhnlichen Modulkonfigurationen nicht vorhanden; deren Verwendung dort lässt positive Filter fehlschlagen und kann negative Filter passieren lassen.
+`KERNEL_SERIES` ist nicht die `MINIOS_KERNEL_SERIES`-Präferenz. Aktuell erkannte Fähigkeiten umfassen `aufs`, `ntfs3`, `btf_modules` und unterstützte In-Tree-`rtw88_*`-Treiber.
+
+Beispiele aus der aktuellen Kernel-Paketliste:
+
+```text
+pahole +kc=btf_modules || dwarves +kc=btf_modules
+ntfs3-dkms -kc=ntfs3
+aufs-ng-dkms +kp=distribution +ks=6.12 -da=i386 -kc=aufs
+zfs-dkms +pv=toolbox +pv=ultra +da=amd64
+```
 
 ## Fehlerbehebung
 
-### Häufige Probleme
-
-**Problem:** Paket wird trotz korrekter Bedingungen nicht installiert
-**Lösung:** Mit dem `-vv`-Flag detaillierte Filterinformationen prüfen
-
-**Problem:** CondinAPT bricht bei einem Pflichtpaket ab
-**Lösung:** Paketverfügbarkeit in den Repositories prüfen oder Fallback nutzen. Siehe Abschnitt [Fehlerbehandlung und Wiederherstellung](#error-handling-and-recovery)
-
-**Problem:** Unerwartetes Verhalten bei Paketversionen
-**Lösung:** [Simulationsmodus](#operating-modes-and-debugging) (`-s`) zur Überprüfung verwenden
-
-### Filter-Debugging
+Verwenden Sie eine ausführliche Simulation, um die Auswahl zu prüfen:
 
 ```bash
-# Check a specific package
-echo "package-name +condition" | ./condinapt -l /dev/stdin -c system.conf -s -vv
-
-# Check the entire list in simulation mode
-./condinapt -l packages.list -c system.conf -s -vv
+tmp_list="$(mktemp)"
+printf '%s\n' 'package-name +pv=standard' >"$tmp_list"
+bash linux-live/condinapt \
+  -l "$tmp_list" -c system.conf -m filters.map -s -vv
+rm -f "$tmp_list"
 ```
 
-### Überprüfung der Paketverfügbarkeit
+Verwenden Sie nicht `/dev/stdin`; `-l` erfordert eine reguläre Datei.
 
-```bash
-# Check without installation
-./condinapt -l packages.list -c system.conf -C
+- Wenn ein Filter unerwartet zutrifft, prüfen Sie das exakte Präfix-Mapping, den Variablentyp, die Groß-/Kleinschreibung und den Wert. Überprüfen Sie, ob eine Variable nicht gesetzt oder falsch geschrieben ist.
+- Wenn ein Fallback nicht ausgewählt wird, beachten Sie, dass das Fallback während der Vorauswahl und nicht nach einem Queue-Level-APT-Fehler erfolgt.
+- Wenn ein Target-Paket fehlschlägt, prüfen Sie die konfigurierten Quellen und führen Sie `apt-cache policy PACKAGE` aus; die Vorauswahl berücksichtigt `-t RELEASE` nicht.
+- Wenn eine strikte Version übersprungen wird, vergleichen Sie das exakte Versionsfeld mit `apt-cache madison PACKAGE`.
+- Wenn die Queue-Reihenfolge überrascht, berücksichtigen Sie die globale Target-Gruppierung und Prioritäts-Extraktion vor den normalen Queues.
 
-# View package information
-apt-cache policy package-name
-apt-cache madison package-name
-```
+Für den weiteren Build-Workflow siehe [Building MiniOS](/development/Building-MiniOS).

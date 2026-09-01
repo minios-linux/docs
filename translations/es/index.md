@@ -1,22 +1,37 @@
 ---
-layout: inicio
-updated: 2026-08-26
+layout: home
+updated: 2026-08-31
 hero:
-    name: "MiniOS Wiki"
-    text: "Linux portátil confiable y fácil de usar"
-    tagline: "Basado en Debian, ofrece flexibilidad para recuperación del sistema y uso diario."
+    name: "MiniOS"
+    text: "Rápido. Simple. Fiable."
+    tagline: "Distribución Linux ligera, portátil y modular basada en Debian."
+    image:
+        src: /minios-hero.svg
+        alt: MiniOS
     actions:
-        - theme: marca
+        - theme: brand
           text: Inicio rápido
-          link: /installation/Quick-Start
-        - theme: alt
-          text: Acerca de MiniOS
-          link: /about/About-MiniOS
-features:
-    - title: Portátil
-      details: Ejecuta desde USB con cambios persistentes.
-    - title: Modular
-      details: Fácil de personalizar con módulos SquashFS.
-    - title: Basado en Debian
-      details: Base estable y compatible.
+          link: /primeros-pasos/Inicio-rápido
 ---
+
+<section class="home-paths">
+  <h2>¿Qué quieres hacer?</h2>
+  <div class="home-path-grid">
+    <a class="home-path-card" href="installing-minios/Installation-Methods">
+      <span class="home-path-title">Instalar MiniOS</span>
+      <span class="home-path-details">Elige un método de instalación y prepara una unidad USB u otro destino.</span>
+    </a>
+    <a class="home-path-card" href="using-minios/MiniOS-Applications">
+      <span class="home-path-title">Explorar aplicaciones de MiniOS</span>
+      <span class="home-path-details">Consulta las herramientas de MiniOS incluidas en el sistema y para qué sirve cada una.</span>
+    </a>
+    <a class="home-path-card" href="using-minios/Sessions-and-Persistence">
+      <span class="home-path-title">Gestionar sesiones</span>
+      <span class="home-path-details">Elige cómo MiniOS guarda los cambios y cómo trabajar con sesiones guardadas.</span>
+    </a>
+    <a class="home-path-card" href="preparing-and-customizing/Managing-Modules">
+      <span class="home-path-title">Gestionar módulos</span>
+      <span class="home-path-details">Agrega software y cambios como módulos sin reconstruir el sistema base.</span>
+    </a>
+  </div>
+</section>

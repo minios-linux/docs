@@ -1,240 +1,243 @@
 [
   {
-    "key": "sidebar.about",
-    "text": "About MiniOS",
+    "key": "sidebar.gettingStarted",
+    "text": "Getting started",
     "items": [
       {
-        "key": "sidebar.overview",
-        "text": "Overview",
-        "link": "/about/About-MiniOS"
+        "key": "sidebar.quickStart",
+        "text": "Quick start",
+        "link": "/getting-started/Quick-Start"
       },
       {
-        "key": "sidebar.systemArchitecture",
-        "text": "System Architecture",
-        "link": "/about/System-Architecture"
+        "key": "sidebar.aboutMiniOS",
+        "text": "About MiniOS",
+        "link": "/getting-started/About-MiniOS"
       },
       {
-        "key": "sidebar.miniosApplications",
-        "text": "MiniOS Applications",
-        "link": "/about/MiniOS-Applications"
-      },
-      {
-        "key": "sidebar.faq",
-        "text": "FAQ",
-        "link": "/about/FAQ"
+        "key": "sidebar.hardwareCompatibility",
+        "text": "Hardware compatibility",
+        "link": "/getting-started/Hardware-Compatibility"
       }
     ]
   },
   {
-    "key": "sidebar.installation",
-    "text": "Installation",
+    "key": "sidebar.sectionInstallingMiniOS",
+    "text": "Installing MiniOS",
     "items": [
       {
-        "key": "sidebar.quickStartGuide",
-        "text": "Quick Start Guide",
-        "link": "/installation/Quick-Start"
-      },
-      {
-        "key": "sidebar.hardwareCompatibility",
-        "text": "Hardware Compatibility",
-        "link": "/installation/Hardware-Compatibility"
+        "key": "sidebar.installationMethods",
+        "text": "Installation methods",
+        "link": "/installing-minios/Installation-Methods"
       },
       {
         "key": "sidebar.verifyingDownloads",
-        "text": "Verifying Downloads",
-        "link": "/installation/Verifying-Downloads"
+        "text": "Verifying downloads",
+        "link": "/installing-minios/Verifying-Downloads"
       },
       {
-        "key": "sidebar.installingMiniOS",
-        "text": "Installing MiniOS",
-        "link": "/installation/Installing-MiniOS"
-      },
-      {
-        "key": "sidebar.miniosInstaller",
-        "text": "MiniOS Installer",
-        "link": "/installation/MiniOS-Installer"
-      },
-      {
-        "key": "sidebar.networkBoot",
-        "text": "Network Boot",
-        "link": "/installation/Network-Boot"
-      },
-      {
-        "key": "sidebar.usbCreationTools",
-        "text": "USB Creation Tools",
-        "link": "/installation/tools/USB-Creation-Tools",
-        "collapsed": true,
+        "key": "sidebar.installationTools",
+        "text": "Installation tools",
+        "collapsed": false,
         "items": [
           {
             "key": "sidebar.rufus",
             "text": "Rufus",
-            "link": "/installation/tools/Rufus"
+            "link": "/installing-minios/installation-tools/Rufus"
           },
           {
             "key": "sidebar.ventoy",
             "text": "Ventoy",
-            "link": "/installation/tools/Ventoy"
+            "link": "/installing-minios/installation-tools/Ventoy"
           },
           {
             "key": "sidebar.balenaEtcher",
             "text": "Balena Etcher",
-            "link": "/installation/tools/Balena-Etcher"
-          },
-          {
-            "key": "sidebar.unetbootin",
-            "text": "UNetbootin",
-            "link": "/installation/tools/UNetbootin"
-          },
-          {
-            "key": "sidebar.ddCommand",
-            "text": "dd command",
-            "link": "/installation/tools/dd"
+            "link": "/installing-minios/installation-tools/Balena-Etcher"
           },
           {
             "key": "sidebar.driveUtility",
             "text": "Drive Utility",
-            "link": "/installation/tools/Drive-Utility"
+            "link": "/installing-minios/installation-tools/Drive-Utility"
           },
           {
-            "key": "sidebar.fileBasedInstallation",
-            "text": "File-based USB installation",
-            "link": "/installation/tools/File-Based-USB-Installation"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "key": "sidebar.configuration",
-    "text": "Configuration",
-    "items": [
-      {
-        "key": "sidebar.bootAndInitrd",
-        "text": "Boot and initrd",
-        "collapsed": false,
-        "items": [
-          {
-            "key": "sidebar.bootModes",
-            "text": "Boot Modes",
-            "link": "/configuration/Boot-Modes"
-          },
-          {
-            "key": "sidebar.bootMenus",
-            "text": "Boot Menus",
-            "link": "/configuration/Boot-Menus"
-          },
-          {
-            "key": "sidebar.bootParameters",
-            "text": "Boot Parameters",
-            "link": "/configuration/Boot-Parameters"
-          },
-          {
-            "key": "sidebar.initrdSystemDiscovery",
-            "text": "Initrd System Discovery",
-            "link": "/configuration/Initrd-System-Discovery"
-          },
-          {
-            "key": "sidebar.initrdModuleLoading",
-            "text": "Initrd Module Loading",
-            "link": "/configuration/Initrd-Module-Loading"
-          },
-          {
-            "key": "sidebar.initrdPersistence",
-            "text": "Initrd Persistence",
-            "link": "/configuration/Initrd-Persistence"
+            "key": "sidebar.dd",
+            "text": "dd",
+            "link": "/installing-minios/installation-tools/dd"
           }
         ]
       },
       {
-        "key": "sidebar.configurationFile",
-        "text": "Configuration File",
-        "link": "/configuration/Configuration-File"
+        "key": "sidebar.manualFileBasedInstallation",
+        "text": "Manual file-based installation",
+        "link": "/installing-minios/Manual-File-Based-Installation"
       },
       {
-        "key": "sidebar.miniosConfigurator",
-        "text": "MiniOS Configurator",
-        "link": "/configuration/MiniOS-Configurator"
-      },
-      {
-        "key": "sidebar.liveConfigParameters",
-        "text": "live-config Parameters",
-        "link": "/configuration/live-config"
-      },
-      {
-        "key": "sidebar.networkConfiguration",
-        "text": "Network Configuration",
-        "link": "/configuration/Network-Configuration"
-      },
-      {
-        "key": "sidebar.sessionManagement",
-        "text": "Session Management",
-        "link": "/configuration/Session-Management"
-      },
-      {
-        "key": "sidebar.dynfilefsRecovery",
-        "text": "DynFileFS Recovery",
-        "link": "/configuration/DynFileFS-Recovery"
+        "key": "sidebar.miniosInstaller",
+        "text": "MiniOS Installer",
+        "link": "/installing-minios/MiniOS-Installer"
       }
     ]
   },
   {
-    "key": "sidebar.administration",
-    "text": "Administration",
+    "key": "sidebar.usingMiniOS",
+    "text": "Using MiniOS",
     "items": [
       {
-        "key": "sidebar.packageList",
-        "text": "Package List",
-        "link": "/administration/Packages"
+        "key": "sidebar.bootModes",
+        "text": "Boot modes",
+        "link": "/using-minios/Boot-Modes"
       },
       {
-        "key": "sidebar.softwareUpdates",
-        "text": "Software Updates",
-        "link": "/administration/Software-Updates"
+        "key": "sidebar.sessionsPersistence",
+        "text": "Sessions and persistence",
+        "link": "/using-minios/Sessions-and-Persistence"
       },
       {
-        "key": "sidebar.moduleManager",
-        "text": "Module Manager",
-        "link": "/administration/Module-Manager"
+        "key": "sidebar.miniosApplications",
+        "text": "MiniOS applications",
+        "link": "/using-minios/MiniOS-Applications"
       },
       {
-        "key": "sidebar.miniosStore",
-        "text": "MiniOS Store",
-        "link": "/administration/MiniOS-Store"
+        "key": "sidebar.networking",
+        "text": "Networking",
+        "link": "/using-minios/Networking"
       },
       {
-        "key": "sidebar.kernelManagement",
-        "text": "Kernel Management",
-        "link": "/administration/Kernel-Management"
+        "key": "sidebar.installingSoftware",
+        "text": "Installing software",
+        "link": "/using-minios/Installing-Software"
+      }
+    ]
+  },
+  {
+    "key": "sidebar.preparingCustomizing",
+    "text": "Preparing and customizing MiniOS",
+    "items": [
+      {
+        "key": "sidebar.preconfiguringMiniOS",
+        "text": "Preconfiguring MiniOS",
+        "link": "/preparing-and-customizing/Preconfiguring-MiniOS"
       },
       {
-        "key": "sidebar.securityHardening",
-        "text": "Security Hardening",
-        "link": "/administration/Security-Hardening"
+        "key": "sidebar.managingModules",
+        "text": "Managing modules",
+        "link": "/preparing-and-customizing/Managing-Modules"
       },
       {
-        "key": "sidebar.performanceOptimization",
-        "text": "Performance Optimization",
-        "link": "/administration/Performance-Optimization"
+        "key": "sidebar.managingKernels",
+        "text": "Managing kernels",
+        "link": "/preparing-and-customizing/Managing-Kernels"
       },
       {
-        "key": "sidebar.virtualization",
-        "text": "Virtualization",
-        "link": "/administration/Virtualization"
+        "key": "sidebar.creatingCustomImages",
+        "text": "Creating custom MiniOS images",
+        "link": "/preparing-and-customizing/Creating-Custom-MiniOS-Images"
       },
       {
-        "key": "sidebar.backupRecovery",
-        "text": "Backup and Recovery",
-        "link": "/administration/Backup-Recovery"
+        "key": "sidebar.customizingBootMenu",
+        "text": "Customizing the boot menu",
+        "link": "/preparing-and-customizing/Customizing-the-Boot-Menu"
+      }
+    ]
+  },
+  {
+    "key": "sidebar.maintenanceRecovery",
+    "text": "Maintenance and recovery",
+    "items": [
+      {
+        "key": "sidebar.updatingMiniOS",
+        "text": "Updating MiniOS",
+        "link": "/maintenance-and-recovery/Updating-MiniOS"
       },
       {
-        "key": "sidebar.bootRecovery",
-        "text": "Boot Recovery",
-        "link": "/administration/Boot-Recovery"
+        "key": "sidebar.backingUpMiniOS",
+        "text": "Backing up MiniOS",
+        "link": "/maintenance-and-recovery/Backing-Up-MiniOS"
       },
       {
         "key": "sidebar.troubleshooting",
         "text": "Troubleshooting",
-        "link": "/administration/Troubleshooting"
+        "link": "/maintenance-and-recovery/Troubleshooting"
+      },
+      {
+        "key": "sidebar.security",
+        "text": "Security",
+        "link": "/maintenance-and-recovery/Security"
+      },
+      {
+        "key": "sidebar.performance",
+        "text": "Performance",
+        "link": "/maintenance-and-recovery/Performance"
+      },
+      {
+        "key": "sidebar.virtualization",
+        "text": "Virtualization",
+        "link": "/maintenance-and-recovery/Virtualization"
+      }
+    ]
+  },
+  {
+    "key": "sidebar.reference",
+    "text": "Reference",
+    "items": [
+      {
+        "key": "sidebar.systemArchitecture",
+        "text": "System architecture",
+        "link": "/reference/System-Architecture"
+      },
+      {
+        "key": "sidebar.bootProcess",
+        "text": "Boot process",
+        "collapsed": false,
+        "items": [
+          {
+            "key": "sidebar.systemDiscovery",
+            "text": "System discovery",
+            "link": "/reference/boot-process/System-Discovery"
+          },
+          {
+            "key": "sidebar.moduleLoading",
+            "text": "Module loading",
+            "link": "/reference/boot-process/Module-Loading"
+          },
+          {
+            "key": "sidebar.persistenceInternals",
+            "text": "Persistence internals",
+            "link": "/reference/boot-process/Persistence-Internals"
+          },
+          {
+            "key": "sidebar.networkBoot",
+            "text": "Network boot",
+            "link": "/reference/boot-process/Network-Boot"
+          }
+        ]
+      },
+      {
+        "key": "sidebar.bootParameters",
+        "text": "Boot parameters",
+        "link": "/reference/Boot-Parameters"
+      },
+      {
+        "key": "sidebar.configuration",
+        "text": "Configuration",
+        "collapsed": false,
+        "items": [
+          {
+            "key": "sidebar.configConf",
+            "text": "config.conf",
+            "link": "/reference/configuration/config.conf"
+          },
+          {
+            "key": "sidebar.liveConfig",
+            "text": "live-config",
+            "link": "/reference/configuration/live-config"
+          }
+        ]
+      },
+      {
+        "key": "sidebar.packageEditionContents",
+        "text": "Package and edition contents",
+        "link": "/reference/Package-and-Edition-Contents"
       }
     ]
   },
@@ -248,34 +251,9 @@
         "link": "/development/Building-MiniOS"
       },
       {
-        "key": "sidebar.buildCommands",
-        "text": "Build Commands",
-        "link": "/development/Build-Commands"
-      },
-      {
-        "key": "sidebar.creatingModules",
-        "text": "Creating Modules",
-        "link": "/development/Creating-Modules"
-      },
-      {
-        "key": "sidebar.composingIso",
-        "text": "Composing ISO Images",
-        "link": "/development/Rebuilding-ISO"
-      },
-      {
-        "key": "sidebar.imageBuilder",
-        "text": "Image Builder",
-        "link": "/development/Image-Builder"
-      },
-      {
         "key": "sidebar.condinapt",
         "text": "CondinAPT",
         "link": "/development/CondinAPT"
-      },
-      {
-        "key": "sidebar.condinaptInMinios",
-        "text": "CondinAPT in MiniOS",
-        "link": "/development/CondinAPT-MiniOS"
       }
     ]
   }

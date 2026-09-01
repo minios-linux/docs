@@ -67,94 +67,106 @@ function routeRewrite(id: string) {
   return id
 }
 
+const basePrefix = base.endsWith('/') ? base.slice(0, -1) : base
+
+function themeLink(locale: string, path: string) {
+  const localized = localePath(locale, path)
+  // VitePress treats a route ending in `.conf` like a static file and does not
+  // prepend `base`, so config.conf needs an explicit base-prefixed URL.
+  return localized.endsWith('/config.conf') ? `${basePrefix}${localized}` : localized
+}
+
 function localizeItems<T extends { key?: string; text?: string; link?: string; items?: T[] }>(items: T[], locale: string): T[] {
   return items.map((item) => ({
     ...item,
     text: item.key ? message(locale, item.key) : item.text,
-    link: locale !== 'root' && item.link?.startsWith('/') ? localePath(locale, item.link) : item.link,
+    link: item.link?.startsWith('/') ? themeLink(locale, item.link) : item.link,
     items: item.items ? localizeItems(item.items, locale) : undefined
   }))
 }
 
 function nav(locale = 'root') {
-  const p = (path: string) => localePath(locale, path)
+  const p = (path: string) => themeLink(locale, path)
   return [
-    { text: message(locale, 'nav.home'), link: p('/') },
-    {
-      text: message(locale, 'nav.about'),
-      items: [
-        { text: message(locale, 'nav.overview'), link: p('/about/About-MiniOS') },
-        { text: message(locale, 'nav.miniosApplications'), link: p('/about/MiniOS-Applications') },
-        { text: message(locale, 'nav.faq'), link: p('/about/FAQ') }
-      ]
-    },
-    { text: message(locale, 'nav.quickStart'), link: p('/installation/Quick-Start') },
+    { text: message(locale, 'nav.quickStart'), link: p('/getting-started/Quick-Start') },
     {
       text: message(locale, 'nav.install'),
       items: [
-        { text: message(locale, 'nav.hardwareCompatibility'), link: p('/installation/Hardware-Compatibility') },
-        { text: message(locale, 'nav.verifyingDownloads'), link: p('/installation/Verifying-Downloads') },
-        { text: message(locale, 'nav.installingToDisk'), link: p('/installation/Installing-MiniOS') },
-        { text: message(locale, 'nav.networkBoot'), link: p('/installation/Network-Boot') },
+        { text: message(locale, 'sidebar.installationMethods'), link: p('/installing-minios/Installation-Methods') },
+        { text: message(locale, 'sidebar.verifyingDownloads'), link: p('/installing-minios/Verifying-Downloads') },
         {
-          text: message(locale, 'nav.usbCreationTools'),
-          link: p('/installation/tools/USB-Creation-Tools'),
+          text: message(locale, 'sidebar.installationTools'),
           items: [
-            { text: message(locale, 'nav.rufus'), link: p('/installation/tools/Rufus') },
-            { text: message(locale, 'nav.ventoy'), link: p('/installation/tools/Ventoy') },
-            { text: message(locale, 'nav.balenaEtcher'), link: p('/installation/tools/Balena-Etcher') },
-            { text: message(locale, 'nav.fileBasedInstallation'), link: p('/installation/tools/File-Based-USB-Installation') }
-          ]
-        }
-      ]
-    },
-    {
-      text: message(locale, 'nav.configure'),
-      items: [
-        {
-          text: message(locale, 'nav.bootAndInitrd'),
-          items: [
-            { text: message(locale, 'nav.bootModes'), link: p('/configuration/Boot-Modes') },
-            { text: message(locale, 'nav.bootMenus'), link: p('/configuration/Boot-Menus') },
-            { text: message(locale, 'nav.bootParameters'), link: p('/configuration/Boot-Parameters') },
-            { text: message(locale, 'nav.initrdSystemDiscovery'), link: p('/configuration/Initrd-System-Discovery') },
-            { text: message(locale, 'nav.initrdModuleLoading'), link: p('/configuration/Initrd-Module-Loading') },
-            { text: message(locale, 'nav.initrdPersistence'), link: p('/configuration/Initrd-Persistence') }
+            { text: message(locale, 'sidebar.rufus'), link: p('/installing-minios/installation-tools/Rufus') },
+            { text: message(locale, 'sidebar.ventoy'), link: p('/installing-minios/installation-tools/Ventoy') },
+            { text: message(locale, 'sidebar.balenaEtcher'), link: p('/installing-minios/installation-tools/Balena-Etcher') },
+            { text: message(locale, 'sidebar.driveUtility'), link: p('/installing-minios/installation-tools/Drive-Utility') },
+            { text: message(locale, 'sidebar.dd'), link: p('/installing-minios/installation-tools/dd') }
           ]
         },
-        { text: message(locale, 'nav.configurationFile'), link: p('/configuration/Configuration-File') },
-        { text: message(locale, 'nav.miniosConfigurator'), link: p('/configuration/MiniOS-Configurator') },
-        { text: message(locale, 'nav.liveConfigParameters'), link: p('/configuration/live-config') },
-        { text: message(locale, 'nav.networkConfiguration'), link: p('/configuration/Network-Configuration') },
-        { text: message(locale, 'nav.sessionManagement'), link: p('/configuration/Session-Management') }
+        { text: message(locale, 'sidebar.manualFileBasedInstallation'), link: p('/installing-minios/Manual-File-Based-Installation') },
+        { text: message(locale, 'sidebar.miniosInstaller'), link: p('/installing-minios/MiniOS-Installer') }
       ]
     },
     {
-      text: message(locale, 'nav.manage'),
+      text: message(locale, 'nav.use'),
       items: [
-        { text: message(locale, 'nav.packages'), link: p('/administration/Packages') },
-        { text: message(locale, 'nav.softwareUpdates'), link: p('/administration/Software-Updates') },
-        { text: message(locale, 'nav.moduleManager'), link: p('/administration/Module-Manager') },
-        { text: message(locale, 'nav.miniosStore'), link: p('/administration/MiniOS-Store') },
-        { text: message(locale, 'nav.kernelManagement'), link: p('/administration/Kernel-Management') },
-        { text: message(locale, 'nav.securityHardening'), link: p('/administration/Security-Hardening') },
-        { text: message(locale, 'nav.performance'), link: p('/administration/Performance-Optimization') },
-        { text: message(locale, 'nav.virtualization'), link: p('/administration/Virtualization') },
-        { text: message(locale, 'nav.backupRecovery'), link: p('/administration/Backup-Recovery') },
-        { text: message(locale, 'nav.bootRecovery'), link: p('/administration/Boot-Recovery') },
-        { text: message(locale, 'nav.troubleshooting'), link: p('/administration/Troubleshooting') }
+        { text: message(locale, 'sidebar.bootModes'), link: p('/using-minios/Boot-Modes') },
+        { text: message(locale, 'sidebar.sessionsPersistence'), link: p('/using-minios/Sessions-and-Persistence') },
+        { text: message(locale, 'sidebar.miniosApplications'), link: p('/using-minios/MiniOS-Applications') },
+        { text: message(locale, 'sidebar.networking'), link: p('/using-minios/Networking') },
+        { text: message(locale, 'sidebar.installingSoftware'), link: p('/using-minios/Installing-Software') }
       ]
     },
     {
-      text: message(locale, 'nav.develop'),
+      text: message(locale, 'nav.customize'),
       items: [
-        { text: message(locale, 'nav.buildingMiniOS'), link: p('/development/Building-MiniOS') },
-        { text: message(locale, 'nav.buildCommands'), link: p('/development/Build-Commands') },
-        { text: message(locale, 'nav.creatingModules'), link: p('/development/Creating-Modules') },
-        { text: message(locale, 'nav.composingIso'), link: p('/development/Rebuilding-ISO') },
-        { text: message(locale, 'nav.imageBuilder'), link: p('/development/Image-Builder') },
-        { text: message(locale, 'nav.condinapt'), link: p('/development/CondinAPT') },
-        { text: message(locale, 'nav.condinaptInMinios'), link: p('/development/CondinAPT-MiniOS') }
+        { text: message(locale, 'sidebar.preconfiguringMiniOS'), link: p('/preparing-and-customizing/Preconfiguring-MiniOS') },
+        { text: message(locale, 'sidebar.managingModules'), link: p('/preparing-and-customizing/Managing-Modules') },
+        { text: message(locale, 'sidebar.managingKernels'), link: p('/preparing-and-customizing/Managing-Kernels') },
+        { text: message(locale, 'sidebar.creatingCustomImages'), link: p('/preparing-and-customizing/Creating-Custom-MiniOS-Images') },
+        { text: message(locale, 'sidebar.customizingBootMenu'), link: p('/preparing-and-customizing/Customizing-the-Boot-Menu') }
+      ]
+    },
+    {
+      text: message(locale, 'nav.maintain'),
+      items: [
+        { text: message(locale, 'sidebar.updatingMiniOS'), link: p('/maintenance-and-recovery/Updating-MiniOS') },
+        { text: message(locale, 'sidebar.backingUpMiniOS'), link: p('/maintenance-and-recovery/Backing-Up-MiniOS') },
+        { text: message(locale, 'sidebar.troubleshooting'), link: p('/maintenance-and-recovery/Troubleshooting') },
+        { text: message(locale, 'sidebar.security'), link: p('/maintenance-and-recovery/Security') },
+        { text: message(locale, 'sidebar.performance'), link: p('/maintenance-and-recovery/Performance') },
+        { text: message(locale, 'sidebar.virtualization'), link: p('/maintenance-and-recovery/Virtualization') }
+      ]
+    },
+    {
+      text: message(locale, 'nav.more'),
+      items: [
+        { text: message(locale, 'sidebar.aboutMiniOS'), link: p('/getting-started/About-MiniOS') },
+        { text: message(locale, 'sidebar.hardwareCompatibility'), link: p('/getting-started/Hardware-Compatibility') },
+        {
+          text: message(locale, 'nav.reference'),
+          items: [
+            { text: message(locale, 'sidebar.systemArchitecture'), link: p('/reference/System-Architecture') },
+            { text: message(locale, 'sidebar.networkBoot'), link: p('/reference/boot-process/Network-Boot') },
+            { text: message(locale, 'sidebar.bootParameters'), link: p('/reference/Boot-Parameters') },
+            {
+              text: message(locale, 'sidebar.configuration'),
+              items: [
+                { text: message(locale, 'sidebar.configConf'), link: p('/reference/configuration/config.conf') },
+                { text: message(locale, 'sidebar.liveConfig'), link: p('/reference/configuration/live-config') }
+              ]
+            },
+            { text: message(locale, 'sidebar.packageEditionContents'), link: p('/reference/Package-and-Edition-Contents') }
+          ]
+        },
+        {
+          text: message(locale, 'nav.development'),
+          items: [
+            { text: message(locale, 'sidebar.buildingMiniOS'), link: p('/development/Building-MiniOS') },
+            { text: message(locale, 'sidebar.condinapt'), link: p('/development/CondinAPT') }
+          ]
+        }
       ]
     }
   ]
@@ -282,7 +294,7 @@ function localizeFrontmatterLinks(value: unknown, locale: string): unknown {
   return Object.fromEntries(
     Object.entries(value).map(([key, item]) => {
       if (key === 'link' && typeof item === 'string' && item.startsWith('/') && !localeCodes.some((code) => item.startsWith(`/${code}/`))) {
-        return [key, localePath(locale, item)]
+        return [key, themeLink(locale, item)]
       }
       return [key, localizeFrontmatterLinks(item, locale)]
     })
@@ -293,7 +305,8 @@ function localizeInternalLink(href: string, locale: string) {
   if (!href.startsWith('/') || href.startsWith('//')) return href
 
   const basePath = `/${base.replace(/^\//, '')}`
-  const withoutBase = href.startsWith(basePath) ? href.slice(basePath.length - 1) : href
+  const hadBase = href.startsWith(basePath)
+  const withoutBase = hadBase ? href.slice(basePath.length - 1) : href
   const target = withoutBase.replace(/^\//, '')
   if (!target || target.startsWith(`${locale}/`) || localeCodes.some((code) => target.startsWith(`${code}/`))) return href
   if (target.startsWith('assets/')) return href
@@ -302,10 +315,13 @@ function localizeInternalLink(href: string, locale: string) {
   const [pathOnly, query = ''] = pathAndQuery.split('?')
   const fileName = pathOnly.split('/').pop() || ''
   const extension = fileName.includes('.') ? fileName.split('.').pop() : ''
-  if (extension && extension !== 'md' && extension !== 'html') return href
+  const isConfigConfPage = pathOnly.endsWith('/reference/configuration/config.conf')
+  if (extension && extension !== 'md' && extension !== 'html' && !isConfigConfPage) return href
 
   const cleanPath = pathOnly.replace(/\.(md|html)$/, '')
-  return localePath(locale, cleanPath) + (query ? `?${query}` : '') + (hash ? `#${hash}` : '')
+  const localized = localePath(locale, cleanPath)
+  const localizedPath = hadBase ? `${basePrefix}${localized}` : localized
+  return localizedPath + (query ? `?${query}` : '') + (hash ? `#${hash}` : '')
 }
 
 function localizeHtmlLinks(code: string, locale: string) {

@@ -1,0 +1,73 @@
+/* Home page branding. */
+:root {
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: linear-gradient(120deg, #38aeeb 20%, #665ee8 80%);
+  --vp-home-hero-image-background-image: linear-gradient(135deg, #38aeeb 20%, #665ee8 55%, #a936ef 85%);
+  --vp-home-hero-image-filter: blur(64px);
+}
+
+.VPHero .image-src {
+  box-sizing: border-box;
+  padding: 56px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 28%;
+  background: linear-gradient(145deg, #38aeeb, #665ee8 58%, #9b35e8);
+  box-shadow: 0 24px 64px rgba(71, 91, 214, 0.35);
+  transform: translate(-50%, -50%) rotate(-6deg);
+}
+
+.VPHome .home-paths {
+  max-width: 1152px;
+  margin: 0 auto;
+  padding: 8px 24px 64px;
+}
+
+.VPHome .home-paths h2 {
+  margin: 0 0 20px;
+  border: 0;
+  font-size: 24px;
+  line-height: 1.35;
+}
+
+.VPHome .home-path-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.VPHome .home-path-card {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-height: 112px;
+  padding: 20px 22px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 12px;
+  background: var(--vp-c-bg-soft);
+  text-decoration: none;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.VPHome .home-path-card:hover {
+  border-color: var(--vp-c-brand-1);
+  background: var(--vp-c-bg-alt);
+}
+
+.VPHome .home-path-title {
+  color: var(--vp-c-text-1);
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.VPHome .home-path-details {
+  color: var(--vp-c-text-2);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+@media (max-width: 640px) {
+  .VPHome .home-path-grid {
+    grid-template-columns: 1fr;
+  }
+}

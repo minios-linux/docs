@@ -1,740 +1,312 @@
 ---
-updated: 2026-08-26
+updated: 2026-08-31
+program_commits:
+    minios-live: f59faa38c0667fbeefdc6dbe899a2db6e131e462
 ---
 
-# MiniOS erstellen
+# Build von MiniOS
 
-Diese Anleitung beschreibt den vollständigen Prozess zum Erstellen von MiniOS, einschließlich System-Builds, Modulentwicklung und erweiterten Konfigurationsoptionen.
+MiniOS wird aus einem Basis-SquashFS-Image, geordneten Erweiterungsmodulen, Kernel- und Boot-Dateien sowie generierter Konfiguration zusammengesetzt. Diese Seite beschreibt die aktuellen Build-Schnittstellen des Quellbaums und die Abhängigkeiten zwischen deren Ausgaben.
 
-## Übersicht
+Führen Sie `./minios-cmd --help`, `./minios-live --help` aus und prüfen Sie die ausgewählte `build.conf`, bevor Sie den Build starten. Diese Dateien sind maßgeblich für die ausgecheckte Version.
 
-MiniOS verwendet ein modulares Build-System, bei dem das Betriebssystem aus einzelnen Modulen im SquashFS-Format zusammengesetzt wird. Jedes Modul enthält spezifische Softwarepakete oder Komponenten und wird in einer festgelegten Reihenfolge geladen, um das vollständige System zu bilden.
+## Anforderungen
 
-## Erste Schritte
+Bauen Sie auf Debian oder Ubuntu mit ausreichend freiem Speicherplatz unterhalb von `BUILD_DIR` und `/tmp`.
+Ein typisches Desktop-Ziel benötigt mindestens 20 GiB. Für Build-Operationen werden Root-Rechte für debootstrap, Chroots, Mounts, Loop-Devices und Image-Erstellung benötigt; das Anzeigen der Hilfe nicht.
 
-### Voraussetzungen
-
-- Neueste Version von Debian oder Ubuntu zum Erstellen
-- Ausreichend freier Speicherplatz (empfohlen: 20GB+)
-- Internetverbindung zum Herunterladen von Paketen
-- Benötigte Pakete, aufgelistet in `linux-live/prerequisites.list`
-
-### Installation der Voraussetzungen
-
-Die Datei `prerequisites.list` verwendet das condinapt-Format mit bedingten Markierungen. Installieren Sie die benötigten Pakete manuell:
+Die maßgebliche Paketliste für das Host-System ist `linux-live/prerequisites.list`. Für das aktuelle Checkout kann sie installiert werden mit:
 
 ```bash
 sudo apt-get update
-sudo apt-get install sudo binutils debootstrap squashfs-tools xz-utils lz4 zstd xorriso mtools rsync curl
-sudo apt-get install grub-efi-amd64-bin grub-pc-bin
+sudo apt-get install \
+  sudo binutils debootstrap squashfs-tools xorriso mtools rsync \
+  grub-common gpg curl openssl sbsigntool
 ```
 
-Alternativ können Sie condinapt verwenden, um die Voraussetzungenliste zu verarbeiten, falls dies auf Ihrem System verfügbar ist.
+In einem Quellcode-Checkout prüft `minios-live` diese Liste vor dem Bauen, sofern nicht `SKIP_SETUP_HOST=true`. Auf einem normalen Host werden fehlende Pakete gemeldet und der Vorgang abgebrochen; eine automatische Installation erfolgt nur im Container-Build-Pfad.
 
-## Build-Tools
+Die Standardkonfiguration prüft die Internetverbindung. Diese Prüfung kann mit `CHECK_INTERNET_CONNECTION=false` deaktiviert werden und wird bei einem vorbereiteten APT-Cache-Repository übersprungen, aber alle benötigten Paket- und Boot-Dateien müssen weiterhin aus konfigurierten Repositories oder Caches verfügbar sein.
 
-MiniOS stellt zwei Hauptwerkzeuge für den Build-Prozess bereit:
+Falls `USE_APT_CACHER=true`, muss ein erreichbarer apt-cacher-ng-Dienst bereits unter `APT_CACHER_ADDRESS` konfiguriert sein; andernfalls setzen Sie die Option auf `false` vor dem Bauen.
 
-### minios-cmd (Empfohlen)
+::: danger Bootstrap-Vertrauen
+Der aktuelle Bootstrap-Pfad ruft debootstrap mit `--no-check-gpg` auf und lädt den MiniOS-Archivschlüssel über nicht authentifiziertes HTTP herunter. Verwenden Sie das resultierende Image nicht als vertrauenswürdiges Release-Artefakt, bis diese Quellpfade eine authentifizierte Schlüssel- und Bootstrap-Überprüfung erzwingen.
+:::
 
-Ein Kommandozeilen-Tool, das die Konfiguration und den Start von Builds vereinfacht. Es bietet eine benutzerfreundliche Oberfläche zur Einstellung verschiedener Build-Parameter:
+## Schnellstart-Build
 
-- Ziel-Distribution (buster, bookworm, trixie usw.)
-- Architektur (amd64, i386)
-- Desktop-Umgebung (core, flux, xfce, lxqt)
-- Paketvariante (minimum, standard, toolbox, ultra)
-- Kernel-Anbieter, MiniOS-Kernel-Serie, Payload-Modus und optionale DKMS-Builds
-- Locale- und Zeitzoneneinstellungen
-
-**Verwendung:**
-```bash
-# Build with default configuration
-minios-cmd -d bookworm -a amd64 -de xfce -pv standard
-
-# Build with custom options
-minios-cmd -d bookworm -a amd64 -de xfce -pv toolbox -c zstd -l en_US -tz "Europe/Prague"
-
-# Build with the AUFS-enabled MiniOS kernel and optional DKMS drivers
-minios-cmd -d bookworm -a amd64 -de xfce -pv standard -mk -dkms
-```
-
-Detaillierte Informationen zur Nutzung finden Sie in der [minios-cmd Dokumentation](https://github.com/minios-linux/minios-live/blob/master/docs/minios-cmd.md).
-
-### minios-live (Fortgeschritten)
-
-Das zentrale Build-Skript, das den schrittweisen Build-Prozess steuert:
-
-- Aufbau der Build-Umgebung
-- Installation des Basissystems
-- Integration der gewählten Desktop-Umgebung
-- Erstellung des SquashFS-Dateisystems
-- Konfiguration des Boot-Prozesses
-- Generierung des bootfähigen ISO-Abbilds
-
-**Verwendung:**
-```bash
-# Complete build
-./minios-live -
-
-# Specific stages
-./minios-live build-bootstrap
-./minios-live build-chroot - build-live
-```
-
-Detaillierte Informationen zur Nutzung finden Sie in der [minios-live Dokumentation](https://github.com/minios-linux/minios-live/blob/master/docs/minios-live.md).
-
-## Projektstruktur
-
-Das Build-System von MiniOS ist wie folgt organisiert:
-
-```plaintext
-minios-live/
-├── linux-live/                 # Core scripts and build libraries
-│   ├── bootfiles/              # Files and templates for booting (GRUB, ISOLINUX, EFI, etc.)
-│   ├── environments/           # Environment descriptions and settings
-│   ├── initramfs/              # Scripts for creating initramfs
-│   ├── scripts/                # Module scripts and templates
-│   ├── build-initramfs         # Script for separate initramfs build
-│   ├── build.conf              # Main build configuration file
-│   ├── condinapt               # Script/tool for working with package lists
-│   ├── install-chroot          # Script for installing into the chroot environment
-│   ├── minioslib               # Core Bash function library
-│   └── prerequisites.list      # List of required packages for installation on the host for building
-├── tools/                      # Auxiliary build scripts
-├── minios-cmd                  # CLI utility for setting build parameters
-└── minios-live                 # Main script for building MiniOS
-```
-
-## Build-Prozess
-
-Der Build-Prozess folgt einer strukturierten Abfolge von Phasen:
-
-```mermaid
-flowchart TD
-    Start([Start Build]) --> Choice{Choose Tool}
-
-    Choice -->|Easy Setup| A([minios-cmd<br/>Configure Parameters])
-    Choice -->|Advanced Control| B([minios-live<br/>Direct Execution])
-
-    A --> A1[Generate build.conf]
-    A1 --> B
-
-    B --> PreCheck{Internet Check<br/>Network Required}
-    PreCheck -->|No Internet| NetworkFail[Build Cannot Start<br/>• Check network connection<br/>• Verify DNS resolution<br/>• Configure proxy if needed]
-    PreCheck -->|Connected| C1
-
-    NetworkFail --> PreCheck
-
-    C1[build-bootstrap<br/>Create Base System<br/>• Run debootstrap<br/>• Install core packages<br/>• Setup chroot environment]
-
-    C1 --> C2[build-chroot<br/>Configure System<br/>• Install base packages<br/>• Configure settings<br/><br/>]
-
-    C2 --> C3[build-live<br/>Create Core SquashFS<br/>• Compress base system<br/>• Create 00-core.sb module<br/>• Prepare live environment]
-
-    C3 --> C4[build-modules<br/>Build Environment Modules<br/>• Process linked modules<br/>• Create SquashFS files<br/>• Apply conditional packages]
-
-    C4 --> C5[build-boot<br/>Prepare Boot System<br/>• Setup GRUB & ISOLINUX<br/>• Create initramfs<br/>• Configure boot parameters]
-
-    C5 --> C6[build-config<br/>Generate Boot Configs<br/>• Create menu entries<br/>• Configure live options<br/><br/>]
-
-    C6 --> C7[build-iso<br/>Create Final ISO<br/>• Combine all components<br/>• Generate bootable image<br/><br/>]
-
-    C7 --> Success([Final ISO Ready<br/>build/iso/])
-
-    %% Alternative paths
-    C1 -.->|Skip to specific stage| C4
-    C3 -.->|Rebuild modules only| C4
-    C4 -.->|Update boot only| C5
-    C6 -.->|Repack ISO only| C7
-
-    %% Error handling
-    C1 --> Error1{Bootstrap Failed?}
-    Error1 -->|Yes| Fix1[Check network<br/>Verify repositories<br/>Install prerequisites<br/><br/>]
-    Error1 -->|No| C2
-    Fix1 --> C1
-
-    C4 --> Error2{Module Build Failed?}
-    Error2 -->|Yes| Fix2[Check package availability<br/>Verify conditions<br/>Review install scripts<br/><br/>]
-    Error2 -->|No| C5
-    Fix2 --> C4
-
-    %% Styling
-    classDef processBox fill:#e1f5fe,stroke:#0277bd,stroke-width:2px
-    classDef choiceBox fill:#fff3e0,stroke:#f57c00,stroke-width:2px
-    classDef errorBox fill:#ffebee,stroke:#d32f2f,stroke-width:2px
-    classDef successBox fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
-    classDef criticalBox fill:#fce4ec,stroke:#c2185b,stroke-width:3px
-
-    class C1,C2,C3,C4,C5,C6,C7 processBox
-    class Choice,PreCheck,Error1,Error2 choiceBox
-    class Fix1,Fix2 errorBox
-    class Success successBox
-    class NetworkFail criticalBox
-```
-
-### Erklärung der Build-Phasen
-
-1. **`build-bootstrap`** – Erstellt das minimale Basissystem mit debootstrap
-2. **`build-chroot`** – Installiert Pakete und konfiguriert das System in der chroot-Umgebung
-3. **`build-live`** – Erstellt das Haupt-SquashFS-Image mit dem Kernsystem
-4. **`build-modules`** – Baut zusätzliche SquashFS-Module für weitere Software
-5. **`build-boot`** – Bereitet Bootloader- und Kernel-Dateien vor
-6. **`build-config`** – Generiert Boot-Konfigurationsdateien
-7. **`build-iso`** – Erstellt das finale bootfähige ISO-Image
-
-### Build-Optionen
-
-#### Komplettsystem-Build
+Klonen Sie das Repository und führen Sie das Frontend aus dem Wurzelverzeichnis aus:
 
 ```bash
-# Full automated build
-./minios-live -
-# or
-./minios-live build-bootstrap - build-iso
+git clone https://github.com/minios-linux/minios-live.git
+cd minios-live
+sudo ./minios-cmd -d trixie -a amd64 -de xfce -pv standard
 ```
 
-#### Inkrementelle Builds
+Die vier Zieloptionen sind erforderlich, wenn keine Konfigurationsdatei ausgewählt ist:
+
+| Option | Einstellung |
+| --- | --- |
+| `-d`, `--distribution` | Ziel-Distribution-Suite |
+| `-a`, `--architecture` | Zielarchitektur |
+| `-de`, `--desktop-environment` | Modul-Umgebung |
+| `-pv`, `--package-variant` | `minimum`, `standard`, `toolbox` oder `ultra` |
+
+Die aktuell unterstützten Werte für Distribution, Architektur, Desktop, Kompression und Variante sind in `linux-live/build.conf` aufgeführt. Leiten Sie keine Unterstützung aus alten Befehlsbeispielen ab.
+
+## Build-Schnittstellen
+
+### `minios-cmd`
+
+`minios-cmd` kopiert die Konfigurationsvorlage in das Zielarbeitsverzeichnis, schreibt Frontend-Einstellungen in diese Kopie und startet die vollständige `minios-live -`-Pipeline. Häufige Optionen sind:
+
+| Option | Wirkung |
+| --- | --- |
+| `-b`, `--build-dir` | Wurzelverzeichnis für Build-Ausgaben auswählen |
+| `-c`, `--compression-type` | SquashFS-Kompression auswählen |
+| `-kp`, `--kernel-provider` | `distribution` oder `minios` auswählen |
+| `-kf`, `--kernel-flavour` | Distribution-Kernel-Flavor auswählen |
+| `-mk`, `--minios-kernel` | MiniOS-Kernel-Provider auswählen |
+| `-mks`, `--minios-kernel-series` | `auto`, `6.1` oder `6.12` auswählen und den MiniOS-Provider implizieren |
+| `-kpm`, `--kernel-payload-mode` | `runtime` oder `full` auswählen |
+| `-dkms`, `--kernel-build-dkms` | Optionale Treiber für den ausgewählten Kernel bauen |
+| `-l`, `--locale` | System-Locale festlegen |
+| `-ml`, `--multilingual` | Mehrere Locales generieren |
+| `-kl`, `--keep-locales` | Verfügbare Locales beibehalten |
+| `-tz`, `--timezone` | Zeitzone des Live-Systems festlegen |
+| `-ib`, `--initramfs-builder` | `livekit` oder `dracut` auswählen |
+| `-mln`, `--menu-language` | Sprache des Boot-Menüs auswählen |
+
+Beispiel:
 
 ```bash
-# Run only bootstrap stage
-./minios-live build-bootstrap
-
-# Run from chroot to live stages
-./minios-live build-chroot - build-live
-
-# Run from modules to completion
-./minios-live build-modules -
-
-# Build only ISO from existing data
-./minios-live build-iso
+sudo ./minios-cmd -d bookworm -a amd64 -de xfce -pv toolbox \
+  -c zstd -mks 6.1 -kpm runtime -dkms
 ```
 
-## Konfigurationssystem
+Eine Konfiguration generieren, ohne den Build zu starten:
 
-### Build-Konfigurationsdateien
-
-#### Hauptkonfiguration: `linux-live/build.conf`
-
-Dies ist die primäre Konfigurationsdatei, die Folgendes definiert:
-- **Distributionseinstellungen**: Ziel-Distribution (buster, bookworm, trixie, sid)
-- **Architektur**: amd64, i386, i386-pae (nur bis bookworm; trixie und sid unterstützen nur amd64)
-- **Desktop-Umgebung**: core, flux, xfce, lxqt
-- **Paketvariante**: minimum, standard, toolbox, ultra
-- **Komprimierung**: xz, lzo, gz, lz4, zstd
-- **Kernel-Einstellungen**: Distribution- oder MiniOS-Anbieter, MiniOS-Serie, Runtime- oder Full-Payload sowie optionale DKMS-Kompilierung
-- **Locale-Einstellungen**: Sprache, Zeitzone, Tastaturlayout
-
-#### Laufzeitkonfiguration: `minios_build.conf`
-
-Wird während des Build-Prozesses automatisch erzeugt und enthält laufzeitspezifische Einstellungen für die chroot-Umgebung.
-
-AUFS wird von `KERNEL_PROVIDER=minios` bereitgestellt; es ist kein separater aktueller
-Kernel-Umschalter. Distributions-Kernel werden mit einem signierten, isolierten APT-
-Paket-Closure bezogen. Ist DKMS aktiviert, werden passende Header zusammen mit dem
-Kernel bezogen und nur während des Baus der externen Module verwendet. Siehe
-[Build-Befehle](/development/Build-Commands.md#kernel-selection) für die
-Frontend-Optionen und Payload-Regeln.
-
-### Paketvarianten
-
-MiniOS unterstützt verschiedene Paketvarianten, die bestimmen, welche Software enthalten ist:
-
-- **minimum**: Nur essentielle Pakete
-- **standard**: Standard-Desktop-Anwendungen
-- **toolbox**: Entwicklungstools und erweiterte Utilities
-- **ultra**: Vollständige Software-Suite mit zusätzlichen Anwendungen
-
-Die Paketauswahl wird über bedingte Marker in `packages.list`-Dateien gesteuert:
+```bash
+sudo ./minios-cmd --config-only \
+  -d trixie -a amd64 -de xfce -pv standard
 ```
-# Install only in toolbox and ultra variants
-firefox +pv=toolbox +pv=ultra
 
-# Install only in minimum variant
-basic-tool +pv=minimum
+Ohne ein anderes Ziel wird `build/build.conf` geschrieben. Das Frontend benötigt auch in diesem Modus Root-Rechte.
+
+`--config-file FILE` wählt eine zu kopierende Konfiguration aus. Die aktuelle Implementierung schreibt dann geparste Kommandozeilenwerte und nicht-leere Frontend-Standardwerte in die Arbeitskopie, trotz der kürzeren Formulierung in `--help`. Für eine exakte, manuell gepflegte Konfiguration rufen Sie `minios-live` direkt auf und prüfen Sie die aktive Datei, anstatt sich auf das Frontend-Merging zu verlassen.
+
+Kombinieren Sie `--config-only` nicht mit `--config-file`, das auf eine bestehende Konfiguration zeigt: Der nur-Konfigurationsmodus überschreibt diesen Pfad mit der Standardvorlage.
+Verwenden Sie `-b DIR --config-only`, um ein separates generiertes Ziel auszuwählen.
+
+### `minios-live`
+
+`minios-live` ist das gestufte Backend. In einem Quellcode-Checkout liest es standardmäßig `linux-live/build.conf`; eine installierte Kopie liest `/etc/minios-live/build.conf`. Wählen Sie eine andere Datei und ein anderes Ausgabeverzeichnis über Umgebungsvariablen:
+
+```bash
+sudo env \
+  BUILD_CONF=/absolute/path/build-trixie.conf \
+  BUILD_DIR=/absolute/path/minios-build \
+  ./minios-live -
 ```
+
+Verwenden Sie einen absoluten `BUILD_CONF`-Pfad über `sudo`. Konfigurationsdateien werden als Bash-Quellen geladen, daher sollten Sie nur vertrauenswürdige Dateien verwenden. Das Backend bietet keine Schalter zum Überschreiben einzelner Konfigurationsvariablen.
+
+## Build-Stufen
+
+Die Pipeline läuft in folgender Reihenfolge:
+
+1. `build-bootstrap` erstellt das minimale Ziel-Root mit debootstrap.
+2. `build-chroot` installiert und konfiguriert das Basissystem.
+3. `build-live` erstellt das `00-core` SquashFS-Modul.
+4. `build-modules` baut die geordneten Module der gewählten Umgebung.
+5. `build-boot` generiert Initramfs, Kernel, EFI und Bootloader-Dateien.
+6. `build-config` erzeugt MiniOS und Boot-Konfiguration.
+7. `build-iso` veröffentlicht das bootfähige ISO und die Prüfsumme.
+8. `remove-sources` löscht das gewählte Arbeitsverzeichnis, sofern konfiguriert.
+
+Bindestrich- und Unterstrich-Formen der oben genannten Namen werden beide akzeptiert.
+
+```bash
+# Complete pipeline
+sudo ./minios-live -
+
+# One stage only
+sudo ./minios-live build-iso
+
+# Inclusive range
+sudo ./minios-live build-chroot - build-live
+
+# First stage through build-live
+sudo ./minios-live - build-live
+
+# build-modules through remove-sources
+sudo ./minios-live build-modules -
+```
+
+Ein teilweiser Befehl erstellt ausgelassene Eingaben nicht neu. `build-iso` verpackt nur den vorbereiteten Image-Baum, und `build-modules` kann `00-core` nicht neu erstellen. Führen Sie einen Build bis zur letzten abhängigen Stufe durch, nachdem Sie einen früheren Erzeuger geändert haben.
+
+Eine vollständige Pipeline beginnt mit `build-bootstrap`, das die bestehenden `core/`- und `image/`-Verzeichnisse des gewählten Ziels entfernt. Sichern Sie nicht regenerierbare Inhalte vor dem Start; generierte Zielbäume sind Build-Ausgaben und kein dauerhafter Quellenspeicher.
+
+Falls `REMOVE_SOURCES=true`, löscht und erstellt die abschließende `remove-sources`-Stufe das komplette `build/<distribution>-<variant>-<architecture>/`-Arbeitsverzeichnis neu, nicht nur heruntergeladene Quellarchive. Veröffentliche ISOs, gemeinsame Caches und Logs außerhalb dieses Verzeichnisses bleiben erhalten.
+
+## Konfiguration
+
+`linux-live/build.conf` steuert die Zielidentität, Kernel, Locale, Bootloader, Live-Benutzer, Dienste, Caches, Snapshots, Bereinigung und Veröffentlichung. Wichtige Gruppen sind:
+
+- `DISTRIBUTION`, `DISTRIBUTION_ARCH`, `DESKTOP_ENVIRONMENT` und `PACKAGE_VARIANT` wählen das Ziel und die Modulkette.
+- `COMP_TYPE` steuert SquashFS-Kompression.
+- `KERNEL_*` und `MINIOS_KERNEL_SERIES` steuern Kernel-Beschaffung und -Payload.
+- `INITRAMFS_BUILDER`, `INITRAMFS_CRYPT`, `BOOTLOADER`, `MENU_LANG` und `SERIAL_CONSOLE` steuern Boot-Artefakte.
+- `USE_ROOTFS`, `USE_APT_CACHE`, `USE_SHARED_APT_CACHE`, `USE_APT_CACHE_REPO` und `USE_APT_CACHER` steuern wiederverwendbare Eingaben.
+- `VERBOSITY_LEVEL` akzeptiert `0`, `1` oder `2`.
+- `REMOVE_OLD_ISO`, `REMOVE_SOURCES` und `BUILD_TEST_ISO` steuern Veröffentlichung und Bereinigung.
+
+Bearbeiten Sie keine generierte `build/<target>/build.conf` als Ersatz für die Pflege der gewählten Quellkonfiguration.
+
+### Kernel-Auswahl
+
+Der `distribution`-Provider löst den gewählten Debian- oder Ubuntu-Kernel auf und, wenn DKMS aktiviert ist, die passenden Header in einem isolierten, signierten APT-Zustand.
+`KERNEL_AUTO_SELECT=true` leitet Suite und Architektur aus dem Userspace-Ziel ab. Setzen Sie ihn auf `false`, um die manuellen Felder für Distribution, Architektur, Version, Snapshot und Update-Policy in `build.conf` zu verwenden.
+
+Der `minios`-Provider installiert `linux-image-SERIES-mos-ARCH`, prüft AUFS-Unterstützung und verwendet die passenden MiniOS-Header für DKMS. Er erfordert `KERNEL_FLAVOUR=none` und übereinstimmende Paketarchitekturen für Userspace und Kernel.
+Im aktuellen Code wird `MINIOS_KERNEL_SERIES=auto` zu `6.12` aufgelöst; verwenden Sie `6.1` explizit, wenn diese Serie benötigt wird.
+
+`KERNEL_PAYLOAD_MODE=runtime` behält den Kernel-Modulbaum, die Kernel-Konfiguration, `System.map`, Deployment-Metadaten und Laufzeit-Integration unter `modprobe.d`, `modules-load.d` und `udev/rules.d`. Build-only-Paketstatus, Header, DKMS-Quellen, Compiler-Tools und Initramfs-Pakete werden entfernt. Firmware bleibt im Besitz von `02-firmware`. `full` behält eine erweiterte Diagnosenutzlast.
 
 ## Modulsystem
 
-### Modulstruktur
+Modulquellen befinden sich unter `linux-live/scripts/`. Eine Umgebung unter `linux-live/environments/<desktop>/` enthält geordnete Symlinks zu den verwendeten Quellen. Der umgebungslokale Name steuert die Build-Reihenfolge und kann eine gemeinsame Quelle umnummerieren, zum Beispiel:
 
-Das Build-System verwendet eine nummerierte Modulstruktur, die sich in `linux-live/scripts/` befindet:
-
-```
-00-core/          # Base system packages
-01-kernel/        # Linux kernel
-02-firmware/      # Hardware firmware
-03-gui-base/      # Basic GUI libraries
-04-xfce-desktop/  # Desktop environment
-05-apps/          # Desktop applications
-10-example/       # Example module template
+```text
+linux-live/environments/xfce/06-firefox -> ../../scripts/10-firefox
 ```
 
-### Modulkomponenten
+`00-core` wird von `build-live` erzeugt und ist kein gewöhnlicher Umgebungslink.
+Module ab `01` sind kumulativ: Jedes wird über den zutreffenden niedrigeren Modulen gebaut. `skip_conditions.conf` kann Einträge für ein Ziel auslassen, daher prüfen Sie die gewählte Umgebung, statt eine universelle Kette anzunehmen.
 
-Jedes Modulverzeichnis enthält:
+Verwenden Sie `linux-live/scripts/10-example/` als aktuelle Vorlage für die Erstellung. Ein Modul kann enthalten:
 
-- **`packages.list`**: Liste der zu installierenden Pakete mit bedingten Markern
-- **`install`**: Bash-Skript, das während des Modul-Builds ausgeführt wird
-- **`rootcopy-install/`**: Dateien, die während des Builds ins System kopiert werden
-- **`rootcopy-postinstall/`**: Dateien, die nach der Paketinstallation kopiert werden
-- **`.minios-ownership`**: Optionales Besitz-Manifest im `rootcopy-*`-Verzeichnis für Dateien, die einen Nicht-root-Besitzer benötigen
-- **`skip_conditions.conf`**: Bedingungen zum Überspringen des Modul-Builds
-- **`patches/`**: Patches, die vor dem Build angewendet werden (nicht verfügbar für 00-core)
+```text
+NN-module-name/
+├── packages.list
+├── install
+├── build
+├── postinstall
+├── skip_conditions.conf
+├── patches/
+├── rootcopy-install/
+└── rootcopy-postinstall/
+```
 
-Dateien in `rootcopy-install/` und `rootcopy-postinstall/` werden als Build-Vorlagen kopiert. Die Besitzrechte beim Checkout auf dem Host werden nicht übernommen; Dateien werden im Zielsystem normalerweise `root:root`. Falls eine Datei oder ein Verzeichnis einen Nicht-root-Besitzer benötigt, erstellen Sie `.minios-ownership` im entsprechenden rootcopy-Verzeichnis:
+Nur die für das Modul benötigten Dateien sind erforderlich. `build`, `postinstall`, Skip-Bedingungen, Patches und Rootcopy-Bäume sind optional. `build` und `patches/` stehen `00-core` nicht zur Verfügung.
+
+Besitzrechte des Hosts in Rootcopy-Bäumen werden nicht beibehalten; kopierte Dateien werden normalerweise `root:root`. Ein `.minios-ownership`-Manifest innerhalb eines Rootcopy-Baums verwendet:
 
 ```text
 owner:group relative/path
 ```
 
-Pfade sind relativ zu diesem rootcopy-Verzeichnis. Absolute Pfade und Pfade mit `../` werden abgelehnt. Der Besitzer und die Gruppe müssen bereits existieren, wenn das Manifest angewendet wird. Falls sie erst durch ein später installiertes Paket angelegt werden, verwenden Sie `rootcopy-postinstall/` oder setzen Sie den Besitz in `install`/`postinstall`.
+Pfade müssen innerhalb des Baums bleiben. Das Host-System wendet das Manifest sofort an und löst Namen über die Host-Account-Datenbank auf. Verwenden Sie numerische `UID:GID`-Werte für Ziel-Only-Accounts oder setzen Sie Besitzrechte aus `install` oder `postinstall` innerhalb des Chroots. Das Verschieben des Manifests nach `rootcopy-postinstall/` ändert die Namensauflösung nicht.
 
-### Beispiel-Modulvorlage
+Da die aktuelle Containment-Prüfung den Zielpfad nicht kanonisiert, verwenden Sie niemals `..`-Komponenten oder Symlink-Komponenten in Manifestpfaden. Prüfen Sie Rootcopy-Bäume vor einem privilegierten Build; ein manipulierter Pfad kann dazu führen, dass `chown` des Hosts aus dem kopierten Baum entkommt.
 
-Das **`10-example/`**-Modul dient als Vorlage für die Erstellung neuer Module. Es enthält:
+Für Pakete verwenden gewöhnliche Modul-Installationsskripte die von `build-modules` in das Chroot kopierten Dateien:
 
-- Eine vollständige `packages.list` mit Beispielen für bedingte Marker
-- Ein einfaches `install`-Skript, das die korrekte Verwendung von condinapt zeigt
-- Beispielverzeichnisse `rootcopy-install/` und `rootcopy-postinstall/`
-- Dokumentationskommentare zu den einzelnen Komponenten
-
-**So erstellen Sie ein neues Modul:** Kopieren Sie das Verzeichnis `10-example` und passen Sie es nach Ihren Anforderungen an:
-```bash
-cp -r linux-live/scripts/10-example linux-live/scripts/06-my-module
-```
-
-Diese Vorlage wird in dieser Dokumentation durchgehend verwendet und ist der beste Ausgangspunkt für eigene Module.
-
-### Modul-Laden basierend auf Umgebungen
-
-Das Modulsystem arbeitet über Umgebungskonfigurationen in `linux-live/environments/`. Jedes Umgebungsverzeichnis enthält symbolische Links zu den Modulen, die für die jeweilige Desktop-Umgebung und Paketvariante eingebunden werden sollen.
-
-#### Verfügbare Umgebungen
-
-```bash
-linux-live/environments/
-├── core/          # Core system (no desktop)
-├── flux/          # Flux desktop environment
-├── lxqt/          # LXQt desktop environment
-├── xfce/          # XFCE desktop environment
-└── xfce-debug/    # XFCE with debug modules
-```
-
-Jedes Umgebungsverzeichnis enthält symbolische Links zu Modulverzeichnissen in `linux-live/scripts/`:
-
-```bash
-# Example: XFCE environment
-linux-live/environments/xfce/
-├── 01-kernel -> ../../scripts/01-kernel
-├── 02-firmware -> ../../scripts/02-firmware
-├── 03-gui-base -> ../../scripts/03-gui-base
-├── 04-xfce-desktop -> ../../scripts/04-xfce-desktop
-├── 05-apps -> ../../scripts/05-apps
-└── 06-firefox -> ../../scripts/10-firefox
-```
-
-#### Module bauen
-
-Um Module zu bauen, verwenden Sie den Befehl `build-modules`:
-
-```bash
-# Build all unbuilt modules for the current environment
-./minios-live build-modules
-
-# This will build all modules that:
-# 1. Are linked in the current environment directory
-# 2. Haven't been built yet
-# 3. Meet the skip conditions (if any)
-```
-
-### Modul-Installationsskripte
-
-Das Skript `install` in jedem Modul:
-- Lädt `/minioslib` für gemeinsame Funktionen
-- Lädt `/minios_build.conf` für die Build-Konfiguration
-- Setzt debconf-Auswahlen für die automatisierte Paketkonfiguration
-- Führt eigene Konfigurationen und Dateianpassungen durch
-- Nutzt Konsolenfarben für die Ausgabeformatierung
-
-Beispielstruktur:
 ```bash
 #!/bin/bash
-set -e          # exit on error
-set -o pipefail # exit on pipeline error
-set -u          # treat unset variable as error
+set -e
+set -o pipefail
+set -u
 
-. /minioslib
-. /minios_build.conf
-
-SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
-console_colors
-
-# Debconf pre-configurations
-DEBCONF_SETTINGS=(
-    "package-name package-name/option boolean true"
-)
-
-# Apply debconf settings
-for SETTING in "${DEBCONF_SETTINGS[@]}"; do
-    echo "${SETTING}" | debconf-set-selections -v
-done
-
-# Custom installation and configuration logic
-# ...
-```
-
-## Paketverwaltung mit CondinAPT
-
-CondinAPT ist das bedingte Paketinstallationssystem von MiniOS, das die Paketauswahl anhand von Build-Parametern wie Desktop-Umgebung, Distribution und Paketvariante steuert.
-
-### Grundlegende Verwendung
-
-Jedes Modul enthält eine `packages.list`-Datei mit bedingten Paketspezifikationen:
-
-```bash
-# Basic syntax examples
-package-name                    # Always install
-package-name +pv=toolbox       # Install only for toolbox variant
-package-name +de=xfce          # Install only for XFCE desktop
-package-name -pv=minimum       # Install except for minimum variant
-preferred-pkg || fallback-pkg  # Try first, use second if unavailable
-```
-
-### Verwendung von CondinAPT in Modulskripten
-
-Standardverwendung in Modul-Installationsskripten:
-
-```bash
-# Load MiniOS library and install packages
 . /minioslib || exit 1
-/linux-live/condinapt \
-    -l "$CWD/packages.list" \
-    -c /linux-live/build.conf \
-    -m /linux-live/condinapt.map
-```
-
-### Vollständige Dokumentation
-
-Umfassende CondinAPT-Dokumentation mit fortgeschrittener Syntax, Filtern, Prioritätswarteschlangen, Debugging-Modi und Praxisbeispielen finden Sie hier: **[CondinAPT.md](/development/CondinAPT.md)**
-
-### Allgemeine Bedingungsfilter
-
-- `+pv=variant` – Paketvariante (minimum, standard, toolbox, ultra)
-- `+d=distribution` – Distribution (bookworm, trixie, jammy, noble)
-- `+de=desktop` – Desktop-Umgebung (core, flux, xfce, lxqt)
-- `+da=architecture` – Architektur (amd64, i386)
-- `+dp=profile` – Paketfamilie (debian, ubuntu)
-
-## Ihr erstes ISO erstellen
-
-### Schnellstart
-
-1. **Repository klonen und vorbereiten:**
-```bash
-git clone https://github.com/minios-linux/minios-live.git
-cd minios-live
-```
-
-2. **Voraussetzungen installieren:**
-```bash
-sudo apt-get update
-sudo apt-get install sudo binutils debootstrap squashfs-tools xz-utils lz4 zstd xorriso mtools rsync grub-efi-amd64-bin grub-pc-bin
-```
-
-3. **Build mit minios-cmd (empfohlen):**
-```bash
-./minios-cmd -d bookworm -a amd64 -de xfce -pv standard
-```
-
-4. **Oder Build mit minios-live:**
-```bash
-./minios-live -
-```
-
-### Build anpassen
-
-1. **Konfiguration kopieren und bearbeiten:**
-```bash
-cp linux-live/build.conf linux-live/build-custom.conf
-# Edit build-custom.conf with your preferences
-```
-
-2. **Build mit eigener Konfiguration:**
-```bash
-BUILD_CONF=linux-live/build-custom.conf ./minios-live -
-```
-
-## Erweiterte Anpassung
-
-### Eigene Umgebungen erstellen
-
-Sie können komplett neue Desktop-Umgebungen erstellen, indem Sie ein neues Umgebungsverzeichnis anlegen und die passenden Module konfigurieren. So erstellen Sie beispielsweise eine GNOME-Umgebung:
-
-1. **Umgebungsverzeichnis anlegen:**
-```bash
-mkdir -p linux-live/environments/gnome
-```
-
-2. **Basis-Desktop-Modul erstellen (04-gnome-desktop):**
-```bash
-# Start with the example template for a clean base
-cp -r linux-live/scripts/10-example linux-live/scripts/04-gnome-desktop
-
-# Configure GNOME-specific packages
-cat > linux-live/scripts/04-gnome-desktop/packages.list << EOF
-# Base GNOME desktop packages
-gdm3
-gnome-shell
-gnome-session
-gnome-settings-daemon
-gnome-control-center
-nautilus
-gnome-terminal
-
-# Standard GNOME applications
-gnome-calculator +pv=standard +pv=toolbox +pv=ultra
-gnome-text-editor +pv=standard +pv=toolbox +pv=ultra
-eog +pv=standard +pv=toolbox +pv=ultra
-evince +pv=standard +pv=toolbox +pv=ultra
-
-# Additional GNOME tools
-gnome-tweaks +pv=toolbox +pv=ultra
-gnome-extensions-app +pv=toolbox +pv=ultra
-dconf-editor +pv=toolbox +pv=ultra
-EOF
-
-# Create a custom install script for GNOME-specific configuration
-cat > linux-live/scripts/04-gnome-desktop/install << 'EOF'
-#!/bin/bash
-set -e
-set -o pipefail
-set -u
-
-. /minioslib
-. /minios_build.conf
+. /minios_build.conf || exit 1
 
 SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
-
-# Install packages using condinapt
-/condinapt -l "${SCRIPT_DIR}/packages.list" -c "${SCRIPT_DIR}/minios_build.conf" -m "${SCRIPT_DIR}/condinapt.conf"
-if [ $? -ne 0 ]; then
-    echo "Failed to install packages."
-    exit 1
-fi
-
-# Set GNOME as default session
-echo 'gnome' > /etc/skel/.dmrc
-echo '[Desktop]' > /etc/skel/.dmrc
-echo 'Session=gnome' >> /etc/skel/.dmrc
-
-EOF
-chmod +x linux-live/scripts/04-gnome-desktop/install
+/condinapt \
+  -l "${SCRIPT_DIR}/packages.list" \
+  -c "${SCRIPT_DIR}/minios_build.conf" \
+  -m "${SCRIPT_DIR}/condinapt.map"
 ```
 
-3. **GNOME-Anwendungsmodul erstellen (05-gnome-apps):**
+Siehe [CondinAPT](/development/CondinAPT) für die Paketlisten-Syntax und die aktuelle MiniOS-Filterzuordnung.
+
+### Modul hinzufügen
+
+Kopieren Sie die Vorlage und verlinken Sie sie dann in jede gewünschte Umgebung an der gewünschten umgebungslokalen Position:
+
 ```bash
-cp -r linux-live/scripts/10-example linux-live/scripts/05-gnome-apps
-
-cat > linux-live/scripts/05-gnome-apps/packages.list << EOF
-# GNOME Applications
-gnome-software +pv=standard +pv=toolbox +pv=ultra
-gnome-system-monitor +pv=standard +pv=toolbox +pv=ultra
-gnome-disk-utility +pv=standard +pv=toolbox +pv=ultra
-gnome-screenshot +pv=standard +pv=toolbox +pv=ultra
-gnome-calendar +pv=toolbox +pv=ultra
-gnome-weather +pv=toolbox +pv=ultra
-gnome-maps +pv=ultra
-rhythmbox +pv=toolbox +pv=ultra
-totem +pv=toolbox +pv=ultra
-EOF
-
-# Create a custom install script for GNOME applications
-cat > linux-live/scripts/05-gnome-apps/install << 'EOF'
-#!/bin/bash
-set -e
-set -o pipefail
-set -u
-
-. /minioslib
-. /minios_build.conf
-
-SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
-
-# Install packages using condinapt
-/condinapt -l "${SCRIPT_DIR}/packages.list" -c "${SCRIPT_DIR}/minios_build.conf" -m "${SCRIPT_DIR}/condinapt.conf"
-if [ $? -ne 0 ]; then
-    echo "Failed to install packages."
-    exit 1
-fi
-
-# Configure default applications for GNOME
-mkdir -p /etc/skel/.config
-
-# Set default applications
-cat > /etc/skel/.config/mimeapps.list << 'MIME_EOF'
-[Default Applications]
-text/plain=gnome-text-editor.desktop
-image/jpeg=eog.desktop
-image/png=eog.desktop
-application/pdf=evince.desktop
-video/mp4=totem.desktop
-audio/mpeg=rhythmbox.desktop
-MIME_EOF
-
-EOF
-chmod +x linux-live/scripts/05-gnome-apps/install
+cp -a linux-live/scripts/10-example linux-live/scripts/10-my-module
+ln -s ../../scripts/10-my-module \
+  linux-live/environments/xfce/07-my-module
 ```
 
-4. **Module mit der GNOME-Umgebung verknüpfen:**
+Passen Sie `packages.list`, Skripte, Metadaten und Rootcopy-Inhalte vor dem Bauen an.
+Validieren Sie jede angegebene Desktop-, Varianten-, Distributions- und Architekturangabe.
+
+## Sicheres Neubauen
+
+Vorhandene Modul-Artefakte werden übersprungen. Wenn sich ein niedrigeres kumulatives Modul ändert, entfernen Sie dessen Artefakt sowie den kompletten höheren Modultail, bevor Sie `build-modules` ausführen; das Beibehalten höherer Module würde Inhalte erhalten, die gegen die alte untere Schicht gebaut wurden. Identifizieren Sie Artefakte anhand der gewählten Umgebungsreihenfolge und des Modulnamens, da Skip-Bedingungen Nummernlücken schließen können.
+
+Die Kernel-Schicht ist ein Sonderfall. Um nur `01-kernel` neu zu bauen, entfernen Sie dessen Artefakt für das gewählte Ziel und bauen Sie von den Modulen bis zur Veröffentlichung neu:
+
 ```bash
-# Link base system modules (same for all environments)
-ln -s ../../scripts/01-kernel linux-live/environments/gnome/01-kernel
-ln -s ../../scripts/02-firmware linux-live/environments/gnome/02-firmware
-ln -s ../../scripts/03-gui-base linux-live/environments/gnome/03-gui-base
-
-# Link GNOME-specific modules
-ln -s ../../scripts/04-gnome-desktop linux-live/environments/gnome/04-gnome-desktop
-ln -s ../../scripts/05-gnome-apps linux-live/environments/gnome/05-gnome-apps
-
-# Link additional modules as needed
-ln -s ../../scripts/10-firefox linux-live/environments/gnome/06-firefox
+rm build/trixie-standard-amd64/image/minios/01-kernel-*.sb
+sudo ./minios-live build-modules -
 ```
 
-5. **Build für die GNOME-Umgebung konfigurieren:**
+Prüfen Sie den Zielpfad vor dem Entfernen. Wenden Sie diese Abkürzung nicht auf `00-core` an und gehen Sie nicht davon aus, dass sie für Module ab `02` sicher ist.
+
+Für ein gewöhnliches Modul wie `03-gui-base` entfernen Sie dessen Artefakt und alle späteren anwendbaren Modul-Artefakte, dann führen Sie denselben `build-modules -`-Bereich aus. Bei Änderungen nur an Initramfs, EFI oder Boot lassen Sie SquashFS-Module bestehen und führen Sie aus:
+
 ```bash
-# Copy and modify build configuration
-cp linux-live/build.conf linux-live/build-gnome.conf
-sed -i 's/DESKTOP_ENVIRONMENT=".*"/DESKTOP_ENVIRONMENT="gnome"/' linux-live/build-gnome.conf
-sed -i 's/PACKAGE_VARIANT=".*"/PACKAGE_VARIANT="standard"/' linux-live/build-gnome.conf
-
-# Build the GNOME system
-BUILD_CONF=linux-live/build-gnome.conf ./minios-live -
+sudo ./minios-live build-boot -
 ```
 
-### Best Practices für die Umgebungsstruktur
+Führen Sie einen vollständigen Build durch, nachdem Sie `00-core`, Bootstrap/Chroot-Setup, Zielidentität, Repository-Policy oder eine andere Eingabe geändert haben, die nicht auf eine spätere Stufe isoliert werden kann.
 
-Beim Erstellen eigener Umgebungen gilt:
+## Ausgaben und Protokolle
 
-- **Basismodule** (01–03): In der Regel für alle Umgebungen identisch
-- **Desktop-Modul** (04): Enthält die Kernpakete und Konfiguration der Desktop-Umgebung
-- **Apps-Modul** (05): Umgebungsspezifische Anwendungen
-- **Optionale Module** (06+): Weitere Softwarepakete
+Mit dem Standardwert `BUILD_DIR` sind wichtige Pfade:
 
-**Modul-Benennungskonvention:**
-- Verwenden Sie das Format `04-{desktop}-desktop` für das Haupt-Desktop-Modul
-- Verwenden Sie `05-{desktop}-apps` oder `05-apps` für Anwendungen
-- Nummerieren Sie zusätzliche Module fortlaufend (06, 07, 08, usw.)
+- `build/rootfs/<distribution>-<architecture>-rootfs.tar.gz`
+- `build/aptcache/<distribution>/`
+- `build/<distribution>-<variant>-<architecture>/core/`
+- `build/<distribution>-<variant>-<architecture>/image/`
+- `build/<distribution>-<variant>-<architecture>/image/minios/`
+- `build/<distribution>-<variant>-<architecture>/overlays/`
+- `build/cache/kernel/`
+- `build/iso/*.iso` und `build/iso/*.iso.sha256`
+- `build/log/build-*.log`
 
-**Konfigurationshinweise:**
-- Jede Umgebung benötigt passende Skip-Bedingungen in den Modulen
-- Umgebungsspezifische Pakete sollten `+de={environment}`-Bedingungen nutzen
-- Testen Sie gründlich mit verschiedenen Paketvarianten (minimum, standard, toolbox, ultra)
+ISO-Namen hängen von den Build-Einstellungen, dem Release-Modus und Zeitstempeln ab. Verwenden Sie den vom erfolgreichen Build ausgegebenen Pfad, anstatt den vollständigen Basisnamen vorherzusagen.
 
-### Eigene Module hinzufügen
+## Geheimnisse und Debug-Artefakte
 
-1. **Neues Modul mit der Vorlage erstellen:**
+Legen Sie kein Ubuntu Pro-Token in die Versionskontrolle, Dokumentation, Shell-Historie oder gemeinsame Protokolle. Bevorzugen Sie eine private Konfiguration außerhalb des Repositories:
+
 ```bash
-cp -r linux-live/scripts/10-example linux-live/scripts/06-custom-module
+install -m 600 linux-live/build.conf /private/path/build-trixie.conf
+sudo env BUILD_CONF=/private/path/build-trixie.conf ./minios-live -
 ```
 
-2. **Die packages.list bearbeiten:**
-```bash
-# Edit linux-live/scripts/06-custom-module/packages.list
-# Add your packages with appropriate conditional markers
-```
+Setzen Sie `USE_UBUNTU_PRO=true` und `UBUNTU_PRO_TOKEN=...` nur in dieser Datei. Der Build entfernt Pro-Zustand aus dem Image, aber die Datei auf dem Host enthält das Geheimnis weiterhin.
 
-3. **Installationsskript anpassen:**
-```bash
-# Edit linux-live/scripts/06-custom-module/install
-# Add custom configuration and setup commands
-```
+`DEBUG_SSH_KEYS=true` erzeugt privaten Schlüsselmaterial für das Debugging. Behandeln Sie das resultierende Image als Wegwerfobjekt und veröffentlichen Sie es niemals, ohne zu prüfen, dass der Schlüssel entfernt wurde.
 
-4. **Modul mit Ihrer Umgebung verknüpfen:**
-```bash
-ln -s ../../scripts/06-custom-module linux-live/environments/xfce/06-custom-module
-```
-
-5. **Module bauen:**
-```bash
-./minios-live build-modules
-```
+Das Zurücksetzen der Option auf `false` entfernt keine bereits in `build/<target>/image/minios/debug_ssh_key`, den angrenzenden `authorized_keys.*`-Dateien oder `build/<target>/debug_ssh_key` generierten Schlüssel. Verwenden Sie ein sauberes Ziel oder entfernen Sie diese Dateien explizit und prüfen Sie dann den ISO-Baum vor der Veröffentlichung.
 
 ## Fehlerbehebung
 
-### Häufige Probleme
+- Bootstrap-Fehler betreffen meist die Erreichbarkeit von Repositories, debootstrap-Unterstützung, Architektur, Snapshots oder fehlende Host-Voraussetzungen.
+- Fehler im Core und in Modulen betreffen meist die Paketverfügbarkeit, CondinAPT-Filter, Maintainer-Skripte, Rootcopy-Inhalte oder ein veraltetes unteres Modul.
+- Boot-Fehler betreffen meist den gewählten Kernel, den Initramfs-Builder, die EFI-Beschaffung, die GRUB/SYSLINUX-Erzeugung oder fehlende Boot-Eingaben.
+- ISO-Fehler betreffen meist den vorbereiteten Image-Baum, xorriso, Ausgabespeicherplatz oder Bereinigungseinstellungen.
 
-1. **Build startet nicht – Internetverbindung erforderlich:**
-   - **Problem**: `minios-live` prüft beim Start zwingend die Internetverbindung
-   - **Lösung**: Vor dem Build eine stabile Internetverbindung sicherstellen
-   - **Prüfung**: DNS-Auflösung testen: `nslookup deb.debian.org`
-   - **Proxy**: Proxy-Einstellungen konfigurieren, falls Sie sich hinter einer Firmen-Firewall befinden
-   - **Hinweis**: Ohne Internetzugang kann der Build nicht fortgesetzt werden
-
-2. **Build schlägt beim Bootstrap fehl:**
-   - Prüfen, ob die Ziel-Distributions-Repositories erreichbar sind
-   - Voraussetzungen installiert?
-   - Test: `wget -q --spider http://deb.debian.org`
-
-3. **Fehler beim Modul-Build:**
-   - Paketverfügbarkeit in der Ziel-Distribution prüfen
-   - Syntax der bedingten Marker kontrollieren
-   - Installationsskript auf Fehler prüfen
-
-4. **Fehlende Pakete:**
-   - Condinapt-Bedingungen prüfen
-   - Paketnamen für die Ziel-Distribution kontrollieren
-   - Einstellungen der Paketvariante prüfen
-
-5. **Boot-Probleme:**
-   - GRUB-Konfiguration prüfen
-   - Kernel- und Initramfs-Erstellung überprüfen
-   - Bootloader-Dateien kontrollieren
-
-### Debug-Modus
-
-Aktivieren Sie die Debug-Ausgabe, indem Sie den Detailgrad in Ihrer Build-Konfiguration einstellen:
-
-**Option 1: build.conf bearbeiten**
-```bash
-# Edit linux-live/build.conf and set:
-VERBOSITY_LEVEL=2   # Very verbose output with detailed tracing
-# or
-VERBOSITY_LEVEL=1   # Verbose output (default)
-# or
-VERBOSITY_LEVEL=0   # Minimal output
-```
-
-**Option 2: Eigene Konfiguration mit Debug-Einstellungen erstellen**
-```bash
-cp linux-live/build.conf linux-live/build-debug.conf
-sed -i 's/VERBOSITY_LEVEL=.*/VERBOSITY_LEVEL=2/' linux-live/build-debug.conf
-
-# Enable additional debug options
-sed -i 's/DEBUG_SSH_KEYS="false"/DEBUG_SSH_KEYS="true"/' linux-live/build-debug.conf
-sed -i 's/DEBUG_SET_ROOT_PASSWORD="false"/DEBUG_SET_ROOT_PASSWORD="true"/' linux-live/build-debug.conf
-
-# Build with debug configuration
-BUILD_CONF=linux-live/build-debug.conf ./minios-live -
-```
-
-**Detailstufen:**
-- `0`: Minimale Ausgabe – nur wichtige Meldungen
-- `1`: Ausführliche Ausgabe – Standard-Build-Informationen (Standard)
-- `2`: Sehr ausführliche Ausgabe – detailliertes Tracing mit Bash-Debugging
-
-### Logdateien
-
-Build-Logs werden gespeichert in:
-- `build/log/` – Allgemeine Build-Protokolle
-
-### Hilfe erhalten
-
-- Siehe das [offizielle Wiki](https://github.com/minios-linux/minios-live/wiki)
-- Prüfen Sie bestehende Issues auf GitHub
-- Treten Sie den Community-Foren bei [minios.dev](https://minios.dev) bei
+Nach einem unterbrochenen privilegierten Build prüfen Sie die Mounts unterhalb des Zielarbeitsverzeichnisses, bevor Sie es erneut versuchen. Lesen Sie die entsprechende `build/log/build-*.log`; reparieren Sie keine generierten Overlays oder `.sb`-Dateien direkt.
 
 ## Verwandte Dokumentation
 
-- **[Module erstellen](/development/Creating-Modules.md)** – Erfahren Sie, wie Sie eigene SquashFS-Module mit zusätzlicher Software erstellen
-- **[ISO-Images zusammenstellen](/development/Rebuilding-ISO.md)** – Remastern Sie ein bestehendes MiniOS-System mit `minios-image-compose`
-- **[CondinAPT](/development/CondinAPT.md)** – Verstehen Sie das bedingte Paketmanagementsystem, das beim Build verwendet wird
+- [Module verwalten](/preparing-and-customizing/Managing-Modules)
+- [Eigene Images zusammenstellen](/preparing-and-customizing/Creating-Custom-MiniOS-Images)
+- [CondinAPT](/development/CondinAPT)

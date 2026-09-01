@@ -1,0 +1,115 @@
+---
+updated: 2026-08-26
+---
+# System architecture
+
+
+MiniOS boots a read-only operating system assembled from SquashFS modules and adds one writable layer for the current session. The initramfs is responsible for finding the media, selecting modules and persistence, constructing the root filesystem, applying early configuration, and handing control to the installed init system.
+
+## Boot discovery
+
+The BIOS or UEFI bootloader loads a Linux kernel and MiniOS initramfs from `minios/boot/`. The initramfs then discovers the MiniOS data tree that contains the live modules. A source can be local, selected interactively, or supplied over a supported network path; a local ISO is loop-mounted before its data tree is used. Exact precedence and accepted `from=` forms are documented in [Initrd system discovery](/reference/boot-process/System-Discovery).
+
+The same discovery stage supports HTTP ISO and PXE sources. Optional early-boot networking is only for **loading MiniOS over the network** (PXE / HTTP ISO). It is not durable session network configuration. See [Network boot](/reference/boot-process/Network-Boot).
+
+After discovery, MiniOS can optionally prepare a RAM copy. Whether the original source remains required depends on copy mode, persistence, and successful detachment. See [Boot modes](/using-minios/Boot-Modes) for the operational model.
+
+## Module composition
+
+Each `.sb` file is a read-only SquashFS filesystem. Built-in modules are stored directly under `minios/`; additional module locations can contribute to the ordered composition. The initramfs selects, orders, and mounts the resulting read-only layers. Candidate tiers, basename replacement, filters, custom bundle extensions, and running-kernel coordination are specified in [Initrd module loading](/reference/boot-process/Module-Loading).
+
+A typical Xfce image contains the following ordered roles, although exact names and numbers depend on the build and modules skipped for that target:
+
+```text
+00-core-<arch>.sb
+01-kernel-<version>-<arch>.sb
+02-firmware-<arch>.sb
+03-gui-base-<arch>.sb
+04-xfce-desktop-<arch>.sb
+05-apps-<arch>.sb or the next applicable module
+```
+
+Later modules have higher precedence and can replace paths supplied by earlier modules. A module can depend on files in every lower-numbered module, so a set of module files is an ordered composition rather than a collection of independent packages.
+
+## AUFS and OverlayFS
+
+MiniOS uses a union filesystem to present the modules and writable layer as one root filesystem. It selects AUFS when the running kernel supports it and falls back to OverlayFS otherwise. `union=aufs` requests AUFS but still falls back to OverlayFS when AUFS is unavailable; `union=overlayfs` selects OverlayFS.
+
+The two implementations have an important operational difference:
+
+- AUFS starts with the writable branch and adds mounted modules as read-only branches. MiniOS can activate or deactivate a module in the running root when the AUFS mount supports that operation.
+- OverlayFS receives its complete ordered `lowerdir` list when the root is mounted, plus an `upperdir` and `workdir`. Its lower-module set cannot be changed in place by **MiniOS Module Manager**.
+
+**MiniOS Module Manager** therefore separates **Running now**, the mounted module set, from **Next boot**, the modules selected by current media and boot rules. Adding or removing a durable module normally changes the next boot only. Creating or opening a module does not activate it. Runtime activation and deactivation are available only with AUFS.
+
+After the root is assembled and early setup completes, the LiveKit initrd uses `pivot_root`, retains the old initrd for shutdown duties, and executes the new root's init. The dracut path prepares the same assembled root but leaves the final `switch_root` to dracut. See [Initrd module loading](/reference/boot-process/Module-Loading) for the detailed handoff boundary.
+
+## Writable layer and sessions
+
+Without persistence, the writable layer is memory-backed and disappears at shutdown. Persistence can instead activate a numbered session with a supported storage backend. Selection, compatibility, activation failure, current-boot authority, and durability are defined in [Initrd persistence](/reference/boot-process/Persistence-Internals).
+
+| Mode | Writable storage | Notes |
+|------|------------------|-------|
+| `native` | Files stored directly in the session directory | Requires a writable POSIX filesystem that preserves Linux metadata. |
+| `dynfilefs` | Expandable ext4 filesystem split across backing files | Supports POSIX filesystems and FAT32, NTFS, or exFAT media. |
+| `raw` | Fixed-size `changes.img` containing ext4 | Supports POSIX filesystems and FAT32, NTFS, or exFAT media. |
+| `luks` | LUKS2 `changes.luks` containing ext4 | Requires cryptsetup and an initramfs built with MiniOS encryption support. The passphrase is requested during boot. |
+| `squashfs` | Compressed `changes.sb` snapshot | Unpacked into RAM for use; saving rebuilds and atomically replaces the snapshot. The persistence filesystem must preserve Linux metadata during the save. |
+
+The active session selected for a future resume and the writable layer actually authorized for the current boot are related but distinct state. Changing a future selection does not replace the running writable layer.
+
+See [Session management](/using-minios/Sessions-and-Persistence) for creation, selection, sizing, encryption, conversion, export, and recovery commands.
+
+## Configuration precedence
+
+The media configuration is `minios/config.conf`, with optional fragments in `minios/config.conf.d/`. The runtime copies are `/etc/live/config.conf` and `/etc/live/config.conf.d/` in the composed root.
+
+At boot, MiniOS compares modification times and copies a newer media file into the runtime root. If the media is writable and the runtime copy is newer, it is copied back to the media. Fragment files are synchronized by filename in both directions. If the clock has moved backwards since the previous synchronization, MiniOS avoids timestamp replacement and only fills missing destinations.
+
+Kernel command-line options override corresponding values read from the runtime configuration for that boot. This means the effective order for an explicitly supported setting is the boot parameter, then the synchronized runtime/media configuration, then the built-in default. Persistent runtime edits can become the media configuration when the source is writable; read-only ISO media cannot receive that update.
+
+See [Configuration file](/reference/configuration/config.conf) and [live-config](/reference/configuration/live-config) for the supported settings.
+
+## Shutdown and save lifecycle
+
+Normal shutdown first gives the running system a chance to flush services and session data. A SquashFS session with shutdown saving enabled is rebuilt and validated before filesystem teardown. The save backend writes a completion marker for the exact running session; the shutdown initramfs checks that marker and leaves the session dirty if the required save failed.
+
+The shutdown initramfs then detaches unused loop devices, unmounts the old root and writable layer, records a successful session as clean, unmounts the media, and closes a MiniOS-owned LUKS mapping. Optical media can then be ejected before poweroff or reboot. Manual and periodic SquashFS saves use the same snapshot backend, but only the configured shutdown policy blocks clean finalization on a missing shutdown save.
+
+## Media tree
+
+A current image is organized as follows. Optional directories appear only when the related feature has created content.
+
+```text
+/
+|-- .disk/                         ISO metadata
+|-- EFI/                           UEFI boot files
+`-- minios/
+    |-- 00-core-<arch>.sb          base userspace
+    |-- 01-kernel-<version>-<arch>.sb
+    |-- 02-firmware-<arch>.sb
+    |-- NN-<name>-<arch>.sb        ordered system modules
+    |-- boot/                      kernels, initramfs, GRUB, and Syslinux data
+    |-- changes/                   session metadata and numbered sessions
+    |-- modules/                   additional next-boot modules
+    |-- config.conf                main media configuration
+    |-- config.conf.d/             optional configuration fragments
+    |-- kernels/                   optional inactive kernel repository
+    |-- userdata/                  optional linked or bound user directories
+    `-- log/                       optional exported boot logs
+```
+
+The booted paths under `/run/initramfs/memory/` are implementation mounts, not a second persistent copy of this tree.
+
+## Related documentation
+
+- [Boot modes](/using-minios/Boot-Modes)
+- [Initrd system discovery](/reference/boot-process/System-Discovery)
+- [Initrd module loading](/reference/boot-process/Module-Loading)
+- [Initrd persistence](/reference/boot-process/Persistence-Internals)
+- [Boot parameters](/reference/Boot-Parameters)
+- [Boot menus](/preparing-and-customizing/Customizing-the-Boot-Menu)
+- [Configuration file](/reference/configuration/config.conf)
+- [Session management](/using-minios/Sessions-and-Persistence)
+- [Network boot](/reference/boot-process/Network-Boot)
+- [Creating modules](/preparing-and-customizing/Managing-Modules)
