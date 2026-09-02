@@ -11,7 +11,7 @@ hero:
     actions:
         - theme: brand
           text: Mulai Cepat
-          link: /memulai/Quick-Start
+          link: /getting-started/Quick-Start
 ---
 
 <section class="home-paths">

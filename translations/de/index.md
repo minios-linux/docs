@@ -11,7 +11,7 @@ hero:
     actions:
         - theme: brand
           text: Schnellstart
-          link: /erste-schritte/Schnellstart
+          link: /getting-started/Quick-Start
 ---
 
 <section class="home-paths">
