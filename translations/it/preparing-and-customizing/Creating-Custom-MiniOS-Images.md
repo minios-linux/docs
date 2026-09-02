@@ -11,15 +11,15 @@ Generatore di immagini MiniOS è un'applicazione GTK per rimasterizzare un'immag
 
 Il generatore viene eseguito all'interno di MiniOS. Non modifica il supporto sorgente selezionato.
 
-## Scegli il flusso di lavoro corretto
+## Scegli il workflow corretto
 
-Il Generatore di immagini MiniOS rimasterizza un'immagine binaria MiniOS esistente. Non sostituisce nessuno di questi flussi di lavoro:
+Il Generatore di immagini MiniOS rimasterizza un'immagine binaria MiniOS esistente. Non sostituisce nessuno di questi workflow:
 
-- **Costruisci MiniOS dal sorgente:** usa il sistema di build `minios-live` quando modifichi le liste dei pacchetti della distribuzione, la configurazione di build, il layer del kernel, gli artefatti di avvio o la catena di moduli costruiti da sorgente in modo riproducibile. Vedi [Building MiniOS](/development/Building-MiniOS).
-- **Crea un modulo riutilizzabile:** usa `apt2sb`, `script2sb`, `chroot2sb` o gli altri strumenti per moduli quando il risultato desiderato è un layer `.sb` autonomo. Vedi [Creazione di moduli](/preparing-and-customizing/Managing-Modules).
-- **Rimasterizza un'immagine:** usa il Generatore di immagini MiniOS quando selezioni moduli esistenti, aggiungi moduli esterni completati, modifichi le impostazioni supportate dell'immagine, eventualmente acquisisci modifiche della sessione e pubblichi un altro ISO.
+- **Compila MiniOS dal sorgente:** usa il `minios-live` sistema di build quando modifichi le liste dei pacchetti della distribuzione, la configurazione di build, il livello del kernel, gli artefatti di avvio o la catena di moduli riproducibile compilata dal sorgente. Vedi [Compilare MiniOS](/development/Building-MiniOS).
+- **Crea un modulo riutilizzabile:** usa `apt2sb`, `script2sb`, `chroot2sb`, o gli altri strumenti per moduli quando il risultato desiderato è un livello standalone `.sb` layer. Vedi [Creazione di moduli](/preparing-and-customizing/Managing-Modules#creating-modules).
+- **Rimasterizza un'immagine:** usa il Generatore di immagini MiniOS quando selezioni moduli esistenti, aggiungi moduli esterni completati, modifichi le impostazioni supportate dell'immagine, acquisisci facoltativamente le modifiche della sessione e pubblichi un'altra ISO.
 
-Il layer filesystem del progetto è destinato ai file dichiarativi nella root dell'immagine. Non esegue script, non installa pacchetti e non apre un chroot. Il software destinato al riutilizzo dovrebbe essere preparato come modulo prima di essere aggiunto a un progetto del Generatore di immagini MiniOS.
+Il livello filesystem del progetto è destinato ai file dichiarativi nella root dell'immagine. Non esegue script, non installa pacchetti e non apre un chroot. Il software destinato al riutilizzo deve essere preparato come modulo prima di essere aggiunto a un progetto Generatore di immagini MiniOS.
 
 ## Opzioni sorgente
 
@@ -148,9 +148,9 @@ Una build annullata o fallita non pubblica il suo ISO privato. Qualsiasi destina
 
 ## Documentazione correlata
 
-- [Building MiniOS](/development/Building-MiniOS)
-- [Creating modules](/preparing-and-customizing/Managing-Modules)
-- [Composizione di immagini ISO dalla riga di comando](/preparing-and-customizing/Creating-Custom-MiniOS-Images)
+- [Compilare MiniOS](/development/Building-MiniOS)
+- [Creazione di moduli](/preparing-and-customizing/Managing-Modules#creating-modules)
+- [Composizione di immagini ISO da riga di comando](/preparing-and-customizing/Creating-Custom-MiniOS-Images#composing-minios-iso-images-from-the-command-line)
 
 ## Composizione di immagini ISO MiniOS da riga di comando
 
@@ -183,19 +183,19 @@ minios-image-compose \
 
 La sorgente è un input in sola lettura e non viene mai modificata. I file ISO e i supporti ottici devono essere montati prima di usare il loro albero di contenuti MiniOS con la CLI. L'interfaccia grafica del Generatore di immagini MiniOS può montare queste sorgenti tramite `udisksctl`.
 
-### Seleziona i moduli
+### Seleziona moduli
 
-I moduli `.sb` aggiuntivi sono argomenti posizionali:
+Moduli aggiuntivi `.sb` sono argomenti posizionali:
 
 ```bash
 minios-image-compose 06-development.sb 10-site-config.sb \
   --name ./minios-development.iso
 ```
 
-Il comando valida ogni modulo come file SquashFS leggibile e non-symlink.
-I moduli i cui nomi iniziano con due cifre e un trattino vengono posizionati al livello superiore MiniOS. Gli altri moduli aggiunti sono posizionati in `minios/modules/`. I duplicati o collisioni di basename senza distinzione tra maiuscole e minuscole vengono rifiutati.
+Il comando verifica che ogni modulo sia un file SquashFS leggibile e non sia un collegamento simbolico.
+I moduli il cui nome inizia con due cifre e un trattino vengono posizionati al livello superiore MiniOS. Gli altri moduli aggiunti vengono inseriti in `minios/modules/`. I duplicati o collisioni di basename senza distinzione tra maiuscole e minuscole vengono rifiutati.
 
-Escludi percorsi sorgente con un'espressione regolare POSIX estesa:
+Escludi i percorsi sorgente con un'espressione regolare estesa POSIX:
 
 ```bash
 minios-image-compose --exclude 'firefox|libreoffice|gimp' \
@@ -204,7 +204,7 @@ minios-image-compose --exclude 'firefox|libreoffice|gimp' \
 
 I file di avvio richiesti, i file kernel e initramfs, i moduli core, il menu di avvio selezionato e la configurazione selezionata non possono essere esclusi.
 
-Crea moduli riutilizzabili prima di comporre l'ISO. Vedi [Creazione di moduli](/preparing-and-customizing/Managing-Modules) e [Gestore moduli MiniOS](/preparing-and-customizing/Managing-Modules).
+Crea moduli riutilizzabili prima di comporre l'ISO. Vedi [Creazione di moduli](/preparing-and-customizing/Managing-Modules#creating-modules) e [Gestore moduli MiniOS](/preparing-and-customizing/Managing-Modules).
 
 ### Configurazione e manifest
 

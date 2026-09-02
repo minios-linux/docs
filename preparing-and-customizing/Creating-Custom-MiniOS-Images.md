@@ -16,7 +16,7 @@ The builder runs inside MiniOS. It does not modify the selected source media.
 MiniOS Image Builder remasters an existing binary MiniOS image. It is not a replacement for either of these workflows:
 
 - **Build MiniOS from source:** use the `minios-live` build system when changing the distribution's package lists, build configuration, kernel layer, boot artifacts, or reproducible source-built module chain. See [Building MiniOS](/development/Building-MiniOS).
-- **Create a reusable module:** use `apt2sb`, `script2sb`, `chroot2sb`, or the other module tools when the intended result is a standalone `.sb` layer. See [Creating modules](/preparing-and-customizing/Managing-Modules).
+- **Create a reusable module:** use `apt2sb`, `script2sb`, `chroot2sb`, or the other module tools when the intended result is a standalone `.sb` layer. See [Creating modules](/preparing-and-customizing/Managing-Modules#creating-modules).
 - **Remaster an image:** use MiniOS Image Builder when selecting existing modules, adding completed external modules, changing supported image settings, optionally capturing session changes, and publishing another ISO.
 
 The project filesystem layer is for declarative files in the image root. It does not execute scripts, install packages, or open a chroot. Software intended for reuse should be prepared as a module before it is added to a MiniOS Image Builder project.
@@ -149,8 +149,8 @@ A cancelled or failed build does not publish its private ISO. Any previous desti
 ## Related documentation
 
 - [Building MiniOS](/development/Building-MiniOS)
-- [Creating modules](/preparing-and-customizing/Managing-Modules)
-- [Composing ISO images from the command line](/preparing-and-customizing/Creating-Custom-MiniOS-Images)
+- [Creating modules](/preparing-and-customizing/Managing-Modules#creating-modules)
+- [Composing ISO images from the command line](/preparing-and-customizing/Creating-Custom-MiniOS-Images#composing-minios-iso-images-from-the-command-line)
 
 ## Composing MiniOS ISO images from the command line
 
@@ -205,7 +205,7 @@ minios-image-compose --exclude 'firefox|libreoffice|gimp' \
 
 Required boot files, kernel and initramfs files, core modules, the selected boot menu, and the selected configuration cannot be excluded.
 
-Create reusable modules before composing the ISO. See [Creating modules](/preparing-and-customizing/Managing-Modules) and [MiniOS Module Manager](/preparing-and-customizing/Managing-Modules).
+Create reusable modules before composing the ISO. See [Creating modules](/preparing-and-customizing/Managing-Modules#creating-modules) and [MiniOS Module Manager](/preparing-and-customizing/Managing-Modules).
 
 ### Configuration and manifest
 

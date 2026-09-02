@@ -34,26 +34,26 @@ Most graphical tools have a public command-line counterpart or backend. These co
 
 | Task | Tool | Scope | Documentation |
 |---|---|---|---|
-| List target disks, preview a deployment plan, or install MiniOS non-interactively | **`minios-deploy`** | Runs from a MiniOS live session. Installation requires root and explicit confirmation; native mode, when supported, creates a conventional Debian desktop from the selected image. | [MiniOS Installer](/installing-minios/MiniOS-Installer#command-line-deployment); `man minios-deploy` |
-| Create, activate, save, resize, export, import, or remove persistent sessions | **`minios-session`** | Requires root and a MiniOS live system with a compatible persistence store. | [Session management](/using-minios/Sessions-and-Persistence#command-reference); `man minios-session` |
+| List target disks, preview a deployment plan, or install MiniOS non-interactively | **`minios-deploy`** | Runs from a MiniOS live session. Installation requires root and explicit confirmation; native mode, when supported, creates a conventional Debian desktop from the selected image. | [Command-line deployment](/installing-minios/MiniOS-Installer#command-line-deployment); `man minios-deploy` |
+| Create, activate, save, resize, export, import, or remove persistent sessions | **`minios-session`** | Requires root and a MiniOS live system with a compatible persistence store. | [Session command reference](/using-minios/Sessions-and-Persistence#command-reference); `man minios-session` |
 
 ### Kernels and images
 
 | Task | Tool | Scope | Documentation |
 |---|---|---|---|
-| List, package, activate, inspect, or remove kernels | **`minios-kernel`** | Requires root and a modular MiniOS live installation with a writable MiniOS root. | [Kernel management](/preparing-and-customizing/Managing-Kernels#method-2-using-minios-kernel-cli); `man minios-kernel` |
-| Remaster an existing MiniOS content tree from scripts or automation | **`minios-image-compose`** | Operates on MiniOS live image content and publishes a bootable ISO. | [Composing ISO images from the command line](/preparing-and-customizing/Creating-Custom-MiniOS-Images); `man minios-image-compose` |
+| List, package, activate, inspect, or remove kernels | **`minios-kernel`** | Requires root and a modular MiniOS live installation with a writable MiniOS root. | [`minios-kernel` CLI](/preparing-and-customizing/Managing-Kernels#method-2-using-minios-kernel-cli); `man minios-kernel` |
+| Remaster an existing MiniOS content tree from scripts or automation | **`minios-image-compose`** | Operates on MiniOS live image content and publishes a bootable ISO. | [Composing ISO images from the command line](/preparing-and-customizing/Creating-Custom-MiniOS-Images#composing-minios-iso-images-from-the-command-line); `man minios-image-compose` |
 
 ### Module workflows
 
 | Task | Tool | Scope | Documentation |
 |---|---|---|---|
-| Inspect modules and manage the running or next-boot module sets | **`sb`** | Module inspection also works outside a running MiniOS session. Running and next-boot operations require a MiniOS live module layout; changes require root. | [Creating modules](/preparing-and-customizing/Managing-Modules); `man sb` |
-| Build a module from repository packages or local `.deb` files | **`apt2sb`** | Requires root and a supported MiniOS live session. Packages are installed into an isolated build environment, not the running root. | [Creating modules](/preparing-and-customizing/Managing-Modules#create-a-module-from-packages); `man apt2sb` |
-| Build a module by running an installation script | **`script2sb`** | Requires root and a supported MiniOS live session. The script runs non-interactively in an isolated build environment. | [Creating modules](/preparing-and-customizing/Managing-Modules#create-a-module-from-a-script); `man script2sb` |
-| Build a module interactively in a prepared environment | **`chroot2sb`** | Requires root and a supported MiniOS live session. Use it when installation needs prompts or manual changes. | [Creating modules](/preparing-and-customizing/Managing-Modules#create-a-module-interactively); `man chroot2sb` |
+| Inspect modules and manage the running or next-boot module sets | **`sb`** | Module inspection also works outside a running MiniOS session. Running and next-boot operations require a MiniOS live module layout; changes require root. | [Inspect and extract modules](/preparing-and-customizing/Managing-Modules#inspect-and-extract-modules); [manage running and next-boot modules](/preparing-and-customizing/Managing-Modules#manage-running-and-next-boot-modules); `man sb` |
+| Build a module from repository packages or local `.deb` files | **`apt2sb`** | Requires root and a supported MiniOS live session. Packages are installed into an isolated build environment, not the running root. | [Create a module from packages](/preparing-and-customizing/Managing-Modules#create-a-module-from-packages); `man apt2sb` |
+| Build a module by running an installation script | **`script2sb`** | Requires root and a supported MiniOS live session. The script runs non-interactively in an isolated build environment. | [Create a module from a script](/preparing-and-customizing/Managing-Modules#create-a-module-from-a-script); `man script2sb` |
+| Build a module interactively in a prepared environment | **`chroot2sb`** | Requires root and a supported MiniOS live session. Use it when installation needs prompts or manual changes. | [Create a module interactively](/preparing-and-customizing/Managing-Modules#create-a-module-interactively); `man chroot2sb` |
 | Convert between a directory tree and an `.sb` module | **`dir2sb`**, **`sb2dir`** | Ordinary conversion is rootless and can be used outside a running live session when the required tools and input files are available. | [Create](/preparing-and-customizing/Managing-Modules#create-a-module-from-a-directory) or [extract](/preparing-and-customizing/Managing-Modules#inspect-and-extract-modules) a module; `man dir2sb`, `man sb2dir` |
-| Capture eligible changes from the writable session layer into a module | **`savechanges`** | Requires root and a running MiniOS live session with a supported writable-layer backend. | [Creating modules](/preparing-and-customizing/Managing-Modules#capture-current-session-changes); `man savechanges` |
+| Capture eligible changes from the writable session layer into a module | **`savechanges`** | Requires root and a running MiniOS live session with a supported writable-layer backend. | [Capture current-session changes](/preparing-and-customizing/Managing-Modules#capture-current-session-changes); `man savechanges` |
 
 ### Storage workflows
 

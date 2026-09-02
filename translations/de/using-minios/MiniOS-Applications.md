@@ -32,28 +32,28 @@ Die meisten grafischen Tools verfügen über ein öffentliches Kommandozeilen-Pe
 
 ### Bereitstellung und Sitzungen
 
-| Aufgabe | Tool | Geltungsbereich | Dokumentation |
+| Aufgabe | Werkzeug | Umfang | Dokumentation |
 |---|---|---|---|
-| Zieldatenträger auflisten, Bereitstellungsplan anzeigen oder MiniOS unbeaufsichtigt installieren | **`minios-deploy`** | Läuft aus einer MiniOS Live-Sitzung. Die Installation erfordert Root-Rechte und eine explizite Bestätigung; im nativen Modus, sofern unterstützt, wird aus dem gewählten Image ein konventioneller Debian-Desktop erstellt. | [MiniOS-Installationsprogramm](/installing-minios/MiniOS-Installer#command-line-deployment); `man minios-deploy` |
-| Persistente Sitzungen erstellen, aktivieren, speichern, vergrößern, exportieren, importieren oder entfernen | **`minios-session`** | Erfordert Root-Rechte und ein MiniOS Live-System mit einem kompatiblen Persistenzspeicher. | [Sitzungsverwaltung](/using-minios/Sessions-and-Persistence#command-reference); `man minios-session` |
+| Ziel-Datenträger auflisten, einen Bereitstellungsplan anzeigen oder MiniOS automatisiert installieren | **`minios-deploy`** | Wird aus einer MiniOS Live-Session ausgeführt. Die Installation erfordert Root-Rechte und eine explizite Bestätigung; im nativen Modus (sofern unterstützt) wird aus dem gewählten Abbild ein klassischer Debian-Desktop erstellt. | [Bereitstellung per Kommandozeile](/installing-minios/MiniOS-Installer#command-line-deployment); `man minios-deploy` |
+| Persistente Sitzungen erstellen, aktivieren, speichern, vergrößern, exportieren, importieren oder entfernen | **`minios-session`** | Erfordert Root-Rechte und ein MiniOS Live-System mit kompatiblem Persistenzspeicher. | [Befehlsreferenz für Sitzungen](/using-minios/Sessions-and-Persistence#command-reference); `man minios-session` |
 
 ### Kernel und Abbilder
 
-| Aufgabe | Tool | Geltungsbereich | Dokumentation |
+| Aufgabe | Werkzeug | Umfang | Dokumentation |
 |---|---|---|---|
-| Kernel auflisten, paketieren, aktivieren, inspizieren oder entfernen | **`minios-kernel`** | Erfordert Root-Rechte und eine modulare MiniOS Live-Installation mit einem beschreibbaren MiniOS Root. | [Kernelverwaltung](/preparing-and-customizing/Managing-Kernels#method-2-using-minios-kernel-cli); `man minios-kernel` |
-| Einen bestehenden MiniOS Inhaltbaum per Skript oder Automatisierung remastern | **`minios-image-compose`** | Arbeitet mit MiniOS Live-Image-Inhalten und erstellt ein bootfähiges ISO. | [ISO-Abbilder per Kommandozeile erstellen](/preparing-and-customizing/Creating-Custom-MiniOS-Images); `man minios-image-compose` |
+| Kernel auflisten, paketieren, aktivieren, inspizieren oder entfernen | **`minios-kernel`** | Erfordert Root-Rechte und eine modulare MiniOS Live-Installation mit beschreibbarem MiniOS Root. | [`minios-kernel` CLI](/preparing-and-customizing/Managing-Kernels#method-2-using-minios-kernel-cli); `man minios-kernel` |
+| Einen bestehenden MiniOS Inhaltbaum per Skript oder Automatisierung neu erstellen | **`minios-image-compose`** | Arbeitet mit MiniOS Live-Abbild-Inhalten und erstellt ein bootfähiges ISO. | [ISO-Abbilder per Kommandozeile erstellen](/preparing-and-customizing/Creating-Custom-MiniOS-Images#composing-minios-iso-images-from-the-command-line); `man minios-image-compose` |
 
 ### Modul-Workflows
 
-| Aufgabe | Tool | Geltungsbereich | Dokumentation |
+| Aufgabe | Werkzeug | Umfang | Dokumentation |
 |---|---|---|---|
-| Module inspizieren und laufende oder nächste Modulsets verwalten | **`sb`** | Modulinformationen können auch außerhalb einer laufenden MiniOS Sitzung angezeigt werden. Laufende und nächste Boot-Operationen erfordern ein MiniOS Live-Modullayout; Änderungen erfordern Root-Rechte. | [Module erstellen](/preparing-and-customizing/Managing-Modules); `man sb` |
-| Ein Modul aus Repository-Paketen oder lokalen `.deb` Dateien bauen | **`apt2sb`** | Erfordert Root-Rechte und eine unterstützte MiniOS Live-Sitzung. Pakete werden in eine isolierte Build-Umgebung installiert, nicht ins laufende Root. | [Module erstellen](/preparing-and-customizing/Managing-Modules#create-a-module-from-packages); `man apt2sb` |
-| Ein Modul durch Ausführen eines Installationsskripts bauen | **`script2sb`** | Erfordert Root-Rechte und eine unterstützte MiniOS Live-Sitzung. Das Skript läuft nicht-interaktiv in einer isolierten Build-Umgebung. | [Module erstellen](/preparing-and-customizing/Managing-Modules#create-a-module-from-a-script); `man script2sb` |
-| Ein Modul interaktiv in einer vorbereiteten Umgebung bauen | **`chroot2sb`** | Erfordert Root-Rechte und eine unterstützte MiniOS Live-Sitzung. Verwenden Sie dies, wenn Installationen Eingaben oder manuelle Änderungen benötigen. | [Module erstellen](/preparing-and-customizing/Managing-Modules#create-a-module-interactively); `man chroot2sb` |
-| Zwischen einem Verzeichnisbaum und einem `.sb` Modul konvertieren | **`dir2sb`**, **`sb2dir`** | Die normale Konvertierung ist ohne Root möglich und kann auch außerhalb einer laufenden Live-Sitzung genutzt werden, wenn die nötigen Tools und Eingabedateien vorhanden sind. | [Modul erstellen](/preparing-and-customizing/Managing-Modules#create-a-module-from-a-directory) oder [extrahieren](/preparing-and-customizing/Managing-Modules#inspect-and-extract-modules); `man dir2sb`, `man sb2dir` |
-| Geeignete Änderungen aus der beschreibbaren Sitzungsschicht in ein Modul übernehmen | **`savechanges`** | Erfordert Root-Rechte und eine laufende MiniOS Live-Sitzung mit einem unterstützten Backend für beschreibbare Schichten. | [Module erstellen](/preparing-and-customizing/Managing-Modules#capture-current-session-changes); `man savechanges` |
+| Module inspizieren und laufende bzw. nächste Modul-Sätze verwalten | **`sb`** | Modul-Inspektion funktioniert auch außerhalb einer laufenden MiniOS-Sitzung. Für laufende und nächste Modul-Operationen wird ein MiniOS Live-Modul-Layout benötigt; Änderungen erfordern Root-Rechte. | [Module inspizieren und extrahieren](/preparing-and-customizing/Managing-Modules#inspect-and-extract-modules); [laufende und nächste Module verwalten](/preparing-and-customizing/Managing-Modules#manage-running-and-next-boot-modules); `man sb` |
+| Ein Modul aus Repository-Paketen oder lokalen `.deb` Dateien erstellen | **`apt2sb`** | Erfordert Root-Rechte und eine unterstützte MiniOS Live-Session. Pakete werden in eine isolierte Build-Umgebung installiert, nicht ins laufende Root-System. | [Modul aus Paketen erstellen](/preparing-and-customizing/Managing-Modules#create-a-module-from-packages); `man apt2sb` |
+| Ein Modul durch Ausführen eines Installationsskripts erstellen | **`script2sb`** | Erfordert Root-Rechte und eine unterstützte MiniOS Live-Session. Das Skript läuft automatisiert in einer isolierten Build-Umgebung. | [Modul aus Skript erstellen](/preparing-and-customizing/Managing-Modules#create-a-module-from-a-script); `man script2sb` |
+| Ein Modul interaktiv in einer vorbereiteten Umgebung erstellen | **`chroot2sb`** | Erfordert Root-Rechte und eine unterstützte MiniOS Live-Session. Verwenden Sie dies, wenn Installationen Eingaben oder manuelle Anpassungen benötigen. | [Modul interaktiv erstellen](/preparing-and-customizing/Managing-Modules#create-a-module-interactively); `man chroot2sb` |
+| Zwischen einem Verzeichnisbaum und einem `.sb` Modul konvertieren | **`dir2sb`**, **`sb2dir`** | Die Standardkonvertierung ist ohne Root-Rechte möglich und kann auch außerhalb einer laufenden Live-Session verwendet werden, sofern die benötigten Werkzeuge und Eingabedateien vorhanden sind. | [Erstellen](/preparing-and-customizing/Managing-Modules#create-a-module-from-a-directory) oder [extrahieren](/preparing-and-customizing/Managing-Modules#inspect-and-extract-modules) eines Moduls; `man dir2sb`, `man sb2dir` |
+| Änderungen aus der beschreibbaren Session-Schicht in ein Modul übernehmen | **`savechanges`** | Erfordert Root-Rechte und eine laufende MiniOS Live-Session mit unterstütztem beschreibbarem Backend. | [Aktuelle Sitzungsänderungen übernehmen](/preparing-and-customizing/Managing-Modules#capture-current-session-changes); `man savechanges` |
 
 ### Speicher-Workflows
 

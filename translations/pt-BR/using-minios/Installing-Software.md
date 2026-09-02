@@ -132,5 +132,5 @@ Revise as alterações propostas pelo APT antes de confirmar qualquer operação
 
 ## Documentação relacionada
 
-- [Criando módulos](/preparing-and-customizing/Managing-Modules)
+- [Criando módulos](/preparing-and-customizing/Managing-Modules#creating-modules)
 - [Reconstruindo ISO](/preparing-and-customizing/Creating-Custom-MiniOS-Images)

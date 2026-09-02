@@ -54,9 +54,9 @@ Les sélecteurs ne sont pas tous équivalents :
 
 Les autres paramètres de persistance reconnus sans sélecteur entrent dans le même chemin de reprise hérité que `perch` seul : ils demandent la persistance, mais sans création automatique. Si la sélection ou l’activation ne produit pas de couche supérieure utilisable, le démarrage se poursuit normalement avec la couche supérieure RAM et affiche un avertissement d’échec.
 
-## Emplacement et stockage des sessions
+## Emplacement et stockage de session
 
-Le stockage normal est le répertoire `changes` à côté des données MiniOS, avec des répertoires de sessions numérotées et des métadonnées `session.conf` ou `session.json` :
+Le stockage habituel se trouve dans le `changes` répertoire à côté des données MiniOS, avec des répertoires de session numérotés et `session.conf` ou `session.json` métadonnées :
 
 ```text
 minios/changes/
@@ -66,9 +66,9 @@ minios/changes/
 `-- 2/
 ```
 
-Le stockage peut aussi être sélectionné comme un périphérique plus un chemin optionnel. Les formes acceptées incluent un chemin direct `/dev/...`, `/dev/disk/by-label/LABEL/...`, `/dev/mapper/...`, `label:LABEL/...`, `askdisk` et `askdisk:custom:path`. Le suffixe délimité par deux-points devient un chemin sous le périphérique sélectionné ; la syntaxe avec slash après `askdisk` ignore silencieusement ce chemin personnalisé. Un sous-répertoire sélectionné est monté par liaison comme stockage de session. MiniOS peut également détecter une partition de persistance sur le même disque et un stockage de persistance Ventoy pris en charge.
+Le stockage peut aussi être sélectionné comme un périphérique avec un chemin optionnel. Les formats acceptés incluent un chemin direct `/dev/...` , `/dev/disk/by-label/LABEL/...`, `/dev/mapper/...`, `label:LABEL/...`, `askdisk`, et `askdisk:custom:path`. Le suffixe délimité par deux-points devient un chemin sous le périphérique sélectionné ; la syntaxe slash après `askdisk` perd silencieusement ce chemin personnalisé. Un sous-répertoire sélectionné est monté en tant que stockage de session. MiniOS peut également détecter une partition de persistance sur le même disque et un stockage de persistance Ventoy pris en charge.
 
-Avant la sélection de session, l’initrd doit monter l’emplacement en écriture et prouver qu’il peut créer et supprimer un marqueur dans le stockage. Un périphérique bloc qui ne peut pas être ouvert en écriture, un montage en lecture seule, un chemin indisponible ou un test d’écriture échoué exclut la persistance pour ce démarrage. Les sessions existantes ne sont pas considérées comme fiables simplement parce que leurs fichiers sont lisibles.
+Avant la sélection de la session, l'initrd doit monter l'emplacement en écriture et prouver qu'il peut créer et supprimer un marqueur dans le stockage. Un périphérique bloc qui ne peut pas être ouvert en écriture, un montage en lecture seule, un chemin indisponible ou un test d'écriture échoué empêche la persistance pour ce démarrage. Les sessions existantes ne sont pas considérées comme fiables simplement parce que leurs fichiers sont lisibles.
 
 ## Sélection et compatibilité
 

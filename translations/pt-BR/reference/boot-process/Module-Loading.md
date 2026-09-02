@@ -28,18 +28,18 @@ Antes de alterar filtros, registre a linha de comando atual e o conjunto de mód
 
 ## Níveis de candidatos
 
-Após localizar o diretório de dados MiniOS, normalmente `minios/`, o initrd escaneia os candidatos a módulo nesta ordem:
+Após localizar o diretório de dados MiniOS, normalmente `minios/`, o initrd verifica os módulos candidatos nesta ordem:
 
-1. Entradas imediatamente dentro de `minios/`. Esta varredura não é recursiva.
+1. Entradas imediatamente dentro de `minios/`. Essa verificação não é recursiva.
 2. Entradas recursivamente abaixo de `minios/modules/`.
 3. Entradas recursivamente abaixo de `minios/modules/` na fonte de persistência gravável registrada pelo initrd.
 
-O terceiro nível é separado do diretório `minios/modules/` na árvore de dados somente leitura selecionada. Ele permite que módulos de usuário duráveis sobrescrevam arquivos de uma ISO ou outra fonte somente leitura. Só está disponível quando a descoberta de persistência publica um root gravável contendo esse diretório.
+O terceiro nível é separado do diretório `minios/modules/` na árvore de dados somente leitura selecionada. Ele permite que módulos de usuário persistentes substituam arquivos de uma ISO ou outra fonte somente leitura. Só está disponível quando a descoberta de persistência publica uma raiz gravável contendo esse diretório.
 
-Os caminhos dos candidatos são achatados para o basename exato ao serem montados. Por exemplo, `modules/work/50-extra.sb` e `modules/test/50-extra.sb` usam ambos o ponto de montagem chamado `50-extra.sb`. Eles não se tornam duas camadas independentes. Um candidato em um nível posterior com o mesmo basename é montado no mesmo ponto e substitui o candidato anterior visível para a montagem da união.
-Portanto, o mesmo basename deve ser tratado como um único slot de substituição, e não como uma forma de carregar múltiplos módulos de diretórios diferentes.
+Os caminhos candidatos são simplificados para seu nome base exato ao serem montados. Por exemplo, `modules/work/50-extra.sb` e `modules/test/50-extra.sb` usam ambos o ponto de montagem chamado `50-extra.sb`. Eles não se tornam duas camadas endereçáveis de forma independente. Um candidato em um nível posterior com o mesmo nome base é montado no mesmo ponto de montagem e substitui o candidato anterior visível para a montagem em união.
+Portanto, o mesmo nome base deve ser tratado como um único slot de substituição, e não como uma forma de carregar múltiplos módulos de diretórios diferentes.
 
-O formato normal de módulo é uma imagem de sistema de arquivos SquashFS regular. A varredura do initrd é baseada no nome do arquivo: seleciona caminhos que terminam com a extensão configurada e não verifica antes se cada caminho é um arquivo regular ou um SquashFS válido. Varreduras recursivas podem, portanto, encontrar outro tipo de objeto de sistema de arquivos com nome correspondente. Uma montagem de loop ou SquashFS com falha é relatada por `mount`, mas o loop do candidato não torna essa falha fatal por si só e o boot pode continuar com uma camada ausente. Valide arquivos duvidosos com o fluxo de inspeção em [Criando módulos](/preparing-and-customizing/Managing-Modules).
+O formato normal de módulo é uma imagem de sistema de arquivos regular SquashFS. A verificação do initrd é baseada no nome do arquivo: seleciona caminhos que terminam com a extensão configurada e não verifica antes se cada caminho é um arquivo regular ou um SquashFS válido. Assim, verificações recursivas podem encontrar outro tipo de objeto de sistema de arquivos com o mesmo nome. Uma montagem de loop ou SquashFS com falha é relatada por `mount`, mas o loop candidato não torna essa falha fatal por si só, e a inicialização pode continuar com uma camada ausente. Valide arquivos duvidosos seguindo o fluxo de trabalho em [Inspecionar e extrair módulos](/preparing-and-customizing/Managing-Modules#inspect-and-extract-modules).
 
 ## Ordenação e precedência
 
@@ -151,10 +151,10 @@ Para uma falha inicial, adicione `debug` para mostrar o rastreamento do shell, `
 
 ## Documentação relacionada
 
-- [Modos de boot](/using-minios/Boot-Modes)
+- [Modos de inicialização](/using-minios/Boot-Modes)
 - [Descoberta do sistema](/reference/boot-process/System-Discovery)
 - [Persistência](/reference/boot-process/Persistence-Internals)
 - [Gerenciador de módulos MiniOS](/preparing-and-customizing/Managing-Modules)
-- [Criação de módulos](/preparing-and-customizing/Managing-Modules)
-- [Gerenciamento de kernel](/preparing-and-customizing/Managing-Kernels)
+- [Criação de módulos](/preparing-and-customizing/Managing-Modules#creating-modules)
+- [Gerenciamento do kernel](/preparing-and-customizing/Managing-Kernels)
 - [Solução de problemas](/maintenance-and-recovery/Troubleshooting)

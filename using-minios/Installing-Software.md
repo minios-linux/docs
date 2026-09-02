@@ -132,5 +132,5 @@ Review the proposed APT changes before confirming any additional repair operatio
 
 ## Related documentation
 
-- [Creating modules](/preparing-and-customizing/Managing-Modules)
+- [Creating modules](/preparing-and-customizing/Managing-Modules#creating-modules)
 - [Rebuilding ISO](/preparing-and-customizing/Creating-Custom-MiniOS-Images)

@@ -39,21 +39,21 @@ Für die Inspektion und das normale Extrahieren sind keine Administratorrechte e
 
 Sie können auch eine lokale `.sb`-Datei aus dem Dateimanager öffnen. Das Öffnen einer Datei dient nur der Inspektion; sie wird dabei weder aktiviert noch zum nächsten Start hinzugefügt.
 
-## Modul erstellen
+## Ein Modul erstellen
 
-Der Arbeitsbereich Erstellen folgt einem Ablauf aus **Konfigurieren**, **Überprüfen**, **Ausführen** und **Ergebnis**. Ein erfolgreich erstelltes Modul bleibt als Datei am Ausgabepfad bestehen. Es wird nicht aktiviert und nicht automatisch zum nächsten Start hinzugefügt.
+Der Arbeitsbereich „Erstellen“ verwendet einen **Konfigurieren**, **Überprüfen**, **Ausführen**, und **Ergebnis**-Ablauf. Ein erfolgreich erstelltes Modul bleibt als Datei am Ausgabepfad erhalten. Es wird nicht aktiviert und nicht automatisch zu Next Boot hinzugefügt.
 
-Verfügbare Methoden sind:
+Verfügbare Methoden:
 
-- **Pakete** installiert Repository-Pakete und ausgewählte lokale `.deb`-Dateien samt Abhängigkeiten in einer isolierten MiniOS-Build-Umgebung. Die Paketinstallation erfordert Administratorrechte.
-- **Installationsskript** führt ein geprüftes Skript ohne interaktives Terminal aus. Ein optionaler Seed-Ordner kann Anfangsdaten bereitstellen. Das Skript läuft mit Administratorrechten, wird aber nicht im Modul gespeichert.
-- **Interaktives Chroot** öffnet eine temporäre Root-Shell im eingebetteten Terminal. Geben Sie `exit` ein, wenn Sie fertig sind, und erstellen Sie dann das Modul, öffnen Sie die Shell erneut oder verwerfen Sie die Änderungen. Das Schließen oder Verwerfen der Sitzung verändert das laufende System nicht.
-- **Ordner** verpackt den Inhalt eines bestehenden Verzeichnisses. Das Quellverzeichnis selbst wird nicht im Modul verschachtelt. Die normale Ordnerkonvertierung ist ohne Root-Rechte möglich, lässt die Quelle unverändert und setzt den Eigentümer im Modul auf root.
-- **Änderungen der aktuellen Sitzung** erfasst zulässige Dateien und Löschungen aus der aktuellen beschreibbaren Sitzungsschicht. Es gilt die Standard-MiniOS-`savechanges`-Richtlinie, die Protokolle, Caches, Bootdaten und temporäre Laufzeitpfade auslässt. Das vollständige Auslesen der beschreibbaren Schicht erfordert Administratorrechte.
+- **Pakete** installiert Repository-Pakete und ausgewählte lokale `.deb`-Dateien einschließlich ihrer Abhängigkeiten in einer isolierten MiniOS-Build-Umgebung. Für die Paketinstallation ist eine Administrator-Authentifizierung erforderlich.
+- **Installationsskript** führt ein geprüftes Skript ohne interaktives Terminal aus. Ein optionaler Seed-Ordner kann Anfangsdateien bereitstellen. Das Skript läuft mit Administratorrechten, wird aber nicht im resultierenden Modul gespeichert.
+- **Interaktives Chroot** öffnet eine temporäre Root-Shell im eingebetteten Terminal. Geben Sie `exit` ein, wenn Sie fertig sind. Anschließend können Sie das Modul erstellen, die Shell erneut öffnen oder die Änderungen verwerfen. Das Schließen oder Verwerfen der Sitzung verändert das laufende System nicht.
+- **Ordner** verpackt den Inhalt eines bestehenden Verzeichnisses. Das Quellverzeichnis selbst wird nicht im Modul verschachtelt. Die normale Ordner-Konvertierung erfolgt ohne Root-Rechte, lässt die Quelle unverändert und setzt den Besitz im Modul auf root.
+- **Aktuelle Sitzungsänderungen** erfasst geeignete Dateien und Löschungen aus der aktuellen beschreibbaren Sitzungsschicht. Es verwendet die Standard-MiniOS `savechanges`-Richtlinie, die Protokolle, Caches, Bootdaten und temporäre Laufzeitpfade ausschließt. Das Auslesen der vollständigen beschreibbaren Schicht erfordert Administrator-Authentifizierung.
 
-Wählen Sie für jeden Workflow einen neuen Ausgabepfad. Vorhandene Dateien werden nie überschrieben. Fortschritt und Backend-Diagnosen bleiben während des Vorgangs sichtbar, und die Erfassung der aktuellen Sitzung kann abgebrochen werden.
+Wählen Sie für jeden Workflow einen neuen Ausgabepfad. Vorhandene Dateien werden nie überschrieben. Während einer laufenden Operation bleiben Fortschritt und Backend-Diagnosen sichtbar, und die Erfassung der aktuellen Sitzung kann abgebrochen werden.
 
-Die Methode "Änderungen der aktuellen Sitzung" ist für den bequemen Standard-Export gedacht, nicht zur Überprüfung jedes enthaltenen Pfads. Eine Live-Sitzungsschicht kann persönliche oder vertrauliche Daten enthalten. Für explizite `exact`, `clean` oder pfadbasierte Datenschutzrichtlinien nutzen Sie den Kommandozeilen-Workflow `savechanges`, wie unter [Module erstellen](/preparing-and-customizing/Managing-Modules) beschrieben.
+Aktuelle Sitzungsänderungen sind für die bequeme Standarderfassung gedacht, nicht für die Überprüfung jedes enthaltenen Pfads. Eine aktive beschreibbare Schicht kann persönliche oder vertrauliche Daten enthalten. Für gezielte `exact`, `clean`, oder pfadbasierte Datenschutzrichtlinien verwenden Sie das Kommandozeilen-`savechanges`-Workflow, wie beschrieben in [Aktuelle Sitzungsänderungen erfassen](/preparing-and-customizing/Managing-Modules#capture-current-session-changes).
 
 ## Drag & Drop
 
@@ -66,12 +66,12 @@ Drag & Drop dient nur zum Ausfüllen eines Eingabefelds oder zum Öffnen der Ins
 
 Das Ablegen eines Elements führt keinen Code aus und ändert weder Aktuell laufend noch Nächster Start.
 
-## Verwandte Dokumentation
+## Zugehörige Dokumentation
 
-- [Module erstellen](/preparing-and-customizing/Managing-Modules)
+- [Module erstellen](/preparing-and-customizing/Managing-Modules#creating-modules)
 - [Initrd-Modulladen](/reference/boot-process/Module-Loading)
 - [Boot-Modi](/using-minios/Boot-Modes)
-- [ISO-Images per Kommandozeile zusammenstellen](/preparing-and-customizing/Creating-Custom-MiniOS-Images)
+- [ISO-Images über die Kommandozeile erstellen](/preparing-and-customizing/Creating-Custom-MiniOS-Images#composing-minios-iso-images-from-the-command-line)
 - [Boot-Parameter](/reference/Boot-Parameters)
 
 ## Module erstellen
@@ -126,16 +126,16 @@ Um Upgrades bereits installierter Pakete zu erfassen:
 sudo apt2sb upgrade -y -n upgrades.sb
 ```
 
-### Modul aus Skript erstellen
+### Ein Modul aus einem Skript erstellen
 
-`script2sb` kopiert ein Installationsskript in ein privates Chroot, macht es ausführbar, führt es als Root ohne interaktives Terminal aus, entfernt es anschließend und erfasst die resultierenden Dateisystemänderungen. Ein fehlgeschlagenes Skript erzeugt kein Modul.
+`script2sb` kopiert ein Installationsskript in ein privates Chroot, macht es ausführbar, führt es als root ohne interaktives Terminal aus, entfernt es anschließend und erfasst die resultierenden Änderungen am Dateisystem. Bei einem Fehler wird kein Modul erstellt.
 
 ```bash
 sudo script2sb --script ./install-example.sh -n 06-example.sb
 sudo script2sb --script ./install-example.sh --directory ./seed-root --level 3 -n 06-example.sb
 ```
 
-Das optionale `--directory DIR` kopiert alle Quellinhalte, einschließlich versteckter Dateien, vor dem Skriptlauf ins Modul-Root. Ordnen Sie das Seed-Verzeichnis als Dateisystembaum an:
+Optional `--directory DIR` kopiert vor dem Ausführen des Skripts alle Quellinhalte, einschließlich versteckter Dateien, in das Modul-Root. Strukturieren Sie das Seed-Verzeichnis als Dateisystembaum:
 
 ```text
 seed-root/
@@ -145,22 +145,22 @@ seed-root/
             `-- example.desktop
 ```
 
-Überprüfen Sie das Skript vor dem Ausführen. Es wird mit Administratorrechten ausgeführt und kann beliebige Befehle ausführen. Nutzen Sie stattdessen `chroot2sb`, wenn die Installation Eingaben oder manuelle Arbeit erfordert.
+Überprüfen Sie das Skript, bevor Sie es ausführen. Es läuft mit Administratorrechten und kann beliebige Befehle ausführen. Verwenden Sie `chroot2sb` stattdessen, wenn bei der Installation Eingaben oder manuelle Arbeit erforderlich sind.
 
-### Modul interaktiv erstellen
+### Ein Modul interaktiv erstellen
 
-`chroot2sb` erstellt ein privates Build-Union und öffnet darin eine Root-Shell. Installieren Sie Pakete oder bearbeiten Sie Dateien und beenden Sie die Shell, um die Änderungen zu erfassen:
+`chroot2sb` erstellt ein privates Build-Union und öffnet darin eine Root-Shell. Installieren Sie Pakete oder bearbeiten Sie Dateien; beenden Sie die Shell, um die Änderungen zu übernehmen:
 
 ```bash
 sudo chroot2sb --level 3 -n 06-custom.sb
 sudo chroot2sb --directory ./seed-root -c xz -n 06-custom.sb
 ```
 
-Die im Terminal eingegebenen Befehle werden beim Laden des Moduls nicht erneut ausgeführt; das Modul ist ein Schnappschuss des resultierenden Dateisystemzustands. Die Shell-Historie wird entfernt. Wenn kein Name angegeben wird, wird ein Name mit aktuellem Datum und Uhrzeit generiert.
+Befehle, die in der Shell eingegeben werden, werden beim Laden des Moduls nicht erneut ausgeführt; das Modul ist ein Schnappschuss des resultierenden Dateisystemzustands. Die Shell-Historie wird entfernt. Wird kein Name angegeben, wird ein Name mit aktuellem Datum und Uhrzeit generiert.
 
-Der aufgeteilte `prepare`, `shell`, `finish` und `cancel`-Lebenszyklus existiert für geschützte grafische Frontends. Für die normale Terminalnutzung verwenden Sie den oben gezeigten Einzelbefehl.
+Das aufgeteilte `prepare`, `shell`, `finish` und `cancel` Lebenszyklusmodell existiert für geschützte grafische Frontends. Für die normale Terminalnutzung verwenden Sie den oben gezeigten interaktiven Einzelbefehl.
 
-### Modul aus Verzeichnis erstellen
+### Ein Modul aus einem Verzeichnis erstellen
 
 `dir2sb` verpackt den Inhalt eines vorbereiteten Verzeichnisses in ein neues Modul. Beide Operanden sind erforderlich:
 
@@ -169,24 +169,24 @@ dir2sb my-app-root 06-my-app.sb
 dir2sb --comp xz my-app-root 06-my-app-xz.sb
 ```
 
-Normale Konvertierung ist ohne Root-Rechte möglich. Die Quelle bleibt unverändert, Eigentümer im Modul werden auf root gesetzt, Geräte, Sockets und FIFOs werden abgelehnt und das Ziel wird nie überschrieben. Verwenden Sie `--keep-ownership` oder `--allow-special` nur, wenn diese privilegierten Semantiken benötigt werden.
+Die Standard-Konvertierung benötigt keine Root-Rechte. Die Quelle bleibt unverändert, Eigentümer im Modul werden auf root normalisiert, Gerätedateien, Sockets und FIFOs werden abgelehnt und das Ziel wird nie überschrieben. Verwenden Sie `--keep-ownership` oder `--allow-special` nur, wenn diese privilegierten Semantiken benötigt werden.
 
 ### Änderungen der aktuellen Sitzung erfassen
 
-`savechanges` liest die maßgebliche beschreibbare Schicht einer laufenden MiniOS-Sitzung. Dies erfordert Root-Rechte, da diese Schicht Root-Dateien enthalten kann. Der Standardpfad für Änderungen wird automatisch erkannt:
+`savechanges` liest die maßgebliche beschreibbare Schicht einer laufenden MiniOS-Sitzung aus. Root-Rechte sind erforderlich, da diese Schicht root-exklusive Dateien enthalten kann. Der Standardpfad für Änderungen wird automatisch erkannt:
 
 ```bash
 sudo savechanges session-changes.sb
 sudo savechanges --comp xz session-changes-xz.sb
 ```
 
-Ohne `--profile` lässt die historische MiniOS-Richtlinie leere Verzeichnisse, Caches, Protokolle, Bootdaten, Laufzeitpfade, Pseudo-Dateisysteme sowie ausgewählte Sitzungs- und Systemdateien aus. Das ist praktisch für die traditionelle Modulerstellung, aber kein expliziter Datenschutz.
+Ohne `--profile`, lässt die historische MiniOS-Richtlinie leere Verzeichnisse, Caches, Protokolle, Bootdaten, Laufzeitpfade, Pseudodateisysteme sowie ausgewählte Sitzungs- und Systemdateien aus. Das ist praktisch für die herkömmliche Modulerstellung, stellt aber kein ausdrückliches Datenschutzversprechen dar.
 
 Die expliziten Profile sind:
 
-- `exact` erhält alle darstellbaren Änderungen, einschließlich Benutzerdaten, Protokollen, Caches, Identitätsdateien, Zugangsdaten und unterstützter Löschmetadaten. Nicht unterstützte Dateisystemobjekte werden abgelehnt, statt sie stillschweigend zu verlieren.
-- `clean` nutzt eine enge, softwareorientierte Pfad-Whitelist. Es schließt Home- und Root-Daten, Protokolle, Caches, Identitäten, Netzwerkkonfiguration, Zugangsdaten, beliebige Systemkonfiguration und `/usr/local` aus. Dies verringert das Datenschutzrisiko, garantiert aber nicht, dass eine zugelassene Softwaredatei kein Geheimnis enthält.
-- `selected` enthält nur geprüfte relative Pfade aus einer Inventar- und Auswahldatei. Explizite Ausschlüsse haben Vorrang. Dieses Profil ist geeignet, wenn das Modul einen kontrollierten Teil der Sitzungsänderungen enthalten soll.
+- `exact` bewahrt alle darstellbaren Änderungen, einschließlich Benutzerdaten, Protokolle, Caches, Identitätsdateien, Zugangsdaten und unterstützte Löschmetadaten. Nicht unterstützte Dateisystemobjekte werden abgelehnt, statt sie stillschweigend zu verlieren.
+- `clean` verwendet eine enge, softwareorientierte Pfad-Positivliste. Es schließt Home- und Root-Daten, Protokolle, Caches, Identitäten, Netzwerkkonfiguration, Zugangsdaten, beliebige Systemkonfigurationen und `/usr/local` aus. Das reduziert das Datenschutzrisiko, kann aber nicht garantieren, dass eine zugelassene Softwaredatei keine Geheimnisse enthält.
+- `selected` enthält nur geprüfte relative Pfade aus einer Inventar- und Auswahldatei. Explizite Ausschlüsse haben Vorrang. Dieses Profil ist geeignet, wenn das Modul nur einen kontrollierten Teil der Sitzungsänderungen enthalten soll.
 
 Beispiele:
 
@@ -208,20 +208,20 @@ Eine Auswahldatei hat diese strikte JSON-Struktur:
 }
 ```
 
-Pfade sind normalisiert, nicht leer und relativ zum Änderungen-Root. Generieren und prüfen Sie das Inventar zuerst; jeder Einschluss muss zu den Inventardaten passen. Das Inventar speichert Metadaten wie Pfad, Typ, Kategorie, Sensitivität und Größe, liest aber keine Datei-Inhalte, Symlink-Ziele oder Geheimwerte. Ausgaben und Inventare expliziter Profile sind Modus `0600`; Legacy-Policy-Module sind Modus `0644`.
+Pfade sind normalisiert, nicht leer und relativ zum Änderungs-Root. Erstellen und prüfen Sie zuerst das Inventar; jede Aufnahme muss mit den Inventardaten übereinstimmen. Das Inventar enthält Metadaten wie Pfad, Typ, Kategorie, Sensitivität und Größe, liest oder speichert aber keine Dateiinhalte, Symlink-Ziele oder Geheimwerte. Ausgaben und Inventare im expliziten Profil sind Modus `0600`; Module mit Legacy-Policy sind Modus `0644`.
 
-Die Sitzungsaufnahme kann unterstützte Dateilöschungen und Verzeichnis-Opazität für den aktiven AUFS- oder OverlayFS-Backend erhalten. Laufzeit-Mounts, eingebettete Dateisysteme, Union-Bookkeeping und die Ausgabe selbst werden ausgeschlossen. Ein bestehendes Ziel wird nie überschrieben.
+Die Sitzungsaufnahme kann unterstützte Dateilöschungen und Verzeichnis-Opazität für das aktive AUFS- oder OverlayFS-Backend beibehalten. Laufzeit-Mounts, verschachtelte Dateisysteme, Union-Verwaltung und die Ausgabe selbst werden ausgeschlossen. Ein vorhandenes Ziel wird nie ersetzt.
 
 ### Module inspizieren und extrahieren
 
-Ein Modul inspizieren, ohne es zu mounten oder zu extrahieren:
+Ein Modul inspizieren, ohne es einzuhängen oder zu extrahieren:
 
 ```bash
 sb inspect 06-example.sb
 sb inspect 06-example.sb --json
 ```
 
-Die Inspektion ist ohne Root möglich und funktioniert auch außerhalb einer laufenden MiniOS-Sitzung.
+Die Inspektion ist ohne Root-Rechte möglich und funktioniert auch außerhalb einer laufenden MiniOS-Sitzung.
 
 Ein Modul in ein neues Verzeichnis extrahieren:
 
@@ -229,61 +229,61 @@ Ein Modul in ein neues Verzeichnis extrahieren:
 sb2dir 06-example.sb example-root
 ```
 
-Normales Extrahieren ist ohne Root möglich und verändert die Quelle nicht. Das Zielverzeichnis darf nicht existieren. Spezialdateien werden abgelehnt, es sei denn, `--allow-special` wird mit ausreichenden Rechten angefordert.
+Die Standardextraktion benötigt keine Root-Rechte und verändert die Quelle nicht. Das Zielverzeichnis darf nicht existieren. Spezielle Dateien werden abgelehnt, außer wenn `--allow-special` mit ausreichenden Rechten angefordert wird.
 
-Verzeichnisse, die durch aktuelle `sb2dir` erzeugt werden, sind normale Verzeichnisse. `rmsbdir`, `sb rm` und `sb rmdir` sind veraltete Kompatibilitätsbefehle, die das Entfernen immer verweigern; sie unmounten oder löschen nichts rekursiv. Prüfen Sie einen extrahierten Pfad und dessen Inhalt vor dem Entfernen mit Standard-Dateisystemwerkzeugen.
+Von aktuellen `sb2dir` erzeugte Verzeichnisse sind normale Verzeichnisse. `rmsbdir`, `sb rm` und `sb rmdir` sind veraltete Kompatibilitätsbefehle, die das Entfernen grundsätzlich verweigern; sie hängen nichts aus und löschen nichts rekursiv. Prüfen Sie einen extrahierten Pfad und dessen Inhalt, bevor Sie ihn mit Standard-Dateisystemwerkzeugen entfernen.
 
-### Laufende und nächste Start-Module verwalten
+### Laufende und Next-Boot-Module verwalten
 
-"Aktuell laufend" und "Nächster Start" sind unabhängige Zusammenstellungen. Siehe [Union-Konstruktion und Laufzeit-Aktivierung](/reference/boot-process/Module-Loading) für die Grenze zwischen Start und Laufzeit und warum die beiden Listen unterschiedlich sein können.
+„Jetzt laufend“ und „Next Boot“ sind unabhängige Zusammenstellungen. Siehe [Union-Erstellung und Laufzeitaktivierung](/reference/boot-process/Module-Loading#union-construction) für die Grenze zwischen Boot und Laufzeit und warum sich die beiden Listen unterscheiden können.
 
-Listen Sie die Module auf, die tatsächlich das aktuelle AUFS- oder OverlayFS-Root bilden, von niedrigster zu höchster Priorität:
+Listen Sie die Module auf, die das aktuelle AUFS- oder OverlayFS-Root tatsächlich zusammensetzen, von der niedrigsten bis zur höchsten Priorität:
 
 ```bash
 sb list
 sb list --json
 ```
 
-Listen Sie die Module auf, die durch die aktuellen Startregeln ausgewählt wurden:
+Listen Sie die Module auf, die durch die aktuellen Boot-Regeln ausgewählt wurden:
 
 ```bash
 sb next-boot
 sb next-boot --json
 ```
 
-Diese Abfragen funktionieren ohne Root-Rechte. Die maßgeblichen [Kandidaten-Tier- und Ersetzungsregeln](/reference/boot-process/Module-Loading) bestimmen, welche Quelle für jeden "Nächster Start"-Basename verwendet wird.
+Diese Abfragen funktionieren ohne Root-Rechte. Die kanonischen [Kandidatentier- und Ersetzungsregeln](/reference/boot-process/Module-Loading#candidate-tiers) bestimmen, welche Quelle für jeden Next-Boot-Basisnamen verwendet wird.
 
-Um ein Benutzer-Modul beim nächsten Start verfügbar zu machen:
+So machen Sie ein Benutzermodul beim nächsten Boot verfügbar:
 
 ```bash
 sudo sb next-boot add 50-extra.sb
 ```
 
-MiniOS verwendet geeigneten dauerhaften, beschreibbaren Speicher, bereitet die Kopie vor, validiert sie und veröffentlicht sie atomar, ohne ein bestehendes Modul zu ersetzen. Der Dateiname muss den aktuellen Startfiltern entsprechen. Entfernen Sie ein ausgewähltes Benutzer-Modul anhand seines exakten Basenames:
+MiniOS verwendet geeigneten dauerhaften beschreibbaren Speicher, bereitet die Kopie vor, prüft sie und veröffentlicht sie atomar, ohne ein bestehendes Modul zu ersetzen. Der Dateiname muss die aktuellen Boot-Filter erfüllen. Entfernen Sie ein ausgewähltes Benutzermodul anhand seines exakten Basisnamens:
 
 ```bash
 sudo sb next-boot remove 50-extra.sb
 ```
 
-Das Entfernen wird für Basismodule und Module auf schreibgeschützten oder flüchtigen Quellen verweigert.
+Das Entfernen von Basismodulen sowie Modulen auf schreibgeschützten oder flüchtigen Quellen ist nicht möglich.
 
-Die Laufzeit-Aktivierung ist eine separate, nur für die Sitzung gültige Aktion:
+Die Aktivierung zur Laufzeit ist ein separater, nur für die Sitzung gültiger Vorgang:
 
 ```bash
 sudo sb activate 50-extra.sb
 sudo sb deactivate 50-extra.sb
 ```
 
-Aktivierung und Deaktivierung funktionieren nur, wenn `/` aktuell eine AUFS-Union ist. Sie sind auf OverlayFS nicht verfügbar, und Kernel-AUFS-Unterstützung allein reicht nicht aus. Keine der beiden Befehle ändert "Nächster Start".
+Aktivierung und Deaktivierung funktionieren nur, wenn `/` aktuell eine AUFS-Union ist. Sie stehen auf OverlayFS nicht zur Verfügung, und Kernel-AUFS-Unterstützung allein reicht nicht aus. Keine der beiden Befehle ändert Next Boot.
 
-Der Kompatibilitäts-Konverter-Dispatcher benötigt beide Operanden:
+Der Dispatcher für Kompatibilitätskonvertierungen benötigt beide Operanden:
 
 ```bash
 sudo sb conv my-app-root 06-my-app.sb
 sudo sb conv 06-my-app.sb example-root
 ```
 
-Direkte Verwendung von `dir2sb` und `sb2dir` ist vorzuziehen, da die normale Konvertierung auch ohne Root-Rechte ausgeführt werden kann.
+Direkte `dir2sb` und `sb2dir`-Verwendung ist vorzuziehen, da die normale Konvertierung ohne Root-Rechte ausgeführt werden kann.
 
 ### Verwandte Dokumentation
 

@@ -53,7 +53,7 @@ Available methods are:
 
 Choose a new output path for every workflow. Existing files are never overwritten. Progress and backend diagnostics remain visible while an operation runs, and current-session capture can be cancelled.
 
-Current Session Changes is intended for convenient standard capture, not for reviewing every included path. A live writable layer can contain personal or confidential data. For explicit `exact`, `clean`, or path-selected privacy policies, use the command-line `savechanges` workflow described in [Creating modules](/preparing-and-customizing/Managing-Modules).
+Current Session Changes is intended for convenient standard capture, not for reviewing every included path. A live writable layer can contain personal or confidential data. For explicit `exact`, `clean`, or path-selected privacy policies, use the command-line `savechanges` workflow described in [Capture current-session changes](/preparing-and-customizing/Managing-Modules#capture-current-session-changes).
 
 ## Drag and drop
 
@@ -68,10 +68,10 @@ Dropping an item does not execute code or change Running Now or Next Boot.
 
 ## Related documentation
 
-- [Creating modules](/preparing-and-customizing/Managing-Modules)
+- [Creating modules](/preparing-and-customizing/Managing-Modules#creating-modules)
 - [Initrd module loading](/reference/boot-process/Module-Loading)
 - [Boot modes](/using-minios/Boot-Modes)
-- [Composing ISO images from the command line](/preparing-and-customizing/Creating-Custom-MiniOS-Images)
+- [Composing ISO images from the command line](/preparing-and-customizing/Creating-Custom-MiniOS-Images#composing-minios-iso-images-from-the-command-line)
 - [Boot parameters](/reference/Boot-Parameters)
 
 ## Creating modules
@@ -236,7 +236,7 @@ Directories produced by current `sb2dir` are ordinary directories. `rmsbdir`, `s
 
 ### Manage running and next-boot modules
 
-Running Now and Next Boot are independent compositions. See [union construction and runtime activation](/reference/boot-process/Module-Loading) for the boot/runtime boundary and why the two lists can differ.
+Running Now and Next Boot are independent compositions. See [union construction and runtime activation](/reference/boot-process/Module-Loading#union-construction) for the boot/runtime boundary and why the two lists can differ.
 
 List the modules actually composing the current AUFS or OverlayFS root, from lowest to highest priority:
 
@@ -252,7 +252,7 @@ sb next-boot
 sb next-boot --json
 ```
 
-These queries are rootless. The canonical [candidate-tier and replacement rules](/reference/boot-process/Module-Loading) determine which source supplies each Next Boot basename.
+These queries are rootless. The canonical [candidate-tier and replacement rules](/reference/boot-process/Module-Loading#candidate-tiers) determine which source supplies each Next Boot basename.
 
 To make a user module available at the next boot:
 

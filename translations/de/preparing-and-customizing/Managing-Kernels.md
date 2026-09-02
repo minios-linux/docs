@@ -14,11 +14,11 @@ MiniOS wird mit einem Standard-Kernel ausgeliefert, aber es gibt verschiedene Gr
 
 Debian stellt mehrere Kernel-Varianten bereit, die für unterschiedliche Einsatzzwecke optimiert sind:
 
-- **`linux-image-6.12.38+deb13-amd64`** – Standard-Kernel für 64-Bit-Systeme (Standard in MiniOS)
-- **`linux-image-6.12.38+deb13-rt-amd64`** – Echtzeit-Kernel für zeitkritische Anwendungen
-- **`linux-image-6.12.38+deb13-cloud-amd64`** – Optimiert für Cloud- und Virtualisierungsumgebungen
+- **`linux-image-6.12.38+deb13-amd64`** - Standard-Kernel für 64-Bit-Systeme (Standard in MiniOS)
+- **`linux-image-6.12.38+deb13-rt-amd64`** - Echtzeit-Kernel für zeitkritische Anwendungen
+- **`linux-image-6.12.38+deb13-cloud-amd64`** - Optimiert für Cloud- und virtualisierte Umgebungen
 
-> **Hinweis:** Versionsnummern (wie `6.12.38+deb13`) ändern sich mit Updates. Um die aktuell verfügbaren Kernel zu finden:
+> **Hinweis:** Versionsnummern (wie `6.12.38+deb13`) ändern sich mit Updates. Um die aktuell verfügbaren Kernel anzuzeigen:
 > ```bash
 > apt search linux-image-.*-amd64
 > apt search linux-image-.*-rt-amd64
@@ -87,7 +87,7 @@ Der grafische Kernel-Manager bietet eine intuitive Oberfläche für alle Kernel-
 minios-kernel-manager
 ```
 
-Oder suchen Sie im Anwendungsmenü nach "MiniOS Kernel Manager".
+Oder suchen Sie im Anwendungsmenü nach "MiniOS-Kernelmanager".
 
 #### 2. **Neuen Kernel verpacken**
 
@@ -132,7 +132,7 @@ Das Kommandozeilen-Tool bietet skriptfähige Kernel-Verwaltung.
 
 ### **Administratorrechte erforderlich:**
 
-Das CLI-Tool benötigt Root-Rechte und prüft diese automatisch. Führen Sie Befehle mit `sudo` oder über `pkexec` aus:
+Das CLI-Tool benötigt Root-Rechte und prüft diese automatisch. Führen Sie Befehle mit `sudo` oder über `pkexec`:
 
 ```bash
 sudo minios-kernel list
@@ -148,11 +148,11 @@ pkexec minios-kernel activate 6.12.38+deb13-amd64
 sudo minios-kernel list
 ```
 
-Zeigt alle verpackten Kernel mit ihrem Status an.
+Zeigt alle paketierten Kernel mit ihrem Status an.
 
-#### 2. **Kernel verpacken**
+#### 2. **Kernel paketieren**
 
-**Aus Repository:**
+**Aus dem Repository:**
 ```bash
 sudo minios-kernel package --repo linux-image-6.12.38+deb13-amd64 -o /tmp/kernel-output
 ```
@@ -162,7 +162,7 @@ sudo minios-kernel package --repo linux-image-6.12.38+deb13-amd64 -o /tmp/kernel
 sudo minios-kernel package --deb /path/to/kernel.deb -o /tmp/kernel-output
 ```
 
-**Mit individueller Kompression:**
+**Mit benutzerdefinierter Komprimierung:**
 ```bash
 sudo minios-kernel package --repo linux-image-6.12.38+deb13-rt-amd64 --sqfs-comp lz4 -o /tmp/kernel-output
 ```
@@ -185,7 +185,7 @@ sudo minios-kernel delete 6.12.38+deb13-amd64
 sudo minios-kernel status
 ```
 
-Zeigt den Status des MiniOS-Verzeichnisses und aktuelle Kernel-Informationen an.
+Zeigt den Status des MiniOS-Verzeichnisses und Informationen zum aktuellen Kernel an.
 
 #### 6. **Kernel-Informationen anzeigen**
 
@@ -292,7 +292,7 @@ cat /proc/version           # Kernel version details
 lsmod                       # Loaded kernel modules
 ```
 
-**Kernel-Dateien prüfen:**
+**Kernel-Dateien überprüfen:**
 ```bash
 ls -la /minios/kernels/     # List packaged kernels
 ls -la /minios/boot/        # List boot files
@@ -328,7 +328,7 @@ Der MiniOS Kernel Manager verwaltet diese Dateien automatisch:
 │       └── grub.cfg               # GRUB bootloader config
 ```
 
-**Hinweis:** Das Standardmodul `01-kernel-<version>.sb`, das mit MiniOS ausgeliefert wird, enthält zusätzliche Treiber, die über die im ursprünglichen Repository-Kernelpaket enthaltenen hinausgehen. Diese zusätzlichen Treiber sorgen für eine verbesserte Hardware-Kompatibilität bei WLAN-Adaptern und Speichergeräten.
+**Hinweis:** Das Standard-`01-kernel-<version>.sb`-Modul, das mit MiniOS ausgeliefert wird, enthält zusätzliche Treiber, die über die im ursprünglichen Repository-Kernelpaket enthaltenen hinausgehen. Diese zusätzlichen Treiber bieten eine erweiterte Hardware-Kompatibilität für WLAN-Adapter und Speichergeräte.
 
 ### **Statusanzeigen:**
 

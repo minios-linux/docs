@@ -130,7 +130,7 @@ sudo apt-get -f install
 
 Prüfen Sie die vorgeschlagenen APT-Änderungen, bevor Sie eine weitere Reparaturoperation bestätigen.
 
-## Verwandte Dokumentation
+## Zugehörige Dokumentation
 
-- [Module erstellen](/preparing-and-customizing/Managing-Modules)
+- [Module erstellen](/preparing-and-customizing/Managing-Modules#creating-modules)
 - [ISO neu erstellen](/preparing-and-customizing/Creating-Custom-MiniOS-Images)

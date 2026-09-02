@@ -28,18 +28,18 @@ Antes de cambiar filtros, registra la línea de comandos y el conjunto de módul
 
 ## Niveles de candidatos
 
-Después de ubicar el directorio de datos MiniOS, normalmente `minios/`, el initrd escanea los candidatos a módulo en este orden:
+Después de localizar el directorio de datos MiniOS, normalmente `minios/`, el initrd examina los módulos candidatos en este orden:
 
-1. Entradas inmediatamente dentro de `minios/`. Este escaneo no es recursivo.
-2. Entradas recursivamente bajo `minios/modules/`.
-3. Entradas recursivamente bajo `minios/modules/` en la fuente de persistencia escribible registrada por el initrd.
+1. Entradas ubicadas directamente dentro de `minios/`. Esta búsqueda no es recursiva.
+2. Entradas ubicadas recursivamente debajo de `minios/modules/`.
+3. Entradas ubicadas recursivamente debajo de `minios/modules/` en la fuente de persistencia con permisos de escritura registrada por el initrd.
 
-El tercer nivel es independiente del directorio `minios/modules/` en el árbol de datos seleccionado de solo lectura. Permite que módulos de usuario duraderos sobrescriban archivos de una ISO u otra fuente de solo lectura. Solo está disponible cuando el descubrimiento de persistencia ha publicado una raíz escribible que contiene ese directorio.
+El tercer nivel es independiente del directorio `minios/modules/` en el árbol de datos seleccionado de solo lectura. Permite que los módulos de usuario persistentes sobrescriban archivos de una ISO u otra fuente de solo lectura. Solo está disponible cuando el sistema de persistencia ha publicado una raíz con permisos de escritura que contiene ese directorio.
 
-Las rutas candidatas se aplanan a su basename exacto al montarse. Por ejemplo, `modules/work/50-extra.sb` y `modules/test/50-extra.sb` usan ambos el punto de montaje llamado `50-extra.sb`. No se convierten en dos capas independientes. Un candidato en un nivel posterior con el mismo basename se monta en el mismo punto de montaje y reemplaza al candidato anterior visible para el ensamblado de la unión.
-Por lo tanto, el mismo basename debe tratarse como una única ranura de reemplazo, no como una forma de cargar varios módulos desde diferentes directorios.
+Las rutas candidatas se simplifican a su nombre base exacto al montarse. Por ejemplo, `modules/work/50-extra.sb` y `modules/test/50-extra.sb` usan ambos el punto de montaje llamado `50-extra.sb`. No se convierten en dos capas independientes. Un candidato en un nivel posterior con el mismo nombre base se monta en el mismo punto de montaje y reemplaza al candidato anterior visible para el ensamblado de la unión.
+Por lo tanto, el mismo nombre base debe considerarse como un único espacio de reemplazo, no como una forma de cargar varios módulos desde diferentes directorios.
 
-El formato normal de módulo es una imagen de sistema de archivos SquashFS regular. El escaneo del initrd se basa en el nombre de archivo: selecciona rutas que terminan con la extensión configurada y no verifica primero que cada ruta sea un archivo regular o un SquashFS válido. Los escaneos recursivos pueden encontrar otro tipo de objeto de sistema de archivos con un nombre coincidente. Un fallo de montaje loop o SquashFS es reportado por `mount`, pero el fallo de ese candidato no es fatal por sí mismo y el arranque puede continuar con una capa faltante. Valida archivos dudosos con el flujo de inspección en [Creación de módulos](/preparing-and-customizing/Managing-Modules).
+El formato normal de módulo es una imagen de sistema de archivos SquashFS regular. El escaneo de initrd se basa en el nombre de archivo: selecciona rutas que terminan con la extensión configurada y no verifica primero que cada ruta sea un archivo regular o un SquashFS válido. Por lo tanto, los escaneos recursivos pueden encontrar otro tipo de objeto de sistema de archivos con un nombre coincidente. Un bucle fallido o un montaje de SquashFS se informa mediante `mount`, pero el bucle candidato no hace que ese fallo sea fatal por sí solo y el arranque puede continuar con una capa faltante. Valide archivos dudosos con el flujo de trabajo en [Inspeccionar y extraer módulos](/preparing-and-customizing/Managing-Modules#inspect-and-extract-modules).
 
 ## Orden y precedencia
 
@@ -152,9 +152,9 @@ Para un fallo temprano, añade `debug` para mostrar el trazado de shell, `timing
 ## Documentación relacionada
 
 - [Modos de arranque](/using-minios/Boot-Modes)
-- [Descubrimiento del sistema](/reference/boot-process/System-Discovery)
+- [Detección del sistema](/reference/boot-process/System-Discovery)
 - [Persistencia](/reference/boot-process/Persistence-Internals)
 - [Gestor de módulos de MiniOS](/preparing-and-customizing/Managing-Modules)
-- [Creación de módulos](/preparing-and-customizing/Managing-Modules)
-- [Gestión de kernels](/preparing-and-customizing/Managing-Kernels)
+- [Creación de módulos](/preparing-and-customizing/Managing-Modules#creating-modules)
+- [Gestión del kernel](/preparing-and-customizing/Managing-Kernels)
 - [Solución de problemas](/maintenance-and-recovery/Troubleshooting)

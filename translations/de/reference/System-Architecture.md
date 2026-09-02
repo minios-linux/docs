@@ -99,17 +99,17 @@ Ein aktuelles Image ist wie folgt organisiert. Optionale Verzeichnisse erscheine
     `-- log/                       optional exported boot logs
 ```
 
-Die gebooteten Pfade unter `/run/initramfs/memory/` sind Implementierungs-Mounts, keine zweite persistente Kopie dieses Baums.
+Die gebooteten Pfade unter `/run/initramfs/memory/` sind Implementierungs-Mounts und keine zweite persistente Kopie dieses Baums.
 
-## Verwandte Dokumentation
+## Zugehörige Dokumentation
 
-- [Boot modes](/using-minios/Boot-Modes)
-- [Initrd system discovery](/reference/boot-process/System-Discovery)
-- [Initrd module loading](/reference/boot-process/Module-Loading)
-- [Initrd persistence](/reference/boot-process/Persistence-Internals)
-- [Boot parameters](/reference/Boot-Parameters)
-- [Boot menus](/preparing-and-customizing/Customizing-the-Boot-Menu)
-- [Configuration file](/reference/configuration/config.conf)
-- [Session management](/using-minios/Sessions-and-Persistence)
-- [Network boot](/reference/boot-process/Network-Boot)
-- [Creating modules](/preparing-and-customizing/Managing-Modules)
+- [Boot-Modi](/using-minios/Boot-Modes)
+- [Initrd-Systemerkennung](/reference/boot-process/System-Discovery)
+- [Initrd-Modulladen](/reference/boot-process/Module-Loading)
+- [Initrd-Persistenz](/reference/boot-process/Persistence-Internals)
+- [Boot-Parameter](/reference/Boot-Parameters)
+- [Boot-Menüs](/preparing-and-customizing/Customizing-the-Boot-Menu)
+- [Konfigurationsdatei](/reference/configuration/config.conf)
+- [Sitzungsverwaltung](/using-minios/Sessions-and-Persistence)
+- [Netzwerk-Boot](/reference/boot-process/Network-Boot)
+- [Module erstellen](/preparing-and-customizing/Managing-Modules#creating-modules)

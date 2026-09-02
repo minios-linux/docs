@@ -76,9 +76,9 @@ MiniOS использует union-файловую систему для объ�
 
 Далее initramfs завершения отсоединяет неиспользуемые loop-устройства, размонтирует старый корень и записываемый слой, отмечает успешную сессию как чистую, размонтирует носитель и закрывает LUKS-мэппинг, принадлежащий MiniOS. После этого оптический носитель можно извлечь перед выключением или перезагрузкой. Ручное и периодическое сохранение SquashFS используют тот же механизм снимков, но только выбранная политика завершения работы блокирует чистое завершение при отсутствии сохранения на этапе выключения.
 
-## Дерево медиафайлов
+## Дерево медиа
 
-Текущая структура изображений организована следующим образом. Необязательные каталоги появляются только тогда, когда соответствующая функция создала содержимое.
+Текущая структура образа организована следующим образом. Необязательные каталоги появляются только тогда, когда соответствующая функция создала содержимое.
 
 ```text
 /
@@ -99,17 +99,17 @@ MiniOS использует union-файловую систему для объ�
     `-- log/                       optional exported boot logs
 ```
 
-Смонтированные пути под `/run/initramfs/memory/` являются точками монтирования реализации, а не второй постоянной копией этого дерева.
+Загруженные пути под `/run/initramfs/memory/` являются точками монтирования реализации, а не второй постоянной копией этого дерева.
 
 ## Связанная документация
 
 - [Режимы загрузки](/using-minios/Boot-Modes)
 - [Обнаружение системы в initrd](/reference/boot-process/System-Discovery)
-- [Загрузка модулей initrd](/reference/boot-process/Module-Loading)
-- [Сохранение в initrd](/reference/boot-process/Persistence-Internals)
+- [Загрузка модулей в initrd](/reference/boot-process/Module-Loading)
+- [Сохранение состояния initrd](/reference/boot-process/Persistence-Internals)
 - [Параметры загрузки](/reference/Boot-Parameters)
 - [Меню загрузки](/preparing-and-customizing/Customizing-the-Boot-Menu)
 - [Файл конфигурации](/reference/configuration/config.conf)
 - [Управление сессиями](/using-minios/Sessions-and-Persistence)
-- [Сетевая загрузка](/reference/boot-process/Network-Boot)
-- [Создание модулей](/preparing-and-customizing/Managing-Modules)
+- [Загрузка по сети](/reference/boot-process/Network-Boot)
+- [Создание модулей](/preparing-and-customizing/Managing-Modules#creating-modules)

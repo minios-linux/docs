@@ -30,30 +30,30 @@ MiniOS предоставляет графические и консольные
 
 Большинство графических инструментов имеют консольные аналоги или backend. Эти команды устанавливаются либо вместе с графическим приложением, либо в необходимом сопутствующем пакете. Общий основной манифест включает `minios-tools` и `minios-image-compose`. Остальные команды зависят от наличия соответствующих графических пакетов. Их присутствие в конкретной установленной системе или образе нужно проверять отдельно.
 
-### Развертывание и сессии
+### Развёртывание и сессии
 
 | Задача | Инструмент | Область применения | Документация |
 |---|---|---|---|
-| Показать целевые диски, просмотреть план развертывания или установить MiniOS в автоматическом режиме | **`minios-deploy`** | Запускается из live-сессии MiniOS. Для установки требуются root-права и явное подтверждение; при поддержке режима установки на диск создаётся обычный рабочий стол Debian из выбранного образа. | [Установщик MiniOS](/installing-minios/MiniOS-Installer#command-line-deployment); `man minios-deploy` |
-| Создать, активировать, сохранить, изменить размер, экспортировать, импортировать или удалить постоянные сессии | **`minios-session`** | Требуются root-права и live-система MiniOS с совместимым хранилищем для постоянства. | [Управление сессиями](/using-minios/Sessions-and-Persistence#command-reference); `man minios-session` |
+| Просмотреть целевые диски, предварительно ознакомиться с планом развёртывания или установить MiniOS в автоматическом режиме | **`minios-deploy`** | Запускается из live-сессии MiniOS. Для установки требуются права root и явное подтверждение; в нативном режиме (если поддерживается) создаётся стандартная рабочая среда Debian из выбранного образа. | [Развёртывание через командную строку](/installing-minios/MiniOS-Installer#command-line-deployment); `man minios-deploy` |
+| Создать, активировать, сохранить, изменить размер, экспортировать, импортировать или удалить постоянные сессии | **`minios-session`** | Требуются права root и live-система MiniOS с совместимым хранилищем персистентности. | [Справочник команд для работы с сессиями](/using-minios/Sessions-and-Persistence#command-reference); `man minios-session` |
 
 ### Ядра и образы
 
 | Задача | Инструмент | Область применения | Документация |
 |---|---|---|---|
-| Просмотреть список, упаковать, активировать, просмотреть или удалить ядра | **`minios-kernel`** | Требуются root-права и модульная live-установка MiniOS с доступной для записи корневой файловой системой MiniOS. | [Управление ядрами](/preparing-and-customizing/Managing-Kernels#method-2-using-minios-kernel-cli); `man minios-kernel` |
-| Пересобрать существующее дерево содержимого MiniOS с помощью скриптов или автоматизации | **`minios-image-compose`** | Работает с содержимым live-образа MiniOS и публикует загрузочный ISO-образ. | [Сборка ISO-образов из командной строки](/preparing-and-customizing/Creating-Custom-MiniOS-Images); `man minios-image-compose` |
+| Просмотреть, упаковать, активировать, проверить или удалить ядра | **`minios-kernel`** | Требуются права root и модульная live-установка MiniOS с доступной для записи корневой файловой системой MiniOS. | [`minios-kernel` CLI](/preparing-and-customizing/Managing-Kernels#method-2-using-minios-kernel-cli); `man minios-kernel` |
+| Собрать заново существующее дерево содержимого MiniOS с помощью скриптов или автоматизации | **`minios-image-compose`** | Работает с содержимым live-образа MiniOS и публикует загрузочный ISO-образ. | [Создание ISO-образов из командной строки](/preparing-and-customizing/Creating-Custom-MiniOS-Images#composing-minios-iso-images-from-the-command-line); `man minios-image-compose` |
 
-### Работа с модулями
+### Рабочие процессы с модулями
 
 | Задача | Инструмент | Область применения | Документация |
 |---|---|---|---|
-| Просмотреть модули и управлять наборами модулей для текущей или следующей загрузки | **`sb`** | Просмотр модулей возможен и вне запущенной сессии MiniOS. Для операций с текущими и следующими наборами модулей требуется модульная live-структура MiniOS; для изменений нужны root-права. | [Создание модулей](/preparing-and-customizing/Managing-Modules); `man sb` |
-| Собрать модуль из пакетов репозитория или локальных `.deb` файлов | **`apt2sb`** | Требуются root-права и поддерживаемая live-сессия MiniOS. Пакеты устанавливаются в изолированную среду сборки, а не в текущую систему. | [Создание модулей](/preparing-and-customizing/Managing-Modules#create-a-module-from-packages); `man apt2sb` |
-| Собрать модуль с помощью установочного скрипта | **`script2sb`** | Требуются root-права и поддерживаемая live-сессия MiniOS. Скрипт выполняется автоматически в изолированной среде сборки. | [Создание модулей](/preparing-and-customizing/Managing-Modules#create-a-module-from-a-script); `man script2sb` |
-| Собрать модуль вручную в подготовленной среде | **`chroot2sb`** | Требуются root-права и поддерживаемая live-сессия MiniOS. Используйте этот способ, если установка требует ввода с клавиатуры или ручных изменений. | [Создание модулей](/preparing-and-customizing/Managing-Modules#create-a-module-interactively); `man chroot2sb` |
-| Преобразовать дерево каталогов в `.sb` модуль | **`dir2sb`**, **`sb2dir`** | Обычное преобразование не требует root-прав и может выполняться вне live-сессии при наличии необходимых инструментов и файлов. | [Создать](/preparing-and-customizing/Managing-Modules#create-a-module-from-a-directory) или [извлечь](/preparing-and-customizing/Managing-Modules#inspect-and-extract-modules) модуль; `man dir2sb`, `man sb2dir` |
-| Сохранить подходящие изменения из записываемого слоя сессии в модуль | **`savechanges`** | Требуются root-права и запущенная live-сессия MiniOS с поддерживаемым backend для записываемого слоя. | [Создание модулей](/preparing-and-customizing/Managing-Modules#capture-current-session-changes); `man savechanges` |
+| Просматривать модули и управлять наборами модулей для текущей или следующей загрузки | **`sb`** | Проверка модулей доступна и вне работающей сессии MiniOS. Для управления текущими и следующими наборами модулей требуется live-макет модулей MiniOS; для внесения изменений необходимы права root. | [Просмотреть и извлечь модули](/preparing-and-customizing/Managing-Modules#inspect-and-extract-modules); [управлять модулями для текущей и следующей загрузки](/preparing-and-customizing/Managing-Modules#manage-running-and-next-boot-modules); `man sb` |
+| Собрать модуль из пакетов репозитория или локальных `.deb` файлов | **`apt2sb`** | Требуются права root и поддерживаемая live-сессия MiniOS. Пакеты устанавливаются в изолированную среду сборки, а не в текущую систему. | [Создать модуль из пакетов](/preparing-and-customizing/Managing-Modules#create-a-module-from-packages); `man apt2sb` |
+| Собрать модуль с помощью установочного скрипта | **`script2sb`** | Требуются права root и поддерживаемая live-сессия MiniOS. Скрипт выполняется автоматически в изолированной среде сборки. | [Создать модуль из скрипта](/preparing-and-customizing/Managing-Modules#create-a-module-from-a-script); `man script2sb` |
+| Собрать модуль в интерактивном режиме в подготовленной среде | **`chroot2sb`** | Требуются права root и поддерживаемая live-сессия MiniOS. Используйте этот способ, если установка требует ввода или ручных изменений. | [Создать модуль в интерактивном режиме](/preparing-and-customizing/Managing-Modules#create-a-module-interactively); `man chroot2sb` |
+| Преобразовать дерево каталогов в `.sb` модуль | **`dir2sb`**, **`sb2dir`** | Обычное преобразование не требует root-прав и может выполняться вне live-сессии, если доступны необходимые инструменты и входные файлы. | [Создать](/preparing-and-customizing/Managing-Modules#create-a-module-from-a-directory) или [извлечь](/preparing-and-customizing/Managing-Modules#inspect-and-extract-modules) модуль; `man dir2sb`, `man sb2dir` |
+| Сохранить подходящие изменения из записываемого слоя сессии в модуль | **`savechanges`** | Требуются права root и запущенная live-сессия MiniOS с поддерживаемым backend для записываемого слоя. | [Сохранить изменения текущей сессии](/preparing-and-customizing/Managing-Modules#capture-current-session-changes); `man savechanges` |
 
 ### Работа с хранилищем
 

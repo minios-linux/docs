@@ -13,13 +13,13 @@ O construtor roda dentro do MiniOS. Ele não modifica a mídia de origem selecio
 
 ## Escolha o fluxo de trabalho correto
 
-O Construtor de imagens MiniOS remasteriza uma imagem binária existente do MiniOS. Ele não substitui nenhum destes fluxos de trabalho:
+O Construtor de imagens MiniOS remasteriza uma imagem binária existente MiniOS. Ele não substitui nenhum destes fluxos de trabalho:
 
-- **Construir MiniOS a partir do código-fonte:** use o sistema de build `minios-live` ao alterar as listas de pacotes da distribuição, configuração de build, camada do kernel, artefatos de boot ou cadeia de módulos reproduzíveis construídos a partir do código-fonte. Veja [Construindo MiniOS](/development/Building-MiniOS).
-- **Criar um módulo reutilizável:** use `apt2sb`, `script2sb`, `chroot2sb` ou outras ferramentas de módulo quando o resultado desejado for uma camada `.sb` independente. Veja [Criando módulos](/preparing-and-customizing/Managing-Modules).
-- **Remasterizar uma imagem:** use o Construtor de imagens MiniOS ao selecionar módulos existentes, adicionar módulos externos prontos, alterar configurações suportadas da imagem, opcionalmente capturar alterações de sessão e publicar outro ISO.
+- **Compilar MiniOS a partir do código-fonte:** use o `minios-live` sistema de build ao alterar as listas de pacotes da distribuição, configuração de build, camada do kernel, artefatos de boot ou cadeia de módulos reproduzíveis construídos a partir do código-fonte. Consulte [Compilando MiniOS](/development/Building-MiniOS).
+- **Criar um módulo reutilizável:** use `apt2sb`, `script2sb`, `chroot2sb`, ou outras ferramentas de módulo quando o objetivo for um `.sb` layer independente. Consulte [Criando módulos](/preparing-and-customizing/Managing-Modules#creating-modules).
+- **Remasterizar uma imagem:** use o Construtor de imagens MiniOS ao selecionar módulos existentes, adicionar módulos externos prontos, alterar configurações suportadas da imagem, capturar alterações de sessão (opcionalmente) e publicar outro ISO.
 
-A camada de sistema de arquivos do projeto é para arquivos declarativos na raiz da imagem. Ela não executa scripts, instala pacotes ou abre um chroot. Softwares destinados à reutilização devem ser preparados como módulo antes de serem adicionados a um projeto do Construtor de imagens MiniOS.
+A camada de sistema de arquivos do projeto serve para arquivos declarativos na raiz da imagem. Não executa scripts, não instala pacotes nem abre chroot. Softwares destinados à reutilização devem ser preparados como módulos antes de serem adicionados a um projeto do Construtor de imagens MiniOS.
 
 ## Opções de origem
 
@@ -148,9 +148,9 @@ Uma build cancelada ou com falha não publica seu ISO privado. Qualquer destino 
 
 ## Documentação relacionada
 
-- [Building MiniOS](/development/Building-MiniOS)
-- [Creating modules](/preparing-and-customizing/Managing-Modules)
-- [Compondo imagens ISO pelo terminal](/preparing-and-customizing/Creating-Custom-MiniOS-Images)
+- [Compilando MiniOS](/development/Building-MiniOS)
+- [Criando módulos](/preparing-and-customizing/Managing-Modules#creating-modules)
+- [Compondo imagens ISO pela linha de comando](/preparing-and-customizing/Creating-Custom-MiniOS-Images#composing-minios-iso-images-from-the-command-line)
 
 ## Compondo imagens ISO do MiniOS pela linha de comando
 
@@ -183,7 +183,7 @@ minios-image-compose \
 
 A fonte é apenas leitura e nunca é modificada. Arquivos ISO e mídias ópticas devem ser montados antes de usar sua árvore de conteúdo MiniOS com a CLI. O Construtor de imagens MiniOS gráfico pode montar essas fontes via `udisksctl`.
 
-### Selecione módulos
+### Selecionar módulos
 
 Módulos adicionais `.sb` são argumentos posicionais:
 
@@ -192,19 +192,19 @@ minios-image-compose 06-development.sb 10-site-config.sb \
   --name ./minios-development.iso
 ```
 
-O comando valida cada módulo como um arquivo SquashFS legível e que não seja symlink.
-Módulos cujos nomes começam com dois dígitos e um hífen são posicionados no nível superior MiniOS. Outros módulos adicionados são colocados em `minios/modules/`. Colisões de nomes base duplicados ou que diferem apenas por maiúsculas/minúsculas são rejeitadas.
+O comando valida cada módulo como um arquivo SquashFS legível e que não seja um link simbólico.
+Módulos cujos nomes começam com dois dígitos e um hífen são colocados no nível superior MiniOS. Outros módulos adicionados são colocados em `minios/modules/`. Colisões de nomes base duplicados ou que diferem apenas por maiúsculas/minúsculas são rejeitadas.
 
-Exclua caminhos de origem usando uma expressão regular POSIX estendida:
+Exclua caminhos de origem usando uma expressão regular estendida POSIX:
 
 ```bash
 minios-image-compose --exclude 'firefox|libreoffice|gimp' \
   --name ./minios-lite.iso
 ```
 
-Arquivos de boot obrigatórios, kernel e initramfs, módulos principais, o menu de boot selecionado e a configuração escolhida não podem ser excluídos.
+Arquivos de boot obrigatórios, arquivos de kernel e initramfs, módulos principais, o menu de boot selecionado e a configuração selecionada não podem ser excluídos.
 
-Crie módulos reutilizáveis antes de compor o ISO. Veja [Criando módulos](/preparing-and-customizing/Managing-Modules) e [Gerenciador de módulos MiniOS](/preparing-and-customizing/Managing-Modules).
+Crie módulos reutilizáveis antes de compor o ISO. Consulte [Criando módulos](/preparing-and-customizing/Managing-Modules#creating-modules) e [Gerenciador de módulos MiniOS](/preparing-and-customizing/Managing-Modules).
 
 ### Configuração e manifesto
 

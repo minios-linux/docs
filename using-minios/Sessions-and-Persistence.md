@@ -83,7 +83,7 @@ These terms describe different state:
 - The **active** session is the default selected for the next boot.
 - Conceptually, the **running** session is the session whose writable layer actually supplies persistence to the current boot.
 
-The persistent `running=` field records that intended relationship. A crash, failed union construction, copied store, or interrupted shutdown can leave it stale even when the current boot is using RAM or another session. Operations such as SquashFS saving therefore require the initrd's protected, boot-ID-bound current-boot state and verified mounted upper; they do not trust `running=` alone. See [Active, running, and current-boot state](/reference/boot-process/Persistence-Internals).
+The persistent `running=` field records that intended relationship. A crash, failed union construction, copied store, or interrupted shutdown can leave it stale even when the current boot is using RAM or another session. Operations such as SquashFS saving therefore require the initrd's protected, boot-ID-bound current-boot state and verified mounted upper; they do not trust `running=` alone. See [Active, running, and current-boot state](/reference/boot-process/Persistence-Internals#active-running-and-current-boot-state).
 
 Activating a session changes the next boot and does not switch the current union filesystem:
 

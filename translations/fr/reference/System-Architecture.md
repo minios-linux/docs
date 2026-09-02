@@ -76,9 +76,9 @@ L’arrêt normal donne d’abord au système en cours la possibilité de vider 
 
 L’initramfs d’arrêt détache ensuite les périphériques loop inutilisés, démonte l’ancienne racine et la couche modifiable, enregistre une session réussie comme propre, démonte le support et ferme un mapping LUKS appartenant à MiniOS. Un média optique peut alors être éjecté avant l’extinction ou le redémarrage. Les sauvegardes manuelles et périodiques SquashFS utilisent le même backend d’instantané, mais seule la politique de sauvegarde à l’arrêt configurée bloque la finalisation propre en cas d’absence de sauvegarde à l’arrêt.
 
-## Arborescence du support
+## Arborescence des médias
 
-Une image actuelle est organisée comme suit. Les dossiers optionnels n’apparaissent que si la fonctionnalité associée a créé du contenu.
+L’organisation actuelle d’une image est la suivante. Les répertoires optionnels n’apparaissent que si la fonctionnalité associée a généré du contenu.
 
 ```text
 /
@@ -99,7 +99,7 @@ Une image actuelle est organisée comme suit. Les dossiers optionnels n’appara
     `-- log/                       optional exported boot logs
 ```
 
-Les chemins démarrés sous `/run/initramfs/memory/` sont des montages d’implémentation, et non une seconde copie persistante de cette arborescence.
+Les chemins démarrés sous `/run/initramfs/memory/` sont des points de montage d’implémentation, et non une seconde copie persistante de cette arborescence.
 
 ## Documentation associée
 
@@ -110,6 +110,6 @@ Les chemins démarrés sous `/run/initramfs/memory/` sont des montages d’impl�
 - [Paramètres de démarrage](/reference/Boot-Parameters)
 - [Menus de démarrage](/preparing-and-customizing/Customizing-the-Boot-Menu)
 - [Fichier de configuration](/reference/configuration/config.conf)
-- [Gestion des sessions](/using-minios/Sessions-and-Persistence)
+- [Gestion de session](/using-minios/Sessions-and-Persistence)
 - [Démarrage réseau](/reference/boot-process/Network-Boot)
-- [Création de modules](/preparing-and-customizing/Managing-Modules)
+- [Création de modules](/preparing-and-customizing/Managing-Modules#creating-modules)

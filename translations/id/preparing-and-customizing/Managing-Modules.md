@@ -41,19 +41,19 @@ Anda juga dapat membuka file lokal `.sb` dari file manager. Membuka file hanya u
 
 ## Membuat modul
 
-Ruang kerja Create menggunakan alur **Configure**, **Review**, **Run**, dan **Result**. Modul yang berhasil dibuat akan tetap menjadi file di lokasi output. Modul tersebut tidak langsung diaktifkan maupun otomatis ditambahkan ke Next Boot.
+Workspace Create menggunakan alur **Konfigurasi**, **Tinjau**, **Jalankan**, dan **Hasil**. Modul yang berhasil dibuat tetap berupa file di lokasi output. Modul tersebut tidak diaktifkan dan tidak otomatis ditambahkan ke Next Boot.
 
 Metode yang tersedia:
 
-- **Packages** menginstal paket repository dan file lokal `.deb` terpilih, beserta dependensinya, dalam lingkungan build MiniOS yang terisolasi. Instalasi paket memerlukan autentikasi administrator.
-- **Installation Script** menjalankan skrip yang telah direview tanpa terminal interaktif. Folder seed opsional dapat menyediakan file awal. Skrip dijalankan dengan hak administrator, tetapi tidak disimpan di modul hasil.
-- **Interactive Chroot** membuka shell root sementara di terminal terintegrasi. Ketik `exit` saat selesai, lalu buat modul, buka kembali shell, atau batalkan perubahan. Menutup atau membatalkan sesi tidak mengubah sistem yang sedang berjalan.
-- **Folder** mengemas isi direktori yang sudah ada. Direktori sumber tidak akan terduplikasi di dalam modul. Konversi folder biasa tidak memerlukan root, tidak mengubah sumber, dan kepemilikan file di modul dinormalisasi ke root.
-- **Current Session Changes** menangkap file dan penghapusan yang memenuhi syarat dari layer sesi writable saat ini. Menggunakan kebijakan standar MiniOS `savechanges`, yang mengabaikan log, cache, data boot, dan path runtime sementara. Membaca seluruh layer writable memerlukan autentikasi administrator.
+- **Paket** menginstal paket repository dan file lokal terpilih `.deb`, beserta dependensinya, di lingkungan build terisolasi MiniOS. Instalasi paket memerlukan autentikasi administrator.
+- **Skrip Instalasi** menjalankan skrip yang telah ditinjau tanpa terminal interaktif. Folder seed opsional dapat menyediakan file awal. Skrip dijalankan dengan hak administrator namun tidak disimpan di modul hasil.
+- **Chroot Interaktif** membuka root shell sementara di terminal tersemat. Ketik `exit` saat selesai, lalu buat modul, buka kembali shell, atau batalkan perubahan. Menutup atau membatalkan sesi tidak memengaruhi sistem yang sedang berjalan.
+- **Folder** mengemas isi direktori yang sudah ada. Direktori sumber tidak disarangkan di dalam modul. Konversi folder biasa tidak memerlukan root, sumber tetap tidak berubah, dan kepemilikan di modul dinormalisasi menjadi root.
+- **Perubahan Sesi Saat Ini** menangkap file dan penghapusan yang memenuhi syarat dari layer sesi tulis saat ini. Menggunakan kebijakan standar MiniOS `savechanges` yang mengabaikan log, cache, data boot, dan path runtime sementara. Membaca seluruh layer tulis membutuhkan autentikasi administrator.
 
-Pilih path output baru untuk setiap workflow. File yang sudah ada tidak pernah ditimpa. Progres dan diagnostik backend tetap terlihat selama operasi berlangsung, dan proses capture sesi saat ini dapat dibatalkan.
+Pilih path output baru untuk setiap workflow. File yang sudah ada tidak pernah ditimpa. Progres dan diagnostik backend tetap terlihat selama operasi berjalan, dan penangkapan sesi saat ini dapat dibatalkan.
 
-Current Session Changes ditujukan untuk capture standar yang praktis, bukan untuk meninjau setiap path yang termasuk. Layer writable yang aktif dapat berisi data pribadi atau rahasia. Untuk kebijakan privasi eksplisit berbasis `exact`, `clean`, atau path tertentu, gunakan workflow command-line `savechanges` yang dijelaskan di [Creating modules](/preparing-and-customizing/Managing-Modules).
+Perubahan Sesi Saat Ini ditujukan untuk penangkapan standar yang praktis, bukan untuk meninjau setiap path yang disertakan. Layer tulis aktif dapat berisi data pribadi atau rahasia. Untuk kebijakan privasi yang eksplisit berdasarkan `exact`, `clean`, atau pemilihan path, gunakan workflow command-line `savechanges` yang dijelaskan di [Tangkap perubahan sesi saat ini](/preparing-and-customizing/Managing-Modules#capture-current-session-changes).
 
 ## Drag and drop
 
@@ -68,11 +68,11 @@ Menjatuhkan item tidak akan mengeksekusi kode atau mengubah Running Now maupun N
 
 ## Dokumentasi terkait
 
-- [Creating modules](/preparing-and-customizing/Managing-Modules)
-- [Initrd module loading](/reference/boot-process/Module-Loading)
-- [Boot modes](/using-minios/Boot-Modes)
-- [Menyusun citra ISO dari command line](/preparing-and-customizing/Creating-Custom-MiniOS-Images)
-- [Boot parameters](/reference/Boot-Parameters)
+- [Membuat modul](/preparing-and-customizing/Managing-Modules#creating-modules)
+- [Pemuatan modul initrd](/reference/boot-process/Module-Loading)
+- [Mode boot](/using-minios/Boot-Modes)
+- [Membuat image ISO dari command line](/preparing-and-customizing/Creating-Custom-MiniOS-Images#composing-minios-iso-images-from-the-command-line)
+- [Parameter boot](/reference/Boot-Parameters)
 
 ## Membuat modul
 
@@ -126,16 +126,16 @@ Untuk menangkap upgrade pada paket yang sudah terinstal:
 sudo apt2sb upgrade -y -n upgrades.sb
 ```
 
-### Membuat modul dari skrip
+### Buat modul dari skrip
 
-`script2sb` menyalin skrip instalasi ke dalam chroot privat, menjadikannya executable, menjalankannya sebagai root tanpa terminal interaktif, menghapusnya, lalu menangkap perubahan filesystem yang dihasilkan. Jika skrip gagal, modul tidak akan dibuat.
+`script2sb` menyalin skrip instalasi ke dalam chroot privat, mengatur agar dapat dieksekusi, menjalankannya sebagai root tanpa terminal interaktif, menghapusnya, dan merekam perubahan filesystem yang dihasilkan. Jika skrip gagal, modul tidak akan dibuat.
 
 ```bash
 sudo script2sb --script ./install-example.sh -n 06-example.sb
 sudo script2sb --script ./install-example.sh --directory ./seed-root --level 3 -n 06-example.sb
 ```
 
-Opsi `--directory DIR` akan menyalin seluruh isi sumber, termasuk dotfiles, ke root modul sebelum skrip dijalankan. Atur direktori seed seperti struktur filesystem berikut:
+Opsi tambahan `--directory DIR` menyalin seluruh isi sumber, termasuk dotfiles, ke root modul sebelum skrip dijalankan. Atur direktori seed seperti struktur pohon filesystem:
 
 ```text
 seed-root/
@@ -145,48 +145,48 @@ seed-root/
             `-- example.desktop
 ```
 
-Tinjau skrip sebelum menjalankannya. Skrip akan dieksekusi dengan hak administrator dan dapat menjalankan perintah apa pun. Gunakan `chroot2sb` jika instalasi memerlukan prompt atau pekerjaan manual.
+Tinjau skrip sebelum menjalankannya. Skrip ini dijalankan dengan hak administrator dan dapat mengeksekusi perintah apa pun. Gunakan `chroot2sb` sebagai gantinya jika instalasi memerlukan prompt atau pekerjaan manual.
 
-### Membuat modul secara interaktif
+### Buat modul secara interaktif
 
-`chroot2sb` membuat union build privat dan membuka shell root di dalamnya. Instal paket atau edit file, lalu keluar dari shell untuk menangkap perubahan:
+`chroot2sb` membuat union build privat dan membuka shell root di dalamnya. Instal paket atau edit file, lalu keluar dari shell untuk merekam perubahan:
 
 ```bash
 sudo chroot2sb --level 3 -n 06-custom.sb
 sudo chroot2sb --directory ./seed-root -c xz -n 06-custom.sb
 ```
 
-Perintah yang dimasukkan di shell tidak akan diulang saat modul dimuat; modul hanyalah snapshot dari keadaan filesystem setelah perubahan. Riwayat shell dihapus dari hasil. Jika nama tidak diberikan, nama yang dihasilkan menggunakan tanggal dan waktu saat ini.
+Perintah yang dimasukkan di shell tidak akan dijalankan ulang saat modul dimuat; modul adalah snapshot dari keadaan filesystem setelah perubahan. Riwayat shell dihapus dari hasil. Jika tidak ada nama yang diberikan, nama yang dihasilkan akan menggunakan tanggal dan waktu saat ini.
 
-Siklus hidup terpisah `prepare`, `shell`, `finish`, dan `cancel` digunakan untuk frontend grafis yang dilindungi. Untuk penggunaan terminal biasa, gunakan perintah interaktif tunggal seperti di atas.
+Siklus hidup terpisah `prepare`, `shell`, `finish`, dan `cancel` tersedia untuk frontend grafis yang dilindungi. Untuk penggunaan terminal biasa, gunakan perintah interaktif tunggal seperti di atas.
 
-### Membuat modul dari direktori
+### Buat modul dari direktori
 
-`dir2sb` mengemas isi direktori yang telah disiapkan ke dalam modul baru. Kedua operand wajib diisi:
+`dir2sb` mengemas isi direktori yang sudah disiapkan ke dalam modul baru. Kedua operand wajib diisi:
 
 ```bash
 dir2sb my-app-root 06-my-app.sb
 dir2sb --comp xz my-app-root 06-my-app-xz.sb
 ```
 
-Konversi biasa tidak memerlukan root. Sumber tidak diubah, kepemilikan file di modul dinormalisasi ke root, node perangkat, socket, dan FIFO ditolak, dan target tidak pernah ditimpa. Gunakan `--keep-ownership` atau `--allow-special` hanya jika membutuhkan hak istimewa tersebut.
+Konversi biasa tidak memerlukan root. Sumber tidak diubah, kepemilikan di dalam modul dinormalisasi menjadi root, node perangkat, socket, dan FIFO ditolak, serta target tidak pernah ditimpa. Gunakan `--keep-ownership` atau `--allow-special` hanya jika memang membutuhkan hak istimewa tersebut.
 
-### Menangkap perubahan sesi saat ini
+### Tangkap perubahan sesi saat ini
 
-`savechanges` membaca layer writable yang sah dari sesi MiniOS yang sedang berjalan. Memerlukan root karena layer ini dapat berisi file yang hanya dapat diakses root. Lokasi perubahan default dideteksi secara otomatis:
+`savechanges` membaca layer writable utama dari sesi MiniOS yang sedang berjalan. Membutuhkan akses root karena layer ini bisa berisi file yang hanya dapat diakses root. Lokasi perubahan default terdeteksi secara otomatis:
 
 ```bash
 sudo savechanges session-changes.sb
 sudo savechanges --comp xz session-changes-xz.sb
 ```
 
-Tanpa `--profile`, kebijakan MiniOS lama mengabaikan direktori kosong, cache, log, data boot, path runtime, pseudo-filesystem, serta file sesi dan sistem tertentu. Ini praktis untuk pembuatan modul tradisional, namun bukan jaminan privasi eksplisit.
+Tanpa `--profile`, kebijakan historis MiniOS mengabaikan direktori kosong, cache, log, data boot, path runtime, pseudo-filesystem, serta file sesi dan sistem tertentu. Ini memudahkan pembuatan modul tradisional, namun bukan jaminan privasi eksplisit.
 
 Profil eksplisit yang tersedia:
 
-- `exact` mempertahankan perubahan yang dapat direpresentasikan, termasuk data pengguna, log, cache, file identitas, kredensial, dan metadata penghapusan yang didukung. File sistem yang tidak didukung akan ditolak, bukan diabaikan diam-diam.
-- `clean` menggunakan allowlist path yang sempit dan berorientasi perangkat lunak. Mengabaikan data home dan root, log, cache, identitas, konfigurasi jaringan, kredensial, konfigurasi sistem arbitrer, dan `/usr/local`. Ini mengurangi eksposur privasi, tetapi tidak dapat menjamin file perangkat lunak yang diizinkan benar-benar bebas dari rahasia.
-- `selected` hanya menyertakan path relatif yang telah direview dari file inventaris dan seleksi. Eksklusi eksplisit akan menang. Profil ini tepat digunakan jika modul harus berisi subset perubahan sesi yang terkontrol.
+- `exact` menyimpan perubahan yang dapat direpresentasikan, termasuk data pengguna, log, cache, file identitas, kredensial, dan metadata penghapusan yang didukung. Objek filesystem yang tidak didukung akan ditolak, bukan diabaikan begitu saja.
+- `clean` menggunakan allowlist path yang sempit dan berorientasi perangkat lunak. Tidak menyertakan data home dan root, log, cache, identitas, konfigurasi jaringan, kredensial, konfigurasi sistem sembarang, dan `/usr/local`. Ini mengurangi risiko privasi namun tidak dapat menjamin bahwa file perangkat lunak yang diizinkan tidak mengandung rahasia.
+- `selected` hanya menyertakan path relatif yang telah ditinjau dari file inventaris dan seleksi. Pengecualian eksplisit akan diutamakan. Profil ini cocok jika modul harus berisi subset perubahan sesi yang terkontrol.
 
 Contoh:
 
@@ -197,7 +197,7 @@ sudo savechanges --inventory-json session-inventory.json
 sudo savechanges --profile selected --selection selection.json selected-session.sb
 ```
 
-File seleksi memiliki struktur JSON yang ketat seperti berikut:
+File seleksi memiliki struktur JSON ketat seperti ini:
 
 ```json
 {
@@ -208,20 +208,20 @@ File seleksi memiliki struktur JSON yang ketat seperti berikut:
 }
 ```
 
-Path dinormalisasi, tidak kosong, dan relatif terhadap root perubahan. Hasilkan dan tinjau inventaris terlebih dahulu; setiap include harus cocok dengan data inventaris. Inventaris mencatat metadata seperti path, tipe, kategori, sensitivitas, dan ukuran, tetapi tidak membaca atau mengeluarkan isi file, target symbolic-link, atau nilai rahasia. Output profil eksplisit dan inventaris menggunakan mode `0600`; modul kebijakan lama menggunakan mode `0644`.
+Path dinormalisasi, tidak kosong, dan relatif terhadap root perubahan. Hasil inventaris harus dibuat dan ditinjau terlebih dahulu; setiap path yang disertakan harus cocok dengan data inventaris. Inventaris mencatat metadata seperti path, tipe, kategori, sensitivitas, dan ukuran, namun tidak membaca atau menampilkan isi file, target symbolic-link, atau nilai rahasia. Output profil eksplisit dan inventaris menggunakan mode `0600`; modul dengan kebijakan lama menggunakan mode `0644`.
 
-Capture sesi dapat mempertahankan penghapusan file yang didukung dan opasitas direktori untuk backend AUFS atau OverlayFS yang aktif. Tidak termasuk mount runtime, filesystem bertingkat, pembukuan union, dan output itu sendiri. Target yang sudah ada tidak pernah ditimpa.
+Penangkapan sesi dapat mempertahankan penghapusan file yang didukung dan opasitas direktori untuk backend AUFS atau OverlayFS yang aktif. Tidak termasuk mount runtime, filesystem bersarang, pencatatan union, dan output itu sendiri. Target yang sudah ada tidak pernah diganti.
 
-### Memeriksa dan mengekstrak modul
+### Inspeksi dan ekstrak modul
 
-Periksa modul tanpa mounting atau ekstraksi:
+Inspeksi modul tanpa perlu mount atau ekstraksi:
 
 ```bash
 sb inspect 06-example.sb
 sb inspect 06-example.sb --json
 ```
 
-Pemeriksaan tidak memerlukan root dan juga dapat dilakukan di luar sesi MiniOS yang sedang berjalan.
+Inspeksi dapat dilakukan tanpa root dan juga dapat dijalankan di luar sesi MiniOS yang sedang berjalan.
 
 Ekstrak modul ke direktori baru:
 
@@ -229,29 +229,29 @@ Ekstrak modul ke direktori baru:
 sb2dir 06-example.sb example-root
 ```
 
-Ekstraksi biasa tidak memerlukan root dan tidak mengubah sumber. Direktori target tidak boleh sudah ada. File khusus akan ditolak kecuali `--allow-special` diminta dengan hak istimewa yang cukup.
+Ekstraksi biasa tidak memerlukan root dan tidak mengubah sumber. Direktori target tidak boleh sudah ada. File khusus akan ditolak kecuali `--allow-special` diminta dengan hak istimewa yang memadai.
 
-Direktori yang dihasilkan oleh `sb2dir` saat ini adalah direktori biasa. `rmsbdir`, `sb rm`, dan `sb rmdir` adalah perintah kompatibilitas lama yang selalu menolak penghapusan; mereka tidak melakukan unmount atau menghapus secara rekursif. Tinjau path hasil ekstraksi dan isinya sebelum menghapusnya dengan alat filesystem standar.
+Direktori yang dihasilkan oleh `sb2dir` saat ini adalah direktori biasa. `rmsbdir`, `sb rm`, dan `sb rmdir` adalah perintah kompatibilitas lama yang selalu menolak penghapusan; perintah ini tidak melakukan unmount atau menghapus secara rekursif. Tinjau path hasil ekstraksi dan isinya sebelum menghapusnya menggunakan alat filesystem standar.
 
-### Kelola Modul yang Sedang Berjalan dan Boot Berikutnya
+### Kelola modul yang berjalan dan modul next-boot
 
-Sedang Berjalan dan Boot Berikutnya adalah komposisi yang independen. Lihat [konstruksi union dan aktivasi runtime](/reference/boot-process/Module-Loading) untuk batas antara boot/runtime dan alasan kedua daftar tersebut bisa berbeda.
+Running Now dan Next Boot adalah komposisi yang terpisah. Lihat [konstruksi union dan aktivasi runtime](/reference/boot-process/Module-Loading#union-construction) untuk batas boot/runtime dan alasan mengapa kedua daftar bisa berbeda.
 
-Daftar modul yang benar-benar membentuk root AUFS atau OverlayFS saat ini, dari prioritas terendah ke tertinggi:
+Daftar modul yang benar-benar membentuk root AUFS atau OverlayFS saat ini, dari prioritas terendah hingga tertinggi:
 
 ```bash
 sb list
 sb list --json
 ```
 
-Daftar modul yang dipilih oleh aturan boot saat ini:
+Daftar modul yang dipilih berdasarkan aturan boot saat ini:
 
 ```bash
 sb next-boot
 sb next-boot --json
 ```
 
-Query ini dapat dijalankan tanpa akses root. [Aturan kandidat-tier dan penggantian](/reference/boot-process/Module-Loading) yang kanonik menentukan sumber mana yang menyediakan setiap nama file dasar Boot Berikutnya.
+Kueri ini tidak memerlukan akses root. Aturan kanonik [candidate-tier dan penggantian](/reference/boot-process/Module-Loading#candidate-tiers) menentukan sumber mana yang menyediakan setiap basename Next Boot.
 
 Untuk membuat modul pengguna tersedia pada boot berikutnya:
 
@@ -259,24 +259,24 @@ Untuk membuat modul pengguna tersedia pada boot berikutnya:
 sudo sb next-boot add 50-extra.sb
 ```
 
-MiniOS menggunakan penyimpanan tahan lama yang dapat ditulis, melakukan staging dan validasi salinan, serta mempublikasikannya secara atomik tanpa menggantikan modul yang sudah ada. Nama file harus sesuai dengan filter boot saat ini. Hapus modul pengguna yang dipilih berdasarkan nama file dasar yang tepat:
+MiniOS menggunakan penyimpanan tulis yang tahan lama, melakukan staging dan validasi salinan, serta mempublikasikannya secara atomik tanpa menggantikan modul yang sudah ada. Nama file harus memenuhi filter boot saat ini. Hapus modul pengguna terpilih berdasarkan basename persisnya:
 
 ```bash
 sudo sb next-boot remove 50-extra.sb
 ```
 
-Penghapusan akan ditolak untuk modul dasar dan modul yang berasal dari sumber hanya-baca atau volatile.
+Penghapusan ditolak untuk modul dasar serta modul di sumber read-only atau volatile.
 
-Aktivasi runtime adalah operasi terpisah yang hanya berlaku untuk sesi saat ini:
+Aktivasi runtime adalah operasi terpisah, hanya berlaku untuk sesi saat ini:
 
 ```bash
 sudo sb activate 50-extra.sb
 sudo sb deactivate 50-extra.sb
 ```
 
-Aktivasi dan deaktivasi hanya berfungsi jika `/` saat ini merupakan union AUFS. Fitur ini tidak tersedia pada OverlayFS, dan dukungan kernel AUFS saja tidak cukup. Kedua perintah ini tidak mengubah Boot Berikutnya.
+Aktivasi dan deaktivasi hanya dapat dilakukan jika `/` saat ini merupakan union AUFS. Fitur ini tidak tersedia di OverlayFS, dan dukungan kernel AUFS saja tidak cukup. Kedua perintah ini tidak mengubah Next Boot.
 
-Dispatcher konverter kompatibilitas membutuhkan kedua operand:
+Dispatcher konverter kompatibilitas memerlukan kedua operand:
 
 ```bash
 sudo sb conv my-app-root 06-my-app.sb

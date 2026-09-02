@@ -10,15 +10,15 @@ program_commits:
 
 MiniOS est livré avec un noyau par défaut, mais il existe plusieurs raisons pour lesquelles vous pourriez vouloir le remplacer :
 
-### **Différentes variantes de noyau Debian**
+### **Différentes variantes du noyau Debian**
 
-Debian propose plusieurs variantes de noyau optimisées pour différents cas d’usage :
+Debian propose plusieurs variantes de noyau optimisées pour différents usages :
 
-- **`linux-image-6.12.38+deb13-amd64`** : Noyau standard pour systèmes 64 bits (par défaut dans MiniOS)
-- **`linux-image-6.12.38+deb13-rt-amd64`** : Noyau temps réel pour les applications critiques en temps
-- **`linux-image-6.12.38+deb13-cloud-amd64`** : Optimisé pour les environnements cloud et virtualisés
+- **`linux-image-6.12.38+deb13-amd64`** - Noyau standard pour systèmes 64 bits (par défaut dans MiniOS)
+- **`linux-image-6.12.38+deb13-rt-amd64`** - Noyau temps réel pour les applications critiques en temps réel
+- **`linux-image-6.12.38+deb13-cloud-amd64`** - Optimisé pour les environnements cloud et virtualisés
 
-> **Remarque :** Les numéros de version (comme `6.12.38+deb13`) changent lors des mises à jour. Pour trouver les noyaux actuellement disponibles :
+> **Remarque :** Les numéros de version (par exemple `6.12.38+deb13`) évoluent avec les mises à jour. Pour connaître les noyaux actuellement disponibles :
 > ```bash
 > apt search linux-image-.*-amd64
 > apt search linux-image-.*-rt-amd64
@@ -87,7 +87,7 @@ Le gestionnaire graphique de noyaux offre une interface intuitive pour toutes le
 minios-kernel-manager
 ```
 
-Ou recherchez « MiniOS Gestionnaire de noyaux » dans le menu de vos applications.
+Ou recherchez « Gestionnaire de noyaux MiniOS » dans le menu de vos applications.
 
 #### 2. **Créer un nouveau paquet noyau**
 
@@ -130,9 +130,9 @@ Ou recherchez « MiniOS Gestionnaire de noyaux » dans le menu de vos applicat
 
 L’outil en ligne de commande offre des capacités de gestion des noyaux scriptables.
 
-### **Privilèges administratifs requis :**
+### **Privilèges administrateur requis :**
 
-L’outil CLI nécessite les droits root et les vérifie automatiquement. Exécutez les commandes avec `sudo` ou via `pkexec` :
+L’outil CLI nécessite les droits root et les vérifiera automatiquement. Exécutez les commandes avec `sudo` ou via `pkexec` :
 
 ```bash
 sudo minios-kernel list
@@ -150,19 +150,19 @@ sudo minios-kernel list
 
 Affiche tous les noyaux empaquetés avec leur statut.
 
-#### 2. **Créer un paquet noyau**
+#### 2. **Créer un paquet de noyau**
 
-**Depuis le dépôt :**
+**Depuis le dépôt :**
 ```bash
 sudo minios-kernel package --repo linux-image-6.12.38+deb13-amd64 -o /tmp/kernel-output
 ```
 
-**Depuis un fichier .deb local :**
+**Depuis un fichier .deb local :**
 ```bash
 sudo minios-kernel package --deb /path/to/kernel.deb -o /tmp/kernel-output
 ```
 
-**Avec une compression personnalisée :**
+**Avec une compression personnalisée :**
 ```bash
 sudo minios-kernel package --repo linux-image-6.12.38+deb13-rt-amd64 --sqfs-comp lz4 -o /tmp/kernel-output
 ```
@@ -179,13 +179,13 @@ sudo minios-kernel activate 6.12.38+deb13-amd64
 sudo minios-kernel delete 6.12.38+deb13-amd64
 ```
 
-#### 5. **Vérifier le statut**
+#### 5. **Vérifier l’état**
 
 ```bash
 sudo minios-kernel status
 ```
 
-Affiche le statut du répertoire MiniOS et les informations sur le noyau actuel.
+Affiche l’état du répertoire MiniOS et les informations sur le noyau en cours.
 
 #### 6. **Afficher les informations du noyau**
 
@@ -198,7 +198,7 @@ Affiche des informations détaillées sur un noyau spécifique, y compris son st
 
 ### **Options avancées de la CLI :**
 
-#### **Sortie JSON (pour le scripting) :**
+#### **Sortie JSON (pour les scripts) :**
 
 ```bash
 sudo minios-kernel --json list
@@ -209,7 +209,7 @@ sudo minios-kernel --json activate 6.12.38+deb13-amd64
 sudo minios-kernel --json delete 6.12.38+deb13-amd64
 ```
 
-#### **Options avancées d’empaquetage :**
+#### **Options avancées de création de paquet :**
 
 ```bash
 # Use custom temporary directory (requires at least 1024MB free space)
@@ -219,7 +219,7 @@ sudo minios-kernel package --repo linux-image-6.12.38+deb13-rt-amd64 -o /tmp/out
 sudo minios-kernel package --repo linux-image-6.12.38+deb13-rt-amd64 -o /tmp/output --force-update
 ```
 
-#### **Aide et utilisation :**
+#### **Aide et utilisation :**
 
 ```bash
 minios-kernel --help                    # General help (doesn't require root)
@@ -281,9 +281,9 @@ sudo minios-kernel delete --help        # Delete command help
 
 Ne copiez pas une image de noyau, un initramfs ou un module `01-kernel-*.sb` individuel depuis une autre image. Un noyau MiniOS amorçable nécessite un ensemble coordonné. Si un ensemble complet fonctionnel n’est pas déjà disponible via le flux de gestion des noyaux, réinstallez l’installation MiniOS concernée plutôt que d’assembler manuellement les composants de démarrage. Sauvegardez d’abord les données importantes ; consultez la section [Dépannage](/maintenance-and-recovery/Troubleshooting).
 
-### **Commandes de diagnostic :**
+### **Commandes de diagnostic :**
 
-**Vérifier l’état du système actuel :**
+**Vérifier l’état actuel du système :**
 ```bash
 sudo minios-kernel status
 sudo minios-kernel info     # Current active kernel info
@@ -292,13 +292,13 @@ cat /proc/version           # Kernel version details
 lsmod                       # Loaded kernel modules
 ```
 
-**Vérifier les fichiers du noyau :**
+**Vérifier les fichiers du noyau :**
 ```bash
 ls -la /minios/kernels/     # List packaged kernels
 ls -la /minios/boot/        # List boot files
 ```
 
-**Vérifier la configuration du chargeur d’amorçage :**
+**Vérifier la configuration du chargeur d’amorçage :**
 ```bash
 grep -r "vmlinuz" /minios/boot/  # Find kernel references in boot configs
 ```
@@ -309,7 +309,7 @@ grep -r "vmlinuz" /minios/boot/  # Find kernel references in boot configs
 
 Le gestionnaire de noyau MiniOS gère automatiquement les fichiers suivants :
 
-### **Structure du dépôt du noyau :**
+### **Structure du dépôt de noyaux :**
 
 ```
 /minios/
@@ -328,7 +328,7 @@ Le gestionnaire de noyau MiniOS gère automatiquement les fichiers suivants :
 │       └── grub.cfg               # GRUB bootloader config
 ```
 
-**Remarque :** Le module standard `01-kernel-<version>.sb` fourni avec MiniOS contient des pilotes supplémentaires par rapport à ceux inclus dans les paquets de noyau du dépôt d'origine. Ces pilotes additionnels offrent une meilleure compatibilité matérielle pour les adaptateurs sans fil et les périphériques de stockage.
+**Remarque :** Le module standard `01-kernel-<version>.sb` fourni avec MiniOS contient des pilotes supplémentaires par rapport aux paquets de noyau du dépôt d’origine. Ces pilotes supplémentaires offrent une meilleure compatibilité matérielle pour les adaptateurs sans fil et les périphériques de stockage.
 
 ### **Indicateurs d’état :**
 

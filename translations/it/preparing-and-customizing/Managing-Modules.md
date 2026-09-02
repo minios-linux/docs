@@ -41,19 +41,19 @@ Puoi anche aprire un file locale `.sb` dal file manager. L'apertura di un file c
 
 ## Creazione di un modulo
 
-L'area di lavoro Crea segue un flusso **Configura**, **Rivedi**, **Esegui** e **Risultato**. Un modulo creato con successo rimane un file nella posizione di output. Non viene attivato né aggiunto automaticamente al prossimo avvio.
+L'area di lavoro Crea utilizza un flusso **Configura**, **Verifica**, **Esegui**, e **Risultato**. Un modulo creato con successo rimane come file nella posizione di output. Non viene attivato né aggiunto automaticamente a Next Boot.
 
 I metodi disponibili sono:
 
-- **Pacchetti** installa pacchetti dai repository e file locali `.deb` selezionati, incluse le relative dipendenze, in un ambiente di build MiniOS isolato. L'installazione dei pacchetti richiede l'autenticazione amministrativa.
-- **Script di installazione** esegue uno script revisionato senza terminale interattivo. Una cartella seed opzionale può fornire file iniziali. Lo script viene eseguito con privilegi amministrativi ma non viene memorizzato nel modulo risultante.
-- **Chroot interattivo** apre una shell root temporanea nel terminale integrato. Digita `exit` quando hai finito, quindi crea il modulo, riapri la shell o scarta le modifiche. Chiudere o scartare la sessione non modifica il sistema in esecuzione.
-- **Cartella** impacchetta il contenuto di una directory esistente. La directory sorgente non viene annidata all'interno del modulo. La conversione ordinaria della cartella non richiede privilegi root, lascia la sorgente invariata e normalizza la proprietà nel modulo a root.
-- **Modifiche della sessione corrente** cattura i file idonei e le eliminazioni dal layer scrivibile della sessione corrente. Utilizza la policy standard MiniOS `savechanges`, che esclude log, cache, dati di avvio e percorsi runtime temporanei. La lettura dell'intero layer scrivibile richiede l'autenticazione amministrativa.
+- **Pacchetti** installa pacchetti dai repository e file locali selezionati `.deb`, incluse le relative dipendenze, in un ambiente di build isolato MiniOS. L'installazione dei pacchetti richiede l'autenticazione dell'amministratore.
+- **Script di installazione** esegue uno script verificato senza terminale interattivo. Una cartella seed opzionale può fornire file iniziali. Lo script viene eseguito con privilegi di amministratore ma non viene memorizzato nel modulo risultante.
+- **Chroot interattivo** apre una shell root temporanea nel terminale integrato. Digita `exit` al termine, quindi crea il modulo, riapri la shell oppure annulla le modifiche. Chiudere o annullare la sessione non modifica il sistema in esecuzione.
+- **Cartella** crea un pacchetto con il contenuto di una directory esistente. La directory sorgente non viene inclusa all'interno del modulo. La conversione standard delle cartelle non richiede privilegi root, non modifica la sorgente e normalizza la proprietà dei file nel modulo a root.
+- **Modifiche della sessione corrente** acquisisce i file idonei e le eliminazioni dal layer scrivibile della sessione corrente. Utilizza la policy standard MiniOS `savechanges`, che esclude log, cache, dati di avvio e percorsi runtime temporanei. La lettura completa del layer scrivibile richiede l'autenticazione dell'amministratore.
 
-Scegli un nuovo percorso di output per ogni workflow. I file esistenti non vengono mai sovrascritti. L'avanzamento e la diagnostica del backend restano visibili durante l'operazione, e la cattura della sessione corrente può essere annullata.
+Scegli un nuovo percorso di output per ogni workflow. I file esistenti non vengono mai sovrascritti. L'avanzamento e le diagnostiche di backend restano visibili durante l'operazione e la cattura della sessione corrente può essere annullata.
 
-Modifiche della sessione corrente è pensato per una cattura standard comoda, non per revisionare ogni percorso incluso. Un layer scrivibile live può contenere dati personali o riservati. Per policy di privacy esplicite `exact`, `clean` o selezionate per percorso, utilizza il workflow da riga di comando `savechanges` descritto in [Creazione dei moduli](/preparing-and-customizing/Managing-Modules).
+Modifiche della sessione corrente è pensato per una cattura standard e rapida, non per la revisione di ogni percorso incluso. Un layer scrivibile attivo può contenere dati personali o riservati. Per una policy di privacy esplicita `exact`, `clean`, o selezione dei percorsi, utilizza il workflow da riga di comando `savechanges` descritto in [Cattura le modifiche della sessione corrente](/preparing-and-customizing/Managing-Modules#capture-current-session-changes).
 
 ## Drag and drop
 
@@ -68,10 +68,10 @@ Il trascinamento di un elemento non esegue codice né modifica In esecuzione ora
 
 ## Documentazione correlata
 
-- [Creazione dei moduli](/preparing-and-customizing/Managing-Modules)
-- [Caricamento dei moduli Initrd](/reference/boot-process/Module-Loading)
+- [Creazione dei moduli](/preparing-and-customizing/Managing-Modules#creating-modules)
+- [Caricamento moduli initrd](/reference/boot-process/Module-Loading)
 - [Modalità di avvio](/using-minios/Boot-Modes)
-- [Composizione di immagini ISO da riga di comando](/preparing-and-customizing/Creating-Custom-MiniOS-Images)
+- [Composizione di immagini ISO da riga di comando](/preparing-and-customizing/Creating-Custom-MiniOS-Images#composing-minios-iso-images-from-the-command-line)
 - [Parametri di avvio](/reference/Boot-Parameters)
 
 ## Creazione dei moduli
@@ -128,14 +128,14 @@ sudo apt2sb upgrade -y -n upgrades.sb
 
 ### Crea un modulo da uno script
 
-`script2sb` copia uno script di installazione in una chroot privata, lo rende eseguibile, lo esegue come root senza terminale interattivo, lo rimuove e cattura le modifiche risultanti al filesystem. Se lo script fallisce, il modulo non viene creato.
+`script2sb` copia uno script di installazione in una chroot privata, lo rende eseguibile, lo esegue come root senza terminale interattivo, lo rimuove e acquisisce le modifiche risultanti al filesystem. Se lo script fallisce, non viene creato alcun modulo.
 
 ```bash
 sudo script2sb --script ./install-example.sh -n 06-example.sb
 sudo script2sb --script ./install-example.sh --directory ./seed-root --level 3 -n 06-example.sb
 ```
 
-L'opzionale `--directory DIR` copia tutto il contenuto della sorgente, inclusi i file nascosti, nella root del modulo prima dell'esecuzione dello script. Organizza la directory seed come un albero del filesystem:
+L'opzione `--directory DIR` copia tutti i contenuti della sorgente, inclusi i file nascosti, nella root del modulo prima dell'esecuzione dello script. Organizza la directory seed come un albero del filesystem:
 
 ```text
 seed-root/
@@ -145,48 +145,48 @@ seed-root/
             `-- example.desktop
 ```
 
-Rivedi lo script prima di eseguirlo. Viene eseguito con privilegi amministrativi e può eseguire comandi arbitrari. Usa `chroot2sb` invece se l'installazione richiede prompt o interventi manuali.
+Controlla lo script prima di eseguirlo. Viene eseguito con privilegi di amministratore e può lanciare comandi arbitrari. Usa `chroot2sb` invece se l'installazione richiede prompt o interventi manuali.
 
 ### Crea un modulo in modo interattivo
 
-`chroot2sb` crea un'unione di build privata e apre una shell root al suo interno. Installa pacchetti o modifica file, quindi esci dalla shell per catturare le modifiche:
+`chroot2sb` crea una build union privata e apre una shell root al suo interno. Installa pacchetti o modifica file, quindi esci dalla shell per acquisire le modifiche:
 
 ```bash
 sudo chroot2sb --level 3 -n 06-custom.sb
 sudo chroot2sb --directory ./seed-root -c xz -n 06-custom.sb
 ```
 
-I comandi inseriti nella shell non vengono rieseguiti quando il modulo viene caricato; il modulo è uno snapshot dello stato risultante del filesystem. La cronologia della shell viene rimossa dal risultato. Se non viene fornito un nome, quello generato utilizza data e ora correnti.
+I comandi inseriti nella shell non vengono rieseguiti al caricamento del modulo; il modulo è uno snapshot dello stato risultante del filesystem. La cronologia della shell viene rimossa dal risultato. Se non viene fornito un nome, quello generato utilizza data e ora correnti.
 
-Il ciclo di vita suddiviso `prepare`, `shell`, `finish` e `cancel` esiste per frontend grafici protetti. Per il normale utilizzo da terminale, usa il singolo comando interattivo mostrato sopra.
+Il ciclo di vita suddiviso `prepare`, `shell`, `finish` e `cancel` esiste per le interfacce grafiche protette. Per l'uso normale da terminale, utilizza il comando interattivo singolo mostrato sopra.
 
 ### Crea un modulo da una directory
 
-`dir2sb` impacchetta il contenuto di una directory preparata in un nuovo modulo. Entrambi gli argomenti sono obbligatori:
+`dir2sb` impacchetta i contenuti di una directory preparata in un nuovo modulo. Sono richiesti entrambi gli argomenti:
 
 ```bash
 dir2sb my-app-root 06-my-app.sb
 dir2sb --comp xz my-app-root 06-my-app-xz.sb
 ```
 
-La conversione ordinaria non richiede privilegi root. Lascia la sorgente invariata, normalizza la proprietà all'interno del modulo a root, rifiuta device node, socket e FIFO e non sovrascrive mai il target. Usa `--keep-ownership` o `--allow-special` solo quando sono richieste tali semantiche privilegiate.
+La conversione ordinaria non richiede root. La sorgente rimane invariata, la proprietà all'interno del modulo viene normalizzata a root, i device node, socket e FIFO vengono rifiutati e il target non viene mai sovrascritto. Usa `--keep-ownership` o `--allow-special` solo quando sono necessarie queste semantiche privilegiate.
 
-### Cattura le modifiche della sessione corrente
+### Acquisisci le modifiche della sessione corrente
 
-`savechanges` legge il layer scrivibile autorevole di una sessione MiniOS in esecuzione. Richiede privilegi root perché quel layer può contenere file accessibili solo da root. La posizione predefinita delle modifiche viene rilevata automaticamente:
+`savechanges` legge il layer scrivibile autorevole di una sessione MiniOS in esecuzione. Richiede i privilegi di root perché quel layer può contenere file accessibili solo da root. La posizione predefinita delle modifiche viene rilevata automaticamente:
 
 ```bash
 sudo savechanges session-changes.sb
 sudo savechanges --comp xz session-changes-xz.sb
 ```
 
-Senza `--profile`, la policy storica di MiniOS esclude directory vuote, cache, log, dati di avvio, percorsi runtime, pseudo-filesystem e file di sessione e di sistema selezionati. Questo è comodo per la creazione tradizionale dei moduli, ma non rappresenta una garanzia esplicita di privacy.
+Senza `--profile`, la policy storica MiniOS esclude directory vuote, cache, log, dati di avvio, percorsi runtime, pseudo-filesystem e file di sessione e di sistema selezionati. Questo è comodo per la creazione tradizionale di moduli, ma non rappresenta una garanzia esplicita di privacy.
 
 I profili espliciti sono:
 
-- `exact` preserva le modifiche rappresentabili, inclusi dati utente, log, cache, file di identità, credenziali e metadati di eliminazione supportati. Rifiuta oggetti filesystem non supportati invece di perderli silenziosamente.
-- `clean` utilizza una lista di percorsi consentiti orientata al software. Esclude dati home e root, log, cache, identità, configurazione di rete, credenziali, configurazione di sistema arbitraria e `/usr/local`. Riduce l'esposizione della privacy ma non può garantire che un file software consentito non contenga segreti.
-- `selected` include solo percorsi relativi revisionati da un file di inventario e selezione. Le esclusioni esplicite hanno la precedenza. Questo è il profilo appropriato quando il modulo deve contenere solo un sottoinsieme controllato delle modifiche di sessione.
+- `exact` conserva le modifiche rappresentabili, inclusi dati utente, log, cache, file di identità, credenziali e metadati di eliminazione supportati. Rifiuta oggetti filesystem non supportati invece di perderli silenziosamente.
+- `clean` utilizza una allowlist di percorsi strettamente orientata al software. Esclude dati home e root, log, cache, identità, configurazione di rete, credenziali, configurazione di sistema arbitraria e `/usr/local`. Riduce l'esposizione della privacy ma non può garantire che un file software consentito non contenga segreti.
+- `selected` include solo percorsi relativi verificati da un file di inventario e selezione. Le esclusioni esplicite hanno la precedenza. Questo è il profilo appropriato quando il modulo deve contenere solo un sottoinsieme controllato delle modifiche di sessione.
 
 Esempi:
 
@@ -208,20 +208,20 @@ Un file di selezione ha questa struttura JSON rigorosa:
 }
 ```
 
-I percorsi sono normalizzati, non vuoti e relativi alla root delle modifiche. Genera e revisiona prima l'inventario; ogni inclusione deve corrispondere ai dati dell'inventario. L'inventario registra metadati come percorso, tipo, categoria, sensibilità e dimensione, ma non legge né emette contenuti dei file, target dei link simbolici o valori segreti. Gli output dei profili espliciti e gli inventari sono in modalità `0600`; i moduli con policy legacy sono in modalità `0644`.
+I percorsi sono normalizzati, non vuoti e relativi alla root delle modifiche. Genera e verifica prima l'inventario; ogni inclusione deve corrispondere ai dati dell'inventario. L'inventario registra metadati come percorso, tipo, categoria, sensibilità e dimensione, ma non legge né emette contenuti dei file, destinazioni di link simbolici o valori segreti. Gli output e gli inventari dei profili espliciti sono in modalità `0600`; i moduli con policy legacy sono in modalità `0644`.
 
-La cattura della sessione può mantenere le eliminazioni di file supportate e l'opacità delle directory per il backend AUFS o OverlayFS attivo. Esclude mount runtime, filesystem annidati, bookkeeping dell'unione e l'output stesso. Un target esistente non viene mai sostituito.
+L'acquisizione della sessione può mantenere le eliminazioni di file supportate e l'opacità delle directory per il backend attivo AUFS o OverlayFS. Sono esclusi i mount runtime, filesystem annidati, bookkeeping delle union e l'output stesso. Un target esistente non viene mai sostituito.
 
 ### Ispeziona ed estrai moduli
 
-Ispeziona un modulo senza montarlo o estrarlo:
+Ispeziona un modulo senza montarlo né estrarlo:
 
 ```bash
 sb inspect 06-example.sb
 sb inspect 06-example.sb --json
 ```
 
-L'ispezione non richiede privilegi root e funziona anche al di fuori di una sessione MiniOS in esecuzione.
+L'ispezione non richiede root e funziona anche al di fuori di una sessione MiniOS in esecuzione.
 
 Estrai un modulo in una nuova directory:
 
@@ -229,29 +229,29 @@ Estrai un modulo in una nuova directory:
 sb2dir 06-example.sb example-root
 ```
 
-L'estrazione ordinaria non richiede privilegi root e non modifica la sorgente. La directory di destinazione non deve esistere. I file speciali vengono rifiutati a meno che `--allow-special` non sia richiesto con privilegi sufficienti.
+L'estrazione ordinaria non richiede root e non modifica la sorgente. La directory di destinazione non deve esistere. I file speciali vengono rifiutati a meno che `--allow-special` sia richiesto con privilegi sufficienti.
 
-Le directory prodotte dagli strumenti attuali `sb2dir` sono directory ordinarie. `rmsbdir`, `sb rm` e `sb rmdir` sono comandi di compatibilità obsoleti che rifiutano sempre la rimozione; non smontano né eliminano ricorsivamente nulla. Revisiona un percorso estratto e il suo contenuto prima di rimuoverlo con i normali strumenti del filesystem.
+Le directory prodotte dagli attuali `sb2dir` sono directory ordinarie. `rmsbdir`, `sb rm` e `sb rmdir` sono comandi di compatibilità ritirati che rifiutano sempre la rimozione; non smontano né eliminano ricorsivamente nulla. Controlla un percorso estratto e i suoi contenuti prima di rimuoverlo con i normali strumenti del filesystem.
 
-### Gestire i moduli in esecuzione e al prossimo avvio
+### Gestione dei moduli attivi e di quelli per il prossimo avvio
 
-In esecuzione ora e Prossimo avvio sono composizioni indipendenti. Consulta [costruzione dell'unione e attivazione a runtime](/reference/boot-process/Module-Loading) per il confine tra avvio e runtime e perché le due liste possono differire.
+Le composizioni Attivo ora e Prossimo avvio sono indipendenti. Vedi [costruzione delle unioni e attivazione a runtime](/reference/boot-process/Module-Loading#union-construction) per il confine tra avvio e runtime e per capire perché le due liste possono differire.
 
-Elenca i moduli che effettivamente compongono la root AUFS o OverlayFS attuale, dal livello di priorità più basso al più alto:
+Elenca i moduli che compongono effettivamente la root AUFS o OverlayFS corrente, dal livello più basso a quello più alto:
 
 ```bash
 sb list
 sb list --json
 ```
 
-Elenca i moduli selezionati dalle attuali regole di avvio:
+Elenca i moduli selezionati dalle regole di avvio correnti:
 
 ```bash
 sb next-boot
 sb next-boot --json
 ```
 
-Queste query non richiedono privilegi root. Le regole canoniche [di livello candidato e sostituzione](/reference/boot-process/Module-Loading) determinano quale sorgente fornisce ogni basename del Prossimo avvio.
+Queste interrogazioni non richiedono privilegi root. Le regole canoniche [di livello candidato e di sostituzione](/reference/boot-process/Module-Loading#candidate-tiers) determinano quale sorgente fornisce ogni basename per il Prossimo avvio.
 
 Per rendere disponibile un modulo utente al prossimo avvio:
 
@@ -259,31 +259,31 @@ Per rendere disponibile un modulo utente al prossimo avvio:
 sudo sb next-boot add 50-extra.sb
 ```
 
-MiniOS utilizza uno storage scrivibile e durevole adatto, prepara e valida la copia e la pubblica in modo atomico senza sostituire un modulo esistente. Il nome file deve soddisfare i filtri di avvio attuali. Rimuovi un modulo utente selezionato tramite il suo basename esatto:
+MiniOS utilizza uno storage scrivibile durevole idoneo, prepara e valida la copia, e la pubblica in modo atomico senza sostituire un modulo esistente. Il nome file deve rispettare i filtri di avvio attuali. Rimuovi un modulo utente selezionato usando il suo basename esatto:
 
 ```bash
 sudo sb next-boot remove 50-extra.sb
 ```
 
-La rimozione viene rifiutata per i moduli di base e quelli su sorgenti in sola lettura o volatili.
+La rimozione viene rifiutata per i moduli base e per quelli su sorgenti di sola lettura o volatili.
 
-L'attivazione a runtime è un'operazione separata, valida solo per la sessione corrente:
+L'attivazione a runtime è un'operazione separata e valida solo per la sessione corrente:
 
 ```bash
 sudo sb activate 50-extra.sb
 sudo sb deactivate 50-extra.sb
 ```
 
-Attivazione e disattivazione funzionano solo quando `/` è attualmente un'unione AUFS. Non sono disponibili su OverlayFS, e il solo supporto kernel AUFS non è sufficiente. Nessun comando modifica Prossimo avvio.
+Attivazione e disattivazione funzionano solo quando `/` è attualmente una unione AUFS. Non sono disponibili su OverlayFS e il solo supporto AUFS del kernel non è sufficiente. Nessun comando modifica il Prossimo avvio.
 
-Il dispatcher del convertitore di compatibilità richiede entrambi gli operandi:
+Il dispatcher di conversione compatibilità richiede entrambi gli operandi:
 
 ```bash
 sudo sb conv my-app-root 06-my-app.sb
 sudo sb conv 06-my-app.sb example-root
 ```
 
-L'uso diretto di `dir2sb` e `sb2dir` è preferibile perché la conversione ordinaria può essere eseguita senza privilegi root.
+L'uso diretto di `dir2sb` e `sb2dir` è preferibile perché la conversione standard può essere eseguita senza privilegi root.
 
 ### Documentazione correlata
 

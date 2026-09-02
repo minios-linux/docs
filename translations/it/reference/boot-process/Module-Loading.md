@@ -28,18 +28,18 @@ Prima di modificare i filtri, annota la riga di comando corrente e il set di mod
 
 ## Livelli dei candidati
 
-Dopo aver individuato la directory dati MiniOS, normalmente `minios/`, l'initrd esegue la scansione dei candidati modulo in questo ordine:
+Dopo aver individuato la directory dati MiniOS, di solito `minios/`, l'initrd esegue la scansione dei moduli candidati in questo ordine:
 
 1. Voci immediatamente all'interno di `minios/`. Questa scansione non è ricorsiva.
 2. Voci ricorsivamente sotto `minios/modules/`.
 3. Voci ricorsivamente sotto `minios/modules/` sulla sorgente di persistenza scrivibile registrata dall'initrd.
 
-Il terzo livello è separato dalla directory `minios/modules/` nell'albero dati in sola lettura selezionato. Permette ai moduli utente persistenti di sovrascrivere file provenienti da una ISO o altra sorgente in sola lettura. È disponibile solo quando la rilevazione della persistenza ha pubblicato una root scrivibile contenente quella directory.
+Il terzo livello è separato dalla directory `minios/modules/` nella struttura dati selezionata in sola lettura. Consente ai moduli utente persistenti di sovrascrivere i file provenienti da un ISO o da un'altra sorgente in sola lettura. È disponibile solo quando il rilevamento della persistenza ha pubblicato una root scrivibile contenente tale directory.
 
-I percorsi dei candidati vengono appiattiti al loro basename esatto durante il mount. Ad esempio, `modules/work/50-extra.sb` e `modules/test/50-extra.sb` utilizzano entrambi il mountpoint chiamato `50-extra.sb`. Non diventano due layer indipendenti indirizzabili. Un candidato in un livello successivo con lo stesso basename viene montato sullo stesso mountpoint e sostituisce il candidato precedente visibile all'assemblaggio della union.
-Perciò, lo stesso basename deve essere considerato come uno slot di sostituzione, non come un modo per caricare più moduli da directory diverse.
+I percorsi candidati vengono appiattiti al loro basename esatto quando vengono montati. Ad esempio, `modules/work/50-extra.sb` e `modules/test/50-extra.sb` usano entrambi il mountpoint chiamato `50-extra.sb`. Non diventano due layer indipendenti. Un candidato in un livello successivo con lo stesso basename viene montato sullo stesso mountpoint e sostituisce il candidato precedente visibile all'assemblaggio dell'unione.
+Lo stesso basename deve quindi essere considerato come un unico slot di sostituzione, non come un modo per caricare più moduli da directory diverse.
 
-Il formato modulo normale è un'immagine filesystem SquashFS regolare. La scansione dell'initrd è guidata dal nome file: seleziona i percorsi che terminano con l'estensione configurata e non verifica prima che ogni percorso sia un file regolare o un valido SquashFS. Le scansioni ricorsive possono quindi incontrare un altro tipo di oggetto filesystem con un nome corrispondente. Un loop fallito o un mount SquashFS viene segnalato da `mount`, ma il loop candidato non rende fatale quell'errore e l'avvio può continuare con un layer mancante. Valida i file dubbi con il workflow di ispezione in [Creazione dei moduli](/preparing-and-customizing/Managing-Modules).
+Il formato normale di un modulo è un'immagine filesystem SquashFS regolare. La scansione dell'initrd si basa sul nome del file: seleziona i percorsi che terminano con l'estensione configurata e non verifica prima che ogni percorso sia un file regolare o un SquashFS valido. Le scansioni ricorsive possono quindi incontrare un altro tipo di oggetto filesystem con un nome corrispondente. Un mount loop o SquashFS non riuscito viene segnalato da `mount`, ma il ciclo candidato non rende quell'errore fatale di per sé e l'avvio può continuare anche con un layer mancante. Verifica i file dubbi seguendo la procedura in [Ispeziona ed estrai moduli](/preparing-and-customizing/Managing-Modules#inspect-and-extract-modules).
 
 ## Ordinamento e precedenza
 
@@ -155,6 +155,6 @@ Per un errore precoce, aggiungi `debug` per mostrare il tracing della shell, `ti
 - [Rilevamento del sistema](/reference/boot-process/System-Discovery)
 - [Persistenza](/reference/boot-process/Persistence-Internals)
 - [Gestore moduli MiniOS](/preparing-and-customizing/Managing-Modules)
-- [Creazione di moduli](/preparing-and-customizing/Managing-Modules)
+- [Creazione dei moduli](/preparing-and-customizing/Managing-Modules#creating-modules)
 - [Gestione del kernel](/preparing-and-customizing/Managing-Kernels)
 - [Risoluzione dei problemi](/maintenance-and-recovery/Troubleshooting)

@@ -28,18 +28,18 @@ Avant de modifier les filtres, enregistrez la ligne de commande et l’ensemble 
 
 ## Niveaux de candidats
 
-Après avoir localisé le répertoire de données MiniOS, généralement `minios/`, l’initrd scanne les modules candidats dans cet ordre :
+Après avoir localisé le répertoire de données MiniOS, en général `minios/`, l'initrd analyse les modules candidats dans cet ordre :
 
-1. Entrées directement à la racine de `minios/`. Ce scan n’est pas récursif.
-2. Entrées récursivement sous `minios/modules/`.
-3. Entrées récursivement sous `minios/modules/` sur la source de persistance en écriture enregistrée par l’initrd.
+1. Entrées situées directement dans `minios/`. Cette analyse n'est pas récursive.
+2. Entrées situées de façon récursive sous `minios/modules/`.
+3. Entrées situées de façon récursive sous `minios/modules/` sur la source de persistance en écriture enregistrée par l'initrd.
 
-Le troisième niveau est distinct du répertoire `minios/modules/` dans l’arborescence de données en lecture seule sélectionnée. Il permet à des modules utilisateur persistants de remplacer des fichiers issus d’une ISO ou d’une autre source en lecture seule. Il n’est disponible que si la découverte de la persistance a publié une racine en écriture contenant ce répertoire.
+Le troisième niveau est distinct du répertoire `minios/modules/` dans l’arborescence de données en lecture seule sélectionnée. Il permet aux modules utilisateur persistants d’écraser les fichiers provenant d’un ISO ou d’une autre source en lecture seule. Il n’est disponible que si la découverte de la persistance a publié une racine en écriture contenant ce répertoire.
 
-Les chemins candidats sont aplatis à leur nom de base exact lors du montage. Par exemple, `modules/work/50-extra.sb` et `modules/test/50-extra.sb` utilisent tous deux le point de montage nommé `50-extra.sb`. Ils ne deviennent pas deux couches adressables indépendamment. Un candidat d’un niveau ultérieur portant le même nom de base est monté sur le même point de montage et remplace le candidat précédent visible pour l’assemblage de l’union.
-Le même nom de base doit donc être considéré comme un emplacement de remplacement unique, et non comme un moyen de charger plusieurs modules depuis des répertoires différents.
+Les chemins candidats sont réduits à leur nom de base exact lors du montage. Par exemple, `modules/work/50-extra.sb` et `modules/test/50-extra.sb` utilisent tous deux le point de montage nommé `50-extra.sb`. Ils ne deviennent pas deux couches adressables indépendamment. Un candidat d’un niveau ultérieur portant le même nom de base est monté sur le même point de montage et remplace le candidat précédent visible lors de l’assemblage de l’union.
+Le même nom de base doit donc être considéré comme un emplacement de remplacement unique, et non comme un moyen de charger plusieurs modules depuis différents répertoires.
 
-Le format de module habituel est une image de système de fichiers SquashFS classique. Le scan de l’initrd est basé sur le nom de fichier : il sélectionne les chemins se terminant par l’extension configurée et ne vérifie pas d’abord que chaque chemin est bien un fichier régulier ou un SquashFS valide. Les scans récursifs peuvent donc rencontrer un autre type d’objet système de fichiers portant un nom correspondant. Un échec de montage en boucle ou de SquashFS est signalé par `mount`, mais la boucle du candidat ne rend pas cet échec fatal en soi et le démarrage peut se poursuivre avec une couche manquante. Validez les fichiers douteux avec le flux d’inspection décrit dans [Créer des modules](/preparing-and-customizing/Managing-Modules).
+Le format de module habituel est une image de système de fichiers SquashFS classique. L’analyse de l’initrd est basée sur le nom de fichier : elle sélectionne les chemins se terminant par l’extension configurée et ne vérifie pas d’abord que chaque chemin est bien un fichier régulier ou une SquashFS valide. Les analyses récursives peuvent donc rencontrer un autre type d’objet de système de fichiers portant un nom correspondant. Un échec de montage en boucle ou de SquashFS est signalé par `mount`, mais la boucle du candidat ne rend pas cet échec fatal en soi et le démarrage peut se poursuivre avec une couche manquante. Validez les fichiers douteux avec la procédure décrite dans [Inspecter et extraire les modules](/preparing-and-customizing/Managing-Modules#inspect-and-extract-modules).
 
 ## Ordonnancement et priorité
 
@@ -155,6 +155,6 @@ Pour un échec précoce, ajoutez `debug` pour afficher le traçage shell, `timin
 - [Découverte du système](/reference/boot-process/System-Discovery)
 - [Persistance](/reference/boot-process/Persistence-Internals)
 - [Gestionnaire de modules MiniOS](/preparing-and-customizing/Managing-Modules)
-- [Création de modules](/preparing-and-customizing/Managing-Modules)
-- [Gestion des noyaux](/preparing-and-customizing/Managing-Kernels)
+- [Création de modules](/preparing-and-customizing/Managing-Modules#creating-modules)
+- [Gestion du noyau](/preparing-and-customizing/Managing-Kernels)
 - [Dépannage](/maintenance-and-recovery/Troubleshooting)

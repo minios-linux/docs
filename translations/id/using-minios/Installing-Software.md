@@ -132,5 +132,5 @@ Tinjau perubahan APT yang diusulkan sebelum mengonfirmasi operasi perbaikan tamb
 
 ## Dokumentasi terkait
 
-- [Membuat modul](/preparing-and-customizing/Managing-Modules)
+- [Membuat modul](/preparing-and-customizing/Managing-Modules#creating-modules)
 - [Membangun ulang ISO](/preparing-and-customizing/Creating-Custom-MiniOS-Images)

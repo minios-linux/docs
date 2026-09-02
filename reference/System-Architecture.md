@@ -112,4 +112,4 @@ The booted paths under `/run/initramfs/memory/` are implementation mounts, not a
 - [Configuration file](/reference/configuration/config.conf)
 - [Session management](/using-minios/Sessions-and-Persistence)
 - [Network boot](/reference/boot-process/Network-Boot)
-- [Creating modules](/preparing-and-customizing/Managing-Modules)
+- [Creating modules](/preparing-and-customizing/Managing-Modules#creating-modules)

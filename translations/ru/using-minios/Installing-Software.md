@@ -130,7 +130,7 @@ sudo apt-get -f install
 
 Перед подтверждением любых дополнительных действий по восстановлению внимательно изучите предлагаемые изменения APT.
 
-## Связанные материалы
+## Связанная документация
 
-- [Создание модулей](/preparing-and-customizing/Managing-Modules)
+- [Создание модулей](/preparing-and-customizing/Managing-Modules#creating-modules)
 - [Пересборка ISO](/preparing-and-customizing/Creating-Custom-MiniOS-Images)

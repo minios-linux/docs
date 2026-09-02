@@ -54,9 +54,9 @@ Los selectores no son todos equivalentes:
 
 Otros parámetros de persistencia reconocidos sin selector entran en la misma ruta de reanudación heredada que `perch` solo: solicitan persistencia, pero no habilitan la creación automática. Si la selección o activación no produce una capa superior utilizable, el arranque continúa normalmente con la capa superior RAM y publica una advertencia de fallo.
 
-## Almacenamiento de sesiones y ubicación
+## Almacenamiento y ubicación de la sesión
 
-El almacenamiento normal es el directorio `changes` junto a los datos de MiniOS, con directorios de sesión numerados y metadatos `session.conf` o `session.json`:
+El almacenamiento habitual es el directorio `changes` junto a los datos de MiniOS, con directorios de sesión numerados y `session.conf` o `session.json` metadatos:
 
 ```text
 minios/changes/
@@ -66,9 +66,9 @@ minios/changes/
 `-- 2/
 ```
 
-El almacenamiento también puede seleccionarse como un dispositivo más una ruta opcional. Se aceptan formas como una ruta directa `/dev/...`, `/dev/disk/by-label/LABEL/...`, `/dev/mapper/...`, `label:LABEL/...`, `askdisk` y `askdisk:custom:path`. El sufijo delimitado por dos puntos se convierte en una ruta bajo el dispositivo seleccionado; la sintaxis de barra tras `askdisk` pierde silenciosamente esa ruta personalizada. Un subdirectorio seleccionado se monta con bind como almacenamiento de sesiones. MiniOS también puede detectar una partición de persistencia en la misma unidad y almacenamiento de persistencia Ventoy compatible.
+El almacenamiento también puede seleccionarse como un dispositivo más una ruta opcional. Se aceptan formas como una ruta directa de `/dev/...` , `/dev/disk/by-label/LABEL/...` , `/dev/mapper/...` , `label:LABEL/...` , `askdisk` y `askdisk:custom:path`. El sufijo delimitado por dos puntos se convierte en una ruta debajo del dispositivo seleccionado; la sintaxis de barra después de `askdisk` pierde silenciosamente esa ruta personalizada. Un subdirectorio seleccionado se monta mediante bind como almacenamiento de sesión. MiniOS también puede detectar una partición de persistencia en la misma unidad y almacenamiento de persistencia Ventoy compatible.
 
-Antes de seleccionar la sesión, el initrd debe montar la ubicación como escribible y demostrar que puede crear y eliminar un marcador en el almacenamiento. Un dispositivo de bloques que no pueda abrirse en modo escritura, un montaje de solo lectura, una ruta no disponible o un fallo en la prueba de escritura rechazan la persistencia para ese arranque. No se confía en las sesiones existentes solo porque se puedan leer sus archivos.
+Antes de seleccionar la sesión, el initrd debe montar la ubicación con permisos de escritura y comprobar que puede crear y eliminar un marcador en el almacenamiento. Un dispositivo de bloques que no pueda abrirse para escritura, un montaje de solo lectura, una ruta no disponible o una prueba de escritura fallida rechazan la persistencia para ese arranque. No se confía en las sesiones existentes solo porque sus archivos puedan leerse.
 
 ## Selección y compatibilidad
 

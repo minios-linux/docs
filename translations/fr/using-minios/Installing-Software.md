@@ -132,5 +132,5 @@ Examinez les modifications APT proposées avant de valider toute opération de r
 
 ## Documentation associée
 
-- [Créer des modules](/preparing-and-customizing/Managing-Modules)
+- [Créer des modules](/preparing-and-customizing/Managing-Modules#creating-modules)
 - [Reconstruire l’ISO](/preparing-and-customizing/Creating-Custom-MiniOS-Images)

@@ -54,9 +54,9 @@ Os seletores não são todos equivalentes:
 
 Outros parâmetros de persistência reconhecidos sem seletor entram no mesmo caminho legado de retomada que o `perch` isolado: solicitam persistência, mas não permitem criação automática. Se a seleção ou ativação não produzir uma camada superior utilizável, o boot continua normalmente com a camada superior RAM e publica um aviso de falha.
 
-## Armazenamento de sessões e localização
+## Armazenamento e localização da sessão
 
-O armazenamento padrão é o diretório `changes` ao lado dos dados MiniOS, com diretórios de sessões numeradas e metadados `session.conf` ou `session.json`:
+O armazenamento padrão fica no diretório `changes` ao lado dos dados MiniOS, com diretórios de sessão numerados e `session.conf` ou `session.json` metadados:
 
 ```text
 minios/changes/
@@ -66,9 +66,9 @@ minios/changes/
 `-- 2/
 ```
 
-O armazenamento pode ser selecionado como um dispositivo mais um caminho opcional. Formatos aceitos incluem um caminho `/dev/...` direto, `/dev/disk/by-label/LABEL/...`, `/dev/mapper/...`, `label:LABEL/...`, `askdisk` e `askdisk:custom:path`. O sufixo delimitado por dois-pontos se torna um caminho abaixo do dispositivo selecionado; a sintaxe de barra após `askdisk` perde silenciosamente esse caminho personalizado. Um subdiretório selecionado é montado via bind como armazenamento de sessões. O MiniOS também pode detectar uma partição de persistência no mesmo disco e suportar armazenamento de persistência Ventoy.
+O armazenamento também pode ser selecionado como um dispositivo mais um caminho opcional. As formas aceitas incluem um caminho direto `/dev/...` , `/dev/disk/by-label/LABEL/...` , `/dev/mapper/...` , `label:LABEL/...` , `askdisk` e `askdisk:custom:path`. O sufixo separado por dois-pontos se torna um caminho abaixo do dispositivo selecionado; a sintaxe com barra após `askdisk` descarta silenciosamente esse caminho personalizado. Um subdiretório selecionado é montado via bind como o armazenamento da sessão. MiniOS também pode detectar uma partição de persistência no mesmo disco e armazenamento de persistência Ventoy compatível.
 
-Antes da seleção da sessão, o initrd deve montar o local como gravável e provar que pode criar e remover um marcador no armazenamento. Um dispositivo de bloco que não pode ser aberto para gravação, uma montagem somente leitura, um caminho indisponível ou uma falha no teste de gravação rejeitam a persistência para aquele boot. Sessões existentes não são confiáveis apenas porque seus arquivos podem ser lidos.
+Antes da seleção da sessão, o initrd deve montar o local como gravável e comprovar que consegue criar e remover um marcador no armazenamento. Um dispositivo de bloco que não pode ser aberto para gravação, uma montagem somente leitura, um caminho indisponível ou uma falha no teste de gravação impedem a persistência para essa inicialização. Sessões existentes não são consideradas confiáveis apenas porque seus arquivos podem ser lidos.
 
 ## Seleção e compatibilidade
 

@@ -10,9 +10,9 @@ program_commits:
 
 MiniOS incluye un kernel predeterminado, pero existen varias razones por las que podrías querer reemplazarlo:
 
-### **Diferentes variantes de kernel de Debian**
+### **Diferentes sabores del kernel de Debian**
 
-Debian ofrece varias variantes de kernel optimizadas para distintos casos de uso:
+Debian ofrece varias variantes de kernel optimizadas para diferentes casos de uso:
 
 - **`linux-image-6.12.38+deb13-amd64`** - Kernel estándar para sistemas de 64 bits (predeterminado en MiniOS)
 - **`linux-image-6.12.38+deb13-rt-amd64`** - Kernel en tiempo real para aplicaciones críticas en tiempo
@@ -81,7 +81,7 @@ El gestor gráfico de kernels proporciona una interfaz intuitiva para todas las 
 
 ### **Pasos:**
 
-#### 1. **Inicia la aplicación**
+#### 1. **Iniciar la aplicación**
 
 ```bash
 minios-kernel-manager
@@ -132,7 +132,7 @@ La herramienta de línea de comandos permite gestionar kernels de forma automati
 
 ### **Se requieren privilegios administrativos:**
 
-La herramienta CLI requiere privilegios de root y los comprobará automáticamente. Ejecuta los comandos con `sudo` o mediante `pkexec`:
+La herramienta CLI requiere privilegios de root y los verificará automáticamente. Ejecuta los comandos con `sudo` o mediante `pkexec`:
 
 ```bash
 sudo minios-kernel list
@@ -148,11 +148,11 @@ pkexec minios-kernel activate 6.12.38+deb13-amd64
 sudo minios-kernel list
 ```
 
-Muestra todos los kernels empaquetados y su estado.
+Muestra todos los kernels empaquetados junto con su estado.
 
 #### 2. **Empaquetar un kernel**
 
-**Desde repositorio:**
+**Desde el repositorio:**
 ```bash
 sudo minios-kernel package --repo linux-image-6.12.38+deb13-amd64 -o /tmp/kernel-output
 ```
@@ -185,7 +185,7 @@ sudo minios-kernel delete 6.12.38+deb13-amd64
 sudo minios-kernel status
 ```
 
-Muestra el estado del directorio de MiniOS e información del kernel actual.
+Muestra el estado del directorio MiniOS y la información del kernel actual.
 
 #### 6. **Mostrar información del kernel**
 
@@ -194,11 +194,11 @@ sudo minios-kernel info                           # Information about current ac
 sudo minios-kernel info 6.12.38+deb13-amd64     # Information about specific kernel
 ```
 
-Muestra información detallada de un kernel específico, incluyendo su estado y disponibilidad.
+Muestra información detallada sobre un kernel específico, incluyendo su estado y disponibilidad.
 
 ### **Opciones avanzadas de CLI:**
 
-#### **Salida JSON (para scripts):**
+#### **Salida en JSON (para scripting):**
 
 ```bash
 sudo minios-kernel --json list
@@ -292,13 +292,13 @@ cat /proc/version           # Kernel version details
 lsmod                       # Loaded kernel modules
 ```
 
-**Verificar archivos de kernel:**
+**Verificar archivos del kernel:**
 ```bash
 ls -la /minios/kernels/     # List packaged kernels
 ls -la /minios/boot/        # List boot files
 ```
 
-**Comprobar configuración del gestor de arranque:**
+**Comprobar la configuración del gestor de arranque:**
 ```bash
 grep -r "vmlinuz" /minios/boot/  # Find kernel references in boot configs
 ```
@@ -309,7 +309,7 @@ grep -r "vmlinuz" /minios/boot/  # Find kernel references in boot configs
 
 El Gestor de kernels de MiniOS administra automáticamente estos archivos:
 
-### **Estructura del repositorio de kernel:**
+### **Estructura del repositorio de kernels:**
 
 ```
 /minios/
@@ -328,7 +328,7 @@ El Gestor de kernels de MiniOS administra automáticamente estos archivos:
 │       └── grub.cfg               # GRUB bootloader config
 ```
 
-**Nota:** El módulo estándar `01-kernel-<version>.sb` que viene con MiniOS incluye controladores adicionales más allá de los que se encuentran en los paquetes de kernel originales del repositorio. Estos controladores adicionales mejoran la compatibilidad de hardware para adaptadores inalámbricos y dispositivos de almacenamiento.
+**Nota:** El módulo estándar `01-kernel-<version>.sb` que viene con MiniOS incluye controladores adicionales que no están en los paquetes de kernel originales del repositorio. Estos controladores extra mejoran la compatibilidad de hardware para adaptadores inalámbricos y dispositivos de almacenamiento.
 
 ### **Indicadores de estado:**
 

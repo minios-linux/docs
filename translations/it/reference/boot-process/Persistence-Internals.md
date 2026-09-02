@@ -54,9 +54,9 @@ I selettori non sono tutti equivalenti:
 
 Altri parametri di persistenza riconosciuti senza selettore entrano nello stesso percorso legacy di ripresa di `perch` senza argomenti: richiedono la persistenza, ma non abilitano la creazione automatica. Se la selezione o l’attivazione non producono uno strato superiore utilizzabile, l’avvio prosegue normalmente con lo strato superiore RAM e viene pubblicato un avviso di errore.
 
-## Archivio delle sessioni e posizione
+## Archivio e posizione della sessione
 
-L’archivio normale è la directory `changes` accanto ai dati MiniOS, con directory di sessione numerate e metadati `session.conf` o `session.json`:
+L’archivio predefinito è la directory `changes` accanto ai dati MiniOS, con directory di sessione numerate e `session.conf` o `session.json` metadati:
 
 ```text
 minios/changes/
@@ -66,9 +66,9 @@ minios/changes/
 `-- 2/
 ```
 
-L’archivio può invece essere selezionato come dispositivo più un percorso opzionale. Le forme accettate includono un percorso diretto `/dev/...`, `/dev/disk/by-label/LABEL/...`, `/dev/mapper/...`, `label:LABEL/...`, `askdisk` e `askdisk:custom:path`. Il suffisso delimitato da due punti diventa un percorso sotto il dispositivo selezionato; la sintassi con slash dopo `askdisk` perde silenziosamente quel percorso personalizzato. Una sottodirectory selezionata viene montata in bind come archivio delle sessioni. MiniOS può anche individuare una partizione di persistenza sullo stesso disco e archiviazione di persistenza Ventoy supportata.
+L’archivio può anche essere selezionato come un dispositivo più un percorso opzionale. Sono accettate diverse forme, tra cui un percorso diretto `/dev/...` , `/dev/disk/by-label/LABEL/...`, `/dev/mapper/...`, `label:LABEL/...`, `askdisk`, e `askdisk:custom:path`. Il suffisso separato da due punti diventa un percorso sotto il dispositivo selezionato; la sintassi con slash dopo `askdisk` perde silenziosamente quel percorso personalizzato. Una sottodirectory selezionata viene montata come archivio di sessione. MiniOS può anche rilevare una partizione di persistenza sullo stesso disco e uno storage di persistenza Ventoy supportato.
 
-Prima della selezione della sessione, l’initrd deve montare la posizione in modalità scrittura e verificare di poter creare e rimuovere un marcatore nell’archivio. Un dispositivo a blocchi che non può essere aperto in scrittura, un mount in sola lettura, un percorso non disponibile o un test di scrittura fallito rifiutano la persistenza per quell’avvio. Le sessioni esistenti non sono considerate affidabili solo perché i loro file sono leggibili.
+Prima della selezione della sessione, l’initrd deve montare la posizione in modalità scrittura e verificare di poter creare e rimuovere un marcatore nell’archivio. Un dispositivo a blocchi che non può essere aperto in scrittura, un mount in sola lettura, un percorso non disponibile o un test di scrittura fallito impediscono la persistenza per quell’avvio. Le sessioni esistenti non sono considerate affidabili solo perché i loro file sono leggibili.
 
 ## Selezione e compatibilità
 

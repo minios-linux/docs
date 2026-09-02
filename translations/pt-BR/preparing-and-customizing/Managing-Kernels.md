@@ -10,15 +10,15 @@ program_commits:
 
 MiniOS vem com um kernel padrão, mas há vários motivos pelos quais você pode querer substituí-lo:
 
-### **Diferentes variantes de kernel do Debian**
+### **Diferentes versões do kernel Debian**
 
-O Debian oferece vários tipos de kernel otimizados para diferentes usos:
+O Debian oferece várias variantes de kernel otimizadas para diferentes casos de uso:
 
-- **`linux-image-6.12.38+deb13-amd64`** - Kernel padrão para sistemas 64-bit (padrão no MiniOS)
-- **`linux-image-6.12.38+deb13-rt-amd64`** - Kernel em tempo real para aplicações críticas
+- **`linux-image-6.12.38+deb13-amd64`** - Kernel padrão para sistemas 64 bits (padrão no MiniOS)
+- **`linux-image-6.12.38+deb13-rt-amd64`** - Kernel em tempo real para aplicações críticas de tempo
 - **`linux-image-6.12.38+deb13-cloud-amd64`** - Otimizado para ambientes em nuvem e virtualizados
 
-> **Observação:** Os números de versão (como `6.12.38+deb13`) mudam com as atualizações. Para encontrar os kernels disponíveis atualmente:
+> **Observação:** Os números de versão (como `6.12.38+deb13`) mudam conforme as atualizações. Para encontrar os kernels disponíveis atualmente:
 > ```bash
 > apt search linux-image-.*-amd64
 > apt search linux-image-.*-rt-amd64
@@ -81,7 +81,7 @@ O gerenciador gráfico de kernels oferece uma interface intuitiva para todas as 
 
 ### **Passos:**
 
-#### 1. **Inicie o aplicativo**
+#### 1. **Abra o aplicativo**
 
 ```bash
 minios-kernel-manager
@@ -132,7 +132,7 @@ A ferramenta de linha de comando oferece recursos de gerenciamento de kernel par
 
 ### **Privilégios administrativos necessários:**
 
-A ferramenta CLI exige privilégios de root e fará a verificação automaticamente. Execute os comandos com `sudo` ou via `pkexec`:
+A ferramenta CLI requer privilégios de root e faz essa verificação automaticamente. Execute os comandos com `sudo` ou através de `pkexec`:
 
 ```bash
 sudo minios-kernel list
@@ -148,7 +148,7 @@ pkexec minios-kernel activate 6.12.38+deb13-amd64
 sudo minios-kernel list
 ```
 
-Exibe todos os kernels empacotados com seus status.
+Exibe todos os kernels empacotados com seus respectivos status.
 
 #### 2. **Empacotar um kernel**
 
@@ -185,16 +185,16 @@ sudo minios-kernel delete 6.12.38+deb13-amd64
 sudo minios-kernel status
 ```
 
-Mostra o status do diretório do MiniOS e informações do kernel atual.
+Mostra o status do diretório MiniOS e informações do kernel em uso.
 
-#### 6. **Mostrar informações do kernel**
+#### 6. **Exibir informações do kernel**
 
 ```bash
 sudo minios-kernel info                           # Information about current active kernel
 sudo minios-kernel info 6.12.38+deb13-amd64     # Information about specific kernel
 ```
 
-Exibe informações detalhadas sobre um kernel específico, incluindo status e disponibilidade.
+Mostra informações detalhadas sobre um kernel específico, incluindo status e disponibilidade.
 
 ### **Opções avançadas da CLI:**
 
@@ -283,7 +283,7 @@ Não copie uma imagem de kernel individual, initramfs ou módulo `01-kernel-*.sb
 
 ### **Comandos de diagnóstico:**
 
-**Verifique o status atual do sistema:**
+**Verificar status atual do sistema:**
 ```bash
 sudo minios-kernel status
 sudo minios-kernel info     # Current active kernel info
@@ -292,13 +292,13 @@ cat /proc/version           # Kernel version details
 lsmod                       # Loaded kernel modules
 ```
 
-**Verifique os arquivos do kernel:**
+**Verificar arquivos do kernel:**
 ```bash
 ls -la /minios/kernels/     # List packaged kernels
 ls -la /minios/boot/        # List boot files
 ```
 
-**Verifique a configuração do bootloader:**
+**Verificar configuração do bootloader:**
 ```bash
 grep -r "vmlinuz" /minios/boot/  # Find kernel references in boot configs
 ```
@@ -309,7 +309,7 @@ grep -r "vmlinuz" /minios/boot/  # Find kernel references in boot configs
 
 O Gerenciador de Kernel do MiniOS gerencia automaticamente estes arquivos:
 
-### **Estrutura do Repositório de Kernel:**
+### **Estrutura do repositório de kernels:**
 
 ```
 /minios/
@@ -328,7 +328,7 @@ O Gerenciador de Kernel do MiniOS gerencia automaticamente estes arquivos:
 │       └── grub.cfg               # GRUB bootloader config
 ```
 
-**Observação:** O módulo padrão `01-kernel-<version>.sb` que acompanha o MiniOS inclui drivers adicionais além dos presentes nos pacotes de kernel do repositório original. Esses drivers extras oferecem maior compatibilidade de hardware para adaptadores wireless e dispositivos de armazenamento.
+**Observação:** O módulo padrão `01-kernel-<version>.sb` que acompanha o MiniOS contém drivers adicionais além dos incluídos nos pacotes de kernel originais do repositório. Esses drivers extras aumentam a compatibilidade de hardware para adaptadores wireless e dispositivos de armazenamento.
 
 ### **Indicadores de Status:**
 

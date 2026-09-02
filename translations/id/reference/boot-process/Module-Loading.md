@@ -26,20 +26,20 @@ Parameter `load=` dan `noload=` memfilter path modul sebelum perakitan. Mereka m
 
 Sebelum mengubah filter, catat command line dan set modul saat ini. Uji satu perubahan dalam satu waktu dan pastikan ada entri boot yang sudah terbukti berfungsi.
 
-## Tingkatan kandidat
+## Tingkat kandidat
 
-Setelah menemukan direktori data MiniOS, biasanya `minios/`, initrd memindai kandidat modul dalam urutan berikut:
+Setelah menemukan direktori data MiniOS, biasanya `minios/`, initrd akan memindai kandidat modul dengan urutan berikut:
 
-1. Entri yang langsung berada di dalam `minios/`. Pemindaian ini tidak rekursif.
-2. Entri secara rekursif di bawah `minios/modules/`.
-3. Entri secara rekursif di bawah `minios/modules/` pada sumber persistence writable yang direkam oleh initrd.
+1. Entri yang langsung berada di dalam `minios/`. Pemindaian ini tidak dilakukan secara rekursif.
+2. Entri yang berada secara rekursif di bawah `minios/modules/`.
+3. Entri yang berada secara rekursif di bawah `minios/modules/` pada sumber persistence yang dapat ditulis dan telah dicatat oleh initrd.
 
-Tingkat ketiga terpisah dari direktori `minios/modules/` di pohon data hanya-baca yang dipilih. Ini memungkinkan modul pengguna yang tahan lama untuk menimpa file dari ISO atau sumber hanya-baca lainnya. Fitur ini hanya tersedia jika penemuan persistence telah mempublikasikan root writable yang memuat direktori tersebut.
+Tingkat ketiga ini terpisah dari direktori `minios/modules/` pada pohon data hanya-baca yang dipilih. Ini memungkinkan modul pengguna yang bersifat tahan lama untuk menimpa file dari ISO atau sumber hanya-baca lainnya. Fitur ini hanya tersedia jika penemuan persistence telah mempublikasikan root yang dapat ditulis dan berisi direktori tersebut.
 
-Path kandidat diratakan ke basename persis saat dipasang. Misalnya, `modules/work/50-extra.sb` dan `modules/test/50-extra.sb` sama-sama menggunakan mountpoint bernama `50-extra.sb`. Keduanya tidak menjadi dua layer yang dapat diakses secara independen. Kandidat di tier berikutnya dengan basename yang sama akan dipasang pada mountpoint yang sama dan menggantikan kandidat sebelumnya yang terlihat oleh union assembly.
-Karena itu, basename yang sama sebaiknya diperlakukan sebagai satu slot pengganti, bukan sebagai cara untuk memuat beberapa modul dari direktori berbeda.
+Setiap jalur kandidat akan diratakan menjadi nama berkas persis saat dipasang. Sebagai contoh, `modules/work/50-extra.sb` dan `modules/test/50-extra.sb` keduanya akan menggunakan mountpoint bernama `50-extra.sb`. Keduanya tidak menjadi dua lapisan yang dapat diakses secara independen. Kandidat pada tingkat berikutnya dengan nama berkas yang sama akan dipasang pada mountpoint yang sama dan menggantikan kandidat sebelumnya yang terlihat oleh union assembly.
+Oleh karena itu, nama berkas yang sama harus diperlakukan sebagai satu slot pengganti, bukan sebagai cara untuk memuat beberapa modul dari direktori yang berbeda.
 
-Format modul normal adalah image filesystem SquashFS reguler. Pemindaian initrd sendiri berbasis nama file: hanya memilih path yang diakhiri dengan ekstensi yang dikonfigurasi dan tidak terlebih dahulu memastikan bahwa setiap path adalah file reguler atau SquashFS yang valid. Pemindaian rekursif karenanya dapat menemukan jenis objek filesystem lain dengan nama yang cocok. Kegagalan loop atau mount SquashFS akan dilaporkan oleh `mount`, tetapi kegagalan pada kandidat loop tidak otomatis membuat boot gagal dan proses boot dapat berlanjut meski ada layer yang hilang. Validasi file yang meragukan dengan alur inspeksi di [Membuat modul](/preparing-and-customizing/Managing-Modules).
+Format modul yang umum adalah image filesystem SquashFS biasa. Pemindaian initrd sendiri berbasis nama file: hanya memilih jalur yang berakhiran ekstensi yang dikonfigurasi dan tidak memverifikasi terlebih dahulu apakah jalur tersebut adalah file reguler atau SquashFS yang valid. Pemindaian rekursif dapat menemukan objek filesystem lain dengan nama yang cocok. Kegagalan loop atau mount SquashFS akan dilaporkan oleh `mount`, namun kegagalan pada loop kandidat tidak langsung menyebabkan boot gagal dan proses boot dapat berlanjut meskipun ada lapisan yang hilang. Validasi file yang meragukan dengan alur kerja di [Inspeksi dan ekstrak modul](/preparing-and-customizing/Managing-Modules#inspect-and-extract-modules).
 
 ## Urutan dan prioritas
 
@@ -152,9 +152,9 @@ Untuk kegagalan awal, tambahkan `debug` untuk menampilkan tracing shell, `timing
 ## Dokumentasi terkait
 
 - [Mode boot](/using-minios/Boot-Modes)
-- [Penemuan sistem](/reference/boot-process/System-Discovery)
-- [Persistensi](/reference/boot-process/Persistence-Internals)
+- [Deteksi sistem](/reference/boot-process/System-Discovery)
+- [Persistence](/reference/boot-process/Persistence-Internals)
 - [Manajer Modul MiniOS](/preparing-and-customizing/Managing-Modules)
-- [Membuat modul](/preparing-and-customizing/Managing-Modules)
+- [Membuat modul](/preparing-and-customizing/Managing-Modules#creating-modules)
 - [Manajemen kernel](/preparing-and-customizing/Managing-Kernels)
 - [Pemecahan masalah](/maintenance-and-recovery/Troubleshooting)

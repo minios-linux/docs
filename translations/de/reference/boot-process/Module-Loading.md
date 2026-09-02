@@ -26,20 +26,20 @@ Die Parameter `load=` und `noload=` filtern Modulpfade vor der Zusammenstellung.
 
 Bevor Sie Filter ändern, notieren Sie die aktuelle Befehlszeile und das Modulpaket. Testen Sie immer nur eine Änderung und halten Sie einen bekannten, funktionierenden Boot-Eintrag bereit.
 
-## Kandidatenebenen
+## Kandidaten-Tiers
 
-Nach dem Auffinden des MiniOS-Datenverzeichnisses, in der Regel `minios/`, durchsucht das initrd Modulkandidaten in folgender Reihenfolge:
+Nachdem das MiniOS-Datenverzeichnis gefunden wurde, wird normalerweise `minios/` die Initrd-Umgebung die Modulkandidaten in folgender Reihenfolge durchsuchen:
 
-1. Einträge direkt innerhalb von `minios/`. Diese Suche ist nicht rekursiv.
+1. Einträge direkt im Verzeichnis `minios/`. Dieser Scan ist nicht rekursiv.
 2. Einträge rekursiv unterhalb von `minios/modules/`.
-3. Einträge rekursiv unterhalb von `minios/modules/` auf der vom initrd erkannten schreibbaren Persistenzquelle.
+3. Einträge rekursiv unterhalb von `minios/modules/` auf der von Initrd erkannten beschreibbaren Persistenzquelle.
 
-Die dritte Ebene ist getrennt vom `minios/modules/`-Verzeichnis im gewählten schreibgeschützten Datenbaum. Sie erlaubt es, dauerhafte Benutzermodule zu verwenden, um Dateien von einer ISO oder einer anderen schreibgeschützten Quelle zu überschreiben. Sie ist nur verfügbar, wenn die Persistenzerkennung eine schreibbare Root mit diesem Verzeichnis veröffentlicht hat.
+Die dritte Stufe ist getrennt vom Verzeichnis `minios/modules/` im ausgewählten schreibgeschützten Datenbaum. Sie ermöglicht es, dauerhafte Benutzermodule zu verwenden, um Dateien von einem ISO-Image oder einer anderen schreibgeschützten Quelle zu überschreiben. Diese Option steht nur zur Verfügung, wenn die Persistenz-Erkennung ein beschreibbares Root mit diesem Verzeichnis bereitgestellt hat.
 
-Kandidatenpfade werden beim Mounten auf ihren exakten Basenamen reduziert. Zum Beispiel verwenden `modules/work/50-extra.sb` und `modules/test/50-extra.sb` beide den Mountpoint `50-extra.sb`. Sie werden nicht zu zwei unabhängig adressierbaren Ebenen. Ein Kandidat in einer späteren Ebene mit demselben Basenamen wird auf denselben Mountpoint gemountet und ersetzt den früheren Kandidaten, der für die Union-Zusammenstellung sichtbar war.
-Derselbe Basename sollte daher als ein Ersatz-Slot behandelt werden und nicht als Möglichkeit, mehrere Module aus unterschiedlichen Verzeichnissen zu laden.
+Kandidatenpfade werden beim Einbinden auf ihren exakten Basenamen reduziert. Zum Beispiel verwenden `modules/work/50-extra.sb` und `modules/test/50-extra.sb` beide den Mountpoint mit dem Namen `50-extra.sb`. Sie werden nicht zu zwei unabhängig adressierbaren Layern. Ein Kandidat in einer späteren Stufe mit demselben Basenamen wird auf demselben Mountpoint eingebunden und ersetzt den vorherigen Kandidaten, der für die Union-Assembly sichtbar war.
+Der gleiche Basename sollte daher als ein Ersetzungs-Slot betrachtet werden und nicht als Möglichkeit, mehrere Module aus verschiedenen Verzeichnissen zu laden.
 
-Das normale Modulformat ist ein reguläres SquashFS-Dateisystemabbild. Der initrd-Scan selbst ist dateinamengesteuert: Er wählt Pfade mit der konfigurierten Endung aus und prüft nicht zuerst, ob jeder Pfad eine reguläre Datei oder ein gültiges SquashFS ist. Rekursive Scans können daher auf andere Dateisystemobjekte mit passendem Namen stoßen. Ein fehlgeschlagener Loop- oder SquashFS-Mount wird von `mount` gemeldet, aber die Kandidatenschleife macht diesen Fehler nicht selbst fatal und der Bootvorgang kann mit einer fehlenden Ebene fortgesetzt werden. Überprüfen Sie fragwürdige Dateien mit dem Prüf-Workflow unter [Module erstellen](/preparing-and-customizing/Managing-Modules).
+Das übliche Modulformat ist ein reguläres SquashFS-Dateisystem-Image. Der Initrd-Scan selbst ist dateinamenbasiert: Es werden Pfade mit der konfigurierten Dateiendung ausgewählt, ohne vorher zu prüfen, ob es sich um eine reguläre Datei oder ein gültiges SquashFS handelt. Bei rekursiven Scans kann daher auch ein anderes Dateisystemobjekt mit passendem Namen gefunden werden. Ein fehlgeschlagener Loop- oder SquashFS-Mount wird von `mount` gemeldet, aber der betreffende Kandidat führt nicht automatisch zu einem kritischen Fehler, sodass der Bootvorgang mit einer fehlenden Schicht fortgesetzt werden kann. Überprüfen Sie fragwürdige Dateien mit dem Ablauf in [Module inspizieren und extrahieren](/preparing-and-customizing/Managing-Modules#inspect-and-extract-modules).
 
 ## Reihenfolge und Priorität
 
@@ -149,12 +149,12 @@ findmnt -R /run/initramfs 2>/dev/null
 
 Für einen frühen Fehler fügen Sie `debug` hinzu, um Shell-Tracing zu aktivieren, `timing` für Phasen-Timings oder `rd.break`, um nach dem initrd-Setup und vor der finalen Root-Übergabe eine Shell zu öffnen. Untersuchen Sie in dieser Shell `/memory/data`, `/memory/bundles`, Mounts und `/proc/cmdline`; reparieren Sie keine Dateisysteme und entfernen Sie keine Medien, solange sie gemountet sind. Erfassen Sie den ersten Mount- oder Kopierfehler, nicht nur das spätere Symptom. Siehe [Fehlerbehebung](/maintenance-and-recovery/Troubleshooting) für einen umfassenderen sicheren Diagnose-Workflow.
 
-## Weiterführende Dokumentation
+## Verwandte Dokumentation
 
 - [Boot-Modi](/using-minios/Boot-Modes)
-- [System-Erkennung](/reference/boot-process/System-Discovery)
+- [Systemerkennung](/reference/boot-process/System-Discovery)
 - [Persistenz](/reference/boot-process/Persistence-Internals)
 - [MiniOS-Modulmanager](/preparing-and-customizing/Managing-Modules)
-- [Module erstellen](/preparing-and-customizing/Managing-Modules)
+- [Module erstellen](/preparing-and-customizing/Managing-Modules#creating-modules)
 - [Kernel-Verwaltung](/preparing-and-customizing/Managing-Kernels)
 - [Fehlerbehebung](/maintenance-and-recovery/Troubleshooting)

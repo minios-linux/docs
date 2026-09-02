@@ -11,15 +11,15 @@ Der MiniOS-Abbildersteller ist eine GTK-Anwendung zum Remastern eines bestehende
 
 Der Abbildersteller läuft innerhalb von MiniOS. Das ausgewählte Quellmedium wird dabei nicht verändert.
 
-## Den richtigen Workflow wählen
+## Wählen Sie den passenden Workflow aus
 
-Der MiniOS-Abbildersteller remastert ein bestehendes binäres MiniOS-Abbild. Er ersetzt keinen der folgenden Workflows:
+MiniOS-Abbildersteller erstellt ein Remaster eines bestehenden MiniOS-Abbilds. Es ersetzt keinen der folgenden Workflows:
 
-- **MiniOS aus dem Quellcode bauen:** Verwenden Sie das `minios-live`-Buildsystem, wenn Sie die Paketlisten der Distribution, die Build-Konfiguration, die Kernel-Ebene, Boot-Artefakte oder die reproduzierbare Quellmodulkette ändern möchten. Siehe [MiniOS bauen](/development/Building-MiniOS).
-- **Ein wiederverwendbares Modul erstellen:** Verwenden Sie `apt2sb`, `script2sb`, `chroot2sb` oder andere Modulwerkzeuge, wenn das Ergebnis eine eigenständige `.sb`-Ebene sein soll. Siehe [Module erstellen](/preparing-and-customizing/Managing-Modules).
-- **Ein Abbild remastern:** Verwenden Sie den MiniOS-Abbildersteller, wenn Sie bestehende Module auswählen, abgeschlossene externe Module hinzufügen, unterstützte Abbild-Einstellungen ändern, optional Sitzungsänderungen erfassen und ein weiteres ISO veröffentlichen möchten.
+- **MiniOS aus dem Quellcode bauen:** verwenden Sie das `minios-live` Build-System, wenn Sie die Paketlisten der Distribution, die Build-Konfiguration, die Kernel-Ebene, Boot-Artefakte oder die reproduzierbare, aus dem Quellcode gebaute Modulkette ändern. Siehe [Bauen von MiniOS](/development/Building-MiniOS).
+- **Wiederverwendbares Modul erstellen:** verwenden Sie `apt2sb`, `script2sb`, `chroot2sb`, oder die anderen Modulwerkzeuge, wenn das Ergebnis ein eigenständiger `.sb` Layer sein soll. Siehe [Module erstellen](/preparing-and-customizing/Managing-Modules#creating-modules).
+- **Abbild remastern:** verwenden Sie MiniOS-Abbildersteller, wenn Sie bestehende Module auswählen, abgeschlossene externe Module hinzufügen, unterstützte Abbild-Einstellungen ändern, optional Sitzungsänderungen erfassen und ein weiteres ISO veröffentlichen möchten.
 
-Die Projektdateisystem-Ebene ist für deklarative Dateien im Abbild-Stammverzeichnis vorgesehen. Sie führt keine Skripte aus, installiert keine Pakete und öffnet kein chroot. Software, die wiederverwendet werden soll, sollte als Modul vorbereitet werden, bevor sie einem MiniOS-Abbildersteller-Projekt hinzugefügt wird.
+Die Projekt-Dateisystemebene ist für deklarative Dateien im Abbild-Root vorgesehen. Sie führt keine Skripte aus, installiert keine Pakete und öffnet kein chroot. Software, die wiederverwendet werden soll, sollte als Modul vorbereitet werden, bevor sie zu einem MiniOS-Abbildersteller-Projekt hinzugefügt wird.
 
 ## Quelloptionen
 
@@ -146,11 +146,11 @@ Inventar-, Build- und Verifizierungsprozesse laufen in eigenen Prozessgruppen. E
 
 Ein abgebrochener oder fehlgeschlagener Build veröffentlicht sein privates ISO nicht. Ein vorheriges Ziel bleibt erhalten, sofern ein verifiziertes Ersatz-ISO nicht die atomare Veröffentlichung erreicht hat.
 
-## Verwandte Dokumentation
+## Zugehörige Dokumentation
 
-- [Building MiniOS](/development/Building-MiniOS)
-- [Creating modules](/preparing-and-customizing/Managing-Modules)
-- [Composing ISO images from the command line](/preparing-and-customizing/Creating-Custom-MiniOS-Images)
+- [Bauen von MiniOS](/development/Building-MiniOS)
+- [Module erstellen](/preparing-and-customizing/Managing-Modules#creating-modules)
+- [ISO-Abbilder über die Kommandozeile zusammenstellen](/preparing-and-customizing/Creating-Custom-MiniOS-Images#composing-minios-iso-images-from-the-command-line)
 
 ## MiniOS-ISO-Abbilder über die Kommandozeile zusammensetzen
 
@@ -185,7 +185,7 @@ Die Quelle ist schreibgeschützt und wird nie verändert. ISO-Dateien und optisc
 
 ### Module auswählen
 
-Zusätzliche `.sb`-Module werden als Positionsargumente angegeben:
+Zusätzliche `.sb` Module sind Positionsargumente:
 
 ```bash
 minios-image-compose 06-development.sb 10-site-config.sb \
@@ -193,18 +193,18 @@ minios-image-compose 06-development.sb 10-site-config.sb \
 ```
 
 Der Befehl prüft jedes Modul als lesbare, nicht-symlink SquashFS-Datei.
-Module, deren Namen mit zwei Ziffern und einem Bindestrich beginnen, werden auf der MiniOS-Top-Ebene platziert. Andere hinzugefügte Module werden in `minios/modules/` abgelegt. Doppelte oder groß-/kleinschreibungsunabhängige Namenskollisionen werden abgelehnt.
+Module, deren Namen mit zwei Ziffern und einem Bindestrich beginnen, werden auf der MiniOS-Top-Ebene platziert. Andere hinzugefügte Module werden in `minios/modules/` abgelegt. Doppelte oder groß-/kleinschreibungsunabhängige Basename-Kollisionen werden abgelehnt.
 
-Quellpfade können mit einem POSIX Extended Regular Expression ausgeschlossen werden:
+Quellpfade mit einem POSIX Extended Regular Expression ausschließen:
 
 ```bash
 minios-image-compose --exclude 'firefox|libreoffice|gimp' \
   --name ./minios-lite.iso
 ```
 
-Erforderliche Bootdateien, Kernel- und Initramfs-Dateien, Kernmodule, das ausgewählte Bootmenü und die gewählte Konfiguration können nicht ausgeschlossen werden.
+Erforderliche Boot-Dateien, Kernel- und Initramfs-Dateien, Kernmodule, das ausgewählte Boot-Menü und die gewählte Konfiguration können nicht ausgeschlossen werden.
 
-Erstellen Sie wiederverwendbare Module, bevor Sie das ISO zusammensetzen. Siehe [Module erstellen](/preparing-and-customizing/Managing-Modules) und [MiniOS-Modulmanager](/preparing-and-customizing/Managing-Modules).
+Erstellen Sie wiederverwendbare Module, bevor Sie das ISO zusammenstellen. Siehe [Module erstellen](/preparing-and-customizing/Managing-Modules#creating-modules) und [MiniOS-Modulmanager](/preparing-and-customizing/Managing-Modules).
 
 ### Konfiguration und Manifest
 

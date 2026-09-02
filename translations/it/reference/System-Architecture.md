@@ -76,9 +76,9 @@ Lo spegnimento normale dà innanzitutto al sistema in esecuzione la possibilità
 
 L'initramfs di spegnimento quindi scollega i dispositivi loop inutilizzati, smonta il vecchio root e il livello scrivibile, registra una sessione riuscita come pulita, smonta il supporto e chiude una mappatura LUKS di proprietà MiniOS. I supporti ottici possono quindi essere espulsi prima dello spegnimento o del riavvio. I salvataggi manuali e periodici SquashFS utilizzano lo stesso backend snapshot, ma solo la policy di spegnimento configurata blocca la finalizzazione pulita in caso di salvataggio mancante allo spegnimento.
 
-## Albero dei supporti
+## Albero dei media
 
-Un'immagine attuale è organizzata come segue. Le directory opzionali compaiono solo quando la funzionalità correlata ha creato contenuti.
+Un'immagine attuale è organizzata come segue. Le directory opzionali compaiono solo quando la funzione correlata ha creato dei contenuti.
 
 ```text
 /
@@ -110,6 +110,6 @@ I percorsi avviati sotto `/run/initramfs/memory/` sono mount di implementazione,
 - [Parametri di avvio](/reference/Boot-Parameters)
 - [Menu di avvio](/preparing-and-customizing/Customizing-the-Boot-Menu)
 - [File di configurazione](/reference/configuration/config.conf)
-- [Gestione delle sessioni](/using-minios/Sessions-and-Persistence)
+- [Gestione sessioni](/using-minios/Sessions-and-Persistence)
 - [Avvio da rete](/reference/boot-process/Network-Boot)
-- [Creazione dei moduli](/preparing-and-customizing/Managing-Modules)
+- [Creazione moduli](/preparing-and-customizing/Managing-Modules#creating-modules)

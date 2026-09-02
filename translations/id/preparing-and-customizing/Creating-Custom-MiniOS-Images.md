@@ -13,11 +13,11 @@ Pembuat ini berjalan di dalam MiniOS. Sumber media yang dipilih tidak akan diuba
 
 ## Pilih alur kerja yang tepat
 
-Pembuat Citra MiniOS meremaster citra biner MiniOS yang sudah ada. Ini bukan pengganti untuk salah satu alur kerja berikut:
+Pembuat Citra MiniOS melakukan remaster pada citra biner MiniOS yang sudah ada. Fitur ini bukan pengganti salah satu dari alur kerja berikut:
 
-- **Membangun MiniOS dari source:** gunakan sistem build `minios-live` jika Anda ingin mengubah daftar paket distribusi, konfigurasi build, lapisan kernel, artefak boot, atau rantai modul source-built yang dapat direproduksi. Lihat [Membangun MiniOS](/development/Building-MiniOS).
-- **Membuat modul yang dapat digunakan ulang:** gunakan `apt2sb`, `script2sb`, `chroot2sb`, atau alat modul lainnya jika hasil yang diinginkan adalah lapisan `.sb` yang berdiri sendiri. Lihat [Membuat modul](/preparing-and-customizing/Managing-Modules).
-- **Remaster citra:** gunakan Pembuat Citra MiniOS saat memilih modul yang sudah ada, menambah modul eksternal yang sudah selesai, mengubah pengaturan citra yang didukung, opsional menangkap perubahan sesi, dan menerbitkan ISO baru.
+- **Bangun MiniOS dari sumber:** gunakan `minios-live` sistem build saat mengubah daftar paket distribusi, konfigurasi build, layer kernel, artefak boot, atau rantai modul yang dibangun dari sumber secara reproducible. Lihat [Membangun MiniOS](/development/Building-MiniOS).
+- **Buat modul yang dapat digunakan ulang:** gunakan `apt2sb`, `script2sb`, `chroot2sb`, atau alat modul lainnya jika hasil yang diinginkan adalah layer `.sb` mandiri. Lihat [Membuat modul](/preparing-and-customizing/Managing-Modules#creating-modules).
+- **Remaster citra:** gunakan Pembuat Citra MiniOS saat memilih modul yang sudah ada, menambahkan modul eksternal yang sudah selesai, mengubah pengaturan citra yang didukung, opsional menangkap perubahan sesi, dan menerbitkan ISO baru.
 
 Layer filesystem proyek digunakan untuk file deklaratif di root citra. Tidak menjalankan skrip, menginstal paket, atau membuka chroot. Perangkat lunak yang ingin digunakan ulang sebaiknya disiapkan sebagai modul sebelum ditambahkan ke proyek Pembuat Citra MiniOS.
 
@@ -148,9 +148,9 @@ Build yang dibatalkan atau gagal tidak akan mempublikasikan ISO privatnya. Tujua
 
 ## Dokumentasi terkait
 
-- [Building MiniOS](/development/Building-MiniOS)
-- [Creating modules](/preparing-and-customizing/Managing-Modules)
-- [Menyusun citra ISO dari command line](/preparing-and-customizing/Creating-Custom-MiniOS-Images)
+- [Membangun MiniOS](/development/Building-MiniOS)
+- [Membuat modul](/preparing-and-customizing/Managing-Modules#creating-modules)
+- [Menyusun citra ISO dari command line](/preparing-and-customizing/Creating-Custom-MiniOS-Images#composing-minios-iso-images-from-the-command-line)
 
 ## Menyusun citra ISO MiniOS dari command line
 
@@ -185,15 +185,15 @@ Sumber adalah input hanya-baca dan tidak pernah diubah. File ISO dan media optik
 
 ### Pilih modul
 
-Modul tambahan `.sb` adalah argumen posisional:
+Modul tambahan `.sb` adalah argumen posisi:
 
 ```bash
 minios-image-compose 06-development.sb 10-site-config.sb \
   --name ./minios-development.iso
 ```
 
-Perintah akan memvalidasi setiap modul sebagai file SquashFS yang dapat dibaca dan bukan symlink.
-Modul yang namanya diawali dua digit dan tanda hubung akan ditempatkan di tingkat atas MiniOS. Modul lain yang ditambahkan akan ditempatkan di `minios/modules/`. Modul dengan nama dasar duplikat atau yang hanya berbeda kapitalisasi akan ditolak.
+Perintah ini memvalidasi setiap modul sebagai file SquashFS yang dapat dibaca dan bukan symlink.
+Modul dengan nama diawali dua digit dan tanda hubung akan ditempatkan di tingkat atas MiniOS. Modul lain yang ditambahkan akan ditempatkan di `minios/modules/`. Modul dengan nama dasar yang sama (duplikat) atau hanya berbeda kapitalisasi akan ditolak.
 
 Kecualikan path sumber dengan ekspresi reguler POSIX extended:
 
@@ -204,7 +204,7 @@ minios-image-compose --exclude 'firefox|libreoffice|gimp' \
 
 File boot yang diperlukan, file kernel dan initramfs, modul inti, menu boot yang dipilih, dan konfigurasi yang dipilih tidak dapat dikecualikan.
 
-Buat modul yang dapat digunakan ulang sebelum menyusun ISO. Lihat [Membuat modul](/preparing-and-customizing/Managing-Modules) dan [Manajer Modul MiniOS](/preparing-and-customizing/Managing-Modules).
+Buat modul yang dapat digunakan ulang sebelum menyusun ISO. Lihat [Membuat modul](/preparing-and-customizing/Managing-Modules#creating-modules) dan [Manajer Modul MiniOS](/preparing-and-customizing/Managing-Modules).
 
 ### Konfigurasi dan manifest
 

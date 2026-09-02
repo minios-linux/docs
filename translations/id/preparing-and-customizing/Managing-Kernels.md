@@ -10,15 +10,15 @@ program_commits:
 
 MiniOS dilengkapi kernel bawaan, namun ada beberapa alasan mengapa Anda mungkin ingin menggantinya:
 
-### **Beragam Varian Kernel Debian**
+### **Varian Kernel Debian yang Berbeda**
 
 Debian menyediakan beberapa varian kernel yang dioptimalkan untuk berbagai kebutuhan:
 
-- **`linux-image-6.12.38+deb13-amd64`** - Kernel standar untuk sistem 64-bit (bawaan di MiniOS)
-- **`linux-image-6.12.38+deb13-rt-amd64`** - Kernel real-time untuk aplikasi yang membutuhkan waktu respons sangat cepat
+- **`linux-image-6.12.38+deb13-amd64`** - Kernel standar untuk sistem 64-bit (default di MiniOS)
+- **`linux-image-6.12.38+deb13-rt-amd64`** - Kernel real-time untuk aplikasi yang membutuhkan respons waktu nyata
 - **`linux-image-6.12.38+deb13-cloud-amd64`** - Dioptimalkan untuk lingkungan cloud dan virtualisasi
 
-> **Catatan:** Nomor versi (seperti `6.12.38+deb13`) dapat berubah sesuai pembaruan. Untuk melihat kernel yang tersedia saat ini:
+> **Catatan:** Nomor versi (seperti `6.12.38+deb13`) akan berubah saat ada pembaruan. Untuk melihat kernel yang tersedia saat ini:
 > ```bash
 > apt search linux-image-.*-amd64
 > apt search linux-image-.*-rt-amd64
@@ -130,9 +130,9 @@ Atau cari "Manajer Kernel MiniOS" di menu aplikasi Anda.
 
 Alat baris perintah ini menyediakan kemampuan manajemen kernel yang dapat diotomasi melalui skrip.
 
-### **Hak Administrator Diperlukan:**
+### **Hak Akses Administrator Diperlukan:**
 
-Alat CLI ini membutuhkan hak akses root dan akan memeriksanya secara otomatis. Jalankan perintah dengan `sudo` atau melalui `pkexec`:
+Alat CLI memerlukan hak akses root dan akan memeriksanya secara otomatis. Jalankan perintah dengan `sudo` atau melalui `pkexec`:
 
 ```bash
 sudo minios-kernel list
@@ -148,16 +148,16 @@ pkexec minios-kernel activate 6.12.38+deb13-amd64
 sudo minios-kernel list
 ```
 
-Menampilkan semua kernel yang sudah dikemas beserta statusnya.
+Menampilkan semua kernel yang terpaket beserta statusnya.
 
-#### 2. **Kemasi Kernel**
+#### 2. **Paketkan Kernel**
 
-**Dari Repositori:**
+**Dari Repository:**
 ```bash
 sudo minios-kernel package --repo linux-image-6.12.38+deb13-amd64 -o /tmp/kernel-output
 ```
 
-**Dari File .deb Lokal:**
+**Dari Berkas .deb Lokal:**
 ```bash
 sudo minios-kernel package --deb /path/to/kernel.deb -o /tmp/kernel-output
 ```
@@ -185,7 +185,7 @@ sudo minios-kernel delete 6.12.38+deb13-amd64
 sudo minios-kernel status
 ```
 
-Menampilkan status direktori MiniOS dan informasi kernel saat ini.
+Menampilkan status direktori MiniOS dan informasi kernel yang sedang digunakan.
 
 #### 6. **Tampilkan Informasi Kernel**
 
@@ -194,11 +194,11 @@ sudo minios-kernel info                           # Information about current ac
 sudo minios-kernel info 6.12.38+deb13-amd64     # Information about specific kernel
 ```
 
-Menampilkan informasi detail tentang kernel tertentu termasuk status dan ketersediaannya.
+Menampilkan informasi detail tentang kernel tertentu, termasuk status dan ketersediaannya.
 
 ### **Opsi CLI Lanjutan:**
 
-#### **Output JSON (untuk scripting):**
+#### **Keluaran JSON (untuk scripting):**
 
 ```bash
 sudo minios-kernel --json list
@@ -283,7 +283,7 @@ Jangan menyalin image kernel, initramfs, atau modul `01-kernel-*.sb` secara indi
 
 ### **Perintah Diagnostik:**
 
-**Cek Status Sistem Saat Ini:**
+**Periksa Status Sistem Saat Ini:**
 ```bash
 sudo minios-kernel status
 sudo minios-kernel info     # Current active kernel info
@@ -292,13 +292,13 @@ cat /proc/version           # Kernel version details
 lsmod                       # Loaded kernel modules
 ```
 
-**Verifikasi File Kernel:**
+**Verifikasi Berkas Kernel:**
 ```bash
 ls -la /minios/kernels/     # List packaged kernels
 ls -la /minios/boot/        # List boot files
 ```
 
-**Cek Konfigurasi Bootloader:**
+**Periksa Konfigurasi Bootloader:**
 ```bash
 grep -r "vmlinuz" /minios/boot/  # Find kernel references in boot configs
 ```
@@ -328,7 +328,7 @@ Manajer Kernel MiniOS secara otomatis mengelola berkas-berkas berikut:
 │       └── grub.cfg               # GRUB bootloader config
 ```
 
-**Catatan:** Modul standar `01-kernel-<version>.sb` yang disertakan dengan MiniOS berisi driver tambahan di luar yang terdapat pada paket kernel repository asli. Driver tambahan ini memberikan kompatibilitas perangkat keras yang lebih baik untuk adaptor nirkabel dan perangkat penyimpanan.
+**Catatan:** Modul standar `01-kernel-<version>.sb` yang disertakan di MiniOS berisi driver tambahan di luar yang tersedia pada paket kernel repository asli. Driver tambahan ini memberikan kompatibilitas perangkat keras yang lebih baik untuk adaptor nirkabel dan perangkat penyimpanan.
 
 ### **Indikator Status:**
 

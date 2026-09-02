@@ -54,9 +54,9 @@ Die Selektoren sind nicht alle gleichwertig:
 
 Andere anerkannte Persistenz-Parameter ohne Selektor führen denselben Legacy-Resume-Pfad wie ein nacktes `perch` aus: Sie fordern Persistenz an, ermöglichen aber keine automatische Erstellung. Falls Auswahl oder Aktivierung keine nutzbare obere Ebene liefern, läuft der Bootvorgang normal mit der RAM-Ebene weiter und gibt eine Fehlerwarnung aus.
 
-## Sitzungspeicher und Speicherort
+## Session-Speicher und Speicherort
 
-Der Standardspeicher ist das `changes`-Verzeichnis neben den MiniOS-Daten, mit nummerierten Sitzungsverzeichnissen und `session.conf`- oder `session.json`-Metadaten:
+Der Standardspeicher ist das`changes` Verzeichnis neben den MiniOS-Daten, mit nummerierten Sitzungsverzeichnissen und`session.conf` oder `session.json` Metadaten:
 
 ```text
 minios/changes/
@@ -66,9 +66,9 @@ minios/changes/
 `-- 2/
 ```
 
-Der Speicher kann stattdessen als Gerät plus optionalem Pfad ausgewählt werden. Akzeptierte Formen sind ein direkter `/dev/...`-Pfad, `/dev/disk/by-label/LABEL/...`, `/dev/mapper/...`, `label:LABEL/...`, `askdisk` und `askdisk:custom:path`. Das durch Doppelpunkte getrennte Suffix wird zu einem Pfad unterhalb des gewählten Geräts; Slash-Syntax nach `askdisk` ignoriert diesen benutzerdefinierten Pfad stillschweigend. Ein gewähltes Unterverzeichnis wird als Sitzungspeicher bind-gemountet. MiniOS kann auch eine Persistenz-Partition auf demselben Laufwerk und unterstützten Ventoy-Persistenzspeicher erkennen.
+Alternativ kann der Speicher als Gerät mit optionalem Pfad ausgewählt werden. Akzeptierte Formen sind ein direkter`/dev/...` Pfad,`/dev/disk/by-label/LABEL/...`, `/dev/mapper/...`, `label:LABEL/...`, `askdisk`, und `askdisk:custom:path`. Das durch Doppelpunkte getrennte Suffix wird als Pfad unterhalb des gewählten Geräts verwendet; eine Slash-Syntax nach`askdisk` ignoriert diesen benutzerdefinierten Pfad stillschweigend. Ein ausgewähltes Unterverzeichnis wird als Session-Speicher per Bind-Mount eingebunden. MiniOS kann außerdem eine Persistenz-Partition auf demselben Laufwerk sowie unterstützte Ventoy-Persistenzspeicher erkennen.
 
-Vor der Sitzungswahl muss das initrd den Speicherort beschreibbar mounten und nachweisen, dass es im Speicher einen Marker anlegen und entfernen kann. Ein Blockgerät, das nicht zum Schreiben geöffnet werden kann, ein schreibgeschütztes Mount, ein nicht erreichbarer Pfad oder ein fehlgeschlagener Schreibtest lehnen Persistenz für diesen Start ab. Bestehende Sitzungen werden nicht allein dadurch vertraut, dass ihre Dateien lesbar sind.
+Vor der Sitzungswahl muss das initrd den Speicherort mit Schreibrechten einbinden und nachweisen, dass es eine Markierungsdatei im Speicher anlegen und entfernen kann. Ein Blockgerät, das nicht zum Schreiben geöffnet werden kann, ein schreibgeschütztes Dateisystem, ein nicht erreichbarer Pfad oder ein fehlgeschlagener Schreibtest führen dazu, dass Persistenz für diesen Start abgelehnt wird. Bereits vorhandene Sitzungen werden nicht allein dadurch akzeptiert, dass ihre Dateien lesbar sind.
 
 ## Auswahl und Kompatibilität
 

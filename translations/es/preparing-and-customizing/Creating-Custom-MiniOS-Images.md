@@ -13,13 +13,13 @@ El constructor se ejecuta dentro de MiniOS. No modifica el medio fuente seleccio
 
 ## Elige el flujo de trabajo correcto
 
-El Constructor de imágenes MiniOS remasteriza una imagen binaria existente de MiniOS. No es un reemplazo para ninguno de estos flujos de trabajo:
+El Constructor de imágenes MiniOS remasteriza una imagen binaria existente MiniOS. No reemplaza ninguno de estos flujos de trabajo:
 
-- **Construir MiniOS desde el código fuente:** utiliza el sistema de compilación `minios-live` cuando cambies las listas de paquetes de la distribución, la configuración de compilación, la capa del kernel, los artefactos de arranque o la cadena de módulos reproducibles construidos desde el código fuente. Consulta [Compilando MiniOS](/development/Building-MiniOS).
-- **Crear un módulo reutilizable:** utiliza `apt2sb`, `script2sb`, `chroot2sb` u otras herramientas de módulos cuando el resultado deseado sea una capa independiente `.sb`. Consulta [Creación de módulos](/preparing-and-customizing/Managing-Modules).
-- **Remasterizar una imagen:** utiliza el Constructor de imágenes MiniOS cuando selecciones módulos existentes, añadas módulos externos finalizados, cambies la configuración soportada de la imagen, captures cambios de sesión de forma opcional y publiques otro ISO.
+- **Compilar MiniOS desde el código fuente:** utiliza el sistema de compilación `minios-live` cuando cambies las listas de paquetes de la distribución, la configuración de compilación, la capa del kernel, los artefactos de arranque o la cadena de módulos reproducibles construidos desde el código fuente. Consulta [Compilación de MiniOS](/development/Building-MiniOS).
+- **Crear un módulo reutilizable:** utiliza `apt2sb`, `script2sb`, `chroot2sb`, u otras herramientas de módulos cuando el resultado deseado sea una capa de módulo independiente`.sb` . Consulta [Creación de módulos](/preparing-and-customizing/Managing-Modules#creating-modules).
+- **Remasterizar una imagen:** utiliza el Constructor de imágenes MiniOS al seleccionar módulos existentes, agregar módulos externos finalizados, cambiar configuraciones de imagen compatibles, capturar opcionalmente los cambios de la sesión y publicar otra ISO.
 
-La capa del sistema de archivos del proyecto es para archivos declarativos en la raíz de la imagen. No ejecuta scripts, instala paquetes ni abre un chroot. El software destinado a ser reutilizado debe prepararse como un módulo antes de ser añadido a un proyecto de Constructor de imágenes MiniOS.
+La capa del sistema de archivos del proyecto es para archivos declarativos en la raíz de la imagen. No ejecuta scripts, ni instala paquetes, ni abre un chroot. El software que se quiera reutilizar debe prepararse como módulo antes de añadirlo a un proyecto de Constructor de imágenes MiniOS.
 
 ## Opciones de fuente
 
@@ -148,9 +148,9 @@ Una compilación cancelada o fallida no publica su ISO privado. Cualquier destin
 
 ## Documentación relacionada
 
-- [Building MiniOS](/development/Building-MiniOS)
-- [Creating modules](/preparing-and-customizing/Managing-Modules)
-- [Composing ISO images from the command line](/preparing-and-customizing/Creating-Custom-MiniOS-Images)
+- [Compilación de MiniOS](/development/Building-MiniOS)
+- [Creación de módulos](/preparing-and-customizing/Managing-Modules#creating-modules)
+- [Composición de imágenes ISO desde la línea de comandos](/preparing-and-customizing/Creating-Custom-MiniOS-Images#composing-minios-iso-images-from-the-command-line)
 
 ## Componer imágenes ISO de MiniOS desde la línea de comandos
 
@@ -183,9 +183,9 @@ minios-image-compose \
 
 La fuente es solo de lectura y nunca se modifica. Los archivos ISO y medios ópticos deben montarse antes de usar su árbol de contenido MiniOS con la CLI. El Constructor de imágenes MiniOS gráfico puede montar estas fuentes mediante `udisksctl`.
 
-### Selecciona módulos
+### Seleccionar módulos
 
-Los módulos adicionales `.sb` son argumentos posicionales:
+Módulos adicionales `.sb` son argumentos posicionales:
 
 ```bash
 minios-image-compose 06-development.sb 10-site-config.sb \
@@ -193,18 +193,18 @@ minios-image-compose 06-development.sb 10-site-config.sb \
 ```
 
 El comando valida cada módulo como un archivo SquashFS legible y que no sea un enlace simbólico.
-Los módulos cuyos nombres comienzan con dos dígitos y un guion se colocan en el nivel superior MiniOS. Otros módulos añadidos se colocan en `minios/modules/`. Se rechazan las colisiones de nombres base duplicados o que solo difieran en mayúsculas/minúsculas.
+Los módulos cuyos nombres comienzan con dos dígitos y un guion se ubican en el nivel superior MiniOS. Los demás módulos añadidos se colocan en `minios/modules/`. Se rechazan los nombres base duplicados o que colisionen por mayúsculas/minúsculas.
 
-Excluye rutas fuente con una expresión regular POSIX extendida:
+Excluye rutas fuente con una expresión regular extendida de POSIX:
 
 ```bash
 minios-image-compose --exclude 'firefox|libreoffice|gimp' \
   --name ./minios-lite.iso
 ```
 
-No se pueden excluir los archivos de arranque requeridos, los archivos de kernel e initramfs, los módulos principales, el menú de arranque seleccionado ni la configuración seleccionada.
+No se pueden excluir los archivos de arranque requeridos, archivos de kernel e initramfs, módulos principales, el menú de arranque seleccionado ni la configuración seleccionada.
 
-Crea módulos reutilizables antes de componer el ISO. Consulta [Creación de módulos](/preparing-and-customizing/Managing-Modules) y [Gestor de módulos de MiniOS](/preparing-and-customizing/Managing-Modules).
+Crea módulos reutilizables antes de componer la ISO. Consulta [Creación de módulos](/preparing-and-customizing/Managing-Modules#creating-modules) y [Gestor de módulos de MiniOS](/preparing-and-customizing/Managing-Modules).
 
 ### Configuración y manifiesto
 

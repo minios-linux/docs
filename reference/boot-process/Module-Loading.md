@@ -38,7 +38,7 @@ The third tier is separate from the `minios/modules/` directory in the selected 
 Candidate paths are flattened to their exact basename when mounted. For example, `modules/work/50-extra.sb` and `modules/test/50-extra.sb` both use the mountpoint named `50-extra.sb`. They do not become two independently addressable layers. A candidate in a later tier with the same basename is mounted on the same mountpoint and replaces the earlier candidate visible to union assembly.
 The same basename should therefore be treated as one replacement slot, not as a way to load multiple modules from different directories.
 
-The normal module format is a regular SquashFS filesystem image. The initrd scan itself is filename-driven: it selects paths ending in the configured extension and does not first prove that each path is a regular file or valid SquashFS. Recursive scans can therefore encounter another kind of filesystem object with a matching name. A failed loop or SquashFS mount is reported by `mount`, but the candidate loop does not make that failure fatal by itself and boot may continue with a missing layer. Validate questionable files with the inspection workflow in [Creating modules](/preparing-and-customizing/Managing-Modules).
+The normal module format is a regular SquashFS filesystem image. The initrd scan itself is filename-driven: it selects paths ending in the configured extension and does not first prove that each path is a regular file or valid SquashFS. Recursive scans can therefore encounter another kind of filesystem object with a matching name. A failed loop or SquashFS mount is reported by `mount`, but the candidate loop does not make that failure fatal by itself and boot may continue with a missing layer. Validate questionable files with the workflow in [Inspect and extract modules](/preparing-and-customizing/Managing-Modules#inspect-and-extract-modules).
 
 ## Ordering and precedence
 
@@ -154,6 +154,6 @@ For an early failure, add `debug` to show shell tracing, `timing` for stage timi
 - [System discovery](/reference/boot-process/System-Discovery)
 - [Persistence](/reference/boot-process/Persistence-Internals)
 - [MiniOS Module Manager](/preparing-and-customizing/Managing-Modules)
-- [Creating modules](/preparing-and-customizing/Managing-Modules)
+- [Creating modules](/preparing-and-customizing/Managing-Modules#creating-modules)
 - [Kernel management](/preparing-and-customizing/Managing-Kernels)
 - [Troubleshooting](/maintenance-and-recovery/Troubleshooting)

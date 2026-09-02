@@ -11,15 +11,15 @@ Le Créateur d’images MiniOS est une application GTK permettant de remastéris
 
 Le créateur fonctionne à l’intérieur de MiniOS. Il ne modifie jamais le support source sélectionné.
 
-## Choisir le bon flux de travail
+## Choisissez le workflow approprié
 
-Le Créateur d’images MiniOS remastérise une image binaire MiniOS existante. Il ne remplace pas les flux de travail suivants :
+Le Créateur d’images MiniOS remastérise une image binaire existante MiniOS. Il ne remplace pas les workflows suivants :
 
-- **Construire MiniOS à partir des sources :** utilisez le système de build `minios-live` pour modifier les listes de paquets de la distribution, la configuration de build, la couche noyau, les artefacts de démarrage ou la chaîne de modules reproductibles compilés depuis les sources. Voir [Construire MiniOS](/development/Building-MiniOS).
-- **Créer un module réutilisable :** utilisez `apt2sb`, `script2sb`, `chroot2sb` ou d’autres outils de modules si le résultat attendu est une couche `.sb` autonome. Voir [Création de modules](/preparing-and-customizing/Managing-Modules).
-- **Remastériser une image :** utilisez le Créateur d’images MiniOS pour sélectionner des modules existants, ajouter des modules externes finalisés, modifier les paramètres d’image pris en charge, capturer éventuellement les changements de session et publier une nouvelle ISO.
+- **Compiler MiniOS à partir des sources :** utilisez le `minios-live` système de build lorsque vous modifiez les listes de paquets de la distribution, la configuration de build, la couche noyau, les artefacts de démarrage ou la chaîne de modules reproductibles compilés depuis les sources. Voir [Compilation de MiniOS](/development/Building-MiniOS).
+- **Créer un module réutilisable :** utilisez `apt2sb`, `script2sb`, `chroot2sb`, ou les autres outils de modules lorsque le résultat attendu est une couche autonome de `.sb` module. Voir [Création de modules](/preparing-and-customizing/Managing-Modules#creating-modules).
+- **Remastériser une image :** utilisez le Créateur d’images MiniOS pour sélectionner des modules existants, ajouter des modules externes finalisés, modifier les paramètres d’image pris en charge, éventuellement capturer les modifications de session et publier une nouvelle ISO.
 
-La couche système de fichiers du projet est destinée aux fichiers déclaratifs à la racine de l’image. Elle n’exécute pas de scripts, n’installe pas de paquets et n’ouvre pas de chroot. Les logiciels destinés à être réutilisés doivent être préparés sous forme de module avant d’être ajoutés à un projet Créateur d’images MiniOS.
+La couche système de fichiers du projet sert aux fichiers déclaratifs à la racine de l’image. Elle n’exécute pas de scripts, n’installe pas de paquets et n’ouvre pas de chroot. Les logiciels destinés à être réutilisés doivent être préparés sous forme de module avant d’être ajoutés à un projet du Créateur d’images MiniOS.
 
 ## Options de source
 
@@ -148,9 +148,9 @@ Une construction annulée ou échouée ne publie pas son ISO privée. Toute dest
 
 ## Documentation associée
 
-- [Building MiniOS](/development/Building-MiniOS)
-- [Creating modules](/preparing-and-customizing/Managing-Modules)
-- [Composer des images ISO depuis la ligne de commande](/preparing-and-customizing/Creating-Custom-MiniOS-Images)
+- [Compilation de MiniOS](/development/Building-MiniOS)
+- [Création de modules](/preparing-and-customizing/Managing-Modules#creating-modules)
+- [Composer des images ISO en ligne de commande](/preparing-and-customizing/Creating-Custom-MiniOS-Images#composing-minios-iso-images-from-the-command-line)
 
 ## Composer des images ISO MiniOS en ligne de commande
 
@@ -183,28 +183,28 @@ minios-image-compose \
 
 La source est un simple point d’entrée en lecture seule et n’est jamais modifiée. Les fichiers ISO et supports optiques doivent être montés avant d’utiliser leur arborescence de contenu MiniOS avec la CLI. L’interface graphique du Créateur d’images MiniOS peut monter ces sources via `udisksctl`.
 
-### Sélectionner les modules
+### Sélectionner des modules
 
-Des modules `.sb` supplémentaires sont passés comme arguments positionnels :
+Des `.sb` modules supplémentaires sont des arguments positionnels :
 
 ```bash
 minios-image-compose 06-development.sb 10-site-config.sb \
   --name ./minios-development.iso
 ```
 
-La commande valide chaque module comme un fichier SquashFS lisible et non-symlink.
-Les modules dont le nom commence par deux chiffres et un tiret sont placés au niveau supérieur MiniOS. Les autres modules ajoutés sont placés dans `minios/modules/`. Les collisions de noms de base en double ou insensibles à la casse sont rejetées.
+La commande valide chaque module comme un fichier SquashFS lisible et non symbolique.
+Les modules dont le nom commence par deux chiffres suivis d’un tiret sont placés au niveau supérieur MiniOS. Les autres modules ajoutés sont placés dans `minios/modules/`. Les doublons ou collisions de noms de base, même insensibles à la casse, sont refusés.
 
-Excluez des chemins sources avec une expression régulière POSIX étendue :
+Exclure des chemins sources à l’aide d’une expression régulière POSIX étendue :
 
 ```bash
 minios-image-compose --exclude 'firefox|libreoffice|gimp' \
   --name ./minios-lite.iso
 ```
 
-Les fichiers de démarrage requis, le noyau et l’initramfs, les modules principaux, le menu de démarrage sélectionné et la configuration sélectionnée ne peuvent pas être exclus.
+Les fichiers de démarrage requis, les fichiers du noyau et d’initramfs, les modules principaux, le menu de démarrage sélectionné et la configuration choisie ne peuvent pas être exclus.
 
-Créez des modules réutilisables avant de composer l’ISO. Voir [Création de modules](/preparing-and-customizing/Managing-Modules) et [Gestionnaire de modules MiniOS](/preparing-and-customizing/Managing-Modules).
+Créez des modules réutilisables avant de composer l’ISO. Voir [Création de modules](/preparing-and-customizing/Managing-Modules#creating-modules) et [Gestionnaire de modules MiniOS](/preparing-and-customizing/Managing-Modules).
 
 ### Configuration et manifeste
 

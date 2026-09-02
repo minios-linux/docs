@@ -10,15 +10,15 @@ program_commits:
 
 MiniOS include un kernel predefinito, ma ci sono diversi motivi per cui potresti volerlo sostituire:
 
-### **Diverse varianti di kernel Debian**
+### **Diverse varianti del kernel Debian**
 
-Debian offre diverse varianti di kernel ottimizzate per vari scenari d'uso:
+Debian offre diverse varianti di kernel ottimizzate per vari scenari d’uso:
 
 - **`linux-image-6.12.38+deb13-amd64`** - Kernel standard per sistemi a 64 bit (predefinito in MiniOS)
-- **`linux-image-6.12.38+deb13-rt-amd64`** - Kernel real-time per applicazioni critiche in termini di tempo
+- **`linux-image-6.12.38+deb13-rt-amd64`** - Kernel real-time per applicazioni critiche in tempo reale
 - **`linux-image-6.12.38+deb13-cloud-amd64`** - Ottimizzato per ambienti cloud e virtualizzati
 
-> **Nota:** I numeri di versione (come `6.12.38+deb13`) cambiano con gli aggiornamenti. Per trovare i kernel attualmente disponibili:
+> **Nota:** I numeri di versione (ad esempio `6.12.38+deb13`) cambiano con gli aggiornamenti. Per visualizzare i kernel attualmente disponibili:
 > ```bash
 > apt search linux-image-.*-amd64
 > apt search linux-image-.*-rt-amd64
@@ -132,7 +132,7 @@ Lo strumento da riga di comando offre funzionalità di gestione kernel automatiz
 
 ### **Privilegi amministrativi richiesti:**
 
-Lo strumento CLI richiede privilegi root e li verificherà automaticamente. Esegui i comandi con `sudo` o tramite `pkexec`:
+Lo strumento CLI richiede privilegi root e li verificherà automaticamente. Esegui i comandi con `sudo` oppure tramite `pkexec`:
 
 ```bash
 sudo minios-kernel list
@@ -148,9 +148,9 @@ pkexec minios-kernel activate 6.12.38+deb13-amd64
 sudo minios-kernel list
 ```
 
-Mostra tutti i kernel pacchettizzati con il loro stato.
+Mostra tutti i kernel pacchettizzati con il relativo stato.
 
-#### 2. **Crea il pacchetto di un kernel**
+#### 2. **Pacchettizza un kernel**
 
 **Dal repository:**
 ```bash
@@ -179,7 +179,7 @@ sudo minios-kernel activate 6.12.38+deb13-amd64
 sudo minios-kernel delete 6.12.38+deb13-amd64
 ```
 
-#### 5. **Verifica lo stato**
+#### 5. **Verifica stato**
 
 ```bash
 sudo minios-kernel status
@@ -194,7 +194,7 @@ sudo minios-kernel info                           # Information about current ac
 sudo minios-kernel info 6.12.38+deb13-amd64     # Information about specific kernel
 ```
 
-Mostra informazioni dettagliate su uno specifico kernel, incluso stato e disponibilità.
+Visualizza informazioni dettagliate su uno specifico kernel, incluso stato e disponibilità.
 
 ### **Opzioni CLI avanzate:**
 
@@ -209,7 +209,7 @@ sudo minios-kernel --json activate 6.12.38+deb13-amd64
 sudo minios-kernel --json delete 6.12.38+deb13-amd64
 ```
 
-#### **Opzioni avanzate di packaging:**
+#### **Opzioni avanzate di pacchettizzazione:**
 
 ```bash
 # Use custom temporary directory (requires at least 1024MB free space)
@@ -283,7 +283,7 @@ Non copiare un'immagine kernel, un initramfs o un modulo `01-kernel-*.sb` singol
 
 ### **Comandi diagnostici:**
 
-**Verifica lo stato attuale del sistema:**
+**Verifica stato attuale del sistema:**
 ```bash
 sudo minios-kernel status
 sudo minios-kernel info     # Current active kernel info
@@ -292,13 +292,13 @@ cat /proc/version           # Kernel version details
 lsmod                       # Loaded kernel modules
 ```
 
-**Verifica i file kernel:**
+**Verifica file del kernel:**
 ```bash
 ls -la /minios/kernels/     # List packaged kernels
 ls -la /minios/boot/        # List boot files
 ```
 
-**Controlla la configurazione del bootloader:**
+**Controlla configurazione del bootloader:**
 ```bash
 grep -r "vmlinuz" /minios/boot/  # Find kernel references in boot configs
 ```
@@ -309,7 +309,7 @@ grep -r "vmlinuz" /minios/boot/  # Find kernel references in boot configs
 
 Il Gestore kernel MiniOS gestisce automaticamente questi file:
 
-### **Struttura del Repository del Kernel:**
+### **Struttura del repository kernel:**
 
 ```
 /minios/
@@ -328,7 +328,7 @@ Il Gestore kernel MiniOS gestisce automaticamente questi file:
 │       └── grub.cfg               # GRUB bootloader config
 ```
 
-**Nota:** Il modulo standard `01-kernel-<version>.sb` fornito con MiniOS include driver aggiuntivi rispetto a quelli presenti nei pacchetti kernel del repository originale. Questi driver aggiuntivi garantiscono una maggiore compatibilità hardware per adattatori wireless e dispositivi di archiviazione.
+**Nota:** Il modulo standard `01-kernel-<version>.sb` fornito con MiniOS include driver aggiuntivi rispetto a quelli presenti nei pacchetti kernel originali del repository. Questi driver extra garantiscono una compatibilità hardware migliorata per adattatori wireless e dispositivi di archiviazione.
 
 ### **Indicatori di Stato:**
 

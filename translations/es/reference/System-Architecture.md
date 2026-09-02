@@ -78,7 +78,7 @@ Luego, el initramfs de apagado desconecta los dispositivos loop no usados, desmo
 
 ## Árbol de medios
 
-Una imagen actual se organiza de la siguiente manera. Los directorios opcionales solo aparecen cuando la función relacionada ha creado contenido.
+La imagen actual se organiza de la siguiente manera. Los directorios opcionales solo aparecen cuando la función correspondiente ha generado contenido.
 
 ```text
 /
@@ -99,17 +99,17 @@ Una imagen actual se organiza de la siguiente manera. Los directorios opcionales
     `-- log/                       optional exported boot logs
 ```
 
-Las rutas arrancadas bajo `/run/initramfs/memory/` son montajes de implementación, no una segunda copia persistente de este árbol.
+Las rutas arrancadas bajo `/run/initramfs/memory/` son puntos de montaje de implementación, no una segunda copia persistente de este árbol.
 
 ## Documentación relacionada
 
 - [Modos de arranque](/using-minios/Boot-Modes)
-- [Descubrimiento del sistema Initrd](/reference/boot-process/System-Discovery)
+- [Detección del sistema Initrd](/reference/boot-process/System-Discovery)
 - [Carga de módulos Initrd](/reference/boot-process/Module-Loading)
-- [Persistencia Initrd](/reference/boot-process/Persistence-Internals)
+- [Persistencia de Initrd](/reference/boot-process/Persistence-Internals)
 - [Parámetros de arranque](/reference/Boot-Parameters)
 - [Menús de arranque](/preparing-and-customizing/Customizing-the-Boot-Menu)
 - [Archivo de configuración](/reference/configuration/config.conf)
 - [Gestión de sesiones](/using-minios/Sessions-and-Persistence)
 - [Arranque por red](/reference/boot-process/Network-Boot)
-- [Creación de módulos](/preparing-and-customizing/Managing-Modules)
+- [Creación de módulos](/preparing-and-customizing/Managing-Modules#creating-modules)

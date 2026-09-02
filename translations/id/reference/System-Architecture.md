@@ -78,7 +78,7 @@ Initramfs shutdown kemudian melepas perangkat loop yang tidak digunakan, unmount
 
 ## Pohon media
 
-Citra saat ini diorganisasikan sebagai berikut. Direktori opsional hanya muncul jika fitur terkait telah membuat konten.
+Struktur gambar saat ini adalah sebagai berikut. Direktori opsional hanya akan muncul jika fitur terkait telah membuat konten.
 
 ```text
 /
@@ -99,17 +99,17 @@ Citra saat ini diorganisasikan sebagai berikut. Direktori opsional hanya muncul 
     `-- log/                       optional exported boot logs
 ```
 
-Path yang di-boot di bawah `/run/initramfs/memory/` adalah mount implementasi, bukan salinan persisten kedua dari pohon ini.
+Path yang dijalankan di bawah `/run/initramfs/memory/` adalah mount implementasi, bukan salinan kedua pohon ini yang bersifat persisten.
 
 ## Dokumentasi terkait
 
 - [Mode boot](/using-minios/Boot-Modes)
-- [Penemuan sistem Initrd](/reference/boot-process/System-Discovery)
-- [Pemrosesan modul Initrd](/reference/boot-process/Module-Loading)
+- [Deteksi sistem Initrd](/reference/boot-process/System-Discovery)
+- [Pemuat modul Initrd](/reference/boot-process/Module-Loading)
 - [Persistensi Initrd](/reference/boot-process/Persistence-Internals)
 - [Parameter boot](/reference/Boot-Parameters)
 - [Menu boot](/preparing-and-customizing/Customizing-the-Boot-Menu)
 - [Berkas konfigurasi](/reference/configuration/config.conf)
 - [Manajemen sesi](/using-minios/Sessions-and-Persistence)
 - [Boot jaringan](/reference/boot-process/Network-Boot)
-- [Membuat modul](/preparing-and-customizing/Managing-Modules)
+- [Membuat modul](/preparing-and-customizing/Managing-Modules#creating-modules)

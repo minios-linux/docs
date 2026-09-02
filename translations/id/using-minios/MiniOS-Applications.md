@@ -32,28 +32,28 @@ Sebagian besar alat grafis memiliki padanan baris perintah publik atau backend. 
 
 ### Deployment dan sesi
 
-| Tugas | Alat | Cakupan | Dokumentasi |
+| Tugas | Alat | Lingkup | Dokumentasi |
 |---|---|---|---|
-| Daftar disk target, pratinjau rencana deployment, atau instal MiniOS secara non-interaktif | **`minios-deploy`** | Berjalan dari sesi live MiniOS. Instalasi memerlukan akses root dan konfirmasi eksplisit; mode native, jika didukung, akan membuat desktop Debian konvensional dari citra yang dipilih. | [Penginstal MiniOS](/installing-minios/MiniOS-Installer#command-line-deployment); `man minios-deploy` |
-| Membuat, mengaktifkan, menyimpan, mengubah ukuran, mengekspor, mengimpor, atau menghapus sesi persisten | **`minios-session`** | Memerlukan akses root dan sistem live MiniOS dengan penyimpanan persistensi yang kompatibel. | [Manajemen sesi](/using-minios/Sessions-and-Persistence#command-reference); `man minios-session` |
+| Daftar disk target, pratinjau rencana deployment, atau instalasi MiniOS secara non-interaktif | **`minios-deploy`** | Dijalankan dari sesi live MiniOS. Instalasi memerlukan akses root dan konfirmasi eksplisit; mode native, jika didukung, akan membuat desktop Debian konvensional dari image yang dipilih. | [Deployment via command-line](/installing-minios/MiniOS-Installer#command-line-deployment); `man minios-deploy` |
+| Buat, aktifkan, simpan, ubah ukuran, ekspor, impor, atau hapus sesi persisten | **`minios-session`** | Memerlukan akses root dan sistem live MiniOS dengan penyimpanan persistensi yang kompatibel. | [Referensi perintah sesi](/using-minios/Sessions-and-Persistence#command-reference); `man minios-session` |
 
-### Kernel dan citra
+### Kernel dan image
 
-| Tugas | Alat | Cakupan | Dokumentasi |
+| Tugas | Alat | Lingkup | Dokumentasi |
 |---|---|---|---|
-| Daftar, paket, aktifkan, inspeksi, atau hapus kernel | **`minios-kernel`** | Memerlukan akses root dan instalasi live modular MiniOS dengan root MiniOS yang dapat ditulis. | [Manajemen kernel](/preparing-and-customizing/Managing-Kernels#method-2-using-minios-kernel-cli); `man minios-kernel` |
-| Remaster pohon konten MiniOS yang ada dari skrip atau otomatisasi | **`minios-image-compose`** | Beroperasi pada konten citra live MiniOS dan menghasilkan ISO bootable. | [Menyusun citra ISO dari command line](/preparing-and-customizing/Creating-Custom-MiniOS-Images); `man minios-image-compose` |
+| Daftar, paketkan, aktifkan, inspeksi, atau hapus kernel | **`minios-kernel`** | Memerlukan akses root dan instalasi live modular MiniOS dengan root MiniOS yang dapat ditulis. | [`minios-kernel` CLI](/preparing-and-customizing/Managing-Kernels#method-2-using-minios-kernel-cli); `man minios-kernel` |
+| Remaster pohon konten MiniOS yang sudah ada melalui skrip atau otomatisasi | **`minios-image-compose`** | Beroperasi pada konten image live MiniOS dan menghasilkan ISO yang dapat di-boot. | [Membuat image ISO dari command line](/preparing-and-customizing/Creating-Custom-MiniOS-Images#composing-minios-iso-images-from-the-command-line); `man minios-image-compose` |
 
 ### Alur kerja modul
 
-| Tugas | Alat | Cakupan | Dokumentasi |
+| Tugas | Alat | Lingkup | Dokumentasi |
 |---|---|---|---|
-| Inspeksi modul dan kelola set modul yang berjalan atau untuk boot berikutnya | **`sb`** | Inspeksi modul juga dapat dilakukan di luar sesi MiniOS yang berjalan. Operasi berjalan dan boot berikutnya memerlukan tata letak modul live MiniOS; perubahan memerlukan akses root. | [Membuat modul](/preparing-and-customizing/Managing-Modules); `man sb` |
-| Bangun modul dari paket repository atau file lokal `.deb` | **`apt2sb`** | Memerlukan akses root dan sesi live MiniOS yang didukung. Paket akan diinstal ke lingkungan build terisolasi, bukan root yang sedang berjalan. | [Membuat modul](/preparing-and-customizing/Managing-Modules#create-a-module-from-packages); `man apt2sb` |
-| Bangun modul dengan menjalankan skrip instalasi | **`script2sb`** | Memerlukan akses root dan sesi live MiniOS yang didukung. Skrip dijalankan secara non-interaktif di lingkungan build terisolasi. | [Membuat modul](/preparing-and-customizing/Managing-Modules#create-a-module-from-a-script); `man script2sb` |
-| Bangun modul secara interaktif di lingkungan yang telah disiapkan | **`chroot2sb`** | Memerlukan akses root dan sesi live MiniOS yang didukung. Gunakan jika instalasi memerlukan prompt atau perubahan manual. | [Membuat modul](/preparing-and-customizing/Managing-Modules#create-a-module-interactively); `man chroot2sb` |
-| Konversi antara pohon direktori dan modul `.sb` | **`dir2sb`**, **`sb2dir`** | Konversi biasa tidak memerlukan root dan dapat digunakan di luar sesi live yang berjalan jika alat dan file input yang dibutuhkan tersedia. | [Membuat](/preparing-and-customizing/Managing-Modules#create-a-module-from-a-directory) atau [mengekstrak](/preparing-and-customizing/Managing-Modules#inspect-and-extract-modules) modul; `man dir2sb`, `man sb2dir` |
-| Tangkap perubahan yang memenuhi syarat dari layer sesi yang dapat ditulis ke dalam modul | **`savechanges`** | Memerlukan akses root dan sesi live MiniOS yang berjalan dengan backend layer-tulis yang didukung. | [Membuat modul](/preparing-and-customizing/Managing-Modules#capture-current-session-changes); `man savechanges` |
+| Inspeksi modul dan kelola set modul yang sedang berjalan atau untuk boot berikutnya | **`sb`** | Inspeksi modul juga dapat dilakukan di luar sesi MiniOS yang sedang berjalan. Operasi running dan next-boot memerlukan layout modul live MiniOS; perubahan membutuhkan akses root. | [Inspeksi dan ekstrak modul](/preparing-and-customizing/Managing-Modules#inspect-and-extract-modules); [kelola modul running dan next-boot](/preparing-and-customizing/Managing-Modules#manage-running-and-next-boot-modules); `man sb` |
+| Buat modul dari paket repository atau file lokal `.deb` | **`apt2sb`** | Memerlukan akses root dan sesi live MiniOS yang didukung. Paket akan diinstal ke lingkungan build terisolasi, bukan ke root yang sedang berjalan. | [Buat modul dari paket](/preparing-and-customizing/Managing-Modules#create-a-module-from-packages); `man apt2sb` |
+| Buat modul dengan menjalankan skrip instalasi | **`script2sb`** | Memerlukan akses root dan sesi live MiniOS yang didukung. Skrip dijalankan secara non-interaktif di lingkungan build terisolasi. | [Buat modul dari skrip](/preparing-and-customizing/Managing-Modules#create-a-module-from-a-script); `man script2sb` |
+| Buat modul secara interaktif di lingkungan yang sudah disiapkan | **`chroot2sb`** | Memerlukan akses root dan sesi live MiniOS yang didukung. Gunakan jika instalasi memerlukan prompt atau perubahan manual. | [Buat modul secara interaktif](/preparing-and-customizing/Managing-Modules#create-a-module-interactively); `man chroot2sb` |
+| Konversi antara pohon direktori dan `.sb` modul | **`dir2sb`**, **`sb2dir`** | Konversi biasa tidak memerlukan root dan dapat digunakan di luar sesi live jika alat dan file input yang dibutuhkan tersedia. | [Buat](/preparing-and-customizing/Managing-Modules#create-a-module-from-a-directory) atau [ekstrak](/preparing-and-customizing/Managing-Modules#inspect-and-extract-modules) modul; `man dir2sb`, `man sb2dir` |
+| Tangkap perubahan yang memenuhi syarat dari session layer yang dapat ditulis ke dalam modul | **`savechanges`** | Memerlukan akses root dan sesi live MiniOS yang sedang berjalan dengan backend writable-layer yang didukung. | [Tangkap perubahan sesi saat ini](/preparing-and-customizing/Managing-Modules#capture-current-session-changes); `man savechanges` |
 
 ### Alur kerja penyimpanan
 

@@ -54,9 +54,9 @@ Selector tidak semuanya setara:
 
 Parameter persistensi lain yang dikenali tanpa selector akan masuk ke jalur resume lama seperti `perch` tanpa selector: mereka meminta persistensi, tetapi tidak mengaktifkan pembuatan otomatis. Jika pemilihan atau aktivasi tidak menghasilkan upper yang dapat digunakan, boot tetap dilanjutkan dengan upper RAM dan menampilkan peringatan kegagalan.
 
-## Penyimpanan sesi dan lokasinya
+## Penyimpanan dan Lokasi Sesi
 
-Penyimpanan normal adalah direktori `changes` di samping data MiniOS, dengan direktori sesi bernomor dan metadata `session.conf` atau `session.json`:
+Penyimpanan standar berada di `changes` direktori di samping data MiniOS, dengan direktori sesi bernomor dan `session.conf` atau `session.json` metadata:
 
 ```text
 minios/changes/
@@ -66,9 +66,9 @@ minios/changes/
 `-- 2/
 ```
 
-Penyimpanan juga dapat dipilih sebagai perangkat plus path opsional. Bentuk yang diterima termasuk path `/dev/...` langsung, `/dev/disk/by-label/LABEL/...`, `/dev/mapper/...`, `label:LABEL/...`, `askdisk`, dan `askdisk:custom:path`. Sufiks yang dipisahkan titik dua menjadi path di bawah perangkat yang dipilih; sintaks slash setelah `askdisk` akan mengabaikan path kustom tersebut. Subdirektori yang dipilih akan di-bind-mount sebagai penyimpanan sesi. MiniOS juga dapat mendeteksi partisi persistensi di drive yang sama dan penyimpanan persistensi Ventoy yang didukung.
+Penyimpanan juga dapat dipilih sebagai perangkat beserta path opsional. Bentuk yang diterima termasuk path langsung `/dev/...` , `/dev/disk/by-label/LABEL/...` , `/dev/mapper/...` , `label:LABEL/...` , `askdisk`, dan `askdisk:custom:path`. Sufiks yang dipisahkan tanda titik dua akan menjadi path di bawah perangkat yang dipilih; sintaks garis miring setelah `askdisk` akan mengabaikan path kustom tersebut. Subdirektori yang dipilih akan di-bind-mount sebagai penyimpanan sesi. MiniOS juga dapat mendeteksi partisi persistence di drive yang sama dan penyimpanan persistence Ventoy yang didukung.
 
-Sebelum pemilihan sesi, initrd harus me-mount lokasi sebagai writable dan membuktikan dapat membuat serta menghapus marker di penyimpanan. Perangkat blok yang tidak dapat dibuka untuk menulis, mount hanya-baca, path tidak tersedia, atau tes tulis gagal akan menolak persistensi untuk boot tersebut. Sesi yang sudah ada tidak langsung dipercaya hanya karena file-nya bisa dibaca.
+Sebelum pemilihan sesi, initrd harus me-mount lokasi tersebut agar dapat ditulis dan memastikan dapat membuat serta menghapus marker di penyimpanan. Perangkat blok yang tidak dapat dibuka untuk penulisan, mount hanya-baca, path yang tidak tersedia, atau uji tulis yang gagal akan menolak persistence untuk boot tersebut. Sesi yang sudah ada tidak langsung dipercaya hanya karena file-nya dapat dibaca.
 
 ## Seleksi dan kompatibilitas
 
