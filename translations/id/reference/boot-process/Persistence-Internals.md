@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-28
+updated: 2026-09-13
 ---
 
 # Internal Persistensi
@@ -15,20 +15,20 @@ Tanpa parameter persistensi, MiniOS akan menyimpan perubahan di RAM dan membuang
 
 Meminta persistensi tidak menjamin fitur ini aktif. Jika target hanya-baca, penuh, rusak, atau tidak kompatibel, MiniOS dapat melanjutkan dengan layer sementara di RAM. Bacalah peringatan saat startup sebelum mengandalkan perubahan yang tersimpan.
 
-## Penjelasan parameter
+## Penjelasan Parameter
 
-| Parameter | Instruksi untuk MiniOS | Pilihan umum |
+| Parameter | Menjelaskan MiniOS | Pilihan Umum |
 |---|---|---|
-| `perchdir=resume` | Membuka sesi kompatibel default dan, dalam kondisi yang didukung, membuat pengganti jika tidak dapat digunakan. | Pekerjaan harian biasa. |
-| `perchdir=new` | Membuat sesi bernomor baru. | Menjaga workspace yang sudah ada tetap utuh. |
-| `perchdir=ask` | Menampilkan sesi yang tersimpan setelah penyimpanan yang dapat dilanjutkan ditemukan dan memungkinkan Anda memilih salah satunya. Tidak dapat membuat sesi pertama pada media kosong. | Beberapa workspace pada satu perangkat; gunakan `perchdir=new` untuk sesi pertama. |
-| `perchdir=NUMBER` | Meminta sesi bernomor tertentu. | Entri boot kustom yang stabil setelah memeriksa ID sesi. |
-| `perchmode=MODE` | Memilih `native`, `dynfilefs`, `raw`, `luks`, atau sesi `squashfs` yang sudah ada. | Menyesuaikan filesystem penyimpanan dan kebutuhan enkripsi. |
-| `perchsize=SIZE` | Meminta ukuran untuk sesi container baru atau yang bertambah. | Penyimpanan DynFileFS, raw, atau LUKS. |
-| `perchreserve=MB` | Mengurangi margin saat menentukan ukuran container baru atau yang bertambah dan mengatur ambang peringatan ruang rendah. | Menyisakan ruang kerja saat membuat container; ini bukan kuota runtime. |
-| `perch` | Menggunakan perilaku resume lama tanpa pembuatan pengganti otomatis. | Kompatibilitas dengan entri kustom yang sudah ada; lebih disarankan `perchdir=resume` untuk menu saat ini. |
+| `perchdir=resume` | Buka sesi kompatibel default dan, jika kondisi mendukung, buat pengganti jika tidak dapat digunakan. | Pekerjaan harian normal. |
+| `perchdir=new` | Buat sesi baru dengan nomor urut. | Biarkan workspace yang ada tetap tanpa perubahan. |
+| `perchdir=ask` | Tampilkan sesi yang tersimpan setelah penyimpanan yang dapat dilanjutkan ditemukan dan izinkan Anda memilih salah satunya. Tidak dapat membuat sesi pertama pada penyimpanan kosong. | Beberapa workspace yang sudah ada di satu perangkat; gunakan `perchdir=new` untuk sesi pertama. |
+| `perchdir=NUMBER` | Minta sesi bernomor tertentu. | Entri boot kustom yang stabil setelah memeriksa ID sesi. |
+| `perchmode=MODE` | Pilih `native`, `dynfilefs`, `dynblk`, `raw`, `luks`, atau `squashfs` sesi yang sudah ada. | Sesuaikan filesystem penyimpanan, perilaku block-container, dan kebutuhan enkripsi. |
+| `perchsize=SIZE` | Tentukan ukuran sesi container baru atau yang sedang bertambah. | DynFileFS, dynblk, raw, atau penyimpanan LUKS. |
+| `perchreserve=MB` | Kurangi margin saat menentukan ukuran container baru atau yang bertambah dan atur ambang peringatan ruang rendah. | Sisakan ruang kerja saat mengalokasikan container; ini bukan kuota runtime. |
+| `perch` | Gunakan perilaku resume lama tanpa pembuatan pengganti otomatis. | Kompatibel dengan entri kustom yang sudah ada; lebih disarankan `perchdir=resume` untuk menu saat ini. |
 
-Jangan menggabungkan persistensi dengan `toram` jika Anda mengharapkan perubahan ditulis kembali ke perangkat asli. MiniOS mengaktifkan sesi yang telah disalin di RAM, dan perubahan pada salinan tersebut akan hilang saat shutdown.
+Jangan gabungkan persistensi dengan `toram` saat Anda mengharapkan perubahan ditulis kembali ke perangkat asli. MiniOS mengaktifkan sesi salinan di RAM, dan perubahan pada salinan tersebut akan hilang saat shutdown.
 
 ## Persistensi bersifat eksplisit
 
@@ -79,25 +79,26 @@ Literal `perchdir=resume` akan membuat sesi bernomor baru jika default-nya tidak
 
 Mode penyimpanan adalah bagian dari kompatibilitas. Jika seleksi mencapai backend dispatch, mode yang diminta tidak dikenal akan kembali ke `native`, yang kemudian dapat memilih DynFileFS pada media yang tidak sesuai. Sesi yang sudah ada dengan mode berbeda dapat gagal pada pemeriksaan kompatibilitas sebelumnya; permintaan resume lama kemudian akan melanjutkan di RAM daripada mencapai fallback tersebut.
 
-## Cadangan Ruang dan Ukuran
+## Cadangan ruang dan ukuran
 
-MiniOS menggunakan 256 MiB sebagai margin alokasi default dan ambang peringatan ruang rendah. Perhitungan menggunakan blok filesystem 1024-byte. `perchreserve` menerima angka bulat tak bertanda tanpa satuan, dibatasi pada 4096, dan akan kembali ke 256 jika tidak ada atau tidak valid. Margin ini mengurangi ruang yang ditawarkan untuk kontainer baru atau yang bertambah besar. Ini bukan kuota: sesi native atau penulisan berikutnya tetap dapat menggunakan sisa ruang filesystem. Boot akan memperingatkan jika ruang bebas saat ini sama dengan atau di bawah ambang batas.
+MiniOS menggunakan 256 MiB sebagai margin alokasi default dan ambang peringatan ruang rendah. Perhitungannya menggunakan blok filesystem 1024-byte. `perchreserve` menerima angka bulat tanpa satuan, dibatasi maksimal 4096, dan akan kembali ke 256 jika tidak diisi atau tidak valid. Margin ini mengurangi ruang yang ditawarkan untuk container baru atau yang bertambah. Ini bukan kuota: sesi native atau penulisan berikutnya tetap dapat menggunakan sisa ruang filesystem. Boot akan memperingatkan jika ruang kosong saat ini sama dengan atau di bawah ambang tersebut.
 
-Ukuran kontainer menggunakan jumlah bulat yang dialokasikan dalam MiB:
+Ukuran container menggunakan jumlah bulat yang dialokasikan dalam MiB:
 
-- Angka polos, `M`, atau `MB` berarti MiB.
+- Angka tanpa satuan, `M`, atau `MB` berarti MiB.
 - `G` atau `GB` mengalikan angka dengan 1000 MiB.
 - `T` atau `TB` mengalikan angka dengan 1.000.000 MiB.
 - Permintaan logis maksimum adalah 1.000.000 MiB, dibatasi lagi oleh ruang yang tersedia setelah cadangan.
-- Manajer Sesi MiniOS membatasi file mentah dan LUKS pada 4000 MiB di FAT32. Selama aktivasi initrd, batas ini diterapkan secara konsisten pada LUKS, sedangkan permintaan raw yang terlalu besar bisa mencapai alokasi dan gagal, bukan dikurangi.
-- Sesi raw dan LUKS baru secara default berukuran 4000 MiB.
-- Sesi DynFileFS baru yang dibuat oleh initrd secara default menggunakan kapasitas yang tersedia setelah cadangan, dibulatkan ke batas 1000 MiB jika memungkinkan.
+- Manajer Sesi MiniOS membatasi file raw dan LUKS hingga 4000 MiB pada FAT32. Selama aktivasi initrd, batas ini diterapkan secara konsisten pada LUKS, sedangkan permintaan raw yang melebihi batas bisa sampai tahap alokasi dan gagal, bukan dikurangi.
+- Sesi raw dan LUKS baru default ke 4000 MiB.
+- Sesi DynFileFS baru yang dibuat oleh initrd akan default ke kapasitas tersedia setelah cadangan, dibulatkan ke batas 1000 MiB jika memungkinkan.
+- Sesi dynblk baru default ke perangkat blok virtual tipis 16 GiB saat `perchsize` tidak ditentukan. Ukuran virtual dynblk eksplisit dibatasi hingga 512 GiB; file backing fisik dibuat secara bertahap dan tetap bergantung pada ruang kosong host dan admisi memori dynblk.
 
-Pertumbuhan kontainer bersifat best-effort dan pengecilan tidak didukung. `perchsize` tidak mengatur ukuran sesi native atau SquashFS. Manajer Sesi MiniOS menggunakan default 4000 MiB untuk sesi kontainer yang baru dibuat; lihat [Manajemen Sesi](/using-minios/Sessions-and-Persistence).
+Pertumbuhan container bersifat best-effort dan tidak mendukung pengecilan.`perchsize` tidak mengatur ukuran sesi native atau SquashFS. Manajer Sesi MiniOS menggunakan 4000 MiB secara default untuk pembuatan raw/DynFileFS/LUKS dan 16 GiB untuk dynblk; lihat [Manajemen sesi](/using-minios/Sessions-and-Persistence).
 
-## Aktivasi penyimpanan
+## Aktivasi Penyimpanan
 
-Semua mode yang berhasil harus menyediakan upper yang dapat ditulis sesuai dengan union filesystem yang dipilih. Mount backend saja tidak membuktikan persistensi aktif. Native, DynFileFS, raw, dan LUKS dapat memperbarui metadata sesi persisten sebelum validasi union; SquashFS menunda commit metadata tersebut. Status current-boot yang dilindungi hanya dipublikasikan setelah root union final dikonfirmasi menggunakan upper yang diharapkan.
+Semua mode yang berhasil harus menyediakan upper writable yang diharapkan oleh union filesystem yang dipilih. Mount backend saja tidak membuktikan bahwa persistensi aktif. Native, DynFileFS, dynblk, raw, dan LUKS dapat memperbarui metadata sesi persisten sebelum validasi union; SquashFS menunda komit metadata tersebut. Status current-boot yang dilindungi hanya dipublikasikan setelah root union akhir dipastikan menggunakan upper yang diharapkan.
 
 ### Native
 
@@ -107,9 +108,17 @@ Jika filesystem diketahui tidak cocok, atau uji POSIX gagal, mode native akan be
 
 ### DynFileFS
 
-DynFileFS, diimplementasikan oleh helper yang kompatibel dengan `dynblk`, menyimpan satu image blok logis di `changes.dat` beserta file segmen bernomornya. Helper harus berhasil mount dan menampilkan `virtual.dat`; jika tidak, aktivasi gagal agar tidak secara tidak sengaja membuat file hanya-RAM dengan nama yang terlihat persisten.
+DynFileFS adalah backend container berbasis FUSE. Backend ini menyimpan satu image blok logis di `changes.dat` beserta file segmen bernomor. Helper harus berhasil melakukan mount dan menampilkan `virtual.dat`; jika tidak, aktivasi akan gagal daripada secara tidak sengaja membuat file hanya-RAM dengan nama yang terlihat persisten.
 
-Image logis berisi ext4. Image yang sudah ada akan diperiksa sebelum mount writable; hasil fsck di atas status error-terkoreksi akan menolak sesi daripada mount writable. Resize hanya mendukung pertumbuhan, dan filesystem ext4 di dalamnya akan diperluas jika memungkinkan. Untuk diagnosis yang ditujukan pengguna, lihat [Pemecahan masalah](/maintenance-and-recovery/Troubleshooting).
+Image logis berisi ext4. Image yang sudah ada akan dicek sebelum mount writable; hasil fsck di atas status error-terkoreksi akan menolak sesi daripada mount writable. Resize hanya mendukung pertumbuhan, dan filesystem ext4 di dalamnya akan diperbesar jika memungkinkan. Untuk diagnosis yang ditujukan pengguna, lihat [Pemecahan Masalah](/maintenance-and-recovery/Troubleshooting).
+
+### dynblk
+
+Mode `dynblk` adalah backend perangkat blok kernel, terpisah dari DynFileFS. Setiap sesi bernomor memiliki namespace `volume000.db` dengan file backing `volume001.db` hingga `volume063.db` yang dibuat secara bertahap. Melampirkan volume melalui `/dev/dynblk-control` akan mengembalikan perangkat whole-disk yang dialokasikan secara dinamis seperti `/dev/dynblk0` atau `/dev/dynblk3`; MiniOS harus menggunakan perangkat yang dikembalikan dan tidak boleh mengasumsikan bahwa `dynblk0` bebas. Beberapa volume dynblk dapat dilampirkan secara bersamaan.
+
+MiniOS membuat ext4 langsung pada perangkat whole-disk dynblk, memeriksa ext4 yang sudah ada sebelum digunakan writable, dan mendukung pertumbuhan hingga batas format-1 sebesar 512 GiB. Pengecilan tidak didukung. Status boot yang dilindungi akan merekam tepat `/dev/dynblkN` yang digunakan oleh sesi persisten yang berjalan sehingga saat shutdown perangkat yang sama akan dilepas setelah filesystem-nya di-unmount. Ini tetap akurat meskipun Session Manager sementara melampirkan sesi dynblk lain secara paralel.
+
+Kapasitas virtual bersifat tipis: tidak dialokasikan ruang host di awal. Penulisan aktual tetap bisa gagal karena ruang kosong filesystem bawah, namespace backing 64-part, atau admisi memori dynblk. Perangkat yang gagal atau terblokir hanya akan dilepas setelah filesystem upper tidak lagi ter-mount; pemulihan akan memvalidasi format yang tersimpan pada attach berikutnya.
 
 ### Raw
 
@@ -146,11 +155,11 @@ Jangan mengganti atau membangun ulang file sesi saat boot. Lindungi media penyim
 
 ## Status aktif, berjalan, dan current-boot
 
-Pada metadata sesi yang tahan lama, `default=` adalah sesi **aktif** yang dipilih untuk resume berikutnya, sedangkan `running=` adalah sesi yang dicatat sebagai pemasok boot saat ini. Aktivasi menulis kedua field dan menandai sesi tersebut `dirty`.
-Setelah mount persistensi hilang saat shutdown bersih, MiniOS akan menghapus `running=` dan menandai sesi `clean`.
+Dalam metadata sesi yang tahan lama, `default=` adalah sesi **aktif** yang dipilih untuk resume berikutnya, sedangkan `running=` adalah sesi yang tercatat sebagai penyedia boot saat ini. Aktivasi akan menulis kedua field dan menandai sesi tersebut sebagai `dirty`.
+Setelah mount persistensi hilang saat shutdown bersih, MiniOS akan menghapus `running=` dan menandai sesi tersebut sebagai `clean`.
 
-Field metadata tersebut bisa saja usang setelah crash, gagal menulis metadata, gagal membangun union, penyimpanan yang disalin, atau shutdown yang terputus. Komponen runtime yang mengizinkan penyimpanan tidak mempercayai `running=` saja. Mereka menggunakan status current-boot yang dilindungi initrd, terikat pada boot ID, sesi numerik, mode, identitas penyimpanan sebenarnya, status writable, durabilitas, dan generasi aktif yang terverifikasi. Catatan current-boot yang gagal atau hilang berarti persistensi tidak boleh dianggap sebagai target penyimpanan yang disetujui.
+Field metadata tersebut bisa saja usang setelah crash, penulisan metadata gagal, konstruksi union gagal, store yang disalin, atau shutdown yang terputus. Komponen runtime yang mengizinkan penyimpanan tidak mempercayai `running=` saja. Mereka menggunakan status current-boot yang dilindungi dari initrd, terikat pada boot ID, sesi numerik, mode, identitas store aktual, status writable, durabilitas, generasi aktif terverifikasi, dan untuk dynblk, perangkat terlampir yang persis `/dev/dynblkN`. Catatan current-boot yang gagal atau hilang berarti persistensi tidak boleh dianggap sebagai target penyimpanan yang disetujui.
 
-Dengan `toram` dan permintaan persistensi yang dikenali, penyimpanan sesi akan disalin ke RAM sebelum aktivasi. Sesi yang disalin dapat writable dan dapat menyediakan upper yang berjalan, tetapi status current-boot-nya ditandai non-durable. Perubahan pada salinan RAM tersebut tidak kembali ke perangkat asli dan akan hilang saat shutdown.
+Dengan `toram` dan permintaan persistensi yang dikenali, store sesi akan disalin ke RAM sebelum aktivasi. Sesi salinan bisa writable dan dapat menyediakan upper yang berjalan, tetapi status current-boot-nya ditandai tidak tahan lama. Perubahan pada salinan RAM tersebut tidak kembali ke perangkat asli dan akan hilang saat shutdown.
 
-Untuk panduan operasional terkait, lihat [Mode Boot](/using-minios/Boot-Modes), [Parameter Boot](/reference/Boot-Parameters), [Sesi dan persistensi](/using-minios/Sessions-and-Persistence), [Membackup MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS), [Keamanan](/maintenance-and-recovery/Security), dan [Pemecahan masalah](/maintenance-and-recovery/Troubleshooting).
+Untuk panduan operasional terkait, lihat [Mode boot](/using-minios/Boot-Modes), [Parameter boot](/reference/Boot-Parameters), [Sesi dan persistensi](/using-minios/Sessions-and-Persistence), [Backup MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS), [Keamanan](/maintenance-and-recovery/Security), dan [Pemecahan Masalah](/maintenance-and-recovery/Troubleshooting).

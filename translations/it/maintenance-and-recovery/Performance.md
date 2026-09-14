@@ -1,46 +1,47 @@
 ---
-updated: 2026-08-26
+updated: 2026-09-13
 ---
 
 # Prestazioni
 
-L'ottimizzazione delle prestazioni in MiniOS è principalmente un compromesso tra tempo di avvio, utilizzo di RAM, letture in fase di esecuzione, overhead della persistenza e durabilità dello storage. Per dettagli precisi sulle opzioni e sui limiti di sicurezza, consulta [Modalità di avvio](/using-minios/Boot-Modes), [Caricamento moduli Initrd](/reference/boot-process/Module-Loading) e [Persistenza Initrd](/reference/boot-process/Persistence-Internals).
+L'ottimizzazione delle prestazioni in MiniOS consiste principalmente nel trovare un equilibrio tra il tempo di avvio, l'utilizzo di RAM, le letture in fase di esecuzione, il carico della persistenza e la durabilità dello storage. Per informazioni dettagliate sulle opzioni e sui limiti di sicurezza, consulta [Modalità di avvio](/using-minios/Boot-Modes), [Caricamento moduli Initrd](/reference/boot-process/Module-Loading), e [Persistenza Initrd](/reference/boot-process/Persistence-Internals).
 
 ## Parametri di avvio per le prestazioni
 
-I parametri di avvio possono spostare il lavoro di startup e le letture del sistema attivo tra RAM e il dispositivo di origine. Consulta [Parametri di avvio](/reference/Boot-Parameters) per la documentazione completa.
+I parametri di avvio possono spostare le operazioni di avvio e le letture del sistema attivo tra RAM e il dispositivo di origine. Vedi [Parametri di avvio](/reference/Boot-Parameters) per la guida completa.
 
-### Caricamento del sistema in RAM (`toram`)
+### Caricamento del Sistema in RAM (`toram`)
 
-`toram` può ridurre la latenza in fase di esecuzione dovuta a dispositivi USB lenti o a ISO su rete, a fronte di un tempo di avvio più lungo e di un maggiore utilizzo di RAM. Il semplice `toram` utilizza il percorso di copia completa. `toram=trim` di solito consuma meno RAM, ma la sua copia più ristretta può escludere dati o moduli necessari successivamente.
+`toram` può ridurre la latenza di esecuzione da un dispositivo USB lento o da una ISO su rete, a fronte di un avvio più lungo e di un maggiore utilizzo di RAM. Bare `toram` utilizza il percorso di copia completa. `toram=trim` di solito consuma meno RAM, ma la sua copia più ridotta può escludere dati o moduli necessari in seguito.
 
-Lascia spazio per il layer scrivibile, le applicazioni, le cache e zram invece di dimensionare solo per i file dei moduli. Più RAM assegnata alla copia live significa meno risorse disponibili per il carico di lavoro. Segui [Modalità di avvio](/using-minios/Boot-Modes) per la durabilità della copia e i vincoli di rimozione dei supporti.
+Lascia spazio per il layer scrivibile, le applicazioni, le cache e zram invece di dimensionare solo per i file dei moduli. Più RAM assegnata alla copia live significa meno risorse disponibili per il carico di lavoro. Consulta [Modalità di avvio](/using-minios/Boot-Modes) per informazioni sulla durabilità della copia e sulle restrizioni per la rimozione del supporto.
 
-### Filtraggio dei moduli (`load` e `noload`)
+### Moduli di filtraggio (`load` e `noload`)
 
-Il filtraggio può ridurre i dati copiati e i layer montati, in particolare con `toram=trim`. Il costo è un sistema meno completo e una maggiore probabilità di errori in fase di avvio o di esecuzione se viene omessa una dipendenza. Verifica il set di moduli risultante; la sintassi dei filtri e le limitazioni sui moduli protetti sono definite in [Caricamento moduli Initrd](/reference/boot-process/Module-Loading).
+Il filtraggio può ridurre i dati copiati e i layer montati, soprattutto con `toram=trim`. Tuttavia, questo comporta un sistema meno completo e un rischio maggiore di errori di avvio o di esecuzione se manca una dipendenza. Verifica il set di moduli risultante; la sintassi del filtro e le limitazioni dei moduli protetti sono descritte in [Caricamento moduli Initrd](/reference/boot-process/Module-Loading).
 
 ## Ottimizzazione della persistenza
 
-La persistenza sposta le operazioni di I/O del layer scrivibile dalla RAM temporanea allo storage o a un container. La scelta del backend influisce su latenza, compatibilità, gestione della capacità e complessità di recupero.
+La persistenza sposta l'I/O del livello scrivibile dal RAM allo storage o a un container. La scelta del backend influisce su latenza, compatibilità, gestione della capacità e complessità del ripristino.
 
 ### Modalità di persistenza (`perchmode`)
 
-- **`native`:** Evita un layer filesystem-in-a-file ed è la scelta più semplice su filesystem POSIX compatibili, ma non è disponibile su filesystem che non possono preservare i metadati richiesti da Linux.
-- **`raw`:** Offre capacità fissa prevedibile e comportamento ext4 convenzionale, ma riserva la dimensione del file e non può crescere oltre lo spazio disponibile sul supporto.
-- **`dynfilefs`:** Si espande su richiesta e supporta anche supporti altrimenti non idonei, con maggiore complessità di mapping e recupero.
+- **`native`:** Evita uno strato filesystem-in-un-file ed è la scelta più semplice su un filesystem POSIX adatto, ma non è disponibile su filesystem che non possono mantenere la necessaria metadata Linux.
+- **`raw`:** Ha una capacità fissa prevedibile e un comportamento ext4 convenzionale, ma riserva la dimensione del file e non può crescere oltre lo spazio disponibile sul supporto di memorizzazione.
+- **`dynfilefs`:** Il backend FUSE/format-400 si espande su richiesta e supporta anche supporti altrimenti non compatibili, con maggiore complessità di mappatura e recupero.
+- **`dynblk`:** Il backend kernel a blocchi format-1 presenta un normale dispositivo a blocchi mentre il thin `volumeNNN.db` backing cresce su richiesta. Evita l'I/O FUSE, ma ogni dispositivo collegato consuma memoria fissa per i metadati e le scritture restano limitate dallo spazio libero del filesystem di supporto e dai limiti di ammissione dynblk.
 - **`luks`:** Aggiunge riservatezza a fronte di lavoro di sblocco e overhead di cifratura.
-- **`squashfs`:** Scambia la compressione al momento del salvataggio e il lavoro di estrazione RAM per uno snapshot compatto; non è un backend scrivibile a bassa latenza di tipo generale.
+- **`squashfs`:** Scambia la compressione al momento del salvataggio e il lavoro di estrazione RAM per uno snapshot compatto; non è un backend generale a bassa latenza e scrittura.
 
-Esegui benchmark di carichi di lavoro rappresentativi sul dispositivo reale. Differenze tra controller flash, filesystem, bridge USB e carico di lavoro sono più affidabili di una classifica universale delle modalità di persistenza.
+Esegui benchmark dei carichi di lavoro rappresentativi direttamente sul dispositivo reale. Le differenze tra controller flash, filesystem, bridge USB e carichi di lavoro sono più affidabili di una classifica universale delle modalità di persistenza.
 
 ## Configurazione ZRAM
 
-Zram scambia tempo CPU con capacità di memoria compressa e può evitare swap su storage molto più lento. Un dispositivo zram più grande può assorbire più pagine inattive ma non crea RAM fisica; carichi di lavoro non comprimibili consumano comunque memoria.
-Gli algoritmi di compressione bilanciano throughput e utilizzo CPU rispetto al rapporto di compressione, e la disponibilità dipende dal kernel. Parti dal valore predefinito e modifica `zramsize`, `zramcomp` o `nozram` solo per un carico di lavoro misurato; consulta [Parametri di avvio](/reference/Boot-Parameters) per i valori accettati.
+Zram scambia tempo CPU con capacità di memoria compressa e può evitare lo swap su disco, molto più lento. Un dispositivo zram più grande può assorbire più pagine inattive, ma non crea RAM fisica; i carichi di lavoro non comprimibili consumano comunque memoria.
+Gli algoritmi di compressione bilanciano velocità e utilizzo della CPU rispetto al rapporto di compressione, e la loro disponibilità dipende dal kernel. Inizia con l'impostazione predefinita e cambia `zramsize`, `zramcomp`, oppure `nozram` solo per un carico di lavoro misurato; consulta [Parametri di avvio](/reference/Boot-Parameters) per i valori accettati.
 
-## Filesystem e hardware di storage
+## File system e hardware di archiviazione
 
-- **Scelta del dispositivo:** Un throughput sequenziale più elevato riduce i tempi di copia di moduli di grandi dimensioni, mentre una bassa latenza I/O casuale è più importante per carichi di lavoro desktop persistenti.
-  Misura il dispositivo e il box insieme; la sola generazione USB non predice le prestazioni della flash o dell'SSD.
-- **Scelta del filesystem:** Un filesystem Linux nativo può utilizzare la persistenza nativa senza overhead da container. Filesystem multipiattaforma migliorano la portabilità ma richiedono un backend container compatibile per i metadati Linux, aggiungendo mapping e layer di filesystem. Scegli in base alle esigenze di portabilità e recupero oltre che ai risultati dei benchmark.
+- **Scelta del dispositivo:** Un'elevata velocità di trasferimento sequenziale riduce il tempo necessario per copiare grandi moduli, mentre una bassa latenza nelle operazioni casuali è più importante per i carichi di lavoro desktop persistenti.
+  Misura il dispositivo insieme al suo box; la sola generazione USB non è indicativa delle prestazioni di flash o SSD.
+- **Scelta del file system:** Un file system nativo Linux può sfruttare la persistenza nativa senza il sovraccarico di un container. I file system multipiattaforma migliorano la portabilità ma richiedono un backend container compatibile per i metadati Linux, aggiungendo livelli di mapping e file system. Scegli in base alle esigenze di portabilità e recupero, oltre che ai risultati dei benchmark.

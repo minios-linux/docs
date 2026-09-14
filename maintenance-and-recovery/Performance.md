@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-26
+updated: 2026-09-13
 ---
 # Performance
 
@@ -28,7 +28,8 @@ Persistence moves writable-layer I/O from temporary RAM to storage or a containe
 
 - **`native`:** Avoids a filesystem-in-a-file layer and is the simplest choice on a suitable POSIX filesystem, but is unavailable on filesystems that cannot preserve required Linux metadata.
 - **`raw`:** Has predictable fixed capacity and conventional ext4 behavior, but reserves its file size and cannot grow beyond available backing storage.
-- **`dynfilefs`:** Expands on demand and supports otherwise unsuitable media, with additional mapping and recovery complexity.
+- **`dynfilefs`:** The FUSE/format-400 backend expands on demand and supports otherwise unsuitable media, with additional mapping and recovery complexity.
+- **`dynblk`:** The format-1 kernel block backend presents a normal block device while thin `volumeNNN.db` backing grows on demand. It avoids FUSE I/O, but each attached device consumes fixed metadata memory and writes remain limited by backing-filesystem free space and dynblk admission limits.
 - **`luks`:** Adds confidentiality at the cost of unlock work and encryption overhead.
 - **`squashfs`:** Trades save-time compression and RAM extraction work for a compact snapshot; it is not a general low-latency writable backend.
 

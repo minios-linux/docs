@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-28
+updated: 2026-09-13
 ---
 # Persistence internals
 
@@ -22,8 +22,8 @@ Requesting persistence does not guarantee that it became active. If the target i
 | `perchdir=new` | Create a new numbered session. | Keep an existing workspace unchanged. |
 | `perchdir=ask` | Display saved sessions after a resumable store has been found and let you choose one. It cannot create the first session on empty storage. | Several existing workspaces on one device; use `perchdir=new` for the first session. |
 | `perchdir=NUMBER` | Request a particular numbered session. | Stable custom boot entry after checking the session ID. |
-| `perchmode=MODE` | Select `native`, `dynfilefs`, `raw`, `luks`, or an existing `squashfs` session. | Match the storage filesystem and encryption requirement. |
-| `perchsize=SIZE` | Request the size of a new or growing container session. | DynFileFS, raw, or LUKS storage. |
+| `perchmode=MODE` | Select `native`, `dynfilefs`, `dynblk`, `raw`, `luks`, or an existing `squashfs` session. | Match the storage filesystem, block-container behavior, and encryption requirement. |
+| `perchsize=SIZE` | Request the size of a new or growing container session. | DynFileFS, dynblk, raw, or LUKS storage. |
 | `perchreserve=MB` | Subtract a margin when sizing a new or growing container and set the low-space warning threshold. | Leave working space when allocating a container; it is not a runtime quota. |
 | `perch` | Use the older resume behavior without automatic replacement creation. | Compatibility with an existing custom entry; prefer `perchdir=resume` for current menus. |
 
@@ -91,12 +91,13 @@ Container sizes use whole counts that are allocated in MiB:
 - MiniOS Session Manager caps raw and LUKS files at 4000 MiB on FAT32. During initrd activation the cap is applied reliably to LUKS, while an oversized raw request can reach allocation and fail instead of being reduced.
 - New raw and LUKS sessions default to 4000 MiB.
 - A new initrd-created DynFileFS session defaults to available capacity after the reserve, rounded down to a 1000 MiB boundary when possible.
+- A new dynblk session defaults to a 16 GiB thin virtual block device when `perchsize` is not specified. Explicit dynblk virtual size is capped at 512 GiB; physical backing files are created lazily and remain subject to host free space and dynblk memory admission.
 
-Container growth is best-effort and shrinking is not supported. `perchsize` does not size native or SquashFS sessions. MiniOS Session Manager uses its own 4000 MiB default for newly created container sessions; see [Session management](/using-minios/Sessions-and-Persistence).
+Container growth is best-effort and shrinking is not supported. `perchsize` does not size native or SquashFS sessions. MiniOS Session Manager uses 4000 MiB by default for raw/DynFileFS/LUKS creation and 16 GiB for dynblk; see [Session management](/using-minios/Sessions-and-Persistence).
 
 ## Storage activation
 
-All successful modes must supply the writable upper expected by the selected union filesystem. Mounting a backend does not by itself prove that persistence is active. Native, DynFileFS, raw, and LUKS can update persistent session metadata before union validation; SquashFS defers that metadata commit. The protected current-boot state is published only after the final root union is confirmed to use the expected upper.
+All successful modes must supply the writable upper expected by the selected union filesystem. Mounting a backend does not by itself prove that persistence is active. Native, DynFileFS, dynblk, raw, and LUKS can update persistent session metadata before union validation; SquashFS defers that metadata commit. The protected current-boot state is published only after the final root union is confirmed to use the expected upper.
 
 ### Native
 
@@ -106,9 +107,17 @@ If the filesystem is known to be unsuitable, or the POSIX probe fails, native mo
 
 ### DynFileFS
 
-DynFileFS, implemented by the `dynblk`-compatible helper, stores one logical block image in `changes.dat` plus its numbered segment files. The helper must mount successfully and expose `virtual.dat`; otherwise activation fails rather than accidentally creating a RAM-only file with a persistent-looking name.
+DynFileFS is the FUSE-based container backend. It stores one logical block image in `changes.dat` plus its numbered segment files. The helper must mount successfully and expose `virtual.dat`; otherwise activation fails rather than accidentally creating a RAM-only file with a persistent-looking name.
 
 The logical image contains ext4. Existing images are checked before writable mounting; filesystem-check results above the corrected-errors status reject the session instead of mounting it writable. Resize is growth-only, and the inner ext4 filesystem is expanded when possible. For user-facing diagnosis, see [Troubleshooting](/maintenance-and-recovery/Troubleshooting).
+
+### dynblk
+
+The `dynblk` mode is a kernel block-device backend, separate from DynFileFS. Each numbered session owns a `volume000.db` namespace with lazily created `volume001.db` through `volume063.db` siblings. Attaching a volume through `/dev/dynblk-control` returns a dynamically allocated whole-disk device such as `/dev/dynblk0` or `/dev/dynblk3`; MiniOS must use the returned device and must not assume that `dynblk0` is free. Multiple dynblk volumes can be attached at the same time.
+
+MiniOS creates ext4 directly on the dynblk whole-disk device, checks existing ext4 before writable use, and supports growth up to the format-1 limit of 512 GiB. Shrinking is not supported. The protected boot-state records the exact `/dev/dynblkN` used by the running persistent session so shutdown detaches that same device after its filesystem is unmounted. This remains correct even when Session Manager temporarily attaches another dynblk session in parallel.
+
+The virtual capacity is thin: it is not preallocated host space. Actual writes can still fail because of lower-filesystem free space, the 64-part backing namespace, or dynblk memory admission. A failed or fenced device is detached only after its upper filesystem is no longer mounted; recovery validates the stored format on the next attach.
 
 ### Raw
 
@@ -148,7 +157,7 @@ Do not replace or reconstruct session files during boot. Preserve the affected s
 In durable session metadata, `default=` is the **active** session selected for the next resume, while `running=` is the session recorded as supplying the current boot. Activation writes both fields and marks that session `dirty`.
 After persistence mounts have disappeared during a clean shutdown, MiniOS removes `running=` and marks the session `clean`.
 
-Those metadata fields can be stale after a crash, failed metadata write, failed union construction, copied store, or interrupted shutdown. Runtime components that allow saving do not trust `running=` alone. They use the initrd's protected current-boot state, bound to the boot ID, numeric session, mode, actual store identity, writable status, durability, and verified active generation. A failed or missing current-boot record means persistence must not be treated as an approved save target.
+Those metadata fields can be stale after a crash, failed metadata write, failed union construction, copied store, or interrupted shutdown. Runtime components that allow saving do not trust `running=` alone. They use the initrd's protected current-boot state, bound to the boot ID, numeric session, mode, actual store identity, writable status, durability, verified active generation, and, for dynblk, the exact attached `/dev/dynblkN` device. A failed or missing current-boot record means persistence must not be treated as an approved save target.
 
 With `toram` and a recognized persistence request, the session store is copied into RAM before activation. The copied session can be writable and can supply the running upper, but its current-boot state is marked non-durable. Changes to that RAM copy do not return to the original device and are lost at shutdown.
 

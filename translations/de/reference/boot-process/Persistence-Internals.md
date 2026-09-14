@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-28
+updated: 2026-09-13
 ---
 
 # Persistenz-Interna
@@ -17,18 +17,18 @@ Das Anfordern von Persistenz garantiert nicht, dass sie tatsächlich aktiv ist. 
 
 ## Parameter erklärt
 
-| Parameter | Was es MiniOS mitteilt | Typische Wahl |
+| Parameter | Was es MiniOS angibt | Typische Auswahl |
 |---|---|---|
-| `perchdir=resume` | Öffnet die standardmäßig kompatible Sitzung und erstellt unter unterstützten Bedingungen einen Ersatz, wenn diese nicht verwendet werden kann. | Normale tägliche Nutzung. |
-| `perchdir=new` | Erstellt eine neue nummerierte Sitzung. | Bestehenden Arbeitsbereich unverändert lassen. |
-| `perchdir=ask` | Zeigt gespeicherte Sitzungen an, nachdem ein fortsetzbarer Speicher gefunden wurde, und lässt Sie eine auswählen. Kann die erste Sitzung auf leerem Speicher nicht erstellen. | Mehrere Arbeitsbereiche auf einem Gerät; für die erste Sitzung `perchdir=new` verwenden. |
-| `perchdir=NUMBER` | Fordert eine bestimmte nummerierte Sitzung an. | Stabiles, benutzerdefiniertes Boot-Menü nach Überprüfung der Sitzungs-ID. |
-| `perchmode=MODE` | Wählt `native`, `dynfilefs`, `raw`, `luks` oder eine bestehende `squashfs`-Sitzung. | Passend zum Dateisystem und Verschlüsselungsbedarf. |
-| `perchsize=SIZE` | Fordert die Größe einer neuen oder wachsenden Containersitzung an. | DynFileFS-, raw- oder LUKS-Speicher. |
-| `perchreserve=MB` | Zieht beim Dimensionieren eines neuen oder wachsenden Containers eine Reserve ab und setzt die Warnschwelle für wenig Speicherplatz. | Arbeitsbereich beim Anlegen eines Containers freilassen; ist kein Laufzeit-Kontingent. |
-| `perch` | Verwendet das ältere Resume-Verhalten ohne automatisches Erstellen eines Ersatzes. | Kompatibilität mit einem bestehenden benutzerdefinierten Eintrag; für aktuelle Menüs `perchdir=resume` bevorzugen. |
+| `perchdir=resume` | Öffnet die standardmäßig kompatible Sitzung und erstellt unter unterstützten Bedingungen einen Ersatz, wenn diese nicht verwendet werden kann. | Normale tägliche Arbeit. |
+| `perchdir=new` | Erstellt eine neue nummerierte Sitzung. | Belässt einen bestehenden Arbeitsbereich unverändert. |
+| `perchdir=ask` | Zeigt gespeicherte Sitzungen an, nachdem ein fortsetzbarer Speicher gefunden wurde, und lässt Sie eine auswählen. Die erste Sitzung kann auf leerem Speicher nicht erstellt werden. | Mehrere bestehende Arbeitsbereiche auf einem Gerät; verwenden Sie `perchdir=new` für die erste Sitzung. |
+| `perchdir=NUMBER` | Fordert eine bestimmte nummerierte Sitzung an. | Stabiler benutzerdefinierter Boot-Eintrag nach Prüfung der Sitzungs-ID. |
+| `perchmode=MODE` | Wählen Sie `native`, `dynfilefs`, `dynblk`, `raw`, `luks`, oder eine bestehende `squashfs`-Sitzung. | Stimmt das Speicherdateisystem, das Block-Container-Verhalten und die Verschlüsselungsanforderung ab. |
+| `perchsize=SIZE` | Fordert die Größe einer neuen oder wachsenden Container-Sitzung an. | DynFileFS, dynblk, raw oder LUKS Speicher. |
+| `perchreserve=MB` | Zieht beim Festlegen der Größe eines neuen oder wachsenden Containers eine Reserve ab und setzt die Warnschwelle für wenig Speicherplatz. | Lässt Arbeitsbereich beim Anlegen eines Containers frei; dies ist kein Laufzeit-Kontingent. |
+| `perch` | Verwendet das ältere Resume-Verhalten ohne automatische Ersatz-Erstellung. | Kompatibilität mit einem vorhandenen benutzerdefinierten Eintrag; bevorzugen Sie `perchdir=resume` für aktuelle Menüs. |
 
-Kombinieren Sie Persistenz nicht mit `toram`, wenn Sie erwarten, dass Änderungen auf das Ursprungsgerät zurückgeschrieben werden. MiniOS aktiviert die kopierte Sitzung in RAM, und Änderungen an dieser Kopie gehen beim Herunterfahren verloren.
+Kombinieren Sie Persistenz nicht mit `toram` wenn Sie erwarten, dass Änderungen auf das Originalgerät zurückgeschrieben werden. MiniOS aktiviert die kopierte Sitzung in RAM, und Änderungen an dieser Kopie gehen beim Herunterfahren verloren.
 
 ## Persistenz ist explizit
 
@@ -79,25 +79,26 @@ Das explizite `perchdir=resume` erstellt eine neue nummerierte Sitzung, wenn das
 
 Der Speichermodus ist Teil der Kompatibilität. Wenn die Auswahl die Backend-Dispatch erreicht, fällt ein unbekannter angeforderter Modus auf `native` zurück, dessen Probe dann ggf. DynFileFS auf ungeeignetem Speicher auswählt. Eine bestehende Sitzung mit anderem aufgezeichnetem Modus kann stattdessen an der früheren Kompatibilitätsprüfung scheitern; eine Legacy-Resume-Anfrage setzt dann in RAM fort, anstatt auf dieses Fallback zu gelangen.
 
-## Reservierter Speicherplatz und Größen
+## Reserven und Größen
 
-MiniOS verwendet standardmäßig 256 MiB als Allokationspuffer und Warnschwelle bei wenig Speicherplatz. Die Berechnung erfolgt mit 1024-Byte-Dateisystemblöcken. `perchreserve` akzeptiert eine vorzeichenlose Ganzzahl ohne Einheit, ist auf 4096 begrenzt und fällt auf 256 zurück, wenn sie fehlt oder ungültig ist. Der Puffer reduziert den für einen neuen oder wachsenden Container angebotenen Speicherplatz. Es handelt sich nicht um ein Quota: Eine native Sitzung oder spätere Schreibvorgänge können weiterhin den verbleibenden Dateisystemplatz nutzen. Beim Booten wird gewarnt, wenn der aktuelle freie Speicherplatz auf oder unter dem Schwellenwert liegt.
+MiniOS verwendet 256 MiB als Standard-Reservespeicher und Warnschwelle für wenig Speicherplatz. Die Berechnung erfolgt mit 1024-Byte-Dateisystemblöcken. `perchreserve` akzeptiert eine vorzeichenlose Ganzzahl ohne Einheit, ist auf 4096 begrenzt und fällt auf 256 zurück, wenn sie fehlt oder ungültig ist. Die Reserve verringert den für einen neuen oder wachsenden Container angebotenen Speicherplatz. Es ist kein Kontingent: Eine native Sitzung oder spätere Schreibvorgänge können den verbleibenden Dateisystemplatz weiterhin nutzen. Beim Booten wird gewarnt, wenn der aktuelle freie Speicherplatz auf oder unter der Schwelle liegt.
 
 Container-Größen werden als ganze Werte in MiB zugewiesen:
 
-- Eine reine Zahl, `M` oder `MB` bedeutet MiB.
+- Eine reine Zahl, `M`, oder `MB` bedeutet MiB.
 - `G` oder `GB` multipliziert die Zahl mit 1000 MiB.
 - `T` oder `TB` multipliziert die Zahl mit 1.000.000 MiB.
-- Die maximale logische Anforderung beträgt 1.000.000 MiB, weiter begrenzt durch den verfügbaren Speicherplatz nach Abzug des Puffers.
-- Der MiniOS-Sitzungsmanager begrenzt Raw- und LUKS-Dateien auf 4000 MiB bei FAT32. Während der initrd-Aktivierung wird das Limit bei LUKS zuverlässig angewendet, während eine zu große Raw-Anforderung zur Allokation gelangen und fehlschlagen kann, anstatt reduziert zu werden.
-- Neue Raw- und LUKS-Sitzungen haben standardmäßig 4000 MiB.
-- Eine neue, vom initrd erstellte DynFileFS-Sitzung verwendet standardmäßig die nach dem Puffer verfügbare Kapazität, möglichst auf ein 1000 MiB-Intervall abgerundet.
+- Die maximale logische Anforderung beträgt 1.000.000 MiB, weiter begrenzt durch den verfügbaren Speicher nach Abzug der Reserve.
+- MiniOS-Sitzungsmanager begrenzt raw- und LUKS-Dateien auf 4000 MiB bei FAT32. Während der initrd-Aktivierung wird das Limit zuverlässig auf LUKS angewendet, während eine zu große raw-Anforderung bis zur Zuweisung gelangen und dann fehlschlagen kann, anstatt reduziert zu werden.
+- Neue raw- und LUKS-Sitzungen verwenden standardmäßig 4000 MiB.
+- Eine neue, von initrd erstellte DynFileFS-Sitzung nutzt standardmäßig die verfügbare Kapazität nach Abzug der Reserve, möglichst auf ein 1000-MiB-Intervall abgerundet.
+- Eine neue dynblk-Sitzung verwendet standardmäßig ein 16 GiB großes Thin-Virtual-Block-Gerät, wenn `perchsize` nicht angegeben ist. Die explizite dynblk-Virtualgröße ist auf 512 GiB begrenzt; physische Backing-Dateien werden bei Bedarf erstellt und unterliegen weiterhin dem freien Speicherplatz des Hosts und der dynblk-Speicherfreigabe.
 
-Das Vergrößern von Containern erfolgt nach dem Best-Effort-Prinzip, eine Verkleinerung wird nicht unterstützt. `perchsize` legt keine Größe für native oder SquashFS-Sitzungen fest. Der MiniOS-Sitzungsmanager verwendet für neu erstellte Containersitzungen standardmäßig 4000 MiB; siehe [Sitzungsverwaltung](/using-minios/Sessions-and-Persistence).
+Container-Wachstum erfolgt nach dem Best-Effort-Prinzip, Verkleinerung wird nicht unterstützt. `perchsize` legt keine Größe für native oder SquashFS-Sitzungen fest. Der MiniOS-Sitzungsmanager verwendet standardmäßig 4000 MiB für raw/DynFileFS/LUKS-Erstellung und 16 GiB für dynblk; siehe [Sitzungsverwaltung](/using-minios/Sessions-and-Persistence).
 
 ## Speicheraktivierung
 
-Alle erfolgreichen Modi müssen die beschreibbare obere Ebene bereitstellen, die vom gewählten Union-Dateisystem erwartet wird. Das Einbinden eines Backends allein beweist nicht, dass Persistenz aktiv ist. Native, DynFileFS, raw und LUKS können die Metadaten der persistenten Sitzung vor der Union-Validierung aktualisieren; SquashFS verzögert dieses Metadaten-Commit. Der geschützte Zustand des aktuellen Boots wird erst veröffentlicht, nachdem die finale Root-Union bestätigt hat, dass die erwartete obere Ebene verwendet wird.
+Alle erfolgreichen Modi müssen das beschreibbare Upper bereitstellen, das vom gewählten Union-Dateisystem erwartet wird. Das Einbinden eines Backends allein beweist nicht, dass Persistenz aktiv ist. Native, DynFileFS, dynblk, raw und LUKS können persistente Sitzungsmetadaten vor der Union-Validierung aktualisieren; SquashFS verzögert diesen Metadaten-Commit. Der geschützte Current-Boot-Status wird erst veröffentlicht, nachdem das finale Root-Union das erwartete Upper verwendet.
 
 ### Native
 
@@ -107,9 +108,17 @@ Ist das Dateisystem als ungeeignet bekannt oder schlägt die POSIX-Prüfung fehl
 
 ### DynFileFS
 
-DynFileFS, implementiert vom `dynblk`-kompatiblen Helfer, speichert ein logisches Block-Image in `changes.dat` sowie dessen nummerierte Segmentdateien. Der Helfer muss erfolgreich einbinden und `virtual.dat` bereitstellen; andernfalls schlägt die Aktivierung fehl, anstatt versehentlich eine RAM-only-Datei mit persistent wirkendem Namen zu erzeugen.
+DynFileFS ist das FUSE-basierte Container-Backend. Es speichert ein logisches Block-Image in `changes.dat` sowie dessen nummerierte Segmentdateien. Der Helper muss erfolgreich einhängen und `virtual.dat` bereitstellen; andernfalls schlägt die Aktivierung fehl, anstatt versehentlich eine reine RAM-Datei mit persistent wirkendem Namen zu erstellen.
 
-Das logische Image enthält ext4. Bestehende Images werden vor dem beschreibbaren Einbinden geprüft; Dateisystemprüfungen mit Status oberhalb "korrigierte Fehler" lehnen die Sitzung ab, anstatt sie einzubinden. Resize ist nur wachsend möglich, und das interne ext4-Dateisystem wird nach Möglichkeit erweitert. Für benutzerorientierte Diagnose siehe [Fehlerbehebung](/maintenance-and-recovery/Troubleshooting).
+Das logische Image enthält ext4. Bestehende Images werden vor dem beschreibbaren Einhängen geprüft; Ergebnisse des Dateisystem-Checks oberhalb des Status "Fehler korrigiert" lehnen die Sitzung ab, anstatt sie beschreibbar einzuhängen. Resize ist nur wachsend möglich, das innere ext4-Dateisystem wird bei Bedarf erweitert. Hinweise zur Fehlerdiagnose finden Sie unter [Fehlerbehebung](/maintenance-and-recovery/Troubleshooting).
+
+### dynblk
+
+Der `dynblk`-Modus ist ein Kernel-Block-Device-Backend, getrennt von DynFileFS. Jede nummerierte Sitzung besitzt einen `volume000.db`Namensraum mit bei Bedarf erstellten `volume001.db` bis `volume063.db`-Geschwistern. Das Anhängen eines Volumes über `/dev/dynblk-control` liefert ein dynamisch zugewiesenes Ganzplatten-Gerät wie `/dev/dynblk0` oder `/dev/dynblk3`; MiniOS muss das zurückgegebene Gerät verwenden und darf nicht davon ausgehen, dass `dynblk0` frei ist. Mehrere dynblk-Volumes können gleichzeitig angehängt werden.
+
+MiniOS erstellt ext4 direkt auf dem dynblk-Ganzplatten-Gerät, prüft bestehende ext4-Systeme vor der beschreibbaren Nutzung und unterstützt Wachstum bis zum Format-1-Limit von 512 GiB. Verkleinerung wird nicht unterstützt. Der geschützte Boot-Status zeichnet das exakte `/dev/dynblkN` auf, das von der laufenden persistenten Sitzung verwendet wird, sodass beim Herunterfahren genau dieses Gerät getrennt wird, nachdem das Dateisystem ausgehängt wurde. Dies bleibt korrekt, auch wenn der Sitzungsmanager vorübergehend eine andere dynblk-Sitzung parallel anhängt.
+
+Die virtuelle Kapazität ist thin: Sie wird nicht als Host-Speicherplatz vorab reserviert. Tatsächliche Schreibvorgänge können dennoch fehlschlagen, etwa wegen wenig Speicherplatz im darunterliegenden Dateisystem, dem 64-Teil-Backing-Namespace oder der dynblk-Speicherfreigabe. Ein fehlgeschlagenes oder gesperrtes Gerät wird erst getrennt, nachdem das obere Dateisystem nicht mehr eingehängt ist; die Wiederherstellung prüft das gespeicherte Format beim nächsten Anhängen.
 
 ### Raw
 
@@ -144,13 +153,13 @@ Falls ein Persistenz-Backend, ein Metadaten-Update oder diese Prüfung fehlschl�
 Fehler bei Containerprüfungen vermeiden absichtlich das beschreibbare Einbinden einer verdächtigen Sitzung.
 Ersetzen oder rekonstruieren Sie Sitzungsdateien während des Bootvorgangs nicht. Sichern Sie zuerst den betroffenen Speicher; siehe [Backup von MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS) und [Fehlerbehebung](/maintenance-and-recovery/Troubleshooting).
 
-## Aktiver, laufender und aktueller Boot-Zustand
+## Aktiver, laufender und Current-Boot-Status
 
-In den dauerhaften Sitzungsmetadaten ist `default=` die **aktive** Sitzung, die für den nächsten Resume ausgewählt wird, während `running=` die Sitzung ist, die für den aktuellen Boot aufgezeichnet wurde. Die Aktivierung schreibt beide Felder und markiert diese Sitzung als `dirty`.
-Nachdem die Persistenz-Mounts bei einem sauberen Herunterfahren entfernt wurden, löscht MiniOS `running=` und markiert die Sitzung als `clean`.
+In den dauerhaften Sitzungsmetadaten ist `default=` das **aktive** Sitzung, die für den nächsten Resume ausgewählt wurde, während `running=` die Sitzung ist, die als Quelle für den aktuellen Boot aufgezeichnet wurde. Die Aktivierung schreibt beide Felder und markiert diese Sitzung `dirty`.
+Nachdem die Persistenz-Einhängungen bei einem sauberen Shutdown entfernt wurden, entfernt MiniOS `running=` und markiert die Sitzung `clean`.
 
-Diese Metadatenfelder können nach einem Absturz, fehlgeschriebenen Metadaten, fehlgeschlagener Union-Erstellung, kopiertem Speicher oder unterbrochenem Shutdown veraltet sein. Laufzeitkomponenten, die das Speichern erlauben, vertrauen `running=` allein nicht. Sie verwenden den vom initrd geschützten aktuellen Boot-Zustand, der an die Boot-ID, die numerische Sitzung, den Modus, die tatsächliche Speicheridentität, den Schreibstatus, die Haltbarkeit und die verifizierte aktive Generation gebunden ist. Ein fehlgeschlagener oder fehlender Current-Boot-Eintrag bedeutet, dass Persistenz nicht als genehmigtes Speicherziel behandelt werden darf.
+Diese Metadatenfelder können nach einem Absturz, fehlgeschriebenen Metadaten, fehlgeschlagener Union-Erstellung, kopiertem Speicher oder unterbrochenem Shutdown veraltet sein. Laufzeitkomponenten, die das Speichern erlauben, vertrauen nicht nur auf `running=`. Sie verwenden den geschützten Current-Boot-Status des initrd, der an die Boot-ID, die numerische Sitzung, den Modus, die tatsächliche Speicheridentität, Schreibbarkeit, Dauerhaftigkeit, die verifizierte aktive Generation und bei dynblk das exakt angehängte `/dev/dynblkN`-Gerät gebunden ist. Ein fehlgeschlagener oder fehlender Current-Boot-Eintrag bedeutet, dass Persistenz nicht als zugelassenes Speicherziel behandelt werden darf.
 
-Mit `toram` und einer erkannten Persistenzanforderung wird der Sitzungspeicher vor der Aktivierung in RAM kopiert. Die kopierte Sitzung kann beschreibbar sein und die laufende obere Ebene bereitstellen, aber ihr aktueller Boot-Zustand ist als nicht dauerhaft markiert. Änderungen an dieser RAM-Kopie kehren nicht auf das Ursprungsgerät zurück und gehen beim Herunterfahren verloren.
+Mit `toram` und einer erkannten Persistenzanforderung wird der Sitzungs-Speicher vor der Aktivierung in RAM kopiert. Die kopierte Sitzung kann beschreibbar sein und das laufende Upper bereitstellen, aber ihr Current-Boot-Status ist als nicht dauerhaft markiert. Änderungen an dieser RAM-Kopie werden nicht auf das Originalgerät zurückgeschrieben und gehen beim Herunterfahren verloren.
 
-Weitere Hinweise zum Betrieb finden Sie unter [Boot-Modi](/using-minios/Boot-Modes), [Boot-Parameter](/reference/Boot-Parameters), [Sitzungen und Persistenz](/using-minios/Sessions-and-Persistence), [Backup von MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS), [Sicherheit](/maintenance-and-recovery/Security) und [Fehlerbehebung](/maintenance-and-recovery/Troubleshooting).
+Weitere Hinweise zum Betrieb finden Sie unter [Boot-Modi](/using-minios/Boot-Modes), [Boot-Parameter](/reference/Boot-Parameters), [Sitzungen und Persistenz](/using-minios/Sessions-and-Persistence), [Backup von MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS), [Sicherheit](/maintenance-and-recovery/Security), und [Fehlerbehebung](/maintenance-and-recovery/Troubleshooting).

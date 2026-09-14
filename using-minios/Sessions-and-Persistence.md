@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-26
+updated: 2026-09-13
 program_commits:
   minios-session-manager: 69436959d893a9870aca23e91b346d06b49eb98d
   minios-tools: 7cdd0e10c0f610ebc581efa82105b747437a6125
@@ -23,14 +23,16 @@ The equivalent command-line tool is `minios-session`. Its modifying commands req
 |------|---------|------------------|
 | `native` | Changes stored directly in the session directory | Requires a writable POSIX filesystem such as ext2/3/4, Btrfs, XFS, F2FS, or ReiserFS. |
 | `dynfilefs` | Expandable ext4 container split into backing files | Works on writable POSIX, FAT32, NTFS, and exFAT filesystems. Requires the DynFileFS backend. |
+| `dynblk` | Thin ext4 filesystem on a kernel block device backed by `volumeNNN.db` files | Requires the dynblk CLI, kernel module, and initrd capability. The virtual size defaults to 16 GiB and is capped at 512 GiB. |
 | `raw` | Fixed-size `changes.img` containing ext4 | Works on writable POSIX, FAT32, NTFS, and exFAT filesystems. |
 | `luks` | LUKS2-encrypted `changes.luks` containing ext4 | Requires `cryptsetup`, loop support, and the MiniOS initrd LUKS hook. |
 | `squashfs` | Compressed snapshot in `changes.sb` | Saving requires a POSIX persistence filesystem that can preserve links, ownership, modes, xattrs, ACLs, capabilities, and whiteouts. |
 
-`dynfilefs`, `raw`, and `luks` created with `minios-session` default to 4000 MiB. Size values are allocated in MiB; `GB` and `TB` suffixes convert to 1000 and 1,000,000 MiB. MiniOS Session Manager limits raw and LUKS files to 4000 MiB on FAT32. Do not rely on that as a general initrd guarantee: an oversized raw boot request may reach allocation and fail rather than being reduced. Container resize operations can only grow a session; shrinking is not supported.
+`dynfilefs`, `raw`, and `luks` created with `minios-session` default to 4000 MiB; `dynblk` defaults to 16 GiB. Size values are allocated in MiB; `GB` and `TB` suffixes convert to 1000 and 1,000,000 MiB. MiniOS Session Manager limits raw and LUKS files to 4000 MiB on FAT32. The dynblk capacity is virtual and thin rather than preallocated, but actual writes remain limited by lower-filesystem free space and dynblk resource admission. Container resize operations can only grow a session; shrinking is not supported.
 
 Native mode is the simplest and fastest choice on a compatible filesystem.
 Use DynFileFS when the persistence filesystem cannot represent Linux metadata.
+Use dynblk when you want a real kernel block device with thin backing files; the driver can keep several independent dynblk volumes attached at once, and Session Manager uses the device path returned by the driver rather than assuming `/dev/dynblk0` is free.
 Use raw when fixed allocation is required, LUKS when the session must be encrypted, and SquashFS for an exact compressed snapshot.
 
 Run the following commands to inspect the actual persistence filesystem and the modes available on it:
@@ -54,10 +56,10 @@ Any recognized persistence parameter enables persistence handling. MiniOS boot m
 | `perchdir=ask` | Select an existing session or create one during boot. |
 | `perchdir=<id>` | Select that numbered session directly. |
 | `perchdir=<device/path>` | Use a persistence location on a device, including `/dev/...` and `label:...` forms handled by the initrd. |
-| `perchmode=<mode>` | Set `native`, `dynfilefs`, `raw`, `luks`, or `squashfs`. |
+| `perchmode=<mode>` | Set `native`, `dynfilefs`, `dynblk`, `raw`, `luks`, or `squashfs`. |
 | `perchsize=<size>` | Set a new or larger container size; plain values are allocated in MiB and `MB`, `GB`, and `TB` suffixes are accepted. |
 
-If no mode is specified for a new session, boot uses native mode. On FAT32/NTFS/exFAT, native boot creation falls back to DynFileFS. A new raw or LUKS boot container defaults to 4000 MiB; a new DynFileFS boot session without `perchsize` is sized from available space while retaining a safety reserve.
+If no mode is specified for a new session, boot uses native mode. On FAT32/NTFS/exFAT, native boot creation falls back to DynFileFS. A new raw or LUKS boot container defaults to 4000 MiB; a new DynFileFS boot session without `perchsize` is sized from available space while retaining a safety reserve. A new dynblk boot session without `perchsize` uses the driver's 16 GiB default; explicit dynblk growth is capped at 512 GiB.
 SquashFS sessions are captured from the running system with MiniOS Session Manager or `minios-session create squashfs`; `perchdir=new perchmode=squashfs` does not create a snapshot in the initrd.
 
 When resuming, MiniOS checks the recorded version, edition, union filesystem, and mode. Literal `perchdir=resume` can create a new session instead of using an absent or incompatible default. Bare `perch`, direct numeric selection, and other legacy resume requests do not automatically create that replacement.
@@ -139,6 +141,7 @@ sudo minios-session export <id> /path/to/session.tar.zst
 sudo minios-session import /path/to/session.tar.zst
 sudo minios-session import /path/to/session.tar.zst --auto-convert
 sudo minios-session import /path/to/session.tar.zst --force-mode dynfilefs
+sudo minios-session import /path/to/session.tar.zst --force-mode dynblk
 ```
 
 Only `.tar.zst` imports are accepted. Paths and archive members are validated, and extraction is bounded. `--auto-convert` chooses a compatible mode for the current filesystem. `--force-mode <mode>` explicitly selects an available mode. Export, copy, and conversion are not supported for SquashFS sessions; save the snapshot and copy the complete inactive session directory instead.
@@ -148,7 +151,9 @@ Copy or convert a session:
 ```bash
 sudo minios-session copy <id>
 sudo minios-session copy <id> --to-mode raw --size 4GB
+sudo minios-session copy <id> --to-mode dynblk --size 16GB
 sudo minios-session convert <id> dynfilefs --size 4GB
+sudo minios-session convert <id> dynblk --size 16GB --new-session
 sudo minios-session convert <id> luks --size 4GB --new-session
 ```
 
@@ -163,7 +168,7 @@ sudo minios-session cleanup
 sudo minios-session cleanup --days 30
 ```
 
-Resize supports DynFileFS, raw, and LUKS sessions and requires a size larger than the current size. Cleanup defaults to sessions older than 30 days.
+Resize supports DynFileFS, dynblk, raw, and LUKS sessions and requires a size larger than the current size. dynblk resize grows the virtual block device first and then expands its ext4 filesystem; it does not preallocate the new virtual capacity. Cleanup defaults to sessions older than 30 days.
 
 All commands accept `--json`, and a different session store can be selected with `--sessions-dir PATH`:
 
@@ -200,7 +205,7 @@ Importing or converting into LUKS creates a new encrypted container.
 
 ## Backups and failed sessions
 
-For native, DynFileFS, raw, and LUKS sessions, use `export` for backups rather than copying a mounted session directory. Keep the resulting archive on another device and verify that it can be imported before relying on it. Import always creates a new numbered session; activate it explicitly when it is ready to use.
+For native, DynFileFS, dynblk, raw, and LUKS sessions, use `export` for backups rather than copying a mounted session directory. Keep the resulting archive on another device and verify that it can be imported before relying on it. Import always creates a new numbered session; activate it explicitly when it is ready to use.
 For SquashFS and whole-device backup procedures, see [Backing up MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS).
 
 If a session fails after the storage fills, a write is interrupted, or empty sessions are created repeatedly, stop modifying the affected storage. Export a readable non-running session first when possible, then follow [Troubleshooting](/maintenance-and-recovery/Troubleshooting).

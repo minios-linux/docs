@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-31
+updated: 2026-09-13
 ---
 # Security
 
@@ -58,7 +58,7 @@ Boot parameters can override configuration-file values. Inspect unexpected servi
 
 ## Encrypt persistent data
 
-Unencrypted native, DynFileFS, and raw persistence can be read by someone who obtains the device. MiniOS Installer can configure an encrypted LUKS container for a live session when the source initrd advertises LUKS support. The initrd creates `changes.luks` on first boot and asks for its passphrase; the installer does not receive or store that passphrase.
+Unencrypted native, DynFileFS, dynblk, raw, and SquashFS persistence can be read by someone who obtains the device. Dynblk is a thin kernel block backend, not an encryption layer; its `volumeNNN.db` backing files contain ordinary unencrypted session data unless the underlying storage is protected separately. MiniOS Installer can configure an encrypted LUKS container for a live session when the source initrd advertises LUKS support. The initrd creates `changes.luks` on first boot and asks for its passphrase; the installer does not receive or store that passphrase.
 
 LUKS persistence protects the contents while the container is closed. It does not protect data after unlock, the unencrypted boot files, copied files outside the container, or a native root filesystem. LUKS session persistence is not native root encryption. Use a strong passphrase and keep a tested backup.
 

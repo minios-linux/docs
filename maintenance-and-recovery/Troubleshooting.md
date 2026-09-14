@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-31
+updated: 2026-09-13
 ---
 # Troubleshooting
 
@@ -109,13 +109,13 @@ sudo minios-session info
 
 Check the selected boot mode, available writable space, filesystem compatibility, and session compatibility. The detailed selection rules are in [Sessions and persistence](/using-minios/Sessions-and-Persistence) and [Persistence internals](/reference/boot-process/Persistence-Internals).
 
-If an important non-running `native`, `dynfilefs`, `raw`, or `luks` session is still readable, export it **before** experimenting with the storage:
+If an important non-running `native`, `dynfilefs`, `dynblk`, `raw`, or `luks` session is still readable, export it **before** experimenting with the storage:
 
 ```bash
 sudo minios-session export <id> /path/to/session.tar.zst
 ```
 
-If Session Manager cannot read or export the session, stop writing to the source and preserve an offline copy of the affected storage before further work. MiniOS does not define a universal manual procedure for rebuilding DynFileFS segments, repairing an inner filesystem, or reconstructing session metadata. Such recovery is filesystem/container-specific and should be attempted only on a copy when the value of the data justifies it.
+If Session Manager cannot read or export the session, stop writing to the source and preserve an offline copy of the affected storage before further work. For a detached dynblk session, `dynblk inspect /path/to/volume000.db` and `dynblk check /path/to/volume000.db` provide read-only format diagnostics; do not run them against a volume that is still attached. MiniOS does not define a universal manual procedure for rebuilding DynFileFS segments, reconstructing dynblk backing parts, repairing an inner filesystem, or reconstructing session metadata. Such recovery is filesystem/container-specific and should be attempted only on a copy when the value of the data justifies it.
 
 See [Backing up MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS) for supported backup and session-import workflows.
 
