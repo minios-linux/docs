@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-13
+updated: 2026-09-16
 ---
 
 # Performance
@@ -26,14 +26,15 @@ La persistance déplace les E/S de la couche en écriture du RAM temporaire vers
 
 ### Modes de persistance (`perchmode`)
 
-- **`native`:** Évite la couche système de fichiers dans un fichier et constitue le choix le plus simple sur un système de fichiers POSIX adapté, mais n’est pas disponible sur les systèmes de fichiers qui ne préservent pas les métadonnées Linux requises.
-- **`raw`:** Offre une capacité fixe prévisible et le comportement classique d’ext4, mais réserve la taille de son fichier et ne peut pas dépasser l’espace disponible sur le support sous-jacent.
-- **`dynfilefs`:** Le backend FUSE/format-400 s’étend à la demande et prend en charge des supports autrement incompatibles, avec une complexité supplémentaire de mappage et de récupération.
-- **`dynblk`:** Le backend bloc noyau format-1 présente un périphérique bloc classique tandis que la couche « thin `volumeNNN.db` » s’agrandit à la demande. Il évite les E/S FUSE, mais chaque périphérique attaché consomme une quantité fixe de mémoire pour les métadonnées et les écritures restent limitées par l’espace libre du système de fichiers sous-jacent et les limites d’admission dynblk.
-- **`luks`:** Ajoute la confidentialité au prix d’un travail de déverrouillage et d’une surcharge liée au chiffrement.
-- **`squashfs`:** Échange la compression lors de la sauvegarde et le travail d’extraction de RAM contre un instantané compact ; ce n’est pas un backend général en écriture à faible latence.
+- **`native`:** Stocke la couche modifiable directement sous forme de fichiers ordinaires. Cela offre la plus faible surcharge de conteneur et aucune taille fixe, mais nécessite un système de fichiers sous-jacent capable de préserver les métadonnées et opérations Linux dont MiniOS a besoin.
+- **`raw`:** Utilise une seule image ext4 à capacité fixe. Sa taille est définie selon la capacité demandée et son extension est explicite, ce qui la rend simple et prévisible, mais sans le comportement dynamique des backends à capacité variable. FAT32 limite la taille d'une image unique à 4000 Mio.
+- **`dynfilefs`:** Le backend FUSE/format-400 étend le stockage des données à la demande et prend en charge des supports normalement incompatibles. Son index n'est pas creux : chaque bloc logique de 4 Kio déclaré nécessite un décalage de 8 octets, donc la capacité logique coûte environ 2 Mio de RAM et environ 2 Mio de stockage d'index par Gio, même si la charge utile est vide. Cela rend les capacités modérées efficaces, mais les grandes capacités dynamiques coûteuses dès le départ.
+- **`dynblk`:** Le backend kernel block format-1 présente un périphérique bloc classique tandis que le stockage dynamique `volumeNNN.db` s'étend à la demande. Les mappages en temps réel sont creux et allouent un bloc de 4 Kio pour 128 blocs logiques, ainsi les données densément mappées consomment environ 8 Mio de RAM par Gio, mais la capacité virtuelle non allouée n'utilise aucun bloc de mappage. L'index interne fixe de l'arbre ne fait que 396 312 octets par périphérique attaché et les compteurs de références de pages sont creux. Le pilote, et non MiniOS, choisit le budget de mappage par défaut à environ 25 % de l'espace utilisable de RAM, plafonné à 4096 Mio. Cela favorise les grandes capacités creuses ; un volume rempli densément peut consommer plus de RAM par Gio que DynFileFS.
+- **`squashfs`:** Stocke un instantané compressé et reconstruit la couche supérieure modifiable dans RAM à chaque démarrage. Cela minimise l'espace de stockage persistant pour des sessions généralement stables, mais entraîne des coûts CPU et RAM lors de la restauration et réécrit l'instantané lors de l'enregistrement.
 
-Testez les charges de travail représentatives sur le périphérique réel. Les différences de contrôleur flash, système de fichiers, pont USB et charge de travail sont plus fiables qu’un classement universel des modes de persistance.
+LUKS2 peut encapsuler Raw, DynFileFS ou DynBlk. Le chiffrement ajoute un surcoût pour le déverrouillage et le traitement cryptographique tout en conservant la capacité et le comportement de stockage du backend sous-jacent.
+
+Testez les charges de travail représentatives directement sur l'appareil cible. Les différences de contrôleur flash, de système de fichiers, de pont USB, de chiffrement, de compression et de type de charge de travail sont plus déterminantes qu'un classement universel des modes de persistance.
 
 ## Configuration de ZRAM
 

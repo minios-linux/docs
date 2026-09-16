@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-13
+updated: 2026-09-16
 ---
 
 # Leistung
@@ -26,14 +26,15 @@ Persistenz verschiebt Schreibzugriffe der beschreibbaren Ebene von temporärem R
 
 ### Persistenzmodi (`perchmode`)
 
-- **`native`:** Verzichtet auf eine Dateisystem-in-Datei-Ebene und ist die einfachste Wahl auf einem geeigneten POSIX-Dateisystem, steht jedoch auf Dateisystemen, die die erforderlichen Linux-Metadaten nicht erhalten können, nicht zur Verfügung.
-- **`raw`:** Bietet eine vorhersehbare, feste Kapazität und das übliche ext4-Verhalten, reserviert jedoch die Dateigröße und kann nicht über den verfügbaren Speicherplatz hinaus wachsen.
-- **`dynfilefs`:** Das FUSE/format-400-Backend wächst bei Bedarf und unterstützt sonst ungeeignete Medien, bringt aber zusätzlichen Mapping- und Wiederherstellungsaufwand mit sich.
-- **`dynblk`:** Das format-1 Kernel-Block-Backend stellt ein normales Blockgerät bereit, während thin `volumeNNN.db`-Speicher bei Bedarf wächst. Es vermeidet FUSE-I/O, aber jedes angeschlossene Gerät belegt festen Metadaten-Speicher, und Schreibvorgänge bleiben durch freien Speicherplatz und dynblk-Grenzen des Backing-Dateisystems limitiert.
-- **`luks`:** Bietet Vertraulichkeit auf Kosten von Entsperr-Arbeit und Verschlüsselungs-Overhead.
-- **`squashfs`:** Komprimiert beim Speichern und tauscht RAM-Dekompression gegen ein kompaktes Abbild; ist kein allgemeines, latenzarmes, beschreibbares Backend.
+- **`native`:** Speichert die beschreibbare Ebene direkt als normale Dateien. Dies verursacht den geringsten Container-Overhead und hat keine feste Containergröße, erfordert jedoch ein unterstützendes Dateisystem, das die Linux-Metadaten und Operationen unterstützt, die MiniOS benötigt.
+- **`raw`:** Verwendet ein ext4-Image mit fester Kapazität. Die Dateigröße entspricht der gewünschten Kapazität und eine Erweiterung erfolgt explizit. Dadurch ist das Verhalten einfach und vorhersehbar, es fehlt jedoch die Thin-Capacity-Eigenschaft der dynamischen Backends. FAT32 begrenzt das einzelne Image auf 4000 MiB.
+- **`dynfilefs`:** Das FUSE/format-400-Backend erweitert den Speicherplatz für Nutzdaten bei Bedarf und unterstützt auch sonst ungeeignete Medien. Der Index ist nicht dünn besetzt: Jeder deklarierte 4-KiB-Logikblock benötigt einen 8-Byte-Offset, sodass die logische Kapazität etwa 2 MiB RAM und etwa 2 MiB Indexspeicher pro GiB kostet, selbst wenn die Nutzdaten leer sind. Das macht moderate Kapazitäten effizient, große Thin-Kapazitäten jedoch von Anfang an teuer.
+- **`dynblk`:** Das format-1-Kernel-Block-Backend stellt ein normales Blockgerät bereit, während der Thin-`volumeNNN.db` Speicher bei Bedarf wächst. Die Laufzeit-Zuordnungen sind dünn besetzt und ordnen jeweils einen 4-KiB-Block für 128 logische Blöcke zu. Dicht belegte Daten benötigen etwa 8 MiB Mapping-RAM pro GiB, aber nicht zugeordnete virtuelle Kapazität verbraucht keinen Mapping-Block. Der feste interne Baumindex belegt nur 396.312 Byte pro angeschlossenem Gerät, und die Seitenreferenzzähler sind dünn besetzt. Der Treiber, nicht MiniOS, legt das Standard-Mapping-Budget auf etwa 25 % des nutzbaren RAM fest, mit einer Obergrenze von 4096 MiB. Dies begünstigt große, dünn belegte Kapazitäten; ein dicht gefülltes Volume kann mehr Mapping-RAM pro GiB verbrauchen als DynFileFS.
+- **`squashfs`:** Speichert einen komprimierten Snapshot und stellt das beschreibbare Overlay bei jedem Start in RAM wieder her. Dies minimiert den dauerhaften Speicherbedarf bei überwiegend stabilen Sitzungen, verursacht jedoch CPU- und RAM-Kosten beim Wiederherstellen und überschreibt den Snapshot beim Speichern.
 
-Testen Sie repräsentative Arbeitslasten direkt auf dem jeweiligen Gerät. Unterschiede bei Flash-Controllern, Dateisystemen, USB-Adaptern und Workloads sind aussagekräftiger als eine allgemeine Rangfolge der Persistenzmodi.
+LUKS2 kann Raw, DynFileFS oder DynBlk verschlüsseln. Die Verschlüsselung verursacht zusätzlichen Aufwand beim Entsperren und bei der Kryptografie, während die Kapazität und das Speicherverhalten des zugrunde liegenden Backends erhalten bleiben.
+
+Testen Sie typische Workloads direkt auf dem Zielgerät. Unterschiede bei Flash-Controllern, Dateisystemen, USB-Bridges, Verschlüsselung, Kompression und Workload sind aussagekräftiger als ein allgemeines Ranking der Persistenzmodi.
 
 ## ZRAM-Konfiguration
 

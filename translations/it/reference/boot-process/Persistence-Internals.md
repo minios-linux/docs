@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-13
+updated: 2026-09-16
 ---
 
 # Interni della persistenza
@@ -19,40 +19,44 @@ Richiedere la persistenza non garantisce che sia diventata attiva. Se la destina
 
 | Parametro | Cosa indica MiniOS | Scelta tipica |
 |---|---|---|
-| `perchdir=resume` | Apre la sessione compatibile predefinita e, se le condizioni lo permettono, crea una sostituzione quando non può essere utilizzata. | Lavoro quotidiano normale. |
-| `perchdir=new` | Crea una nuova sessione numerata. | Mantieni invariata una workspace esistente. |
-| `perchdir=ask` | Mostra le sessioni salvate dopo aver trovato un archivio ripristinabile e permette di sceglierne una. Non può creare la prima sessione su uno storage vuoto. | Più workspace esistenti su un dispositivo; usa `perchdir=new` per la prima sessione. |
-| `perchdir=NUMBER` | Richiedi una sessione numerata specifica. | Voce di avvio personalizzata stabile dopo la verifica dell’ID sessione. |
-| `perchmode=MODE` | Seleziona `native`, `dynfilefs`, `dynblk`, `raw`, `luks`, o una `squashfs` sessione esistente. | Abbina il filesystem dello storage, il comportamento del contenitore a blocchi e il requisito di cifratura. |
-| `perchsize=SIZE` | Richiedi la dimensione di una sessione contenitore nuova o in crescita. | DynFileFS, dynblk, raw, o storage LUKS. |
-| `perchreserve=MB` | Sottrae un margine quando si dimensiona un contenitore nuovo o in crescita e imposta la soglia di avviso per spazio insufficiente. | Lascia spazio di lavoro durante l’allocazione di un contenitore; non è una quota a runtime. |
-| `perch` | Utilizza il vecchio comportamento di resume senza creazione automatica della sostituzione. | Compatibilità con una voce personalizzata esistente; preferisci `perchdir=resume` per i menu attuali. |
+| `perchdir=resume` | Apre la sessione compatibile predefinita e, se supportato, crea una sostituzione quando non può essere utilizzata. | Lavoro quotidiano normale. |
+| `perchdir=new` | Crea una nuova sessione numerata. | Mantiene invariato uno spazio di lavoro esistente. |
+| `perchdir=ask` | Mostra le sessioni salvate dopo aver trovato un archivio ripristinabile e consente di sceglierne una. Non può creare la prima sessione su uno storage vuoto. | Più spazi di lavoro esistenti su un dispositivo; usa `perchdir=new` per la prima sessione. |
+| `perchdir=NUMBER` | Richiede una sessione numerata specifica. | Voce di avvio personalizzata stabile dopo la verifica dell'ID sessione. |
+| `perchmode=MODE` | Seleziona `native`, `dynfilefs`, `dynblk`, `raw`, o `squashfs`. | Abbina il filesystem di supporto e il modello di persistenza desiderato. |
+| `perchencrypt=luks` | Aggiunge un layer LUKS2 quando si crea una sessione Raw, DynFileFS o DynBlk. | Cifra un backend contenitore supportato. |
+| `perchsize=SIZE` | Richiede la dimensione di una nuova sessione contenitore o di una sessione in crescita. | DynFileFS, DynBlk o raw; la cifratura non modifica la semantica della dimensione del backend. |
+| `perchcomp=CODEC` | Seleziona la compressione backend DynBlk per una nuova sessione DynBlk creata. | `none`, `lz4`, `lz4hc`, `lzo`, `lzo-rle`, `zstd`, `deflate`, o `842`; la disponibilità dipende comunque dal kernel in esecuzione. La compressione è disattivata quando LUKS avvolge DynBlk. |
+| `perchreserve=MB` | Sottrae un margine quando si dimensiona un nuovo contenitore o uno in crescita e imposta la soglia di avviso per spazio insufficiente. | Lascia spazio di lavoro durante l'allocazione di un contenitore; non è una quota in fase di esecuzione. |
+| `perch` | Utilizza il vecchio comportamento di ripresa senza creazione automatica della sostituzione. | Compatibilità con una voce personalizzata esistente; è preferibile `perchdir=resume` per i menu attuali. |
 
-Non combinare la persistenza con `toram` quando ti aspetti che le modifiche vengano scritte sul dispositivo originale. MiniOS attiva la sessione copiata in RAM, e le modifiche a quella copia vengono perse allo spegnimento.
+Non combinare la persistenza con `toram` quando prevedi che le modifiche vengano scritte sul dispositivo originale. MiniOS attiva la sessione copiata in RAM, e le modifiche a quella copia vengono perse allo spegnimento.
 
 ## La persistenza è esplicita
 
-L’initrd abilita la gestione della persistenza solo quando la riga di comando del kernel contiene uno di questi token riconosciuti:
+L'initrd abilita la gestione della persistenza solo quando la riga di comando del kernel contiene uno di questi token riconosciuti:
 
 - `perch`
 - `perchdir=...`
 - `perchmode=...`
+- `perchencrypt=...`
 - `perchsize=...`
+- `perchcomp=...`
 - `perchreserve=...`
 
-Se nessuno di questi token è presente, anche quando è presente solo un nome `perch...` non riconosciuto, MiniOS crea un nuovo strato superiore scrivibile in RAM. Le modifiche apportate durante quell’avvio vengono eliminate allo spegnimento.
+Se nessuno di questi token è presente, anche quando è presente solo un nome `perch...` non riconosciuto, MiniOS crea un nuovo livello superiore scrivibile in RAM. Le modifiche apportate durante quell'avvio vengono scartate allo spegnimento.
 
 I selettori non sono tutti equivalenti:
 
-| Selettore | Comportamento dell’initrd |
+| Selettore | Comportamento initrd |
 |---|---|
-| `perch` | Tenta di riprendere il valore predefinito dai metadati. Non crea automaticamente una sessione quando nessuna è utilizzabile o quando i controlli di compatibilità falliscono. |
-| `perchdir=resume` | Tenta il valore predefinito dei metadati e può creare automaticamente una nuova sostituzione compatibile. Questo è il comportamento attuale del menu di avvio. |
-| `perchdir=new` | Alloca una directory il cui ID numerico è uno superiore al massimo esistente. Non riutilizza mai una directory esistente. |
-| `perchdir=ask` | Propone le sessioni esistenti dopo aver trovato uno spazio ripristinabile e il valore predefinito. Una sessione esistente incompatibile richiede conferma. Su spazio vuoto, usa `perchdir=new` per creare la prima sessione. |
-| `perchdir=NUMBER` | Usa quella directory se esiste. Se non esiste, la selezione può ricadere sul valore predefinito registrato nei metadati; non riserva il numero richiesto. |
+| `perch` | Tenta di riprendere il valore predefinito dei metadati. Non crea automaticamente una sessione quando nessuna è utilizzabile o quando i controlli di compatibilità falliscono. |
+| `perchdir=resume` | Tenta il valore predefinito dei metadati e può creare automaticamente una nuova sostituzione compatibile. Questo è il comportamento attuale di ripresa dal menu di avvio. |
+| `perchdir=new` | Alloca una directory il cui ID numerico è uno in più rispetto al più alto ID numerico esistente. Non riutilizza mai una directory esistente. |
+| `perchdir=ask` | Offre sessioni esistenti dopo aver trovato un archivio ripristinabile e il valore predefinito. Una sessione esistente incompatibile richiede conferma. Su storage vuoto, usare `perchdir=new` per creare la prima sessione. |
+| `perchdir=NUMBER` | Utilizza quella directory se esiste. Se non esiste, la selezione può ricadere sul valore predefinito registrato nei metadati; non riserva il numero richiesto. |
 
-Altri parametri di persistenza riconosciuti senza selettore entrano nello stesso percorso legacy di ripresa di `perch` senza argomenti: richiedono la persistenza, ma non abilitano la creazione automatica. Se la selezione o l’attivazione non producono uno strato superiore utilizzabile, l’avvio prosegue normalmente con lo strato superiore RAM e viene pubblicato un avviso di errore.
+Altri parametri di persistenza riconosciuti senza selettore seguono lo stesso percorso legacy di ripresa come `perch`: richiedono la persistenza, ma non abilitano la creazione automatica. Se la selezione o l'attivazione non produce un livello superiore utilizzabile, l'avvio continua normalmente con il livello superiore RAM e viene pubblicato un avviso di errore.
 
 ## Archivio e posizione della sessione
 
@@ -81,68 +85,89 @@ La modalità di archiviazione fa parte della compatibilità. Se la selezione arr
 
 ## Riserva di spazio e dimensioni
 
-MiniOS utilizza 256 MiB come margine di allocazione predefinito e soglia di avviso per spazio insufficiente. Il calcolo usa blocchi filesystem da 1024 byte. `perchreserve` accetta un numero intero senza segno e senza unità, ha un limite massimo di 4096 e torna a 256 se mancante o non valido. Il margine riduce lo spazio offerto a un contenitore nuovo o in crescita. Non è una quota: una sessione nativa o scritture successive possono comunque consumare lo spazio rimanente del filesystem. All’avvio viene mostrato un avviso quando lo spazio libero attuale è uguale o inferiore alla soglia.
+MiniOS utilizza 256 MiB come margine di allocazione predefinito e soglia di avviso per spazio insufficiente. Il calcolo usa blocchi filesystem da 1024 byte. `perchreserve` accetta un numero intero senza segno e senza unità, è limitato a 4096 e torna a 256 se manca o non è valido. Il margine riduce lo spazio offerto a un container nuovo o in crescita. Non è una quota: una sessione nativa o scritture successive possono comunque consumare lo spazio rimanente del filesystem. All'avvio viene segnalato quando lo spazio libero attuale è pari o inferiore alla soglia.
 
-Le dimensioni dei contenitori usano valori interi allocati in MiB:
+Le dimensioni dei container usano conteggi interi allocati in MiB:
 
-- Un numero semplice, `M`, oppure `MB` indica MiB.
-- `G` oppure `GB` moltiplica il numero per 1000 MiB.
-- `T` oppure `TB` moltiplica il numero per 1.000.000 MiB.
-- La richiesta logica massima è 1.000.000 MiB, ulteriormente limitata dallo spazio disponibile dopo la riserva.
-- Gestore sessioni MiniOS limita i file raw e LUKS a 4000 MiB su FAT32. Durante l’attivazione initrd il limite viene applicato in modo affidabile a LUKS, mentre una richiesta raw sovradimensionata può arrivare all’allocazione e fallire invece di essere ridotta.
-- Le nuove sessioni raw e LUKS hanno come valore predefinito 4000 MiB.
-- Una nuova sessione DynFileFS creata da initrd utilizza come valore predefinito la capacità disponibile dopo la riserva, arrotondata per difetto a un multiplo di 1000 MiB quando possibile.
-- Una nuova sessione dynblk predefinita è un dispositivo a blocchi virtuale thin da 16 GiB quando `perchsize` non è specificato. La dimensione virtuale dynblk esplicita è limitata a 512 GiB; i file di supporto fisici vengono creati in modo lazy e restano soggetti allo spazio libero dell’host e all’ammissione in memoria dynblk.
+- Un numero semplice, `M`, o `MB` indica MiB.
+- `G` o `GB` moltiplica il numero per 1000 MiB.
+- `T` o `TB` moltiplica il numero per 1.000.000 MiB.
+- I container Raw sono limitati a 1.000.000 MiB e dallo spazio disponibile dopo la riserva. DynFileFS ha un limite separato, consapevole di RAM, e un tetto massimo di 2.000.000 MiB. DynBlk ha un proprio limite di 512 GiB per formato/ABI.
+- Raw è un singolo file di supporto, quindi FAT32 lo limita a 4000 MiB in MiniOS. Lo stesso limite si applica quando Raw è avvolto in LUKS2.
+- Una nuova sessione raw predefinisce 4000 MiB. La cifratura non crea una politica di dimensione LUKS separata: una sessione Raw cifrata, DynFileFS o DynBlk mantiene le regole di dimensione del backend sottostante.
+- Una nuova sessione DynFileFS creata da initrd senza `perchsize` utilizza fino a 16 GiB di capacità logica. Se il supporto sottostante non può effettivamente contenere tale spazio dopo `perchreserve` e l'overhead dell'indice DynFileFS, il valore predefinito viene ridotto alla capacità disponibile. Il suo indice format-400 costa circa 2 MiB di RAM e circa 2 MiB di storage di supporto per ogni GiB di capacità logica dichiarata, anche se il payload è vuoto. MiniOS limita quindi anche la capacità DynFileFS rispetto allo spazio fisico RAM e a un tetto massimo testato di 2.000.000 MiB.
+- Una nuova sessione DynBlk senza `perchsize` segue lo stesso limite automatico di 16 GiB e viene ridotta se rimane meno spazio dopo `perchreserve`. Una dimensione virtuale DynBlk esplicita è comunque una richiesta di capacità thin e viene limitata solo dal tetto di 512 GiB per formato/ABI; i file di supporto fisici vengono creati in modo lazy. DynBlk gestisce la propria politica di mapping-memoria sparsa e non richiede a MiniOS di dimensionare tale budget.
 
-La crescita del contenitore è best-effort e la riduzione non è supportata. `perchsize` non dimensiona le sessioni native o SquashFS. Gestore sessioni MiniOS usa 4000 MiB come valore predefinito per la creazione raw/DynFileFS/LUKS e 16 GiB per dynblk; vedi [Gestione sessioni](/using-minios/Sessions-and-Persistence).
+La crescita dei container è best-effort e la riduzione non è supportata. `perchsize` non dimensiona le sessioni native o SquashFS. Il Gestore sessioni MiniOS imposta di default i container raw e DynFileFS creati manualmente a 4000 MiB e DynBlk a 16 GiB; le varianti cifrate usano gli stessi valori predefiniti del backend. Vedi [Gestione delle sessioni](/using-minios/Sessions-and-Persistence).
 
 ## Attivazione dello storage
 
-Tutte le modalità di successo devono fornire la parte superiore scrivibile richiesta dal filesystem union selezionato. Il mount di un backend non dimostra di per sé che la persistenza sia attiva. Native, DynFileFS, dynblk, raw e LUKS possono aggiornare i metadati della sessione persistente prima della validazione union; SquashFS rinvia quel commit dei metadati. Lo stato protetto dell’avvio corrente viene pubblicato solo dopo che l’unione root finale è confermata nell’usare la parte superiore attesa.
+Tutti i backend attivati con successo devono fornire l'upper scrivibile previsto dal filesystem union selezionato. Il mount di un backend, da solo, non garantisce che la persistenza sia attiva. I backend Native, DynFileFS, DynBlk e raw possono aggiornare i metadati di sessione persistente prima della validazione del union; SquashFS rinvia il salvataggio di questi metadati. Raw, DynFileFS e DynBlk possono inoltre utilizzare la cifratura LUKS2. Lo stato protetto dell'avvio corrente viene pubblicato solo dopo che il union root finale è stato confermato con l'upper previsto.
 
-### Native
+| Backend | Rappresentazione persistente | Modello di capacità | Requisiti dello storage di supporto | Livello LUKS2 MiniOS |
+|---|---|---|---|---|
+| `native` | File e cartelle direttamente nella directory di sessione numerata | Utilizza direttamente lo spazio del filesystem di supporto; `perchsize` non applicabile | Filesystem scrivibile che supera il test di comportamento POSIX | No |
+| `dynfilefs` | Formato-400 `changes.dat` più file segmento che espongono un ext4 `virtual.dat` | Payload leggero con un indice denso delle dimensioni della capacità | Storage scrivibile POSIX, FAT32, NTFS o exFAT | Sì |
+| `dynblk` | Formato-1 `volumeNNN.db` file che espongono `/dev/dynblkN`, con ext4 sopra | Dispositivo a blocchi virtuale leggero con mappature sparse a runtime | Filesystem accettato dal backend kernel DynBlk e risorse backend sufficienti | Sì |
+| `raw` | Singolo file a dimensione fissa `changes.img` contenente ext4 | Il file viene creato alla dimensione logica richiesta; solo crescita | Filesystem scrivibile in grado di contenere l'immagine; FAT32 è limitato a 4000 MiB | Sì |
+| `squashfs` | Snapshot `changes.sb` compresso; l'upper scrivibile a runtime viene ricostruito in RAM | La dimensione dello snapshot segue le modifiche catturate; `perchsize` non applicabile | Gli snapshot esistenti possono essere letti da supporti scrivibili compatibili, ma il salvataggio esatto richiede un filesystem di staging compatibile con POSIX | No |
 
-La modalità Native esclude innanzitutto filesystem noti come non POSIX, come FAT, exFAT e NTFS. Poi verifica il comportamento reale del filesystem creando un file e un collegamento simbolico e controllando le modifiche ai permessi eseguibili. Se la verifica ha successo, la directory della sessione numerata viene montata in bind direttamente come area scrivibile.
+### Nativo
 
-Se il filesystem è noto come non idoneo, o la verifica POSIX fallisce, la modalità Native passa a DynFileFS. Un errore dopo l’attivazione Native viene annullato; un nuovo candidato vuoto viene rimosso quando è sicuro farlo.
+La modalità nativa salva i contenuti del livello union scrivibile direttamente nella directory della sessione numerata. Non ci sono immagini interne, dispositivi loop, container FUSE o filesystem a blocchi separati, quindi la capacità segue semplicemente lo spazio libero sul filesystem di supporto e `perchsize` non si applica. Questo comporta il minimo overhead di container e mantiene la visibilità ordinaria dei file per recupero e backup.
+
+MiniOS esclude prima i filesystem noti come non POSIX, come FAT, exFAT e NTFS. Successivamente verifica il comportamento reale del filesystem creando un file e un collegamento simbolico e controllando le modifiche ai permessi eseguibili. Se il test ha esito positivo, la directory della sessione numerata viene montata direttamente come area scrivibile. Se il filesystem è noto come non adatto, o il test POSIX fallisce, la modalità nativa ricade su DynFileFS. Un errore dopo l'attivazione nativa viene annullato; un nuovo candidato vuoto viene rimosso solo se può essere eliminato in sicurezza.
+
+Il layer di persistenza LUKS2 MiniOS non avvolge la modalità nativa perché quest'ultima non ha un container o un dispositivo a blocchi da cifrare. La persistenza nativa può comunque risiedere su uno storage cifrato esternamente a questo layer di persistenza.
 
 ### DynFileFS
 
-DynFileFS è il backend contenitore basato su FUSE. Memorizza un’immagine logica a blocchi in `changes.dat` più i suoi file segmento numerati. L’helper deve montare con successo ed esporre `virtual.dat`; altrimenti l’attivazione fallisce invece di creare accidentalmente un file solo RAM con un nome che sembra persistente.
+DynFileFS è il backend container format-400 basato su FUSE. Espone una sola immagine logica `virtual.dat` mentre salva i dati in `changes.dat` più file segmento numerati. Il helper deve montare con successo ed esporre `virtual.dat`; altrimenti l'attivazione fallisce invece di creare accidentalmente un file solo RAM con un nome che sembra persistente.
 
-L’immagine logica contiene ext4. Le immagini esistenti vengono controllate prima del mount in scrittura; risultati del controllo filesystem superiori allo stato errori-corretti rifiutano la sessione invece di montarla in scrittura. Il ridimensionamento è solo in crescita, e il filesystem ext4 interno viene espanso quando possibile. Per la diagnosi lato utente, vedi [Risoluzione dei problemi](/maintenance-and-recovery/Troubleshooting).
+Il suo indice di mapping è denso rispetto alla capacità logica dichiarata: ogni blocco logico da 4 KiB ha un offset da 8 byte. Sono circa 2 MiB di indice RAM per ogni GiB di capacità virtuale, e approssimativamente la stessa quantità viene salvata negli indici dei segmenti di supporto anche prima che i dati del payload siano scritti. L'allocazione del payload rimane comunque dinamica. Poiché il binario initrd statico è i686, MiniOS applica anche un limite di dimensione logica consapevole di RAM e un tetto massimo di 2.000.000 MiB sotto il punto di errore dello spazio degli indirizzi testato.
 
-### dynblk
+L'immagine logica contiene ext4. Le immagini esistenti vengono controllate prima del montaggio scrivibile; risultati del filesystem-check superiori allo stato di errori corretti rifiutano la sessione invece di montarla in scrittura. Il ridimensionamento è solo in crescita e il filesystem ext4 interno viene espanso quando possibile. Per la diagnosi lato utente, vedi [Risoluzione dei problemi](/maintenance-and-recovery/Troubleshooting).
 
-La modalità `dynblk` è un backend a dispositivo a blocchi del kernel, separato da DynFileFS. Ogni sessione numerata possiede uno spazio dei nomi `volume000.db` con file di supporto creati in modo lazy `volume001.db` fino a `volume063.db` fratelli. L’aggancio di un volume tramite `/dev/dynblk-control` restituisce un dispositivo disco intero allocato dinamicamente come `/dev/dynblk0` oppure `/dev/dynblk3`; MiniOS deve usare il dispositivo restituito e non deve presumere che `dynblk0` sia libero. È possibile collegare più volumi dynblk contemporaneamente.
+### DynBlk
 
-MiniOS crea ext4 direttamente sul dispositivo disco intero dynblk, controlla l’esistenza di ext4 prima dell’uso in scrittura e supporta la crescita fino al limite formato-1 di 512 GiB. La riduzione non è supportata. Lo stato di avvio protetto registra esattamente quale `/dev/dynblkN` è stato usato dalla sessione persistente in esecuzione, così che allo spegnimento venga scollegato lo stesso dispositivo dopo lo smontaggio del filesystem. Questo resta corretto anche quando il Gestore sessioni collega temporaneamente un’altra sessione dynblk in parallelo.
+La modalità `dynblk` è un backend block-device del kernel, separato da DynFileFS. Ogni sessione numerata possiede uno spazio dei nomi `volume000.db` con namespace creati dinamicamente `volume001.db` tramite `volume063.db` istanze parallele. Collegando un volume tramite `/dev/dynblk-control` viene restituito un device disco intero allocato dinamicamente, come ad esempio `/dev/dynblk0` o `/dev/dynblk3`; MiniOS deve utilizzare il device restituito e non deve presumere che `dynblk0` sia libero. È possibile collegare più volumi DynBlk contemporaneamente.
 
-La capacità virtuale è thin: non è spazio host preallocato. Le scritture effettive possono comunque fallire per spazio libero insufficiente sul filesystem sottostante, il namespace di supporto a 64 parti o l’ammissione in memoria dynblk. Un dispositivo fallito o isolato viene scollegato solo dopo che il filesystem superiore non è più montato; il recupero valida il formato memorizzato al prossimo collegamento.
+MiniOS crea ext4 direttamente sul device disco intero DynBlk, verifica l’esistenza di ext4 prima dell’uso in scrittura e supporta la crescita fino al limite di formato-1 di 512 GiB. La riduzione non è supportata. Lo stato protetto di avvio registra esattamente il `/dev/dynblkN` utilizzato dalla sessione persistente attiva, così lo spegnimento scollega lo stesso device dopo che il filesystem è stato smontato. Questo rimane corretto anche quando Session Manager collega temporaneamente un’altra sessione DynBlk in parallelo.
+
+La capacità virtuale è thin: non è spazio host preallocato né mappatura RAM. DynBlk mantiene 128 mappature logiche da 4 KiB in ogni chunk runtime da 4 KiB, quindi la memoria di mappatura densa è circa 8 MiB/GiB. I puntatori dell’albero di livello 0 risiedono con questi chunk sparsi; l’indice fisso dei nodi interni è di 396.312 byte per device collegato, e i contatori di riferimento delle pagine fisiche sono allocati dinamicamente in chunk da 4 KiB che coprono ciascuno 8 MiB di spazio di backing. Quando non viene fornito un budget di mappatura esplicito, il driver DynBlk seleziona autonomamente circa il 25% della RAM utilizzabile riportata dal kernel dopo la normalizzazione a 64 MiB, con un massimo di 4096 MiB. MiniOS lascia questa politica al driver.
+
+Un nuovo volume DynBlk può utilizzare la compressione backend selezionata con `perchcomp`. La compressione è una proprietà del formato di archiviazione DynBlk e rimane fissa per quel volume dopo la creazione. Se LUKS2 avvolge DynBlk, MiniOS imposta la compressione DynBlk su `none`, poiché il layer di cifratura si trova sopra il device DynBlk. Le scritture effettive possono comunque fallire a causa dello spazio libero insufficiente sul filesystem sottostante, del namespace di backing suddiviso in 64 parti o dell’ammissione di mappatura DynBlk. Un device fallito o isolato viene scollegato solo dopo che il filesystem superiore non è più montato; il ripristino convalida il formato memorizzato al prossimo collegamento.
 
 ### Raw
 
-La modalità Raw utilizza un’immagine ext4 fissa `changes.img`. Le nuove immagini vengono allocate e formattate prima dell’uso. Le immagini esistenti vengono controllate prima del mount, possono essere ingrandite su richiesta e hanno ext4 espanso per utilizzare tutta l’immagine. Un controllo o mount fallito lascia il container disponibile per il recupero e prosegue l’avvio in RAM.
+La modalità Raw utilizza un solo `changes.img` file che contiene ext4. La dimensione del file viene impostata sulla capacità logica richiesta al momento della creazione, quindi, a differenza dei backend dinamici, la capacità rimane fissa fino a un'espansione esplicita. Il filesystem sottostante può rappresentare in modo sparso le aree non scritte, ma MiniOS considera comunque Raw come uno storage a capacità fissa e verifica lo spazio disponibile prima di creare o espandere il file. Poiché tutto risiede in un unico file host, FAT32 è limitato a 4000 MiB.
 
-### LUKS
+Le immagini Raw esistenti vengono controllate con `e2fsck` prima del montaggio in scrittura. L'espansione estende `changes.img` e poi amplia ext4 con `resize2fs`; la riduzione non è supportata. Se il controllo o il montaggio falliscono, l'immagine viene preservata per il recupero e l'avvio prosegue in RAM. Raw non utilizza un demone FUSE né metadati personalizzati per lo storage a blocchi, il che rende il modello di recupero semplice, ma non offre il comportamento a capacità dinamica di DynFileFS e DynBlk.
 
-La modalità LUKS utilizza un container LUKS2 `changes.luks` con ext4 direttamente all’interno.
-È disponibile solo quando l’initrd include il marker di supporto per la cifratura e gli strumenti necessari. La creazione richiede un input di conferma corrispondente. Un container esistente consente tre tentativi di sblocco sulla console di avvio.
+### Layer di cifratura LUKS
 
-L’initrd autentica prima di aumentare la dimensione di un file cifrato esistente, poi controlla ed espande ext4 prima del mount. Se la creazione, lo sblocco, il controllo, il ridimensionamento o il mount falliscono, MiniOS pulisce la mappatura e prosegue in RAM. Non passa mai a modalità native, DynFileFS, raw o altre persistenze non cifrate.
-Le passphrase non vengono salvate nei metadati della sessione né passate come argomenti di comando.
-Vedi [Sicurezza](/maintenance-and-recovery/Security).
+LUKS2 è un layer di cifratura opzionale selezionabile con `perchencrypt=luks` durante la creazione di una sessione Raw, DynFileFS o DynBlk. Le sessioni esistenti prendono lo stato di cifratura dai metadati di sessione; specificare `perchencrypt` successivamente non reinterpreta né converte una sessione plaintext esistente.
+
+Il confine di cifratura dipende dal backend: Raw collega `changes.img` tramite un dispositivo loop e inserisce LUKS2 all'interno di quel file; DynFileFS collega la sua immagine logica esposta `virtual.dat` tramite un dispositivo loop e cifra quell'immagine logica; DynBlk utilizza direttamente il dispositivo a blocchi `/dev/dynblkN` come sorgente LUKS2. In tutti e tre i casi MiniOS crea ext4 all'interno di `/dev/mapper/...`, quindi i contenuti e i metadati del filesystem all'interno del mapper sono cifrati a riposo. I metadati backend fuori dal confine LUKS, i file di avvio, i metadati di sessione e altri file sul supporto di persistenza restano non cifrati.
+
+I valori predefiniti di dimensione, i limiti di crescita, le restrizioni FAT32 e il comportamento thin/fixed di allocazione restano di competenza del backend sottostante. L'initrd autentica prima di espandere un backend cifrato esistente, chiude il mapper prima della crescita del backend, poi lo riapre, controlla ext4 ed espande il filesystem prima di montarlo. Per i DynBlk cifrati, la compressione backend è forzata a `none`.
+
+La creazione richiede l'inserimento della passphrase due volte. Le sessioni cifrate esistenti permettono tre tentativi di sblocco sulla console di avvio. Tre passphrase errate attivano un percorso di avvio fatale: MiniOS non continua in RAM, non reinterpreta la stessa sessione come plaintext, non seleziona un altro backend né crea una sostituzione. Altri errori di creazione, controllo, ridimensionamento o montaggio mantengono il comportamento di recupero specifico del backend senza fallback plaintext. Le passphrase non vengono salvate nei metadati di sessione né passate come argomenti di comando. Le esportazioni logiche contengono i file della sessione decifrati invece di un'immagine backend cifrata.
+
+Vedi [Sicurezza](/maintenance-and-recovery/Security) per il confine di protezione e le considerazioni di backup.
 
 ### SquashFS
 
-L’initrd può attivare solo una sessione SquashFS esistente; non può crearne una nuova con `changes.sb`. L’attivazione convalida metadati rigorosi e a valore singolo per lo snapshot, inclusi il digest, le dimensioni compresse e non compresse, il conteggio delle voci, il tipo di union e la policy di salvataggio. Controlla inoltre il tipo di file e la dimensione esatta, la RAM disponibile e lo swap, il digest SHA-256 prima e dopo l’estrazione e la compatibilità union attuale.
+L'initrd normalmente attiva una sessione SquashFS esistente. La configurazione interattiva crea metadati di generazione zero con salvataggio allo spegnimento abilitato ma non crea `changes.sb`; il livello superiore scrivibile esiste solo in RAM finché il sistema in esecuzione non effettua il primo salvataggio su richiesta o allo spegnimento. Una sessione di generazione zero è valida solo quando i campi degli artefatti snapshot e `changes.sb` sono assenti. Per le generazioni successive, l'attivazione valida metadati rigorosi e a valore singolo per lo snapshot, inclusi digest, dimensioni compresse e non compresse, numero di elementi, tipo di union e policy di salvataggio. Controlla anche il tipo di file e la dimensione esatta, la RAM e lo swap disponibili, il digest SHA-256 prima e dopo l'estrazione e la compatibilità union corrente.
 
-Lo snapshot viene estratto con gestione rigorosa degli errori e degli xattr in un’immagine ext4 temporanea e limitata in RAM. Per OverlayFS, quell’immagine contiene directory `changes` e `workdir` separate; per AUFS, la root è il ramo scrivibile.
-Metadati non validi, memoria insufficiente, cambiamenti nel digest, errori di estrazione o una policy non valida fanno fallire l’attivazione e lasciano il boot sul normale upper RAM.
+Lo snapshot viene estratto con gestione rigorosa di errori e xattr in un'immagine ext4 temporanea e limitata in RAM. Per OverlayFS, quell'immagine contiene directory `changes` e `workdir` separate; per AUFS, la root è il ramo scrivibile.
+Metadati non validi, memoria insufficiente, cambiamenti nel digest, errori di estrazione o una policy non valida fanno fallire l'attivazione e lasciano l'avvio sul normale livello superiore RAM.
 
-Una sessione contrassegnata `dirty` significa che il precedente avvio non ha completato la transizione di spegnimento pulito. SquashFS quindi avvisa e ripristina l’ultimo `changes.sb` salvato con successo; le modifiche non salvate dall’avvio interrotto non costituiscono una seconda generazione di rollback.
+Una sessione contrassegnata come `dirty` indica che l'avvio precedente non ha completato la transizione di spegnimento pulito. SquashFS avvisa e ripristina l'ultimo `changes.sb` salvato con successo; le modifiche non salvate dell'avvio interrotto non costituiscono una seconda generazione di rollback.
 
-Il Gestore sessioni MiniOS e il backend di salvataggio di sistema creano e sostituiscono in modo atomico gli snapshot SquashFS usando una cattura esatta. L’attivazione al boot può leggere uno snapshot esistente da storage FAT, exFAT o NTFS scrivibili perché l’estrazione avviene nel livello superiore ext4 temporaneo. La creazione e il salvataggio esatto restano vincolati dal filesystem: la loro area di staging privata deve preservare link, proprietà, permessi, xattr, ACL, capability e whiteout union, quindi il salvataggio attuale richiede un filesystem POSIX idoneo. Vedi [Gestione delle sessioni](/using-minios/Sessions-and-Persistence).
+Il Gestore sessioni MiniOS e il backend di salvataggio del sistema creano e sostituiscono in modo atomico gli snapshot SquashFS tramite acquisizione esatta. L'attivazione all'avvio può leggere uno snapshot esistente da storage FAT, exFAT o NTFS scrivibile perché l'estrazione avviene nel livello superiore ext4 temporaneo. La creazione e il salvataggio esatto restano vincolati dal filesystem: la loro area di staging privata deve preservare link, proprietà, permessi, xattr, ACL, capability e whiteout union, quindi il salvataggio attuale richiede un filesystem POSIX idoneo.
+
+SquashFS non ha `perchsize`: la dimensione salvata segue le modifiche catturate compresse, mentre la memoria a runtime è determinata dal livello superiore scrivibile estratto. Il layer di persistenza LUKS MiniOS non avvolge `changes.sb`; se è richiesta la riservatezza dello snapshot, lo storage di supporto deve essere cifrato esternamente a questo layer. Vedi [Gestione delle sessioni](/using-minios/Sessions-and-Persistence).
 
 ## Attivazione union e confine di ripristino
 
@@ -155,11 +180,11 @@ Non sostituire né ricostruire file di sessione durante l’avvio. Prima preserv
 
 ## Stato attivo, in esecuzione e di avvio corrente
 
-Nei metadati della sessione durevole, `default=` è la sessione **attiva** selezionata per il prossimo resume, mentre `running=` è la sessione registrata come fornitrice dell’avvio corrente. L’attivazione scrive entrambi i campi e segna quella sessione come `dirty`.
-Dopo che i mount di persistenza sono stati rimossi durante uno spegnimento pulito, MiniOS rimuove `running=` e segna la sessione come `clean`.
+Nei metadati di sessione persistenti, `default=` è la sessione **attiva** selezionata per la prossima ripresa, mentre `running=` è la sessione registrata come fornitrice dell'avvio corrente. L'attivazione scrive entrambi i campi e marca quella sessione come `dirty`.
+Dopo che i mount di persistenza sono stati rimossi durante uno spegnimento pulito, MiniOS elimina `running=` e marca la sessione come `clean`.
 
-Questi campi metadati possono essere obsoleti dopo un crash, una scrittura metadati fallita, un’unione fallita, una copia dello store o uno spegnimento interrotto. I componenti runtime che permettono il salvataggio non si fidano di `running=` da solo. Utilizzano lo stato protetto di avvio corrente dell’initrd, legato all’ID di avvio, sessione numerica, modalità, identità reale dello store, stato scrivibile, durabilità, generazione attiva verificata e, per dynblk, l’esatto dispositivo collegato `/dev/dynblkN`. Un record di avvio corrente fallito o mancante significa che la persistenza non deve essere considerata come destinazione di salvataggio approvata.
+Questi campi dei metadati possono essere obsoleti dopo un crash, un errore di scrittura dei metadati, un errore nella costruzione dell'union, una copia dello store o uno spegnimento interrotto. I componenti runtime che consentono il salvataggio non si fidano di `running=` da solo. Utilizzano lo stato protetto di avvio corrente dell'initrd, legato all'ID di avvio, sessione numerica, modalità, identità reale dello store, stato scrivibile, durabilità, generazione attiva verificata e, per DynBlk, l'esatto dispositivo `/dev/dynblkN` collegato. Un record di avvio corrente mancante o non valido significa che la persistenza non deve essere considerata un target di salvataggio approvato.
 
-Con `toram` e una richiesta di persistenza riconosciuta, lo store della sessione viene copiato in RAM prima dell’attivazione. La sessione copiata può essere scrivibile e fornire la parte superiore in uso, ma il suo stato di avvio corrente è marcato come non durevole. Le modifiche a quella copia RAM non tornano sul dispositivo originale e vengono perse allo spegnimento.
+Con `toram` e una richiesta di persistenza riconosciuta, lo store di sessione viene copiato in RAM prima dell'attivazione. La sessione copiata può essere scrivibile e fornire il livello superiore in esecuzione, ma il suo stato di avvio corrente è marcato come non durevole. Le modifiche a quella copia RAM non vengono restituite al dispositivo originale e vengono perse allo spegnimento.
 
 Per indicazioni operative correlate, vedi [Modalità di avvio](/using-minios/Boot-Modes), [Parametri di avvio](/reference/Boot-Parameters), [Sessioni e persistenza](/using-minios/Sessions-and-Persistence), [Backup di MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS), [Sicurezza](/maintenance-and-recovery/Security), e [Risoluzione dei problemi](/maintenance-and-recovery/Troubleshooting).

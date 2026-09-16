@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-13
+updated: 2026-09-16
 ---
 
 # Sicherheit
@@ -58,9 +58,13 @@ Startparameter können die Werte in Konfigurationsdateien überschreiben. Überp
 
 ## Persistente Daten verschlüsseln
 
-Unverschlüsselte native, DynFileFS-, dynblk-, raw- und SquashFS-Persistenz kann von jeder Person gelesen werden, die Zugriff auf das Gerät erhält. Dynblk ist ein schlankes Kernel-Block-Backend und keine Verschlüsselungsschicht; seine `volumeNNN.db` Sicherungsdateien enthalten gewöhnliche, unverschlüsselte Sitzungsdaten, sofern der zugrunde liegende Speicher nicht separat geschützt ist. Das MiniOS-Installationsprogramm kann einen verschlüsselten LUKS-Container für eine Live-Sitzung einrichten, wenn das Quell-initrd LUKS-Unterstützung bietet. Das initrd erstellt `changes.luks` beim ersten Start und fordert die Passphrase an; das Installationsprogramm erhält oder speichert diese Passphrase nicht.
+Unverschlüsselte native, DynFileFS, DynBlk, Raw- und SquashFS-Persistenz können von Personen gelesen werden, die Zugriff auf das Gerät erhalten. MiniOS kann LUKS2 über Raw, DynFileFS oder DynBlk schichten. Für die Erstellung beim Systemstart wählen Sie dies aus mit `perchencrypt=luks`; bestehende Sitzungen übernehmen ihren Verschlüsselungsstatus aus den Sitzungsmetadaten und nicht aus einer späteren Kommandozeilen-Überschreibung.
 
-LUKS-Persistenz schützt die Inhalte, solange der Container geschlossen ist. Sie schützt jedoch keine Daten nach dem Entsperren, keine unverschlüsselten Boot-Dateien, keine außerhalb des Containers kopierten Dateien oder ein natives Root-Dateisystem. LUKS-Sitzungspersistenz ist keine native Root-Verschlüsselung. Verwenden Sie eine starke Passphrase und bewahren Sie ein getestetes Backup auf.
+Die Verschlüsselungsgrenze ist vom Backend abhängig. Raw verschlüsselt das logische Block-Image innerhalb von `changes.img`; DynFileFS verschlüsselt das bereitgestellte `virtual.dat`; DynBlk verschlüsselt das `/dev/dynblkN` Blockgerät direkt. Sitzungsmetadaten, Boot-Dateien, DynFileFS/DynBlk Backend-Metadaten außerhalb des verschlüsselten Block-Images sowie nicht zusammenhängende Dateien auf dem Medium bleiben sichtbar. Die DynBlk Backend-Komprimierung ist deaktiviert, wenn LUKS2 ausgewählt ist.
+
+Das initrd erstellt das verschlüsselte Dateisystem beim ersten Gebrauch und fragt nach der Passphrase; das Installationsprogramm erhält oder speichert diese Passphrase nicht. Beim Booten führen drei fehlgeschlagene Entsperrversuche dazu, dass der Bootvorgang abgebrochen wird, anstatt auf Klartext, ein anderes Backend oder einen In-Memory-Ersatz mit derselben Persistenzanforderung zurückzufallen.
+
+LUKS-Persistenz schützt den Inhalt des Dateisystems, solange der Mapper geschlossen ist. Sie schützt keine Daten nach dem Entsperren, keine unverschlüsselten Boot-Dateien, keine kopierten Dateien außerhalb des verschlüsselten Backends oder ein natives Root-Dateisystem. LUKS-Sitzungspersistenz ist keine native Root-Verschlüsselung. Logische Exporte enthalten entschlüsselte Sitzungsdateien, daher sollten Backup-Archive separat geschützt werden. Verwenden Sie eine starke Passphrase und bewahren Sie ein getestetes Backup auf.
 
 Siehe [MiniOS-Installationsprogramm](/installing-minios/MiniOS-Installer) und [Sitzungsverwaltung](/using-minios/Sessions-and-Persistence).
 

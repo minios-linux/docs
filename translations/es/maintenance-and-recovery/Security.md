@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-13
+updated: 2026-09-16
 ---
 
 # Seguridad
@@ -58,9 +58,13 @@ Los parámetros de arranque pueden sobrescribir los valores del archivo de confi
 
 ## Cifrar datos persistentes
 
-La persistencia sin cifrar de native, DynFileFS, dynblk, raw y SquashFS puede ser leída por quien obtenga el dispositivo. Dynblk es un backend de bloques del kernel, no una capa de cifrado; sus `volumeNNN.db` archivos de respaldo contienen datos de sesión sin cifrar, a menos que el almacenamiento subyacente esté protegido por separado. El Instalador de MiniOS puede configurar un contenedor LUKS cifrado para una sesión en vivo cuando el initrd de origen anuncia soporte para LUKS. El initrd crea `changes.luks` en el primer arranque y solicita la frase de contraseña; el instalador no recibe ni almacena esa frase de contraseña.
+La persistencia nativa sin cifrar, DynFileFS, DynBlk, raw y SquashFS puede ser leída por quien obtenga el dispositivo. MiniOS permite superponer LUKS2 sobre Raw, DynFileFS o DynBlk. Para crearla al inicio, selecciónala con `perchencrypt=luks`; las sesiones existentes obtienen su estado de cifrado desde los metadatos de la sesión y no desde una anulación posterior por línea de comandos.
 
-La persistencia LUKS protege el contenido mientras el contenedor está cerrado. No protege los datos después de desbloquear, los archivos de arranque sin cifrar, los archivos copiados fuera del contenedor ni un sistema de archivos raíz nativo. La persistencia de sesión LUKS no es cifrado nativo de raíz. Utiliza una frase de contraseña segura y mantén una copia de seguridad probada.
+El límite del cifrado varía según el backend. Raw cifra la imagen de bloques lógicos dentro de `changes.img`; DynFileFS cifra el `virtual.dat`; DynBlk cifra el `/dev/dynblkN` dispositivo de bloques directamente. Los metadatos de la sesión, archivos de arranque, metadatos del backend DynFileFS/DynBlk fuera de la imagen cifrada y archivos no relacionados en el medio permanecen visibles. La compresión del backend DynBlk se desactiva cuando se selecciona LUKS2.
+
+El initrd crea el sistema de archivos cifrado en el primer uso y solicita su frase de acceso; el instalador no recibe ni almacena esa frase. Al arrancar, tres intentos fallidos de desbloqueo detienen el proceso de arranque en vez de volver a texto plano, otro backend o un reemplazo en memoria bajo la misma solicitud de persistencia.
+
+La persistencia LUKS protege el contenido del sistema de archivos mientras el mapper está cerrado. No protege los datos después de desbloquear, los archivos de arranque sin cifrar, los archivos copiados fuera del backend cifrado ni un sistema de archivos raíz nativo. La persistencia de sesión LUKS no es cifrado nativo de raíz. Las exportaciones lógicas contienen archivos de sesión descifrados, por lo que debes proteger los archivos de respaldo por separado. Usa una frase de acceso robusta y mantén una copia de seguridad probada.
 
 Consulta [Instalador de MiniOS](/installing-minios/MiniOS-Installer) y [Gestión de sesiones](/using-minios/Sessions-and-Persistence).
 

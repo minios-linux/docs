@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-13
+updated: 2026-09-16
 ---
 
 # Rendimiento
@@ -26,14 +26,15 @@ La persistencia traslada las operaciones de E/S de la capa de escritura desde el
 
 ### Modos de persistencia (`perchmode`)
 
-- **`native`:** Evita una capa de sistema de archivos dentro de un archivo y es la opción más sencilla en un sistema de archivos POSIX adecuado, pero no está disponible en sistemas de archivos que no pueden conservar la metadata requerida por Linux.
-- **`raw`:** Tiene capacidad fija predecible y comportamiento ext4 convencional, pero reserva el tamaño del archivo y no puede crecer más allá del espacio disponible en el almacenamiento de respaldo.
-- **`dynfilefs`:** El backend FUSE/format-400 se expande bajo demanda y permite el uso de medios que de otro modo no serían aptos, con mayor complejidad de mapeo y recuperación.
-- **`dynblk`:** El backend de bloques de kernel format-1 presenta un dispositivo de bloque normal, mientras que el respaldo thin `volumeNNN.db`crece bajo demanda. Evita E/S por FUSE, pero cada dispositivo conectado consume memoria fija para metadata y las escrituras siguen limitadas por el espacio libre del sistema de archivos de respaldo y los límites de admisión dynblk.
-- **`luks`:** Añade confidencialidad a cambio de trabajo de desbloqueo y sobrecarga por cifrado.
-- **`squashfs`:** Intercambia compresión en el guardado y trabajo de extracción de RAM por una instantánea compacta; no es un backend general de escritura de baja latencia.
+- **`native`:** Almacena la capa de escritura directamente como archivos normales. Tiene la menor sobrecarga de contenedor y no tiene un tamaño fijo, pero requiere un sistema de archivos subyacente que conserve los metadatos y operaciones de Linux que MiniOS necesita.
+- **`raw`:** Utiliza una única imagen ext4 de capacidad fija. Su tamaño se establece según la capacidad solicitada y el crecimiento es explícito, por lo que es simple y predecible, pero carece del comportamiento de capacidad dinámica de los backends dinámicos. FAT32 limita la imagen única a 4000 MiB.
+- **`dynfilefs`:** El backend FUSE/format-400 expande el almacenamiento de datos bajo demanda y es compatible con medios que de otro modo no serían adecuados. Su índice no es disperso: cada bloque lógico declarado de 4 KiB requiere un desplazamiento de 8 bytes, por lo que la capacidad lógica cuesta aproximadamente 2 MiB de RAM y unos 2 MiB de almacenamiento de índice de respaldo por GiB, incluso cuando la carga útil está vacía. Esto hace que capacidades moderadas sean eficientes, pero capacidades grandes y delgadas resultan costosas desde el inicio.
+- **`dynblk`:** El backend de bloques de kernel format-1 presenta un dispositivo de bloques normal mientras que el almacenamiento thin `volumeNNN.db` crece bajo demanda. Las asignaciones en tiempo de ejecución son dispersas y asignan un bloque de 4 KiB para 128 bloques lógicos, por lo que los datos densamente asignados cuestan unos 8 MiB de RAM por GiB, pero la capacidad virtual no asignada no consume bloques de asignación. El índice interno fijo ocupa solo 396.312 bytes por dispositivo conectado y los contadores de referencia de página son dispersos. El controlador, no MiniOS, elige el presupuesto de asignación predeterminado en aproximadamente el 25% del RAM utilizable, con un límite de 4096 MiB. Esto favorece capacidades grandes y dispersas; un volumen lleno densamente puede consumir más RAM por GiB que DynFileFS.
+- **`squashfs`:** Almacena una instantánea comprimida y reconstruye la capa superior de escritura en RAM en cada arranque. Minimiza el almacenamiento persistente para sesiones mayormente estables, pero implica costos de CPU y RAM durante la restauración y reescribe la instantánea al guardar.
 
-Realiza pruebas de carga representativas en el dispositivo real. Las diferencias en el controlador flash, sistema de archivos, puente USB y carga de trabajo influyen más que una clasificación universal de los modos de persistencia.
+LUKS2 puede envolver Raw, DynFileFS o DynBlk. El cifrado añade sobrecarga de desbloqueo y criptografía, manteniendo la capacidad y el comportamiento de almacenamiento del backend subyacente.
+
+Realice pruebas comparativas de cargas de trabajo representativas en el dispositivo real. Las diferencias en el controlador flash, sistema de archivos, puente USB, cifrado, compresión y tipo de carga de trabajo son más relevantes que una clasificación universal de los modos de persistencia.
 
 ## Configuración de ZRAM
 

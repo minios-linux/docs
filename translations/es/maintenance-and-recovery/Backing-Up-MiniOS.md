@@ -20,28 +20,28 @@ Los archivos almacenados fuera de la capa de sesión, por ejemplo en una ubicaci
 
 ## Exportar sesiones persistentes
 
-El Gestor de sesiones de MiniOS puede exportar una **inactiva** `native`, `dynfilefs`, `dynblk`, `raw`, o `luks` sesión a un archivo `.tar.zst`verificado. Primero identifica la sesión:
+El Gestor de sesiones de MiniOS puede exportar una sesión**inactiva** `native`, `dynfilefs`, `dynblk`, `raw` o `luks` sesión a un archivo de respaldo verificado`.tar.zst`. Primero, identifique la sesión:
 
 ```bash
 minios-session list
 minios-session running
 ```
 
-Luego inicia otra sesión o **Iniciar sin guardar** y exporta la sesión inactiva:
+Luego, inicie otra sesión o **Iniciar sin guardar** y exporte la sesión inactiva:
 
 ```bash
 sudo minios-session export <id> /path/to/session.tar.zst
 ```
 
-La exportación es una copia lógica del contenido de la sesión, no una copia byte a byte de su contenedor de almacenamiento. Guárdala en otro dispositivo.
+La exportación es una copia lógica del contenido de la sesión, no una copia bit a bit de su contenedor de almacenamiento. Guárdela en otro dispositivo.
 
-Para una sesión LUKS, el archivo contiene los archivos lógicos descifrados. Protege el archivo por separado si los datos deben permanecer cifrados.
+Para una sesión LUKS, el archivo de respaldo contiene los archivos lógicos desencriptados. Proteja el archivo por separado si los datos deben permanecer cifrados.
 
-### Sesiones SquashFS
+### Sesiones de SquashFS
 
-El Gestor de sesiones actual no exporta ni copia sesiones SquashFS. Usa **Guardar ahora** antes de apagar para que la instantánea actual esté completa y luego protege los archivos importantes por separado. Si necesitas una copia completa y restaurable de todo el dispositivo MiniOS, crea una imagen del dispositivo sin conexión.
+El gestor de sesiones actual no exporta ni copia sesiones de SquashFS. Utiliza **Guardar ahora** antes de apagar para que la instantánea actual esté completa y protege los archivos importantes por separado. Si necesitas una copia completa y recuperable de todo el dispositivo MiniOS, crea una imagen de dispositivo offline.
 
-No confíes en copiar manualmente un directorio de sesión montado ni en reconstruir `session.conf`, segmentos DynFileFS, archivos de respaldo dynblk u otros metadatos de contenedores como método de respaldo. Un respaldo manual byte a byte de dynblk es seguro solo cuando el volumen está desmontado y debe preservar su `volume000.db` completo a través de `volume063.db` el espacio de nombres exactamente como existe; se prefiere el respaldo lógico de `minios-session export`.
+No confíes en copiar manualmente el directorio de una sesión montada ni en reconstruir `session.conf`, segmentos DynFileFS, archivos de respaldo DynBlk u otros metadatos de contenedores como método de copia de seguridad. Un respaldo manual de DynBlk, byte por byte, solo es seguro cuando el volumen está desmontado y debe conservar todo su `volume000.db` hasta `volume063.db` el namespace exactamente como existe; se prefiere el respaldo lógico de `minios-session export`.
 
 ## Respalda configuración y módulos
 

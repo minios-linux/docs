@@ -20,28 +20,28 @@ File yang disimpan di luar layer sesi, misalnya di lokasi data pengguna terpisah
 
 ## Ekspor sesi persisten
 
-Manajer Sesi MiniOS dapat mengekspor**yang tidak sedang berjalan** `native`, `dynfilefs`, `dynblk`, `raw`, atau `luks` sesi ke arsip `.tar.zst`yang sudah diverifikasi. Identifikasi dulu sesi yang akan diekspor:
+Manajer Sesi MiniOS dapat mengekspor sesi**yang tidak berjalan** `native`, `dynfilefs`, `dynblk`, `raw`, atau `luks` ke arsip yang telah diverifikasi.`.tar.zst` Pertama, identifikasi sesi yang ingin diekspor:
 
 ```bash
 minios-session list
 minios-session running
 ```
 
-Kemudian boot ke sesi lain atau**Mulai tanpa menyimpan** lalu ekspor sesi yang tidak aktif:
+Kemudian jalankan sesi lain atau**Mulai tanpa menyimpan** lalu ekspor sesi yang tidak aktif:
 
 ```bash
 sudo minios-session export <id> /path/to/session.tar.zst
 ```
 
-Ekspor merupakan salinan logis dari isi sesi, bukan salinan byte-per-byte dari container penyimpanannya. Simpan arsip di perangkat lain.
+Ekspor ini merupakan salinan logis dari isi sesi, bukan salinan byte-per-byte dari kontainer penyimpanannya. Simpan arsip ini di perangkat lain.
 
-Untuk sesi LUKS, arsip berisi file logis yang sudah didekripsi. Lindungi arsip secara terpisah jika data harus tetap terenkripsi.
+Untuk sesi LUKS, arsip berisi file logis yang sudah didekripsi. Lindungi arsip ini secara terpisah jika data perlu tetap terenkripsi.
 
-### Sesi SquashFS
+### SquashFS sesi
 
-Manajer Sesi saat ini tidak dapat mengekspor atau menyalin sesi SquashFS. Gunakan**Simpan Sekarang** sebelum dimatikan agar snapshot saat ini lengkap, lalu lindungi file penting secara terpisah. Jika Anda membutuhkan salinan lengkap yang dapat dipulihkan dari seluruh perangkat MiniOS, buat image perangkat secara offline.
+Session Manager saat ini tidak mengekspor atau menyalin sesi SquashFS. Gunakan **Simpan Sekarang** sebelum mematikan agar snapshot saat ini lengkap, lalu lindungi file penting secara terpisah. Jika Anda membutuhkan salinan lengkap yang dapat dipulihkan dari seluruh perangkat MiniOS, buat image perangkat offline sebagai gantinya.
 
-Jangan mengandalkan penyalinan manual direktori sesi yang sedang di-mount atau merekonstruksi`session.conf`, segmen DynFileFS, file dynblk, atau metadata container lain sebagai metode backup. Backup dynblk manual byte-per-byte hanya aman jika volume dalam keadaan detached dan harus mempertahankan seluruh`volume000.db` hingga`volume063.db` namespace persis seperti aslinya; backup logis`minios-session export` lebih disarankan.
+Jangan mengandalkan penyalinan manual direktori sesi yang ter-mount atau merekonstruksi `session.conf`, segmen DynFileFS, file backing DynBlk, atau metadata kontainer lain sebagai metode cadangan. Cadangan manual DynBlk byte-per-byte hanya aman saat volume terlepas dan harus mempertahankan seluruh `volume000.db` hingga `volume063.db` namespace persis seperti aslinya; `minios-session export` logis lebih disarankan.
 
 ## Cadangkan konfigurasi dan modul
 

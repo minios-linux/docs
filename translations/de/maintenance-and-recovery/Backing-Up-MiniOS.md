@@ -20,28 +20,28 @@ Dateien, die außerhalb der Sitzungsebene gespeichert sind, zum Beispiel an eine
 
 ## Persistente Sitzungen exportieren
 
-Der MiniOS-Sitzungsmanager kann eine **nicht laufende** `native`, `dynfilefs`, `dynblk`, `raw`, oder `luks` Sitzung in ein verifiziertes `.tar.zst` Archiv exportieren. Identifizieren Sie zuerst die Sitzung:
+Mit dem MiniOS-Sitzungsmanager können Sie eine **inaktive** `native`, `dynfilefs`, `dynblk`, `raw` oder `luks` Sitzung in ein verifiziertes `.tar.zst` Archiv exportieren. Identifizieren Sie zunächst die Sitzung:
 
 ```bash
 minios-session list
 minios-session running
 ```
 
-Starten Sie dann eine andere Sitzung oder **Ohne Speichern starten** und exportieren Sie die inaktive Sitzung:
+Starten Sie dann eine weitere Sitzung oder **Ohne Speichern starten** und exportieren Sie die inaktive Sitzung:
 
 ```bash
 sudo minios-session export <id> /path/to/session.tar.zst
 ```
 
-Der Export ist eine logische Kopie des Sitzungsinhalts, keine Byte-für-Byte-Kopie des Speichercontainers. Speichern Sie sie auf einem anderen Gerät.
+Der Export ist eine logische Kopie des Sitzungsinhalts, keine 1:1-Kopie des Speichercontainers. Speichern Sie sie auf einem anderen Gerät.
 
-Bei einer LUKS-Sitzung enthält das Archiv die entschlüsselten logischen Dateien. Schützen Sie das Archiv separat, wenn die Daten verschlüsselt bleiben müssen.
+Bei einer LUKS-Sitzung enthält das Archiv die entschlüsselten logischen Dateien. Schützen Sie das Archiv separat, wenn die Daten weiterhin verschlüsselt bleiben müssen.
 
 ### SquashFS-Sitzungen
 
-Der aktuelle Sitzungsmanager exportiert oder kopiert keine SquashFS-Sitzungen. Verwenden Sie **Jetzt speichern** vor dem Herunterfahren, damit der aktuelle Schnappschuss vollständig ist, und sichern Sie wichtige Dateien anschließend separat. Wenn Sie eine vollständige, wiederherstellbare Kopie des gesamten MiniOS-Geräts benötigen, erstellen Sie stattdessen ein Offline-Geräteabbild.
+Der aktuelle Sitzungsmanager exportiert oder kopiert keine SquashFS-Sitzungen. Verwenden Sie **Jetzt speichern** vor dem Herunterfahren, damit der aktuelle Snapshot vollständig ist, und sichern Sie anschließend die wichtigen Dateien separat. Wenn Sie eine vollständig wiederherstellbare Kopie des gesamten MiniOS-Geräts benötigen, erstellen Sie stattdessen ein Offline-Geräteabbild.
 
-Verlassen Sie sich nicht darauf, ein eingebundenes Sitzungsverzeichnis manuell zu kopieren oder `session.conf`DynFileFS-Segmente, dynblk-Backing-Dateien oder andere Container-Metadaten als Backup-Methode zu rekonstruieren. Ein manuelles Byte-für-Byte-dynblk-Backup ist nur dann sicher, wenn das Volume abgehängt ist, und muss dessen gesamte `volume000.db` bis zum `volume063.db` Namensraum exakt erhalten; ein logischer `minios-session export` Export ist vorzuziehen.
+Verlassen Sie sich nicht darauf, ein eingebundenes Sitzungsverzeichnis manuell zu kopieren oder `session.conf`, DynFileFS-Segmente, DynBlk-Backdateien oder andere Container-Metadaten als Backup-Methode zu rekonstruieren. Ein manuelles Byte-für-Byte-DynBlk-Backup ist nur dann sicher, wenn das Volume getrennt ist, und muss den gesamten `volume000.db`-Namespace exakt wie vorhanden erhalten; logisches `volume063.db` wird bevorzugt.`minios-session export`
 
 ## Konfiguration und Module sichern
 

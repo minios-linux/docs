@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-13
+updated: 2026-09-16
 ---
 # Security
 
@@ -58,9 +58,13 @@ Boot parameters can override configuration-file values. Inspect unexpected servi
 
 ## Encrypt persistent data
 
-Unencrypted native, DynFileFS, dynblk, raw, and SquashFS persistence can be read by someone who obtains the device. Dynblk is a thin kernel block backend, not an encryption layer; its `volumeNNN.db` backing files contain ordinary unencrypted session data unless the underlying storage is protected separately. MiniOS Installer can configure an encrypted LUKS container for a live session when the source initrd advertises LUKS support. The initrd creates `changes.luks` on first boot and asks for its passphrase; the installer does not receive or store that passphrase.
+Unencrypted native, DynFileFS, DynBlk, raw, and SquashFS persistence can be read by someone who obtains the device. MiniOS can layer LUKS2 over Raw, DynFileFS, or DynBlk. For boot-time creation select it with `perchencrypt=luks`; existing sessions obtain their encryption state from session metadata rather than from a later command-line override.
 
-LUKS persistence protects the contents while the container is closed. It does not protect data after unlock, the unencrypted boot files, copied files outside the container, or a native root filesystem. LUKS session persistence is not native root encryption. Use a strong passphrase and keep a tested backup.
+The encryption boundary differs by backend. Raw encrypts the logical block image inside `changes.img`; DynFileFS encrypts the exposed `virtual.dat`; DynBlk encrypts the `/dev/dynblkN` block device directly. Session metadata, boot files, DynFileFS/DynBlk backend metadata outside the encrypted block image, and unrelated files on the medium remain visible. DynBlk backend compression is disabled when LUKS2 is selected.
+
+The initrd creates the encrypted filesystem on first use and asks for its passphrase; the installer does not receive or store that passphrase. At boot, three rejected unlock attempts stop the boot path rather than falling back to plaintext, another backend, or an in-memory replacement under the same persistence request.
+
+LUKS persistence protects the filesystem contents while the mapper is closed. It does not protect data after unlock, the unencrypted boot files, copied files outside the encrypted backend, or a native root filesystem. LUKS session persistence is not native root encryption. Logical exports contain decrypted session files, so protect backup archives separately. Use a strong passphrase and keep a tested backup.
 
 See [MiniOS Installer](/installing-minios/MiniOS-Installer) and [Session management](/using-minios/Sessions-and-Persistence).
 

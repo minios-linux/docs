@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-13
+updated: 2026-09-16
 ---
 
 # Prestazioni
@@ -26,14 +26,15 @@ La persistenza sposta l'I/O del livello scrivibile dal RAM allo storage o a un c
 
 ### Modalità di persistenza (`perchmode`)
 
-- **`native`:** Evita uno strato filesystem-in-un-file ed è la scelta più semplice su un filesystem POSIX adatto, ma non è disponibile su filesystem che non possono mantenere la necessaria metadata Linux.
-- **`raw`:** Ha una capacità fissa prevedibile e un comportamento ext4 convenzionale, ma riserva la dimensione del file e non può crescere oltre lo spazio disponibile sul supporto di memorizzazione.
-- **`dynfilefs`:** Il backend FUSE/format-400 si espande su richiesta e supporta anche supporti altrimenti non compatibili, con maggiore complessità di mappatura e recupero.
-- **`dynblk`:** Il backend kernel a blocchi format-1 presenta un normale dispositivo a blocchi mentre il thin `volumeNNN.db` backing cresce su richiesta. Evita l'I/O FUSE, ma ogni dispositivo collegato consuma memoria fissa per i metadati e le scritture restano limitate dallo spazio libero del filesystem di supporto e dai limiti di ammissione dynblk.
-- **`luks`:** Aggiunge riservatezza a fronte di lavoro di sblocco e overhead di cifratura.
-- **`squashfs`:** Scambia la compressione al momento del salvataggio e il lavoro di estrazione RAM per uno snapshot compatto; non è un backend generale a bassa latenza e scrittura.
+- **`native`:** Memorizza il layer scrivibile direttamente come file ordinari. Offre il minimo overhead per i container e non ha una dimensione fissa, ma richiede un filesystem di supporto che conservi i metadati e le operazioni Linux di cui MiniOS ha bisogno.
+- **`raw`:** Utilizza un'unica immagine ext4 a capacità fissa. La lunghezza del file è impostata sulla capacità richiesta e la crescita è esplicita, quindi è semplice e prevedibile ma non offre il comportamento thin-capacity dei backend dinamici. FAT32 limita la singola immagine a 4000 MiB.
+- **`dynfilefs`:** Il backend FUSE/format-400 espande lo storage del payload su richiesta e supporta supporti altrimenti non idonei. Il suo indice non è sparso: ogni blocco logico dichiarato da 4 KiB richiede un offset di 8 byte, quindi la capacità logica costa circa 2 MiB di RAM e circa 2 MiB di storage per l'indice di supporto per GiB anche quando il payload è vuoto. Questo rende efficienti le capacità moderate, ma le capacità thin di grandi dimensioni risultano costose in anticipo.
+- **`dynblk`:** Il backend format-1 kernel block presenta un normale dispositivo a blocchi mentre il thin `volumeNNN.db` backend cresce su richiesta. Le mappature runtime sono sparse e allocano un blocco da 4 KiB per 128 blocchi logici, quindi i dati mappati densamente richiedono circa 8 MiB di mapping RAM per GiB, ma la capacità virtuale non allocata non consuma chunk di mapping. L'indice ad albero interno fisso è di soli 396.312 byte per dispositivo collegato e i contatori di riferimento delle pagine sono sparsi. Il driver, non MiniOS, sceglie il budget di mapping predefinito pari a circa il 25% della RAM utilizzabile, con un limite massimo di 4096 MiB. Questo favorisce capacità sparse di grandi dimensioni; un volume riempito densamente può consumare più mapping RAM per GiB rispetto a DynFileFS.
+- **`squashfs`:** Memorizza uno snapshot compresso e ricostruisce il layer scrivibile superiore in RAM a ogni avvio. Minimizza lo storage persistente per sessioni perlopiù stabili, ma comporta costi in termini di CPU e RAM durante il ripristino e riscrive lo snapshot al salvataggio.
 
-Esegui benchmark dei carichi di lavoro rappresentativi direttamente sul dispositivo reale. Le differenze tra controller flash, filesystem, bridge USB e carichi di lavoro sono più affidabili di una classifica universale delle modalità di persistenza.
+LUKS2 può avvolgere Raw, DynFileFS o DynBlk. La cifratura aggiunge overhead per lo sblocco e le operazioni crittografiche, mantenendo però la capacità e il comportamento di storage del backend sottostante.
+
+Esegui benchmark dei carichi di lavoro rappresentativi direttamente sul dispositivo reale. Differenze tra controller flash, filesystem, bridge USB, cifratura, compressione e tipologia di carico sono più affidabili di una classifica universale delle modalità di persistenza.
 
 ## Configurazione ZRAM
 

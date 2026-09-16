@@ -96,9 +96,9 @@ nmcli connection show
 
 ## Persistenzprobleme
 
-Boot **Ohne Speichern starten** bevor Sie einen verdächtigen Persistenzspeicher ändern. Reparieren oder löschen Sie keine einzige Kopie einer Sitzung, solange sie aktiv ist.
+Starten Sie **Ohne Speichern starten** bevor Sie einen verdächtigen Persistenzspeicher ändern. Reparieren oder löschen Sie niemals die einzige Kopie einer aktiven Sitzung.
 
-Überprüfen Sie, was MiniOS aktuell erkennt:
+Prüfen Sie, was MiniOS aktuell erkennt:
 
 ```bash
 sudo minios-session list
@@ -108,15 +108,15 @@ sudo minios-session status
 sudo minios-session info
 ```
 
-Prüfen Sie den gewählten Boot-Modus, verfügbaren beschreibbaren Speicherplatz, Dateisystemkompatibilität und Sitzungs-Kompatibilität. Die detaillierten Auswahlregeln finden Sie unter [Sitzungen und Persistenz](/using-minios/Sessions-and-Persistence) und [Persistenz-Interna](/reference/boot-process/Persistence-Internals).
+Überprüfen Sie den gewählten Boot-Modus, verfügbaren freien Speicherplatz, Dateisystemkompatibilität und Sitzungs-Kompatibilität. Die detaillierten Auswahlregeln finden Sie unter [Sitzungen und Persistenz](/using-minios/Sessions-and-Persistence) und [Persistenz-Interna](/reference/boot-process/Persistence-Internals).
 
-Wenn eine wichtige, nicht laufende `native`, `dynfilefs`, `dynblk`, `raw`, oder `luks`-Sitzung noch lesbar ist, exportieren Sie sie **bevor** Sie mit dem Speicher experimentieren:
+Falls eine wichtige, nicht laufende `native`, `dynfilefs`, `dynblk`, `raw`, oder `luks`-Sitzung noch lesbar ist, exportieren Sie sie **bevor** Sie mit dem Speicher experimentieren:
 
 ```bash
 sudo minios-session export <id> /path/to/session.tar.zst
 ```
 
-Wenn der Sitzungsmanager die Sitzung nicht lesen oder exportieren kann, stoppen Sie alle Schreibvorgänge auf die Quelle und sichern Sie eine Offline-Kopie des betroffenen Speichers, bevor Sie fortfahren. Für eine getrennte dynblk-Sitzung bieten `dynblk inspect /path/to/volume000.db` und `dynblk check /path/to/volume000.db` nur Lese-Diagnosen des Formats; führen Sie diese nicht auf einem noch verbundenen Volume aus. MiniOS definiert kein universelles manuelles Verfahren zum Wiederherstellen von DynFileFS-Segmenten, zum Rekonstruieren von dynblk-Backings, zur Reparatur eines internen Dateisystems oder zur Wiederherstellung von Sitzungsmetadaten. Eine solche Wiederherstellung ist dateisystem- bzw. container-spezifisch und sollte nur an einer Kopie versucht werden, wenn der Wert der Daten dies rechtfertigt.
+Wenn der Sitzungsmanager die Sitzung weder lesen noch exportieren kann, schreiben Sie nichts mehr auf das Quellmedium und sichern Sie eine Offline-Kopie des betroffenen Speichers, bevor Sie fortfahren. Für eine getrennte DynBlk-Sitzung bieten `dynblk inspect /path/to/volume000.db` und `dynblk check /path/to/volume000.db` Diagnosemöglichkeiten im Nur-Lese-Modus; führen Sie diese nicht auf einem noch verbundenen Volume aus. MiniOS definiert kein allgemeingültiges manuelles Verfahren zum Wiederaufbau von DynFileFS-Segmenten, zur Rekonstruktion von DynBlk-Backings, zur Reparatur eines internen Dateisystems oder zur Wiederherstellung von Sitzungsmetadaten. Solche Wiederherstellungen sind dateisystem- bzw. container-spezifisch und sollten nur an einer Kopie erfolgen, wenn der Datenwert dies rechtfertigt.
 
 Siehe [Backup von MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS) für unterstützte Backup- und Sitzungsimport-Workflows.
 

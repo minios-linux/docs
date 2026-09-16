@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-26
+updated: 2026-09-16
 ---
 
 # Architecture du système
@@ -44,21 +44,23 @@ Le **Gestionnaire de modules MiniOS** distingue donc **En cours d’exécution**
 
 Une fois la racine assemblée et la configuration initiale terminée, l’initrd LiveKit utilise `pivot_root`, conserve l’ancien initrd pour les tâches d’arrêt, puis exécute l’init de la nouvelle racine. Le chemin dracut prépare la même racine assemblée mais laisse la dernière étape `switch_root` à dracut. Voir [Chargement des modules Initrd](/reference/boot-process/Module-Loading) pour les détails de la transition.
 
-## Couche inscriptible et sessions
+## Layer modifiable et sessions
 
-Sans persistance, la couche inscriptible est maintenue en mémoire et disparaît à l’arrêt. La persistance permet d’activer une session numérotée avec un backend de stockage pris en charge. La sélection, la compatibilité, les échecs d’activation, l’autorité du démarrage en cours et la durabilité sont définies dans [Persistance de l’initrd](/reference/boot-process/Persistence-Internals).
+Sans persistance, la couche modifiable est stockée en mémoire et disparaît à l’extinction. L’activation de la persistance permet d’utiliser une session numérotée avec un backend de stockage compatible. La sélection, la compatibilité, les échecs d’activation, l’autorité de démarrage en cours et la durabilité sont définies dans [Persistance initrd](/reference/boot-process/Persistence-Internals).
 
-| Mode | Stockage inscriptible | Remarques |
-|------|----------------------|-----------|
-| `native` | Fichiers stockés directement dans le dossier de session | Nécessite un système de fichiers POSIX inscriptible qui préserve les métadonnées Linux. |
+| Mode | Stockage modifiable | Remarques |
+|------|------------------|-------|
+| `native` | Fichiers stockés directement dans le répertoire de session | Nécessite un système de fichiers POSIX modifiable qui préserve les métadonnées Linux. |
 | `dynfilefs` | Système de fichiers ext4 extensible réparti sur plusieurs fichiers de support | Compatible avec les systèmes de fichiers POSIX ainsi que les supports FAT32, NTFS ou exFAT. |
-| `raw` | `changes.img` de taille fixe contenant ext4 | Compatible avec les systèmes de fichiers POSIX ainsi que les supports FAT32, NTFS ou exFAT. |
-| `luks` | LUKS2 `changes.luks` contenant ext4 | Nécessite cryptsetup et un initramfs construit avec le support du chiffrement MiniOS. La phrase de passe est demandée au démarrage. |
-| `squashfs` | Instantané compressé `changes.sb` | Décompressé dans RAM pour l’utilisation ; l’enregistrement reconstruit et remplace l’instantané de manière atomique. Le système de fichiers de persistance doit préserver les métadonnées Linux lors de l’enregistrement. |
+| `dynblk` | Système de fichiers ext4 léger sur un périphérique bloc du noyau, basé sur `volumeNNN.db` fichiers | Nécessite la prise en charge DynBlk côté utilisateur, noyau et initrd. |
+| `raw` | Fichier de taille fixe `changes.img` contenant ext4 | Compatible avec les systèmes de fichiers POSIX ainsi que les supports FAT32, NTFS ou exFAT. |
+| `squashfs` | Instantané `changes.sb` compressé | Décompressé dans RAM pour l’utilisation ; l’enregistrement sauvegarde, reconstruit et remplace l’instantané de façon atomique. Le système de fichiers de persistance doit préserver les métadonnées Linux lors de la sauvegarde. |
 
-La session active sélectionnée pour une reprise future et la couche inscriptible réellement autorisée pour le démarrage en cours sont des états liés mais distincts. Modifier la sélection future ne remplace pas la couche inscriptible en cours d’utilisation.
+Raw, DynFileFS et DynBlk peuvent éventuellement intégrer une couche LUKS2. Les métadonnées enregistrent séparément le backend de stockage et le chiffrement. À l’extinction, ext4, le mapper, tout loop possédé et le backend sont libérés dans l’ordre des dépendances.
 
-Consultez [Gestion des sessions](/using-minios/Sessions-and-Persistence) pour les commandes de création, sélection, dimensionnement, chiffrement, conversion, exportation et récupération.
+La session active sélectionnée pour une reprise ultérieure et la couche modifiable réellement autorisée pour le démarrage actuel sont deux états liés mais distincts. Modifier la sélection future ne remplace pas la couche modifiable en cours d’utilisation.
+
+Voir [Gestion des sessions](/using-minios/Sessions-and-Persistence) pour les commandes de création, sélection, dimensionnement, chiffrement, conversion, export et récupération.
 
 ## Priorité de la configuration
 

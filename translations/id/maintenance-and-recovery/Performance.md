@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-13
+updated: 2026-09-16
 ---
 
 # Performa
@@ -26,14 +26,15 @@ Persistensi memindahkan I/O layer yang bisa ditulis dari RAM sementara ke penyim
 
 ### Mode Persistensi (`perchmode`)
 
-- **`native`:** Menghindari layer filesystem-in-a-file dan merupakan pilihan paling sederhana pada filesystem POSIX yang sesuai, namun tidak tersedia pada filesystem yang tidak dapat menyimpan metadata Linux yang diperlukan.
-- **`raw`:** Memiliki kapasitas tetap yang dapat diprediksi dan perilaku ext4 konvensional, tetapi ukuran file-nya dicadangkan dan tidak dapat bertambah melebihi ruang penyimpanan yang tersedia.
-- **`dynfilefs`:** Backend FUSE/format-400 dapat berkembang sesuai kebutuhan dan mendukung media yang sebelumnya tidak cocok, dengan tambahan kompleksitas pemetaan dan pemulihan.
-- **`dynblk`:** Backend blok kernel format-1 menghadirkan perangkat blok normal sementara dukungan tipis `volumeNNN.db` bertambah sesuai kebutuhan. Menghindari I/O FUSE, namun setiap perangkat yang terpasang mengonsumsi memori metadata tetap dan penulisan tetap dibatasi oleh ruang kosong filesystem dan batasan admisi dynblk.
-- **`luks`:** Menambah kerahasiaan dengan konsekuensi pekerjaan unlock dan beban enkripsi.
-- **`squashfs`:** Mengorbankan waktu kompresi saat menyimpan dan proses ekstraksi RAM untuk snapshot yang ringkas; bukan backend writable berlatensi rendah secara umum.
+- **`native`:** Menyimpan layer yang dapat ditulis langsung sebagai file biasa. Overhead kontainer paling rendah dan tidak ada ukuran kontainer tetap, namun membutuhkan filesystem pendukung yang dapat mempertahankan metadata Linux serta operasi yang dibutuhkan MiniOS.
+- **`raw`:** Menggunakan satu image ext4 dengan kapasitas tetap. Panjang file diatur sesuai kapasitas yang diminta dan pertumbuhan dilakukan secara eksplisit, sehingga sederhana dan mudah diprediksi, namun tidak memiliki perilaku kapasitas dinamis seperti backend dinamis. FAT32 membatasi ukuran image tunggal hingga 4000 MiB.
+- **`dynfilefs`:** Backend FUSE/format-400 memperluas penyimpanan payload sesuai kebutuhan dan mendukung media yang biasanya tidak cocok. Indeksnya tidak sparse: setiap blok logis 4 KiB membutuhkan satu offset 8-byte, sehingga kapasitas logis memerlukan sekitar 2 MiB RAM dan sekitar 2 MiB penyimpanan indeks pendukung per GiB meskipun payload kosong. Hal ini membuat kapasitas sedang menjadi efisien, tetapi kapasitas tipis yang besar menjadi mahal di awal.
+- **`dynblk`:** Backend blok kernel format-1 menghadirkan perangkat blok normal sementara kapasitas tipis `volumeNNN.db` pendukung bertambah sesuai kebutuhan. Pemetaan runtime bersifat sparse dan mengalokasikan satu chunk 4 KiB untuk 128 blok logis, sehingga data yang dipetakan padat memerlukan sekitar 8 MiB RAM per GiB, tetapi kapasitas virtual yang belum dialokasikan tidak menggunakan chunk pemetaan. Indeks pohon internal tetap hanya 396.312 byte per perangkat yang terpasang dan penghitung referensi halaman bersifat sparse. Driver, bukan MiniOS, yang memilih anggaran pemetaan default sekitar 25% dari RAM yang dapat digunakan, dibatasi hingga 4096 MiB. Ini menguntungkan kapasitas sparse yang besar; volume yang terisi penuh dapat menggunakan lebih banyak RAM per GiB dibandingkan DynFileFS.
+- **`squashfs`:** Menyimpan snapshot terkompresi dan membangun ulang layer atas yang dapat ditulis di RAM setiap kali boot. Ini meminimalkan penyimpanan persisten untuk sesi yang sebagian besar stabil, namun membutuhkan biaya CPU dan RAM saat proses restore serta menulis ulang snapshot saat menyimpan.
 
-Lakukan benchmark workload yang representatif pada perangkat sebenarnya. Perbedaan pengendali flash, filesystem, bridge USB, dan workload lebih menentukan daripada urutan mode persistensi secara universal.
+LUKS2 dapat membungkus Raw, DynFileFS, atau DynBlk. Enkripsi menambah overhead saat membuka dan proses kriptografi, namun tetap mempertahankan kapasitas dan perilaku penyimpanan backend yang digunakan.
+
+Lakukan benchmark pada beban kerja yang representatif langsung di perangkat yang digunakan. Perbedaan pada controller flash, filesystem, USB bridge, enkripsi, kompresi, dan jenis beban kerja lebih berpengaruh dibandingkan peringkat universal mode persistensi.
 
 ## Konfigurasi ZRAM
 

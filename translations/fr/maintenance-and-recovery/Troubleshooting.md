@@ -96,9 +96,9 @@ nmcli connection show
 
 ## Problèmes de persistance
 
-Démarrage **Démarrer sans enregistrer** avant de modifier un stockage de persistance suspect. Ne réparez ni ne supprimez l’unique copie d’une session tant qu’elle est active.
+Démarrez **Démarrer sans enregistrer** avant de modifier un espace de persistance suspect. Ne réparez ni ne supprimez l’unique copie d’une session tant qu’elle est active.
 
-Vérifiez ce que MiniOS voit actuellement :
+Vérifiez ce que MiniOS détecte actuellement :
 
 ```bash
 sudo minios-session list
@@ -108,15 +108,15 @@ sudo minios-session status
 sudo minios-session info
 ```
 
-Vérifiez le mode de démarrage sélectionné, l’espace disponible en écriture, la compatibilité du système de fichiers et la compatibilité de la session. Les règles de sélection détaillées sont dans [Sessions et persistance](/using-minios/Sessions-and-Persistence) et [Internes de la persistance](/reference/boot-process/Persistence-Internals).
+Vérifiez le mode de démarrage sélectionné, l’espace disponible en écriture, la compatibilité du système de fichiers et la compatibilité des sessions. Les règles de sélection détaillées se trouvent dans [Sessions et persistance](/using-minios/Sessions-and-Persistence) et [Internes de la persistance](/reference/boot-process/Persistence-Internals).
 
-Si une session importante non active `native`, `dynfilefs`, `dynblk`, `raw`, ou `luks` reste lisible, exportez-la **avant de** manipuler le stockage :
+Si une session importante non active `native`, `dynfilefs`, `dynblk`, `raw`, ou `luks` est encore lisible, exportez-la **avant** de manipuler le stockage :
 
 ```bash
 sudo minios-session export <id> /path/to/session.tar.zst
 ```
 
-Si le Session Manager ne peut ni lire ni exporter la session, arrêtez d’écrire sur la source et conservez une copie hors ligne du stockage concerné avant toute autre opération. Pour une session dynblk détachée, `dynblk inspect /path/to/volume000.db` et `dynblk check /path/to/volume000.db` fournissent des diagnostics en lecture seule ; ne les lancez pas sur un volume encore attaché. MiniOS ne définit pas de procédure manuelle universelle pour reconstruire les segments DynFileFS, reconstituer les parties dynblk, réparer un système de fichiers interne ou restaurer les métadonnées de session. Ce type de récupération dépend du système de fichiers ou du conteneur et doit être tenté uniquement sur une copie lorsque la valeur des données le justifie.
+Si Session Manager ne peut ni lire ni exporter la session, arrêtez toute écriture sur la source et conservez une copie hors ligne du support concerné avant toute autre intervention. Pour une session DynBlk détachée, `dynblk inspect /path/to/volume000.db` et `dynblk check /path/to/volume000.db` fournissent des diagnostics en lecture seule sur le format ; ne les exécutez pas sur un volume encore attaché. MiniOS ne définit pas de procédure manuelle universelle pour reconstruire les segments DynFileFS, restaurer les parties DynBlk, réparer un système de fichiers interne ou reconstituer les métadonnées de session. Ces opérations sont spécifiques au système de fichiers ou au conteneur, et ne doivent être tentées que sur une copie lorsque la valeur des données le justifie.
 
 Voir [Sauvegarde de MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS) pour les procédures de sauvegarde et d’importation de session prises en charge.
 

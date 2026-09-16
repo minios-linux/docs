@@ -20,28 +20,28 @@ I file archiviati al di fuori del livello di sessione, ad esempio in una posizio
 
 ## Esporta sessioni persistenti
 
-Gestore sessioni MiniOS può esportare una **non attiva** `native`, `dynfilefs`, `dynblk`, `raw`, oppure `luks` sessione su un archivio verificato `.tar.zst` . Per prima cosa identifica la sessione:
+Il Gestore sessioni MiniOS può esportare una sessione **non attiva** `native`, `dynfilefs`, `dynblk`, `raw`, oppure `luks` verso un archivio verificato di sessione`.tar.zst`. Per prima cosa identifica la sessione:
 
 ```bash
 minios-session list
 minios-session running
 ```
 
-Poi avvia un'altra sessione oppure **Avvia senza salvare** ed esporta la sessione inattiva:
+Poi avvia un'altra sessione oppure **Avviare senza salvare** ed esporta la sessione inattiva:
 
 ```bash
 sudo minios-session export <id> /path/to/session.tar.zst
 ```
 
-L'esportazione è una copia logica del contenuto della sessione, non una copia byte per byte del suo contenitore di archiviazione. Salvala su un altro dispositivo.
+L'esportazione è una copia logica dei contenuti della sessione, non una copia byte per byte del suo contenitore di archiviazione. Salvala su un altro dispositivo.
 
-Per una sessione LUKS, l'archivio contiene i file logici decifrati. Proteggi l'archivio separatamente se i dati devono rimanere cifrati.
+Per una sessione LUKS, l'archivio contiene i file logici decrittati. Proteggi l'archivio separatamente se i dati devono rimanere cifrati.
 
-### SquashFS sessioni
+### sessioni SquashFS
 
-L'attuale Session Manager non esporta né copia le sessioni SquashFS. Usa **Salva ora** prima dell'arresto per completare lo snapshot corrente, quindi proteggi separatamente i file importanti. Se hai bisogno di una copia completa e ripristinabile dell'intero dispositivo MiniOS, crea invece un'immagine offline del dispositivo.
+L'attuale Session Manager non esporta né copia le sessioni SquashFS. Usa **Salva ora** prima dello spegnimento per completare lo snapshot corrente, quindi proteggi separatamente i file importanti. Se hai bisogno di una copia completa e ripristinabile dell'intero dispositivo MiniOS, crea invece un'immagine offline del dispositivo.
 
-Non fare affidamento sulla copia manuale di una directory di sessione montata o sulla ricostruzione di `session.conf`, segmenti DynFileFS, file di supporto dynblk o altri metadati del contenitore come metodo di backup. Un backup manuale byte-per-byte di dynblk è sicuro solo quando il volume è scollegato e deve preservare l'intero `volume000.db` fino a `volume063.db` namespace esattamente come esiste; è preferibile un `minios-session export` logico.
+Non affidarti alla copia manuale di una directory di sessione montata o alla ricostruzione di `session.conf`, segmenti DynFileFS, file di supporto DynBlk o altri metadati del contenitore come metodo di backup. Un backup manuale byte-per-byte di DynBlk è sicuro solo quando il volume è scollegato e deve preservare l'intero `volume000.db` fino a `volume063.db` namespace esattamente come esiste; il backup logico di `minios-session export` è preferibile.
 
 ## Esegui il backup della configurazione e dei moduli
 

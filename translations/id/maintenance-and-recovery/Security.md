@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-13
+updated: 2026-09-16
 ---
 
 # Keamanan
@@ -58,11 +58,15 @@ Parameter boot dapat menimpa nilai di file konfigurasi. Periksa perilaku layanan
 
 ## Enkripsi data persisten
 
-Penyimpanan native, DynFileFS, dynblk, raw, dan SquashFS yang tidak dienkripsi dapat dibaca oleh siapa saja yang mendapatkan perangkat. Dynblk adalah backend blok kernel yang ringan, bukan lapisan enkripsi;`volumeNNN.db`file backing-nya berisi data sesi biasa yang tidak terenkripsi kecuali penyimpanan dasarnya dilindungi secara terpisah. Penginstal MiniOS dapat mengonfigurasi kontainer LUKS terenkripsi untuk sesi live jika initrd sumber mendukung LUKS. Initrd akan membuat`changes.luks`pada boot pertama dan meminta frasa sandi; penginstal tidak menerima atau menyimpan frasa sandi tersebut.
+Penyimpanan native tanpa enkripsi, DynFileFS, DynBlk, raw, dan SquashFS dapat dibaca oleh siapa saja yang mendapatkan perangkat tersebut. MiniOS dapat melapisi LUKS2 di atas Raw, DynFileFS, atau DynBlk. Untuk pembuatan saat boot, pilih opsi ini melalui `perchencrypt=luks`; sesi yang sudah ada akan mendapatkan status enkripsi dari metadata sesi, bukan dari override command-line yang dilakukan setelahnya.
 
-Persistensi LUKS melindungi isi saat kontainer ditutup. Ini tidak melindungi data setelah dibuka, file boot yang tidak terenkripsi, file yang disalin ke luar kontainer, atau filesystem root native. Persistensi sesi LUKS bukan enkripsi root native. Gunakan frasa sandi yang kuat dan pastikan Anda memiliki cadangan yang telah diuji.
+Batas enkripsi berbeda tergantung backend. Raw mengenkripsi image blok logis di dalam `changes.img`; DynFileFS mengenkripsi `virtual.dat`; DynBlk mengenkripsi `/dev/dynblkN` perangkat blok secara langsung. Metadata sesi, file boot, metadata backend DynFileFS/DynBlk di luar image blok terenkripsi, serta file lain yang tidak terkait pada media tetap dapat diakses. Kompresi backend DynBlk akan dinonaktifkan jika LUKS2 dipilih.
 
-Lihat [Penginstal MiniOS](/installing-minios/MiniOS-Installer)dan [Manajemen sesi](/using-minios/Sessions-and-Persistence).
+Initrd akan membuat filesystem terenkripsi saat pertama kali digunakan dan meminta passphrase-nya; installer tidak menerima atau menyimpan passphrase tersebut. Saat boot, tiga kali percobaan membuka yang gagal akan menghentikan proses boot, bukan kembali ke plaintext, backend lain, atau pengganti di memori dengan permintaan persistensi yang sama.
+
+Persistensi LUKS melindungi isi filesystem selama mapper dalam keadaan tertutup. Ini tidak melindungi data setelah unlock, file boot yang tidak terenkripsi, file yang disalin ke luar backend terenkripsi, atau root filesystem native. Persistensi sesi LUKS bukanlah enkripsi root native. Ekspor logis berisi file sesi yang sudah didekripsi, jadi pastikan backup arsip Anda juga terlindungi. Gunakan passphrase yang kuat dan simpan backup yang sudah diuji.
+
+Lihat [Penginstal MiniOS](/installing-minios/MiniOS-Installer) dan [Manajemen sesi](/using-minios/Sessions-and-Persistence).
 
 ## Terapkan pembaruan secara sengaja
 

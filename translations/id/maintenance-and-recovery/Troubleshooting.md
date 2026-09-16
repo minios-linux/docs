@@ -96,9 +96,9 @@ nmcli connection show
 
 ## Masalah persistensi
 
-Boot **Mulai tanpa menyimpan** sebelum mengubah penyimpanan persistensi yang dicurigai bermasalah. Jangan perbaiki atau hapus satu-satunya salinan sesi saat sesi tersebut masih aktif.
+Boot **Mulai tanpa menyimpan** sebelum mengubah penyimpanan persistensi yang dicurigai bermasalah. Jangan memperbaiki atau menghapus satu-satunya salinan sesi saat sesi tersebut masih aktif.
 
-Periksa apa yang saat ini dilihat oleh MiniOS:
+Periksa apa yang saat ini terlihat oleh MiniOS:
 
 ```bash
 sudo minios-session list
@@ -108,15 +108,15 @@ sudo minios-session status
 sudo minios-session info
 ```
 
-Periksa mode boot yang dipilih, ruang tulis yang tersedia, kompatibilitas filesystem, dan kompatibilitas sesi. Aturan pemilihan detail ada di [Sesi dan persistensi](/using-minios/Sessions-and-Persistence) dan [Internal persistensi](/reference/boot-process/Persistence-Internals).
+Periksa mode boot yang dipilih, ruang tulis yang tersedia, kompatibilitas sistem file, dan kompatibilitas sesi. Aturan pemilihan detail ada di [Sesi dan persistensi](/using-minios/Sessions-and-Persistence) dan [Internal persistensi](/reference/boot-process/Persistence-Internals).
 
-Jika sebuah sesi penting yang tidak berjalan `native`, `dynfilefs`, `dynblk`, `raw`, atau `luks` masih dapat dibaca, ekspor sesi tersebut **sebelum** mencoba-coba dengan penyimpanan:
+Jika ada sesi penting yang tidak berjalan `native`, `dynfilefs`, `dynblk`, `raw`, atau `luks` masih dapat dibaca, ekspor sesi tersebut **sebelum** mencoba-coba dengan penyimpanannya:
 
 ```bash
 sudo minios-session export <id> /path/to/session.tar.zst
 ```
 
-Jika Session Manager tidak dapat membaca atau mengekspor sesi, hentikan penulisan ke sumber dan simpan salinan offline dari penyimpanan yang terdampak sebelum melanjutkan. Untuk sesi dynblk yang terlepas, `dynblk inspect /path/to/volume000.db` dan `dynblk check /path/to/volume000.db` memberikan diagnostik format hanya-baca; jangan jalankan pada volume yang masih terpasang. MiniOS tidak menyediakan prosedur manual universal untuk membangun ulang segmen DynFileFS, merekonstruksi bagian belakang dynblk, memperbaiki filesystem internal, atau merekonstruksi metadata sesi. Pemulihan seperti ini tergantung pada filesystem/container dan hanya boleh dilakukan pada salinan jika data tersebut memang sangat berharga.
+Jika Session Manager tidak dapat membaca atau mengekspor sesi, hentikan penulisan ke sumber dan simpan salinan offline dari penyimpanan yang terdampak sebelum melakukan tindakan lebih lanjut. Untuk sesi DynBlk yang terlepas, `dynblk inspect /path/to/volume000.db` dan `dynblk check /path/to/volume000.db` menyediakan diagnostik format hanya-baca; jangan jalankan pada volume yang masih terpasang. MiniOS tidak menyediakan prosedur manual universal untuk membangun ulang segmen DynFileFS, merekonstruksi bagian pendukung DynBlk, memperbaiki sistem file internal, atau merekonstruksi metadata sesi. Pemulihan semacam ini tergantung pada sistem file/kontainer dan hanya boleh dilakukan pada salinan jika data tersebut memang sangat berharga.
 
 Lihat [Mencadangkan MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS) untuk alur kerja backup dan impor sesi yang didukung.
 

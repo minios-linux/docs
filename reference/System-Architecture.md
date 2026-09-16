@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-26
+updated: 2026-09-16
 ---
 # System architecture
 
@@ -52,9 +52,11 @@ Without persistence, the writable layer is memory-backed and disappears at shutd
 |------|------------------|-------|
 | `native` | Files stored directly in the session directory | Requires a writable POSIX filesystem that preserves Linux metadata. |
 | `dynfilefs` | Expandable ext4 filesystem split across backing files | Supports POSIX filesystems and FAT32, NTFS, or exFAT media. |
+| `dynblk` | Thin ext4 filesystem on a kernel block device backed by `volumeNNN.db` files | Requires the DynBlk userspace, kernel, and initrd capability. |
 | `raw` | Fixed-size `changes.img` containing ext4 | Supports POSIX filesystems and FAT32, NTFS, or exFAT media. |
-| `luks` | LUKS2 `changes.luks` containing ext4 | Requires cryptsetup and an initramfs built with MiniOS encryption support. The passphrase is requested during boot. |
 | `squashfs` | Compressed `changes.sb` snapshot | Unpacked into RAM for use; saving rebuilds and atomically replaces the snapshot. The persistence filesystem must preserve Linux metadata during the save. |
+
+Raw, DynFileFS, and DynBlk can optionally carry a LUKS2 layer. Metadata records the storage backend and encryption separately. Shutdown releases ext4, the mapper, any owned loop, and the backend in dependency order.
 
 The active session selected for a future resume and the writable layer actually authorized for the current boot are related but distinct state. Changing a future selection does not replace the running writable layer.
 

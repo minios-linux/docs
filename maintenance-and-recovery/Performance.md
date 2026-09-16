@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-13
+updated: 2026-09-16
 ---
 # Performance
 
@@ -26,14 +26,15 @@ Persistence moves writable-layer I/O from temporary RAM to storage or a containe
 
 ### Persistence Modes (`perchmode`)
 
-- **`native`:** Avoids a filesystem-in-a-file layer and is the simplest choice on a suitable POSIX filesystem, but is unavailable on filesystems that cannot preserve required Linux metadata.
-- **`raw`:** Has predictable fixed capacity and conventional ext4 behavior, but reserves its file size and cannot grow beyond available backing storage.
-- **`dynfilefs`:** The FUSE/format-400 backend expands on demand and supports otherwise unsuitable media, with additional mapping and recovery complexity.
-- **`dynblk`:** The format-1 kernel block backend presents a normal block device while thin `volumeNNN.db` backing grows on demand. It avoids FUSE I/O, but each attached device consumes fixed metadata memory and writes remain limited by backing-filesystem free space and dynblk admission limits.
-- **`luks`:** Adds confidentiality at the cost of unlock work and encryption overhead.
-- **`squashfs`:** Trades save-time compression and RAM extraction work for a compact snapshot; it is not a general low-latency writable backend.
+- **`native`:** Stores the writable layer directly as ordinary files. It has the least container overhead and no fixed container size, but requires a backing filesystem that preserves the Linux metadata and operations MiniOS needs.
+- **`raw`:** Uses one fixed-capacity ext4 image. Its file length is set to the requested capacity and growth is explicit, so it is simple and predictable but lacks the thin-capacity behavior of the dynamic backends. FAT32 limits the single image to 4000 MiB.
+- **`dynfilefs`:** The FUSE/format-400 backend expands payload storage on demand and supports otherwise unsuitable media. Its index is not sparse: every declared 4 KiB logical block needs one 8-byte offset, so logical capacity costs about 2 MiB of RAM and about 2 MiB of backing-index storage per GiB even when the payload is empty. This makes moderate capacities efficient but large thin capacities expensive up front.
+- **`dynblk`:** The format-1 kernel block backend presents a normal block device while thin `volumeNNN.db` backing grows on demand. Runtime mappings are sparse and allocate one 4 KiB chunk for 128 logical blocks, so densely mapped data costs about 8 MiB of mapping RAM per GiB, but unallocated virtual capacity consumes no mapping chunk. The fixed internal tree index is only 396,312 bytes per attached device and page-reference counters are sparse. The driver, not MiniOS, chooses the default mapping budget at approximately 25% of usable RAM, capped at 4096 MiB. This favors large sparse capacities; a densely filled volume can consume more mapping RAM per GiB than DynFileFS.
+- **`squashfs`:** Stores a compressed snapshot and reconstructs the writable upper in RAM for each boot. It minimizes persistent storage for mostly stable sessions but pays CPU and RAM costs during restore and rewrites the snapshot when saving.
 
-Benchmark representative workloads on the actual device. Flash-controller, filesystem, USB bridge, and workload differences are more reliable than a universal ranking of persistence modes.
+LUKS2 can wrap Raw, DynFileFS, or DynBlk. Encryption adds unlock and crypto overhead while keeping the underlying backend's capacity and storage behavior.
+
+Benchmark representative workloads on the actual device. Flash-controller, filesystem, USB bridge, encryption, compression, and workload differences are more reliable than a universal ranking of persistence modes.
 
 ## ZRAM Configuration
 

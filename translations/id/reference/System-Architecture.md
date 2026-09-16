@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-26
+updated: 2026-09-16
 ---
 
 # Arsitektur sistem
@@ -44,19 +44,21 @@ Karena itu, **Manajer Modul MiniOS** memisahkan **Sedang berjalan sekarang** (se
 
 Setelah root dirakit dan proses setup awal selesai, initrd LiveKit menggunakan `pivot_root`, mempertahankan initrd lama untuk proses shutdown, dan mengeksekusi init pada root baru. Jalur dracut menyiapkan root yang sama, namun menyerahkan proses akhir `switch_root` ke dracut. Lihat [Pemrosesan modul initrd](/reference/boot-process/Module-Loading) untuk detail batas penyerahan proses.
 
-## Lapisan yang dapat ditulis dan sesi
+## Lapisan tulis dan sesi
 
-Tanpa persistensi, lapisan yang dapat ditulis didukung oleh memori dan akan hilang saat shutdown. Persistensi dapat mengaktifkan sesi bernomor dengan backend penyimpanan yang didukung. Pemilihan, kompatibilitas, kegagalan aktivasi, otoritas boot saat ini, dan daya tahan dijelaskan di [Persistensi Initrd](/reference/boot-process/Persistence-Internals).
+Tanpa persistensi, lapisan tulis hanya didukung oleh memori dan akan hilang saat dimatikan. Dengan mengaktifkan persistensi, sesi bernomor dapat digunakan dengan backend penyimpanan yang didukung. Pemilihan, kompatibilitas, kegagalan aktivasi, otoritas boot saat ini, dan daya tahan diatur dalam [Persistensi initrd](/reference/boot-process/Persistence-Internals).
 
-| Mode | Penyimpanan yang dapat ditulis | Catatan |
+| Mode | Penyimpanan tulis | Catatan |
 |------|------------------|-------|
-| `native` | File disimpan langsung di direktori sesi | Membutuhkan filesystem POSIX yang dapat ditulis dan mampu mempertahankan metadata Linux. |
-| `dynfilefs` | Filesystem ext4 yang dapat diperluas, dibagi ke beberapa file pendukung | Mendukung filesystem POSIX serta media FAT32, NTFS, atau exFAT. |
-| `raw` | `changes.img` berukuran tetap berisi ext4 | Mendukung filesystem POSIX serta media FAT32, NTFS, atau exFAT. |
-| `luks` | LUKS2 `changes.luks` berisi ext4 | Membutuhkan cryptsetup dan initramfs yang dibangun dengan dukungan enkripsi MiniOS. Kata sandi diminta saat boot. |
-| `squashfs` | Snapshot `changes.sb` terkompresi | Diekstrak ke RAM untuk digunakan; penyimpanan ulang akan membangun ulang dan mengganti snapshot secara atomik. Filesystem persistensi harus mempertahankan metadata Linux saat penyimpanan. |
+| `native` | Berkas disimpan langsung di direktori sesi | Membutuhkan filesystem POSIX yang dapat ditulis dan mampu mempertahankan metadata Linux. |
+| `dynfilefs` | Filesystem ext4 yang dapat diperluas, terbagi dalam beberapa berkas pendukung | Mendukung filesystem POSIX serta media FAT32, NTFS, atau exFAT. |
+| `dynblk` | Filesystem ext4 tipis pada perangkat blok kernel yang didukung oleh `volumeNNN.db` berkas | Membutuhkan kemampuan DynBlk di userspace, kernel, dan initrd. |
+| `raw` | Ukuran tetap `changes.img` berisi ext4 | Mendukung filesystem POSIX serta media FAT32, NTFS, atau exFAT. |
+| `squashfs` | Snapshot `changes.sb` terkompresi | Diekstrak ke RAM untuk digunakan; saat menyimpan, snapshot akan dibangun ulang dan diganti secara atomik. Filesystem persistensi harus mempertahankan metadata Linux selama proses penyimpanan. |
 
-Sesi aktif yang dipilih untuk resume di masa depan dan lapisan yang dapat ditulis yang benar-benar diotorisasi untuk boot saat ini adalah dua status yang terkait tetapi berbeda. Mengubah pilihan masa depan tidak akan menggantikan lapisan yang sedang berjalan.
+Raw, DynFileFS, dan DynBlk dapat secara opsional menggunakan lapisan LUKS2. Metadata mencatat backend penyimpanan dan enkripsi secara terpisah. Saat dimatikan, ext4, mapper, loop yang dimiliki, dan backend akan dilepas sesuai urutan dependensinya.
+
+Sesi aktif yang dipilih untuk resume di masa depan dan lapisan tulis yang benar-benar diotorisasi untuk boot saat ini adalah dua status yang terkait namun berbeda. Mengubah pilihan untuk masa depan tidak akan menggantikan lapisan tulis yang sedang berjalan.
 
 Lihat [Manajemen sesi](/using-minios/Sessions-and-Persistence) untuk perintah pembuatan, pemilihan, pengaturan ukuran, enkripsi, konversi, ekspor, dan pemulihan.
 

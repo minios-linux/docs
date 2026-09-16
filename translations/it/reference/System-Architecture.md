@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-26
+updated: 2026-09-16
 ---
 
 # Architettura di sistema
@@ -44,21 +44,23 @@ Il **Gestore moduli MiniOS** quindi separa **In esecuzione ora**, l’insieme di
 
 Dopo che il root è stato assemblato e il setup iniziale completato, l’initrd di LiveKit utilizza `pivot_root`, mantiene il vecchio initrd per le operazioni di spegnimento ed esegue l’init del nuovo root. Il percorso dracut prepara lo stesso root assemblato ma lascia l’ultimo `switch_root` a dracut. Consulta [Caricamento moduli Initrd](/reference/boot-process/Module-Loading) per i dettagli sul passaggio di consegne.
 
-## Livello scrivibile e sessioni
+## Layer scrivibile e sessioni
 
-Senza persistenza, il livello scrivibile è supportato dalla memoria e scompare allo spegnimento. La persistenza può invece attivare una sessione numerata con un backend di archiviazione supportato. Selezione, compatibilità, errori di attivazione, autorità dell'avvio corrente e durabilità sono definiti in [Persistenza Initrd](/reference/boot-process/Persistence-Internals).
+Senza persistenza, il layer scrivibile è supportato dalla memoria e scompare allo spegnimento. Attivando la persistenza, invece, si può avviare una sessione numerata con un backend di storage supportato. La selezione, la compatibilità, eventuali errori di attivazione, l'autorità per l'avvio corrente e la durabilità sono definiti in [Persistenza initrd](/reference/boot-process/Persistence-Internals).
 
-| Modalità | Archiviazione scrivibile | Note |
+| Modalità | Storage scrivibile | Note |
 |------|------------------|-------|
-| `native` | File memorizzati direttamente nella directory della sessione | Richiede un filesystem POSIX scrivibile che preservi i metadati Linux. |
-| `dynfilefs` | Filesystem ext4 espandibile suddiviso in file di supporto | Supporta filesystem POSIX e supporti FAT32, NTFS o exFAT. |
-| `raw` | `changes.img` a dimensione fissa contenente ext4 | Supporta filesystem POSIX e supporti FAT32, NTFS o exFAT. |
-| `luks` | LUKS2 `changes.luks` contenente ext4 | Richiede cryptsetup e un initramfs costruito con supporto alla cifratura MiniOS. La passphrase viene richiesta durante l'avvio. |
-| `squashfs` | Snapshot `changes.sb` compresso | Viene estratto in RAM per l'uso; il salvataggio ricostruisce e sostituisce atomicamente lo snapshot. Il filesystem di persistenza deve preservare i metadati Linux durante il salvataggio. |
+| `native` | File archiviati direttamente nella directory della sessione | Richiede un filesystem POSIX scrivibile che conservi i metadati Linux. |
+| `dynfilefs` | Filesystem ext4 espandibile suddiviso tra file di supporto | Supporta filesystem POSIX e supporti FAT32, NTFS o exFAT. |
+| `dynblk` | Filesystem ext4 leggero su un device a blocchi kernel supportato da `volumeNNN.db` file | Richiede il supporto DynBlk in userspace, kernel e initrd. |
+| `raw` | Immagine a dimensione fissa `changes.img` contenente ext4 | Supporta filesystem POSIX e supporti FAT32, NTFS o exFAT. |
+| `squashfs` | Snapshot `changes.sb` compresso | Viene estratto in RAM per l'uso; il salvataggio ricostruisce e sostituisce atomicamente lo snapshot. Il filesystem di persistenza deve mantenere i metadati Linux durante il salvataggio. |
 
-La sessione attiva selezionata per un futuro ripristino e il livello scrivibile effettivamente autorizzato per l'avvio corrente sono stati correlati ma distinti. Cambiare una selezione futura non sostituisce il livello scrivibile in esecuzione.
+Raw, DynFileFS e DynBlk possono opzionalmente includere un layer LUKS2. I metadati registrano separatamente backend di storage e cifratura. Allo spegnimento vengono rilasciati ext4, il mapper, eventuali loop posseduti e il backend secondo l'ordine delle dipendenze.
 
-Consulta [Gestione delle sessioni](/using-minios/Sessions-and-Persistence) per i comandi di creazione, selezione, dimensionamento, cifratura, conversione, esportazione e recupero.
+La sessione attiva selezionata per una ripresa futura e il layer scrivibile effettivamente autorizzato per l'avvio corrente sono stati correlati ma distinti. Modificare una selezione futura non sostituisce il layer scrivibile in esecuzione.
+
+Vedi [Gestione sessioni](/using-minios/Sessions-and-Persistence) per i comandi di creazione, selezione, dimensionamento, cifratura, conversione, esportazione e recupero.
 
 ## Precedenza della configurazione
 

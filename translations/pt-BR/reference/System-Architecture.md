@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-26
+updated: 2026-09-16
 ---
 
 # Arquitetura do sistema
@@ -46,19 +46,21 @@ Após o root ser montado e a configuração inicial concluída, o initrd LiveKit
 
 ## Camada gravável e sessões
 
-Sem persistência, a camada gravável é mantida em memória e desaparece ao desligar. A persistência pode ativar uma sessão numerada com um backend de armazenamento suportado. Seleção, compatibilidade, falha na ativação, autoridade do boot atual e durabilidade são definidos em [Persistência no Initrd](/reference/boot-process/Persistence-Internals).
+Sem persistência, a camada gravável é mantida na memória e desaparece ao desligar. Com persistência, é possível ativar uma sessão numerada usando um backend de armazenamento compatível. A seleção, compatibilidade, falha de ativação, autoridade do boot atual e durabilidade são definidos em [Persistência do initrd](/reference/boot-process/Persistence-Internals).
 
 | Modo | Armazenamento gravável | Observações |
-|------|-----------------------|-------------|
+|------|------------------|-------|
 | `native` | Arquivos armazenados diretamente no diretório da sessão | Requer um sistema de arquivos POSIX gravável que preserve os metadados do Linux. |
-| `dynfilefs` | Sistema de arquivos ext4 expansível dividido em arquivos de apoio | Suporta sistemas de arquivos POSIX e mídias FAT32, NTFS ou exFAT. |
-| `raw` | `changes.img` de tamanho fixo contendo ext4 | Suporta sistemas de arquivos POSIX e mídias FAT32, NTFS ou exFAT. |
-| `luks` | LUKS2 `changes.luks` contendo ext4 | Requer cryptsetup e um initramfs construído com suporte a criptografia MiniOS. A senha é solicitada durante o boot. |
-| `squashfs` | Snapshot `changes.sb` compactado | Descompactado em RAM para uso; ao salvar, reconstrói e substitui o snapshot de forma atômica. O sistema de arquivos de persistência deve preservar os metadados do Linux durante o salvamento. |
+| `dynfilefs` | Sistema de arquivos ext4 expansível dividido em arquivos de apoio | Compatível com sistemas de arquivos POSIX e mídias FAT32, NTFS ou exFAT. |
+| `dynblk` | Sistema de arquivos ext4 fino em um dispositivo de bloco do kernel com suporte por `volumeNNN.db` arquivos | Requer suporte DynBlk no userspace, kernel e initrd. |
+| `raw` | Arquivo de tamanho fixo `changes.img` contendo ext4 | Compatível com sistemas de arquivos POSIX e mídias FAT32, NTFS ou exFAT. |
+| `squashfs` | Snapshot `changes.sb` compactado | Descompactado em RAM para uso; ao salvar, o snapshot é reconstruído e substituído de forma atômica. O sistema de arquivos de persistência deve preservar os metadados do Linux durante o salvamento. |
 
-A sessão ativa selecionada para um futuro resume e a camada gravável realmente autorizada para o boot atual são estados relacionados, porém distintos. Alterar uma seleção futura não substitui a camada gravável em execução.
+Raw, DynFileFS e DynBlk podem opcionalmente utilizar uma camada LUKS2. Os metadados registram separadamente o backend de armazenamento e a criptografia. Ao desligar, libera-se o ext4, o mapper, qualquer loop proprietário e o backend na ordem de dependência.
 
-Veja [Gerenciamento de sessões](/using-minios/Sessions-and-Persistence) para comandos de criação, seleção, dimensionamento, criptografia, conversão, exportação e recuperação.
+A sessão ativa selecionada para um futuro resume e a camada gravável realmente autorizada para o boot atual são estados relacionados, mas distintos. Alterar a seleção futura não substitui a camada gravável em execução.
+
+Consulte [Gerenciamento de sessões](/using-minios/Sessions-and-Persistence) para comandos de criação, seleção, dimensionamento, criptografia, conversão, exportação e recuperação.
 
 ## Precedência de configuração
 

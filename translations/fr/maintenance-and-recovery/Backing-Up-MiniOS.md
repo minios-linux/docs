@@ -20,28 +20,28 @@ Les fichiers stockés en dehors de la couche session, par exemple dans un emplac
 
 ## Exporter des sessions persistantes
 
-Le Gestionnaire de sessions MiniOS peut exporter une session **inactive** `native`, `dynfilefs`, `dynblk`, `raw`, ou `luks` vers une archive vérifiée de session`.tar.zst`. Identifiez d’abord la session :
+Le Gestionnaire de sessions MiniOS peut exporter une session **inactive** `native`, `dynfilefs`, `dynblk`, `raw`, ou `luks` vers une archive vérifiée de la session.`.tar.zst` Identifiez d'abord la session :
 
 ```bash
 minios-session list
 minios-session running
 ```
 
-Démarrez ensuite une autre session ou **Démarrer sans sauvegarder** et exportez la session inactive :
+Démarrez ensuite une autre session ou **Démarrer sans enregistrer** puis exportez la session inactive :
 
 ```bash
 sudo minios-session export <id> /path/to/session.tar.zst
 ```
 
-L’exportation crée une copie logique du contenu de la session, et non une copie bit à bit de son conteneur de stockage. Enregistrez-la sur un autre appareil.
+L’exportation crée une copie logique du contenu de la session, et non une copie bit à bit de son conteneur de stockage. Stockez-la sur un autre appareil.
 
 Pour une session LUKS, l’archive contient les fichiers logiques déchiffrés. Protégez l’archive séparément si les données doivent rester chiffrées.
 
 ### sessions SquashFS
 
-Le Gestionnaire de sessions actuel n’exporte ni ne copie les sessions SquashFS. Utilisez **Enregistrer maintenant** avant l’arrêt afin que l’instantané courant soit complet, puis protégez séparément les fichiers importants. Si vous avez besoin d’une copie complète et restaurable de l’intégralité du périphérique MiniOS, créez plutôt une image du périphérique hors ligne.
+Le gestionnaire de session actuel n’exporte ni ne copie les sessions SquashFS. Utilisez **Enregistrer maintenant** avant l’arrêt afin que la capture actuelle soit complète, puis protégez séparément les fichiers importants. Si vous avez besoin d’une copie complète et restaurable de l’ensemble du périphérique MiniOS, créez plutôt une image hors ligne du périphérique.
 
-Ne comptez pas sur la copie manuelle d’un répertoire de session monté ni sur la reconstruction de `session.conf`, des segments DynFileFS, des fichiers dynblk ou d’autres métadonnées de conteneur comme méthode de sauvegarde. Une sauvegarde manuelle bit à bit d’un dynblk n’est sûre que si le volume est détaché et doit préserver l’intégralité de son espace `volume000.db` jusqu’à la fin de `volume063.db` l’espace de nom tel qu’il existe ; la sauvegarde logique de `minios-session export` est recommandée.
+Ne comptez pas sur la copie manuelle d’un répertoire de session monté ni sur la reconstruction de `session.conf`, des segments DynFileFS, des fichiers de support DynBlk ou d’autres métadonnées de conteneur comme méthode de sauvegarde. Une sauvegarde manuelle bit à bit de DynBlk n’est sûre que lorsque le volume est détaché et doit préserver l’intégralité de son `volume000.db` jusqu’à `volume063.db` l’espace de noms exactement tel qu’il existe ; la sauvegarde logique de `minios-session export` est recommandée.
 
 ## Sauvegarder la configuration et les modules
 

@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-13
+updated: 2026-09-16
 ---
 
 # Sicurezza
@@ -58,11 +58,15 @@ I parametri di avvio possono sovrascrivere i valori dei file di configurazione. 
 
 ## Crittografa i dati persistenti
 
-La persistenza non crittografata di tipo native, DynFileFS, dynblk, raw e SquashFS può essere letta da chiunque ottenga il dispositivo. Dynblk è un backend kernel block leggero, non uno strato di crittografia; `volumeNNN.db`i file di backing contengono normali dati di sessione non crittografati a meno che lo storage sottostante non sia protetto separatamente. Installatore MiniOS può configurare un contenitore LUKS crittografato per una sessione live quando l'initrd di origine supporta LUKS. L'initrd crea `changes.luks`al primo avvio e richiede la passphrase; l'installatore non riceve né memorizza quella passphrase.
+La persistenza non crittografata nativa, DynFileFS, DynBlk, raw e SquashFS può essere letta da chiunque ottenga il dispositivo. MiniOS può applicare LUKS2 sopra Raw, DynFileFS o DynBlk. Per la creazione al boot, selezionalo con `perchencrypt=luks`; le sessioni esistenti ottengono lo stato di crittografia dai metadati della sessione invece che da una successiva modifica tramite riga di comando.
 
-La persistenza LUKS protegge i contenuti quando il contenitore è chiuso. Non protegge i dati dopo lo sblocco, i file di avvio non crittografati, i file copiati fuori dal contenitore o un filesystem root nativo. La persistenza di sessione LUKS non è una crittografia root nativa. Usa una passphrase robusta e conserva un backup testato.
+Il perimetro della crittografia varia in base al backend. Raw crittografa l'immagine del blocco logico all'interno `changes.img`; DynFileFS crittografa il `virtual.dat`; DynBlk crittografa direttamente il `/dev/dynblkN` dispositivo a blocchi. I metadati della sessione, i file di avvio, i metadati del backend DynFileFS/DynBlk al di fuori dell'immagine a blocchi crittografata e i file non correlati sul supporto rimangono visibili. La compressione del backend DynBlk viene disabilitata quando si seleziona LUKS2.
 
-Vedi [Installatore MiniOS](/installing-minios/MiniOS-Installer) e [Gestione sessione](/using-minios/Sessions-and-Persistence).
+L'initrd crea il filesystem crittografato al primo utilizzo e richiede la passphrase; l'installer non riceve né memorizza tale passphrase. All'avvio, tre tentativi di sblocco falliti interrompono il processo di boot invece di tornare al testo in chiaro, a un altro backend o a una sostituzione in memoria con la stessa richiesta di persistenza.
+
+La persistenza LUKS protegge il contenuto del filesystem quando il mapper è chiuso. Non protegge i dati dopo lo sblocco, i file di avvio non crittografati, i file copiati al di fuori del backend crittografato o un filesystem root nativo. La persistenza di sessione LUKS non è una cifratura nativa del root. Le esportazioni logiche contengono file di sessione decrittati, quindi proteggi gli archivi di backup separatamente. Usa una passphrase robusta e conserva un backup testato.
+
+Vedi [Installatore MiniOS](/installing-minios/MiniOS-Installer) e [Gestione sessioni](/using-minios/Sessions-and-Persistence).
 
 ## Applica gli aggiornamenti in modo consapevole
 

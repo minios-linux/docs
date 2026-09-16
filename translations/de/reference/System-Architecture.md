@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-26
+updated: 2026-09-16
 ---
 
 # Systemarchitektur
@@ -44,19 +44,21 @@ Der **MiniOS-Modulmanager** trennt daher **Jetzt aktiv**, also die aktuell einge
 
 Nachdem das Root-Dateisystem zusammengesetzt und die frühe Initialisierung abgeschlossen ist, verwendet das LiveKit-initrd `pivot_root`, behält das alte initrd für die Abschaltaufgaben bei und startet das Init des neuen Root. Der Dracut-Pfad bereitet dasselbe zusammengesetzte Root vor, überlässt aber den abschließenden `switch_root` Dracut. Siehe [Initrd-Modulladen](/reference/boot-process/Module-Loading) für die genaue Übergabegrenze.
 
-## Beschreibbare Schicht und Sitzungen
+## Beschreibbare Ebene und Sitzungen
 
-Ohne Persistenz ist die beschreibbare Schicht speicherbasiert und verschwindet beim Herunterfahren. Mit Persistenz kann stattdessen eine nummerierte Sitzung mit einem unterstützten Speicher-Backend aktiviert werden. Auswahl, Kompatibilität, Aktivierungsfehler, Autorität des aktuellen Boots und Dauerhaftigkeit sind unter [Initrd-Persistenz](/reference/boot-process/Persistence-Internals) definiert.
+Ohne Persistenz ist die beschreibbare Ebene speicherbasiert und geht beim Herunterfahren verloren. Mit Persistenz kann stattdessen eine nummerierte Sitzung mit einem unterstützten Speicher-Backend aktiviert werden. Auswahl, Kompatibilität, Aktivierungsfehler, Autorisierung beim aktuellen Start und Dauerhaftigkeit werden in [Initrd-Persistenz](/reference/boot-process/Persistence-Internals).
 
 | Modus | Beschreibbarer Speicher | Hinweise |
-|------|------------------------|----------|
+|------|------------------|-------|
 | `native` | Dateien werden direkt im Sitzungsverzeichnis gespeichert | Erfordert ein beschreibbares POSIX-Dateisystem, das Linux-Metadaten erhält. |
-| `dynfilefs` | Erweiterbares ext4-Dateisystem, verteilt auf mehrere Backing-Dateien | Unterstützt POSIX-Dateisysteme sowie FAT32, NTFS oder exFAT-Medien. |
-| `raw` | Feste Größe `changes.img` mit ext4 | Unterstützt POSIX-Dateisysteme sowie FAT32, NTFS oder exFAT-Medien. |
-| `luks` | LUKS2-`changes.luks` mit ext4 | Erfordert cryptsetup und ein initramfs mit MiniOS-Verschlüsselungsunterstützung. Die Passphrase wird beim Booten abgefragt. |
-| `squashfs` | Komprimierter `changes.sb`-Snapshot | Wird für die Nutzung in RAM entpackt; Speichern erstellt einen neuen Snapshot und ersetzt ihn atomar. Das Persistenz-Dateisystem muss beim Speichern Linux-Metadaten erhalten. |
+| `dynfilefs` | Erweiterbares ext4-Dateisystem, verteilt auf Backing-Dateien | Unterstützt POSIX-Dateisysteme sowie FAT32-, NTFS- oder exFAT-Medien. |
+| `dynblk` | Schlankes ext4-Dateisystem auf einem Kernel-Blockgerät, das von `volumeNNN.db`-Dateien unterstützt wird | Erfordert DynBlk-Nutzerbereich, Kernel und Initrd-Funktionalität. |
+| `raw` | Feste Größe `changes.img` mit ext4-Inhalt | Unterstützt POSIX-Dateisysteme sowie FAT32-, NTFS- oder exFAT-Medien. |
+| `squashfs` | Komprimiertes `changes.sb`-Schnappschuss | Wird für die Nutzung in RAM entpackt; beim Speichern wird der Schnappschuss neu erstellt und atomar ersetzt. Das Persistenz-Dateisystem muss beim Speichern Linux-Metadaten erhalten. |
 
-Die aktive Sitzung, die für einen zukünftigen Resume ausgewählt wurde, und die tatsächlich für den aktuellen Boot autorisierte beschreibbare Schicht sind verwandte, aber unterschiedliche Zustände. Eine Änderung der zukünftigen Auswahl ersetzt nicht die laufende beschreibbare Schicht.
+Raw, DynFileFS und DynBlk können optional eine LUKS2-Schicht enthalten. Die Metadaten erfassen das Speicher-Backend und die Verschlüsselung getrennt. Beim Herunterfahren werden ext4, der Mapper, eventuell zugehörige Loop-Devices und das Backend in Abhängigkeitsreihenfolge freigegeben.
+
+Die für einen späteren Resume ausgewählte aktive Sitzung und die tatsächlich für den aktuellen Start autorisierte beschreibbare Ebene sind verwandte, aber unterschiedliche Zustände. Eine Änderung der zukünftigen Auswahl ersetzt nicht die laufende beschreibbare Ebene.
 
 Siehe [Sitzungsverwaltung](/using-minios/Sessions-and-Persistence) für Befehle zu Erstellung, Auswahl, Größenanpassung, Verschlüsselung, Konvertierung, Export und Wiederherstellung.
 

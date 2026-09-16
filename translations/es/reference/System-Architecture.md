@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-26
+updated: 2026-09-16
 ---
 
 # Arquitectura del sistema
@@ -44,21 +44,23 @@ Por lo tanto, el **Gestor de módulos de MiniOS** separa **Ejecutando ahora**, e
 
 Después de ensamblar la raíz y completar la configuración inicial, el initrd de LiveKit utiliza `pivot_root`, conserva el initrd antiguo para tareas de apagado y ejecuta el init de la nueva raíz. La ruta de dracut prepara la misma raíz ensamblada pero deja la ejecución final de `switch_root` a dracut. Consulta [Carga de módulos en Initrd](/reference/boot-process/Module-Loading) para ver los detalles del traspaso.
 
-## Capa escribible y sesiones
+## Capa editable y sesiones
 
-Sin persistencia, la capa escribible se respalda en memoria y desaparece al apagar el sistema. La persistencia puede activar en su lugar una sesión numerada con un backend de almacenamiento compatible. La selección, compatibilidad, fallos de activación, autoridad en el arranque actual y durabilidad se definen en [Persistencia Initrd](/reference/boot-process/Persistence-Internals).
+Sin persistencia, la capa editable se almacena en memoria y desaparece al apagar el sistema. La persistencia puede activar en su lugar una sesión numerada con un backend de almacenamiento compatible. La selección, compatibilidad, fallos de activación, autoridad del arranque actual y durabilidad se definen en [Persistencia de initrd](/reference/boot-process/Persistence-Internals).
 
-| Modo | Almacenamiento escribible | Notas |
-|------|--------------------------|-------|
-| `native` | Archivos almacenados directamente en el directorio de sesión | Requiere un sistema de archivos POSIX escribible que preserve los metadatos de Linux. |
-| `dynfilefs` | Sistema de archivos ext4 expandible dividido en archivos de respaldo | Soporta sistemas de archivos POSIX y medios FAT32, NTFS o exFAT. |
-| `raw` | `changes.img` de tamaño fijo que contiene ext4 | Soporta sistemas de archivos POSIX y medios FAT32, NTFS o exFAT. |
-| `luks` | LUKS2 `changes.luks` que contiene ext4 | Requiere cryptsetup y un initramfs construido con soporte de cifrado MiniOS. Se solicita la contraseña durante el arranque. |
-| `squashfs` | Instantánea comprimida `changes.sb` | Se descomprime en RAM para su uso; al guardar se reconstruye y reemplaza atómicamente la instantánea. El sistema de archivos de persistencia debe preservar los metadatos de Linux durante el guardado. |
+| Modo | Almacenamiento editable | Notas |
+|------|------------------|-------|
+| `native` | Archivos almacenados directamente en el directorio de la sesión | Requiere un sistema de archivos POSIX editable que conserve los metadatos de Linux. |
+| `dynfilefs` | Sistema de archivos ext4 expandible dividido en archivos de respaldo | Compatible con sistemas de archivos POSIX y medios FAT32, NTFS o exFAT. |
+| `dynblk` | Sistema de archivos ext4 ligero en un dispositivo de bloque del kernel respaldado por `volumeNNN.db` archivos | Requiere la capacidad de DynBlk en userspace, kernel e initrd. |
+| `raw` | Archivo de tamaño fijo `changes.img` que contiene ext4 | Compatible con sistemas de archivos POSIX y medios FAT32, NTFS o exFAT. |
+| `squashfs` | Instantánea `changes.sb` comprimida | Se desempaqueta en RAM para su uso; al guardar, se reconstruye y reemplaza atómicamente la instantánea. El sistema de archivos de persistencia debe conservar los metadatos de Linux durante el guardado. |
 
-La sesión activa seleccionada para una reanudación futura y la capa escribible realmente autorizada para el arranque actual son estados relacionados pero distintos. Cambiar una selección futura no reemplaza la capa escribible en ejecución.
+Raw, DynFileFS y DynBlk pueden llevar opcionalmente una capa LUKS2. Los metadatos registran por separado el backend de almacenamiento y el cifrado. Al apagar, se liberan ext4, el mapeador, cualquier loop propio y el backend según el orden de dependencias.
 
-Consulta [Gestión de sesiones](/using-minios/Sessions-and-Persistence) para los comandos de creación, selección, dimensionamiento, cifrado, conversión, exportación y recuperación.
+La sesión activa seleccionada para una reanudación futura y la capa editable realmente autorizada para el arranque actual son estados relacionados pero distintos. Cambiar una selección futura no reemplaza la capa editable en ejecución.
+
+Consulte [Gestión de sesiones](/using-minios/Sessions-and-Persistence) para los comandos de creación, selección, dimensionamiento, cifrado, conversión, exportación y recuperación.
 
 ## Precedencia de la configuración
 
