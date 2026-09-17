@@ -40,7 +40,7 @@ For a LUKS session, the archive contains the decrypted logical files. Protect th
 
 Current Session Manager does not export or copy SquashFS sessions. Use **Save Now** before shutdown so the current snapshot is complete, then protect the important files separately. If you need a complete restorable copy of the whole MiniOS device, create an offline device image instead.
 
-Do not rely on manually copying a mounted session directory or on reconstructing `session.conf`, DynFileFS segments, DynBlk backing files, or other container metadata as a backup method. A manual byte-for-byte DynBlk backup is safe only while the volume is detached and must preserve its complete `volume000.db` through `volume063.db` namespace exactly as it exists; logical `minios-session export` is preferred.
+Do not rely on manually copying a mounted session directory or on reconstructing `session.conf`, DynFileFS segments, DynBlk backing files, or other container metadata as a backup method. A manual byte-for-byte DynBlk backup is safe only while the volume is detached and must preserve all existing `volume*.db` parts, including numbers with four or more digits, exactly as they exist; logical `minios-session export` is preferred.
 
 ## Back up configuration and modules
 

@@ -96,7 +96,7 @@ nmcli connection show
 
 ## Persistenzprobleme
 
-Starten Sie **Ohne Speichern starten** bevor Sie einen verdächtigen Persistenzspeicher ändern. Reparieren oder löschen Sie niemals die einzige Kopie einer aktiven Sitzung.
+Starten Sie **Ohne Speichern starten** bevor Sie einen verdächtigen Persistenzspeicher ändern. Reparieren oder löschen Sie keine einzige Kopie einer aktiven Sitzung.
 
 Prüfen Sie, was MiniOS aktuell erkennt:
 
@@ -110,13 +110,13 @@ sudo minios-session info
 
 Überprüfen Sie den gewählten Boot-Modus, verfügbaren freien Speicherplatz, Dateisystemkompatibilität und Sitzungs-Kompatibilität. Die detaillierten Auswahlregeln finden Sie unter [Sitzungen und Persistenz](/using-minios/Sessions-and-Persistence) und [Persistenz-Interna](/reference/boot-process/Persistence-Internals).
 
-Falls eine wichtige, nicht laufende `native`, `dynfilefs`, `dynblk`, `raw`, oder `luks`-Sitzung noch lesbar ist, exportieren Sie sie **bevor** Sie mit dem Speicher experimentieren:
+Wenn eine wichtige, nicht laufende `native`, `dynfilefs`, `dynblk`, `raw`, oder `luks`-Sitzung noch lesbar ist, exportieren Sie sie **bevor** Sie mit dem Speicher experimentieren:
 
 ```bash
 sudo minios-session export <id> /path/to/session.tar.zst
 ```
 
-Wenn der Sitzungsmanager die Sitzung weder lesen noch exportieren kann, schreiben Sie nichts mehr auf das Quellmedium und sichern Sie eine Offline-Kopie des betroffenen Speichers, bevor Sie fortfahren. Für eine getrennte DynBlk-Sitzung bieten `dynblk inspect /path/to/volume000.db` und `dynblk check /path/to/volume000.db` Diagnosemöglichkeiten im Nur-Lese-Modus; führen Sie diese nicht auf einem noch verbundenen Volume aus. MiniOS definiert kein allgemeingültiges manuelles Verfahren zum Wiederaufbau von DynFileFS-Segmenten, zur Rekonstruktion von DynBlk-Backings, zur Reparatur eines internen Dateisystems oder zur Wiederherstellung von Sitzungsmetadaten. Solche Wiederherstellungen sind dateisystem- bzw. container-spezifisch und sollten nur an einer Kopie erfolgen, wenn der Datenwert dies rechtfertigt.
+Kann der Session Manager die Sitzung weder lesen noch exportieren, beenden Sie alle Schreibvorgänge auf die Quelle und sichern Sie eine Offline-Kopie des betroffenen Speichers, bevor Sie fortfahren. Bei einer getrennten DynBlk-Sitzung `dynblk inspect /path/to/volume000.db --metadata-only` und `dynblk check /path/to/volume000.db` liefern Diagnosefunktionen im Nur-Lese-Modus; führen Sie diese nicht auf einem noch eingebundenen Volume aus. MiniOS definiert kein allgemeines manuelles Verfahren zum Wiederherstellen von DynFileFS-Segmenten, zum Rekonstruieren von DynBlk-Backings, zur Reparatur eines internen Dateisystems oder zum Wiederaufbau von Sitzungsmetadaten. Solche Wiederherstellungen sind dateisystem- bzw. container-spezifisch und sollten nur an einer Kopie durchgeführt werden, wenn der Wert der Daten dies rechtfertigt.
 
 Siehe [Backup von MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS) für unterstützte Backup- und Sitzungsimport-Workflows.
 
@@ -157,3 +157,22 @@ lsusb
 Bei wiederholten Startfehlern auf beschreibbaren MiniOS-Medien, `EXPORT_LOGS=true` in `config.conf` werden Startprotokolle exportiert unter `minios/log/`. Siehe [config.conf](/reference/configuration/config.conf).
 
 Entfernen Sie Zugangsdaten, private Schlüssel, WLAN-Passwörter und andere vertrauliche Informationen, bevor Sie Protokolle weitergeben. Bei einem reproduzierbaren Fehler fügen Sie die relevanten Ausschnitte bei und eröffnen ein Ticket im [MiniOS-Issue-Tracker](https://github.com/minios-linux/minios-live/issues).
+
+### VMDK-Sitzungen werden nicht angeboten
+
+Aktualisieren Sie den DynBlk-Treiber/CLI und die Sitzungswerkzeuge gemeinsam und erstellen Sie dann das
+Boot-initrd neu. Das laufende initrd muss `vmdk-session-v1` anzeigen; der Installer 
+prüft außerdem jedes Quell-initrd, das kopiert werden soll. Der alte leere DynBlk-Marker 
+zeigt nur native Blockunterstützung an und garantiert keinen VMDK-Sitzungsstart.
+Ändern Sie den Modus einer bestehenden Sitzung nicht manuell: Verwenden Sie eine explizite Kopie oder
+Konvertierung in das andere Format.
+
+### Speicherplatz in DynBlk- oder VMDK-Sitzungen freigeben
+
+Verwenden Sie das Kontextmenü des Session Managers **Speicherplatz freigeben...**, oder
+`minios-session reclaim ID --json`. Bei Klartext-Sitzungen wird damit das
+interne ext4-Dateisystem getrimmt und anschließend Speicherplatz zurückgewonnen, ohne aktive Daten zu verschieben. Bei exFAT
+können innere Lücken weiterhin belegt bleiben; `--compact`ist eine separate manuelle Option,
+die aktive Daten verschiebt und mehr auf das Flash-Gerät schreibt. Weder
+Kompaktierung noch LUKS-Discard werden automatisch aktiviert. Eine verschlüsselte Sitzung kann nur
+den Speicherplatz zurückgewinnen, der dem zugrunde liegenden Treiber durch diesen Befehl bereits bekannt ist.

@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-16
+updated: 2026-09-17
 program_commits:
     minios-session-manager: 69436959d893a9870aca23e91b346d06b49eb98d
     minios-tools: 7cdd0e10c0f610ebc581efa82105b747437a6125
@@ -19,20 +19,21 @@ Alat baris perintah yang setara adalah `minios-session`. Perintah yang memodifik
 
 ## Mode sesi
 
-| Mode | Penyimpanan | Kendala utama | MiniOS lapisan LUKS2 |
+| Mode | Penyimpanan | Kendala utama | Lapisan MiniOS LUKS2 |
 |------|---------|------------------|--------------------|
-| `native` | Perubahan disimpan langsung di direktori sesi | Membutuhkan filesystem yang dapat ditulis dan mempertahankan metadata serta operasi Linux yang dapat dideteksi oleh MiniOS. Kapasitas mengikuti ruang cadangan yang tersedia; `perchsize` tidak berlaku. | Tidak |
-| `dynfilefs` | ext4 yang dapat diperluas `virtual.dat` didukung oleh file segmen format-400 | Berfungsi pada filesystem POSIX, FAT32, NTFS, dan exFAT yang dapat ditulis. Payload ringan, tetapi indeks pemetaan akan meningkat seiring kapasitas logis yang dideklarasikan. | Ya |
-| `dynblk` | Filesystem ext4 tipis pada perangkat blok kernel yang didukung oleh `volumeNNN.db` file | Membutuhkan CLI DynBlk, modul kernel, dan kemampuan initrd. Ukuran yang dibuat saat boot hingga 16 GiB secara default; batas format adalah 512 GiB. Pemetaan sparse RAM dianggarkan secara terpisah. | Ya |
-| `raw` | Satu `changes.img` file berisi ext4 | Kapasitas logis tetap, hanya dapat bertambah secara eksplisit. Berfungsi pada filesystem POSIX, FAT32, NTFS, dan exFAT yang dapat ditulis; FAT32 dibatasi hingga 4000 MiB. | Ya |
-| `squashfs` | Snapshot terkompresi dalam `changes.sb`; upper runtime yang dapat ditulis direkonstruksi di RAM | `perchsize` tidak berlaku. Snapshot yang sudah ada dapat dipulihkan dari media yang didukung dan dapat ditulis, sedangkan penyimpanan persis membutuhkan filesystem staging yang mendukung POSIX. | Tidak |
+| `native` | Perubahan disimpan langsung di direktori sesi | Membutuhkan filesystem yang dapat ditulis dan mempertahankan metadata serta operasi Linux yang dipantau oleh MiniOS. Kapasitas mengikuti ruang cadangan yang tersedia; `perchsize` tidak berlaku. | Tidak |
+| `dynfilefs` | ext4 yang dapat diperluas `virtual.dat` didukung oleh file segmen format-400 | Berjalan di filesystem POSIX, FAT32, NTFS, dan exFAT yang dapat ditulis. Payload ringan, namun indeks pemetaan bertambah sesuai kapasitas logis yang ditentukan. | Ya |
+| `dynblk` | Filesystem ext4 tipis pada perangkat blok kernel yang didukung oleh `volumeNNN.db` file | Membutuhkan CLI DynBlk, modul kernel, dan kemampuan initrd. Ukuran yang dibuat saat boot hingga 16 GiB secara default; maksimum dilaporkan oleh `dynblk limits`. Pemetaan yang berada di disk menggunakan cache metadata terbatas. | Ya |
+| `vmdk` | Filesystem ext4 tipis pada VMDK sparse split standar, diekspos oleh driver DynBlk | Menggunakan `volume.vmdk` dan `volume-sNNN.vmdk`. Tidak ada kompresi. Membutuhkan `vmdk-session-v1` di penanda kemampuan initrd yang berjalan. Default manual 16 GiB sama seperti DynBlk; cek `dynblk limits --format vmdk` untuk batasan. | Ya |
+| `raw` | Satu `changes.img` file berisi ext4 | Kapasitas logis tetap hanya dapat bertambah secara eksplisit. Berjalan di filesystem POSIX, FAT32, NTFS, dan exFAT yang dapat ditulis; FAT32 dibatasi hingga 4000 MiB. | Ya |
+| `squashfs` | Snapshot terkompresi di `changes.sb`; upper writable runtime direkonstruksi di RAM | `perchsize` tidak berlaku. Snapshot yang ada dapat dipulihkan dari media tulis yang didukung, sedangkan penyimpanan persis memerlukan filesystem staging yang mendukung POSIX. | Tidak |
 
-Raw, DynFileFS, dan DynBlk dapat membawa lapisan enkripsi LUKS2 secara opsional. Backend penyimpanan tetap mengikuti mode sesi, dan metadata sesi mencatat enkripsi secara terpisah. DynFileFS dan raw yang dibuat dengan `minios-session` default ke 4000 MiB; DynBlk default ke 16 GiB. Nilai ukuran dialokasikan dalam MiB; `GB` dan `TB` akhiran mengonversi ke 1000 dan 1.000.000 MiB. Raw dibatasi hingga 4000 MiB pada FAT32 baik terenkripsi maupun tidak. Data payload DynFileFS bertambah sesuai kebutuhan, tetapi indeks format-400-nya disesuaikan untuk kapasitas logis penuh dan memerlukan sekitar 2 MiB dari RAM ditambah sekitar 2 MiB ruang penyimpanan cadangan per GiB. Kapasitas DynBlk tipis dan pemetaan runtime-nya sparse: pemetaan padat memerlukan sekitar 8 MiB/GiB, sedangkan kapasitas virtual yang tidak terpakai tidak menggunakan chunk pemetaan. Driver DynBlk memilih anggaran pemetaan otomatis sekitar 25% dari RAM yang dapat digunakan, dibatasi hingga 4096 MiB; MiniOS tidak menimpa kebijakan tersebut. Penulisan aktual tetap dibatasi oleh ruang kosong filesystem bawah dan sumber daya backend. Operasi resize container hanya dapat memperbesar sesi; pengecilan tidak didukung.
+Raw, DynFileFS, DynBlk, dan VMDK dapat menggunakan lapisan enkripsi LUKS2 secara opsional. Backend penyimpanan tetap mengikuti mode sesi, dan metadata sesi mencatat enkripsi secara terpisah. DynFileFS dan raw yang dibuat dengan `minios-session` default 4000 MiB; DynBlk dan VMDK default 16 GiB. Nilai ukuran dialokasikan dalam MiB; `GB` dan `TB` akhiran mengonversi ke 1000 dan 1.000.000 MiB. Raw dibatasi 4000 MiB di FAT32 baik terenkripsi maupun tidak. Data payload DynFileFS bertambah sesuai kebutuhan, namun indeks format-400-nya berukuran sesuai kapasitas logis penuh dan memerlukan sekitar 2 MiB RAM plus sekitar 2 MiB storage cadangan per GiB. DynBlk menyimpan tabel pemetaan di disk dan cache metadata terbatas di RAM, default 1 MiB bukan persentase dari RAM. Vektor extent/file dan direktori bertambah sesuai bagian yang dideklarasikan, sedangkan pengisian payload tidak membutuhkan peta resident penuh. Cek batas kapasitas terpasang dengan `dynblk limits --format dynblk`. Penulisan aktual tetap dibatasi oleh ruang kosong filesystem bawah dan sumber daya backend. Operasi resize container hanya dapat menambah sesi; pengurangan tidak didukung.
 
 Mode native adalah pilihan paling sederhana dan tercepat pada filesystem yang kompatibel.
 Gunakan DynFileFS jika filesystem persistensi tidak dapat merepresentasikan metadata Linux.
-Gunakan DynBlk jika Anda membutuhkan perangkat blok kernel nyata dengan file backing tipis; driver dapat mempertahankan beberapa volume DynBlk independen secara bersamaan, dan Session Manager menggunakan path perangkat yang dikembalikan oleh driver, bukan mengasumsikan `/dev/dynblk0` tersedia.
-Gunakan raw jika diperlukan alokasi tetap, tambahkan LUKS2 jika sesi harus dienkripsi, dan gunakan SquashFS untuk snapshot terkompresi yang persis.
+Gunakan DynBlk jika Anda membutuhkan perangkat blok kernel nyata dengan file backing tipis; driver dapat menjaga beberapa volume DynBlk independen terpasang sekaligus, dan Session Manager menggunakan path perangkat yang dikembalikan driver, bukan mengasumsikan `/dev/dynblk0` tersedia.
+Gunakan raw jika diperlukan alokasi tetap, tambahkan LUKS2 jika sesi harus dienkripsi, dan gunakan SquashFS untuk snapshot terkompresi persis.
 
 Jalankan perintah berikut untuk memeriksa filesystem persistensi aktual dan mode yang tersedia di dalamnya:
 
@@ -41,32 +42,32 @@ sudo minios-session info
 sudo minios-session status
 ```
 
-Tidak ada sesi yang dapat dibuat di media hanya-baca. Initrd dapat membaca dan mengaktifkan snapshot SquashFS yang sudah ada dan disimpan di FAT, exFAT, atau NTFS yang dapat ditulis karena snapshot diekstrak ke ext4 upper sementara. Membuat atau menyimpan snapshot secara persis berbeda: workspace staging privatnya harus berada di filesystem POSIX yang sesuai dan dapat mempertahankan metadata Linux serta union whiteouts.
+Tidak ada sesi yang dapat dibuat di media hanya-baca. Initrd dapat membaca dan mengaktifkan snapshot SquashFS yang ada di FAT, exFAT, atau NTFS yang dapat ditulis karena snapshot diekstrak ke ext4 upper sementara. Membuat atau menyimpan snapshot secara persis berbeda: workspace staging privatnya harus berada di filesystem POSIX yang sesuai dan mempertahankan metadata Linux serta union whiteouts.
 
 ## Pemilihan boot
 
-Setiap parameter persistensi yang dikenali akan mengaktifkan penanganan persistensi. Menu boot MiniOS biasanya menyediakan opsi lanjutkan, baru, pilih, dan non-persisten. Penjelasan resmi mengenai pemilih, kompatibilitas, fallback, dan semantik aktivasi dapat ditemukan di [Persistensi initrd](/reference/boot-process/Persistence-Internals).
+Setiap parameter persistensi yang dikenali akan mengaktifkan penanganan persistensi. Menu boot MiniOS biasanya menyediakan entri resume, baru, pemilihan, dan non-persisten. Deskripsi kanonik tentang selector, kompatibilitas, fallback, dan semantik aktivasi ada di [Persistensi initrd](/reference/boot-process/Persistence-Internals).
 
 | Parameter | Makna |
 |-----------|---------|
-| `perch` | Gunakan jalur resume best-effort lama. Ini mencoba metadata default tetapi tidak membuat pengganti jika tidak ada yang dapat digunakan. |
-| `perchdir=resume` | Lanjutkan metadata default dan, jika tidak ada atau tidak kompatibel, izinkan initrd membuat pengganti baru yang kompatibel. Ini adalah perilaku resume menu boot saat ini. |
+| `perch` | Gunakan jalur resume legacy best-effort. Ini mencoba default metadata namun tidak membuat pengganti jika tidak ada yang dapat digunakan. |
+| `perchdir=resume` | Lanjutkan default metadata dan, jika tidak ada atau tidak kompatibel, izinkan initrd membuat pengganti baru yang kompatibel. Ini adalah perilaku resume menu boot saat ini. |
 | `perchdir=new` | Alokasikan sesi bernomor baru. |
-| `perchdir=ask` | Pilih sesi yang sudah ada atau buat sesi baru saat boot. |
-| `perchdir=<id>` | Pilih langsung sesi bernomor tersebut. |
-| `perchdir=<device/path>` | Gunakan lokasi persistensi pada perangkat, termasuk `/dev/...` dan `label:...` format yang ditangani oleh initrd. |
-| `perchmode=<mode>` | Setel `native`, `dynfilefs`, `dynblk`, `raw`, atau `squashfs`. |
-| `perchencrypt=luks` | Enkripsi sesi Raw, DynFileFS, atau DynBlk yang baru dibuat dengan LUKS2. Sesi yang sudah ada hanya mendapatkan enkripsi dari metadata. |
-| `perchcomp=<codec>` | Pilih kompresi backend DynBlk untuk sesi DynBlk baru. Kompresi akan dipaksa ke `none` saat DynBlk dibungkus dengan LUKS2. |
-| `perchsize=<size>` | Atur ukuran kontainer baru atau lebih besar; nilai tanpa satuan dialokasikan dalam MiB dan `MB`, `GB`, dan `TB` akhiran juga diterima. |
+| `perchdir=ask` | Pilih sesi yang sudah ada atau buat saat boot. |
+| `perchdir=<id>` | Pilih sesi bernomor tersebut secara langsung. |
+| `perchdir=<device/path>` | Gunakan lokasi persistensi di perangkat, termasuk `/dev/...` dan `label:...` bentuk yang ditangani oleh initrd. |
+| `perchmode=<mode>` | Setel `native`, `dynfilefs`, `dynblk`, `vmdk`, `raw`, atau `squashfs`. |
+| `perchencrypt=luks` | Enkripsi sesi Raw, DynFileFS, DynBlk, atau VMDK yang baru dibuat dengan LUKS2. Sesi yang sudah ada hanya mengambil enkripsi dari metadata. |
+| `perchcomp=<codec>` | Pilih kompresi backend DynBlk untuk sesi DynBlk baru. Kompresi dipaksa ke `none` saat DynBlk dibungkus dalam LUKS2. |
+| `perchsize=<size>` | Setel ukuran container baru atau lebih besar; nilai tanpa akhiran dialokasikan dalam MiB dan `MB`, `GB`, dan `TB` akhiran diterima. |
 
-Jika tidak ada mode yang ditentukan untuk sesi baru, boot akan menggunakan mode native. Pada FAT32/NTFS/exFAT, pembuatan boot native akan fallback ke DynFileFS. Kontainer raw baru secara default berukuran 4000 MiB. Sesi boot DynFileFS dan DynBlk baru tanpa `perchsize` akan menggunakan hingga 16 GiB; jika ruang cadangan kurang dari itu setelah menyisakan ruang aman, ukuran otomatis akan dikurangi. DynFileFS juga memperhitungkan overhead indeks dan batas RAM. Pertumbuhan eksplisit DynBlk dibatasi hingga 512 GiB.
-Sesi SquashFS dapat diambil dari sistem yang sedang berjalan menggunakan Manajer Sesi MiniOS atau `minios-session create squashfs`. Penyiapan initrd hanya membuat metadata sesi generasi nol dan menyimpan upper layer yang dapat ditulis di RAM. Sistem yang sedang berjalan akan membuat `changes.sb` snapshot pertama sesuai permintaan atau saat shutdown.
+Jika tidak ada mode yang ditentukan untuk sesi baru, boot akan menggunakan mode native. Pada FAT32/NTFS/exFAT, pembuatan boot native akan fallback ke DynFileFS. Container raw baru default ke 4000 MiB. Sesi boot baru DynFileFS, DynBlk, dan VMDK tanpa `perchsize` menggunakan hingga 16 GiB; jika ruang cadangan kurang setelah safety reserve, ukuran otomatis dikurangi. DynFileFS juga memperhitungkan overhead indeks dan batas RAM. Pertumbuhan DynBlk eksplisit mengikuti batas backend terpasang, cek dengan `dynblk limits --format dynblk`.
+Sesi SquashFS dapat ditangkap dari sistem berjalan dengan Manajer Sesi MiniOS atau `minios-session create squashfs`. Setup initrd hanya membuat metadata sesi generasi-nol dan menjaga upper layer writable di RAM. Sistem berjalan membuat `changes.sb` snapshot pertama sesuai permintaan atau saat shutdown.
 
-Saat melanjutkan, MiniOS akan memeriksa versi, edisi, union filesystem, dan mode yang tercatat. Perintah literal `perchdir=resume` dapat membuat sesi baru daripada menggunakan default yang tidak ada atau tidak kompatibel. `perch` , pemilihan numerik langsung, dan permintaan resume lama lainnya tidak secara otomatis membuat pengganti tersebut.
-Pemilihan interaktif akan menampilkan peringatan sebelum mengizinkan sesi yang tidak kompatibel. Jika pemilihan atau aktivasi tetap gagal, boot akan tetap berlanjut dengan upper RAM dan peringatan persistensi.
+Saat melanjutkan, MiniOS memeriksa versi, edisi, union filesystem, dan mode yang tercatat. `perchdir=resume` dapat membuat sesi baru alih-alih menggunakan default yang tidak ada atau tidak kompatibel. `perch`, pemilihan numerik langsung, dan permintaan resume legacy lainnya tidak otomatis membuat pengganti tersebut.
+Pemilihan interaktif menampilkan peringatan sebelum mengizinkan sesi yang tidak kompatibel. Jika pemilihan atau aktivasi tetap gagal, boot akan melanjutkan dengan upper RAM dan peringatan persistensi.
 
-Penyimpanan sesi memiliki format berikut:
+Penyimpanan sesi memiliki bentuk berikut:
 
 ```text
 minios/changes/
@@ -76,8 +77,8 @@ minios/changes/
 `-- N/
 ```
 
-`session.conf` mencatat ID default dan ID yang sedang berjalan serta mode, versi, edisi, union filesystem, ukuran, status, dan pengaturan khusus mode untuk setiap sesi.
-Ini adalah metadata persisten yang dikomit oleh implementasi boot, bukan bukti langsung status runtime saat ini. Jangan mengedit atau memindahkan data sesi bernomor saat sesi sedang ter-mount; gunakan Manajer Sesi MiniOS atau `minios-session`.
+`session.conf` mencatat ID default dan berjalan serta mode, versi, edisi, union filesystem, ukuran, status, dan pengaturan spesifik mode per sesi.
+Ini adalah metadata persisten yang dikomit oleh implementasi boot, bukan bukti keadaan runtime saat ini. Jangan edit atau pindahkan data sesi bernomor saat sesi sedang ter-mount; gunakan Manajer Sesi MiniOS atau `minios-session`.
 
 ## Sesi aktif dan berjalan
 
@@ -86,7 +87,7 @@ Istilah-istilah berikut menjelaskan status yang berbeda:
 - Sesi**aktif**adalah sesi default yang dipilih untuk boot berikutnya.
 - Secara konsep,**berjalan**adalah sesi yang lapisan tulisnya benar-benar menyediakan persistensi untuk boot saat ini.
 
-Field persistensi`running=`mencatat hubungan yang dimaksudkan tersebut. Crash, kegagalan pembuatan union, penyalinan store, atau shutdown yang terputus dapat membuatnya menjadi usang meski boot saat ini menggunakan RAM atau sesi lain. Operasi seperti penyimpanan SquashFS karena itu membutuhkan status boot saat ini yang dilindungi oleh initrd, terikat pada boot-ID, dan upper yang sudah ter-mount dan terverifikasi; mereka tidak mempercayai`running=`saja. Lihat[Status aktif, berjalan, dan boot saat ini](/reference/boot-process/Persistence-Internals#active-running-and-current-boot-state).
+Field persistensi`running=`mencatat hubungan yang dimaksudkan tersebut. Crash, kegagalan pembuatan union, penyalinan store, atau shutdown yang terputus dapat membuatnya menjadi usang meski boot saat ini menggunakan RAM atau sesi lain. Operasi seperti penyimpanan SquashFS karena itu membutuhkan status boot saat ini yang dilindungi oleh initrd, terikat pada boot-ID, dan upper yang sudah ter-mount dan terverifikasi; mereka tidak mempercayai`running=`saja. Lihat[Status aktif, berjalan, dan boot saat ini](/reference/boot-process/Persistence-Internals#status-aktif-berjalan-dan-boot-saat-ini).
 
 Mengaktifkan sesi akan mengubah boot berikutnya dan tidak akan mengganti union filesystem yang sedang berjalan:
 
@@ -100,7 +101,7 @@ Sesi aktif tidak dapat dihapus atau dikonversi langsung. Sesi yang sedang berjal
 
 ## Referensi perintah
 
-Daftar sesi dan periksa store:
+Daftar sesi dan periksa penyimpanan:
 
 ```bash
 sudo minios-session list
@@ -122,7 +123,7 @@ sudo minios-session create squashfs --policy shutdown
 sudo minios-session create squashfs --policy manual --autosave 60
 ```
 
-`create` tanpa mode akan memilih native. Pembuatan SquashFS akan menangkap perubahan aktif saat ini dan tidak memiliki ukuran tetap. Kebijakan shutdown-nya secara default adalah `shutdown`; penyimpanan berkala secara default tidak aktif.
+`create` tanpa mode akan memilih native. Pembuatan SquashFS menangkap perubahan live saat ini dan tidak memiliki ukuran tetap. Kebijakan shutdown-nya default ke `shutdown`; penyimpanan berkala default nonaktif.
 
 Simpan dan konfigurasikan sesi SquashFS:
 
@@ -133,7 +134,7 @@ sudo minios-session settings <squashfs-id> --shutdown off --autosave 0
 sudo minios-session settings <squashfs-id> --shutdown on --autosave 60
 ```
 
-Interval berkala yang valid adalah `30`, `60`, `120`, `240`, dan `480` menit; `0` menonaktifkan penyimpanan berkala. Pengaturan shutdown dan periodik bersifat independen.
+Interval berkala yang valid adalah `30`, `60`, `120`, `240`, dan `480` menit; `0` menonaktifkan penyimpanan berkala. Pengaturan shutdown dan berkala bersifat independen.
 
 Ekspor dan impor `.tar.zst` arsip:
 
@@ -146,7 +147,7 @@ sudo minios-session import /path/to/session.tar.zst --force-mode dynblk
 sudo minios-session import /path/to/session.tar.zst --force-mode raw --force-encryption luks
 ```
 
-Hanya `.tar.zst` impor yang diterima. Path dan anggota arsip akan divalidasi, dan ekstraksi dibatasi. `--auto-convert` akan memilih mode yang kompatibel untuk sistem file saat ini. `--force-mode <mode>` secara eksplisit memilih mode yang tersedia. Ekspor, salin, dan konversi tidak didukung untuk sesi SquashFS; simpan snapshot dan salin seluruh direktori sesi yang tidak aktif sebagai gantinya.
+Hanya `.tar.zst` impor yang diterima. Path dan anggota arsip divalidasi, dan ekstraksi dibatasi. `--auto-convert` memilih mode yang kompatibel untuk filesystem saat ini. `--force-mode <mode>` secara eksplisit memilih mode yang tersedia. Ekspor, salin, dan konversi tidak didukung untuk sesi SquashFS; simpan snapshot dan salin seluruh direktori sesi nonaktif sebagai gantinya.
 
 Salin atau konversi sesi:
 
@@ -160,7 +161,7 @@ sudo minios-session convert <id> dynblk --size 16GB --new-session
 sudo minios-session convert <id> raw --to-encryption luks --size 4GB --new-session
 ```
 
-`copy` adalah salinan sistem file secara logis dan selalu memberikan ID sesi baru. Dapat mengubah backend, kapasitas, atau enkripsi serta membuat identitas ext4 dan LUKS yang baru. `clone` secara fisik menyalin backend yang terlepas dan mempertahankan header LUKS, keyslot, UUID LUKS, dan UUID ext4. `convert` secara default akan menggantikan sumber; gunakan `--new-session` untuk mempertahankan sumber. Ukuran hanya relevan untuk target container.
+`copy` adalah salinan filesystem logis dan selalu memberikan ID sesi baru. Dapat mengubah backend, kapasitas, atau enkripsi serta membuat identitas ext4 dan LUKS baru. `clone` menyalin backend yang terlepas secara fisik dan mempertahankan header LUKS, keyslots, UUID LUKS, dan UUID ext4. `convert` secara default menggantikan sumber; gunakan `--new-session` untuk mempertahankan sumber. Ukuran hanya relevan untuk target container.
 
 Perbesar, hapus, atau bersihkan sesi:
 
@@ -171,9 +172,9 @@ sudo minios-session cleanup
 sudo minios-session cleanup --days 30
 ```
 
-Resize mendukung DynFileFS, DynBlk, dan sesi raw, termasuk yang terenkripsi, dan membutuhkan ukuran lebih besar dari ukuran saat ini. Resize DynBlk akan memperbesar perangkat blok virtual terlebih dahulu lalu memperluas filesystem ext4-nya; kapasitas virtual baru tidak dialokasikan di awal. Cleanup secara default berlaku untuk sesi yang berumur lebih dari 30 hari.
+Resize mendukung DynFileFS, DynBlk, VMDK, dan sesi raw, termasuk bentuk terenkripsi, dan memerlukan ukuran lebih besar dari ukuran saat ini. Resize DynBlk memperbesar perangkat blok virtual terlebih dahulu lalu memperluas filesystem ext4-nya; tidak melakukan prealokasi kapasitas virtual baru. Cleanup default untuk sesi yang lebih lama dari 30 hari.
 
-Semua perintah menerima `--json`, dan store sesi yang berbeda dapat dipilih dengan `--sessions-dir PATH`:
+Semua perintah menerima `--json`, dan penyimpanan sesi berbeda dapat dipilih dengan `--sessions-dir PATH`:
 
 ```bash
 sudo minios-session --json list
@@ -207,12 +208,12 @@ Ekspor terenkripsi berisi file sesi logis yang sudah didekripsi, bukan backend y
 
 ## Cadangan dan sesi gagal
 
-Untuk sesi native, DynFileFS, DynBlk, dan sesi mentah, termasuk bentuk terenkripsi, gunakan `export` untuk pencadangan logis, bukan menyalin direktori sesi yang sudah di-mount. Simpan arsip hasilnya di perangkat lain dan pastikan arsip tersebut dapat diimpor sebelum mengandalkannya. Proses impor selalu membuat sesi baru dengan nomor berbeda; aktifkan sesi tersebut secara manual saat sudah siap digunakan.
-Untuk prosedur pencadangan SquashFS dan seluruh perangkat, lihat [Mencadangkan MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS).
+Untuk sesi native, DynFileFS, DynBlk, VMDK, dan raw, termasuk bentuk terenkripsi, gunakan `export` untuk backup logis, bukan menyalin direktori sesi yang sedang ter-mount. Simpan arsip hasil di perangkat lain dan pastikan dapat diimpor sebelum mengandalkannya. Impor selalu membuat sesi bernomor baru; aktifkan secara eksplisit saat siap digunakan.
+Untuk prosedur backup SquashFS dan seluruh perangkat, lihat [Mencadangkan MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS).
 
-Jika sesi gagal setelah penyimpanan penuh, penulisan terputus, atau sesi kosong terus-menerus dibuat, hentikan semua modifikasi pada penyimpanan yang terdampak. Ekspor terlebih dahulu sesi yang dapat dibaca dan tidak berjalan jika memungkinkan, lalu ikuti [Pemecahan Masalah](/maintenance-and-recovery/Troubleshooting).
+Jika sesi gagal setelah penyimpanan penuh, penulisan terputus, atau sesi kosong dibuat berulang kali, hentikan modifikasi penyimpanan yang terdampak. Ekspor sesi yang dapat dibaca dan tidak berjalan terlebih dahulu jika memungkinkan, lalu ikuti [Pemecahan masalah](/maintenance-and-recovery/Troubleshooting).
 
-Mulai diagnosis tanpa mengubah data sesi:
+Mulai diagnosis tanpa memodifikasi data sesi:
 
 ```bash
 sudo minios-session list
@@ -222,4 +223,66 @@ sudo minios-session status
 sudo minios-session info
 ```
 
-Saat boot, sistem file container akan diperiksa sebelum aktivasi tulis. Jika terjadi kegagalan pemeriksaan sistem file yang serius, container akan dipertahankan untuk pemulihan dan tidak di-mount secara writable. SquashFS mendeteksi status sebelumnya yang tidak bersih dan mengembalikan snapshot terakhir yang berhasil disimpan. Hapus sesi hanya melalui Manajer Sesi MiniOS atau `minios-session delete`; jangan hapus direktori sesi secara manual.
+Saat boot, filesystem container diperiksa sebelum aktivasi writable. Kegagalan fsck serius akan mempertahankan container untuk pemulihan daripada me-mount writable. SquashFS mendeteksi status sebelumnya yang tidak bersih dan memulihkan snapshot terakhir yang berhasil disimpan. Hapus sesi hanya melalui Manajer Sesi MiniOS atau `minios-session delete`; jangan hapus direktori sesi secara manual.
+
+## Mengembalikan penyimpanan DynBlk dan VMDK yang tidak terpakai
+
+Di Session Manager, klik kanan sesi DynBlk atau VMDK lalu pilih **Free Space...**.
+Dialog ini berfungsi untuk sesi yang sedang berjalan maupun yang tidak aktif. Untuk
+sesi plaintext akan memangkas ext4 internal sebelum meminta driver untuk mereklamasi
+ruang. Sesi tidak aktif akan di-attach sementara lalu dilepas; perangkat sesi berjalan tetap terhubung.
+Perangkat sesi berjalan tetap terhubung.
+
+```sh
+minios-session reclaim 3 --json
+# Explicitly permit live-data relocation (additional flash writes):
+minios-session reclaim 3 --compact --json
+```
+
+Kotak centang kompaksi **nonaktif secara default**, termasuk di exFAT. Tidak ada
+fallback kompaksi otomatis. Sesi terenkripsi hanya mereklamasi ruang yang sudah
+diketahui driver; operasi ini tidak mengaktifkan discard melalui LUKS atau
+mengungkap pola alokasinya. Error perangkat dan trim gagal akan menghentikan operasi.
+
+### Perintah driver tingkat rendah
+
+Dengan backend native DynBlk atau VMDK split saat ini, discard pada grain lengkap
+membuat penempatannya dapat digunakan kembali. Pada filesystem ext4 backing, rentang yang dipensiunkan
+juga dapat di-hole-punch secara otomatis. Pada exFAT, pembersihan otomatis hanya memangkas
+ekor file yang benar-benar kosong. **Pembersihan otomatis tidak pernah memindahkan data aktif.**
+
+Gunakan `fstrim` pada filesystem perubahan internal yang ter-mount (bukan root gabungan AUFS/OverlayFS
+root) untuk melaporkan blok yang dihapus, lalu `dynblk reclaim /dev/dynblkN --execute`untuk pembersihan non-moving. Pilih perangkat sesi yang sebenarnya, bukan indeks asumsi.
+Pilih perangkat sesi yang sebenarnya, bukan indeks asumsi.
+Untuk meminta kompaksi in-place intensif tulis secara manual, tambahkan `--compact`.
+Ini bekerja tanpa mengonversi image atau mengubah ukuran filesystem virtual;
+baca/tulis lain dapat berjalan di antara langkah reclaim. Ini bukan fallback otomatis.
+Opsi tambahan `--scan-zeroes` membaca grain yang sudah dipetakan, dan tidak aktif secara default.
+
+Perintah ini juga tersedia di CLI DynBlk initrd yang telah dibangun ulang. Tidak ada kompaksi startup otomatis yang diaktifkan.
+Sesi terenkripsi mempertahankan kebijakan discard yang ada; alat tidak diam-diam mengaktifkan dm-crypt discard passthrough.
+alat tidak diam-diam mengaktifkan dm-crypt discard passthrough.
+Read-only atau `cache=unsafe` attachment tidak dapat direklamasi. Rentang yang di-punch dan panjang yang dipangkas tidak sama dengan ruang kosong filesystem yang terukur.
+Rentang yang di-punch dan panjang yang dipangkas tidak sama dengan ruang kosong filesystem yang terukur.
+
+## Alur kerja sesi VMDK
+
+VMDK adalah mode sesi terpisah, bukan codec kompresi baru. Pembuatan, aktivasi,
+resize, ekspor/impor, salin, clone, dan konversi menggunakan perintah Session Manager
+yang sama seperti mode container lain:
+
+```sh
+minios-session create vmdk 16384 --activate
+minios-session copy 3 --to-mode vmdk --size 16384
+minios-session import /path/to/session.tar.zst --force-mode vmdk
+```
+
+Arsip sesi berisi file logis dan metadata, bukan attachment VMDK eksternal sembarang.
+Sesi VMDK terkelola menggunakan `volume.vmdk` descriptor kanonik
+dan semua `volume-sNNN.vmdk` sibling-nya. Jangan mengganti nama bagian atau menyalin image aktif
+di belakang driver. Beralih antara DynBlk native dan VMDK memerlukan
+salinan/konversi eksplisit; mengubah `session_mode` secara manual bukanlah konversi.
+
+Installer hanya menawarkan VMDK jika didukung oleh runtime dan menolak image sumber
+yang initrd-nya tidak memiliki kemampuan `vmdk-session-v1`. Perbarui CLI,
+driver, alat sesi, dan skrip boot bersamaan sebelum membuat sesi VMDK.

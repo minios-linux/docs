@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-16
+updated: 2026-09-17
 program_commits:
     minios-session-manager: 69436959d893a9870aca23e91b346d06b49eb98d
     minios-tools: 7cdd0e10c0f610ebc581efa82105b747437a6125
@@ -21,18 +21,19 @@ Das entsprechende Kommandozeilenwerkzeug ist `minios-session`. Für Befehle, die
 
 | Modus | Speicher | Hauptbeschränkungen | MiniOS LUKS2-Schicht |
 |------|---------|------------------|--------------------|
-| `native` | Änderungen werden direkt im Sitzungsverzeichnis gespeichert | Erfordert ein beschreibbares Dateisystem, das die Linux-Metadaten erhält und für das MiniOS Operationen prüft. Die Kapazität entspricht dem verfügbaren Speicherplatz im Backend; `perchsize` ist nicht relevant. | Nein |
-| `dynfilefs` | Erweiterbares ext4- `virtual.dat`-Dateisystem, gestützt durch Format-400-Segmentdateien | Funktioniert auf beschreibbaren POSIX-, FAT32-, NTFS- und exFAT-Dateisystemen. Das Nutzdaten-Image ist schlank, aber der Mapping-Index wächst mit der deklarierten logischen Kapazität. | Ja |
-| `dynblk` | Schlankes ext4-Dateisystem auf einem Kernel-Blockgerät, das von `volumeNNN.db`-Dateien unterstützt wird | Erfordert das DynBlk CLI, Kernel-Modul und initrd-Unterstützung. Die beim Booten erstellte Größe beträgt standardmäßig bis zu 16 GiB; das Format-Limit liegt bei 512 GiB. Das Sparse-Mapping RAM wird separat budgetiert. | Ja |
-| `raw` | Einzelne `changes.img`-Datei mit ext4 | Feste logische Kapazität mit expliziter Erweiterung. Funktioniert auf beschreibbaren POSIX-, FAT32-, NTFS- und exFAT-Dateisystemen; bei FAT32 ist die Größe auf 4000 MiB begrenzt. | Ja |
-| `squashfs` | Komprimierter Snapshot in `changes.sb`; zur Laufzeit wird das beschreibbare Upper in RAM rekonstruiert | `perchsize` ist nicht relevant. Vorhandene Snapshots können von unterstützten beschreibbaren Medien wiederhergestellt werden; für das exakte Speichern ist jedoch ein POSIX-fähiges Staging-Dateisystem erforderlich. | Nein |
+| `native` | Änderungen werden direkt im Sitzungsverzeichnis gespeichert | Erfordert ein beschreibbares Dateisystem, das die Linux-Metadaten und Operationen beibehält, für die MiniOS prüft. Die Kapazität entspricht dem freien Speicherplatz des Backends; `perchsize` ist nicht relevant. | Nein |
+| `dynfilefs` | Erweiterbares ext4-`virtual.dat`-Dateisystem, unterstützt durch format-400 Segmentdateien | Funktioniert auf beschreibbaren POSIX-, FAT32-, NTFS- und exFAT-Dateisystemen. Die Nutzdaten sind schlank, aber der Mapping-Index skaliert mit der deklarierten logischen Kapazität. | Ja |
+| `dynblk` | Schlankes ext4-Dateisystem auf einem Kernel-Blockgerät, das von `volumeNNN.db`-Dateien unterstützt wird | Erfordert das DynBlk CLI, Kernel-Modul und initrd-Fähigkeit. Die beim Booten erstellte Größe beträgt standardmäßig bis zu 16 GiB; das Maximum wird von `dynblk limits` gemeldet. Auf der Festplatte gespeicherte Zuordnungen verwenden einen begrenzten Metadaten-Cache. | Ja |
+| `vmdk` | Schlankes ext4-Dateisystem auf einem standardmäßig gesplitteten, sparsamen VMDK, bereitgestellt durch den DynBlk-Treiber | Verwendet `volume.vmdk` und `volume-sNNN.vmdk`. Keine Komprimierung. Erfordert `vmdk-session-v1` im laufenden initrd-Fähigkeitsmarker. Gleicher manueller Standardwert von 16 GiB wie DynBlk; Abfrage von `dynblk limits --format vmdk` für Begrenzungen. | Ja |
+| `raw` | Einzelne `changes.img`-Datei mit ext4 | Feste logische Kapazität, nur explizit erweiterbar. Funktioniert auf beschreibbaren POSIX-, FAT32-, NTFS- und exFAT-Dateisystemen; auf FAT32 ist die Größe auf 4000 MiB begrenzt. | Ja |
+| `squashfs` | Komprimierter Snapshot in `changes.sb`; zur Laufzeit wird das beschreibbare Upper in RAM rekonstruiert | `perchsize` ist nicht relevant. Vorhandene Snapshots können von unterstützten beschreibbaren Medien wiederhergestellt werden, während das exakte Speichern ein POSIX-fähiges Staging-Dateisystem erfordert. | Nein |
 
-Raw, DynFileFS und DynBlk können optional eine LUKS2-Verschlüsselungsschicht enthalten. Das Speicher-Backend bleibt der Sitzungsmodus, und die Sitzungsmetadaten erfassen die Verschlüsselung separat. DynFileFS und Raw, die mit `minios-session` erstellt werden, sind standardmäßig 4000 MiB groß; DynBlk ist standardmäßig 16 GiB. Die Größenangaben werden in MiB zugewiesen; `GB` und `TB`-Suffixe entsprechen 1000 bzw. 1.000.000 MiB. Raw ist auf FAT32 – unabhängig von Verschlüsselung – auf 4000 MiB begrenzt. DynFileFS-Nutzdaten wachsen bei Bedarf, aber der Format-400-Index wird für die volle logische Kapazität angelegt und benötigt etwa 2 MiB RAM sowie etwa 2 MiB Backend-Speicher pro GiB. Die DynBlk-Kapazität ist schlank und das Laufzeit-Mapping ist spärlich: Dichte Mappings kosten etwa 8 MiB/GiB, während ungenutzte virtuelle Kapazität keinen Mapping-Chunk belegt. Der DynBlk-Treiber wählt automatisch ein Mapping-Budget von etwa 25 % des nutzbaren RAM, begrenzt auf 4096 MiB; MiniOS überschreibt diese Vorgabe nicht. Tatsächliche Schreibvorgänge sind weiterhin durch den freien Speicherplatz des unteren Dateisystems und die Ressourcenverfügbarkeit des Backends begrenzt. Container-Resize-Operationen können eine Sitzung nur vergrößern; Verkleinerungen werden nicht unterstützt.
+Raw-, DynFileFS-, DynBlk- und VMDK-Sitzungen können optional eine LUKS2-Verschlüsselungsschicht enthalten. Das Speicher-Backend bleibt der Sitzungsmodus, und Sitzungsmetadaten erfassen die Verschlüsselung separat. DynFileFS und Raw, erstellt mit `minios-session` haben standardmäßig 4000 MiB; DynBlk und VMDK haben 16 GiB als Standardwert. Größenangaben werden in MiB zugewiesen; `GB` und `TB`-Suffixe entsprechen 1000 bzw. 1.000.000 MiB. Raw ist auf FAT32, unabhängig von der Verschlüsselung, auf 4000 MiB begrenzt. DynFileFS-Nutzdaten wachsen bei Bedarf, aber der format-400-Index wird für die volle logische Kapazität dimensioniert und benötigt etwa 2 MiB RAM sowie etwa 2 MiB Backing-Speicher pro GiB. DynBlk speichert Mapping-Tabellen auf der Festplatte und einen begrenzten Metadaten-Cache in RAM, standardmäßig 1 MiB statt eines Prozentsatzes von RAM. Die Extent-/Dateivektoren und Verzeichnisse wachsen mit den deklarierten Teilen, während die Nutzdatenfüllung keine vollständige Residenzkarte benötigt. Die installierte Kapazitätsgrenze kann mit `dynblk limits --format dynblk` abgefragt werden. Tatsächliche Schreibvorgänge sind weiterhin durch den freien Speicherplatz des unteren Dateisystems und die Ressourcenfreigabe des Backends begrenzt. Container-Resize-Operationen können eine Sitzung nur vergrößern; Verkleinerungen werden nicht unterstützt.
 
-Der Native-Modus ist die einfachste und schnellste Option auf einem kompatiblen Dateisystem.
-Verwenden Sie DynFileFS, wenn das Persistenz-Dateisystem keine Linux-Metadaten speichern kann.
-Verwenden Sie DynBlk, wenn Sie ein echtes Kernel-Blockgerät mit schlanken Backing-Dateien benötigen; der Treiber kann mehrere unabhängige DynBlk-Volumes gleichzeitig anbinden, und der Sitzungsmanager nutzt den vom Treiber zurückgegebenen Gerätepfad, anstatt anzunehmen, dass `/dev/dynblk0` frei ist.
-Verwenden Sie Raw, wenn eine feste Zuweisung erforderlich ist, fügen Sie LUKS2 hinzu, wenn die Sitzung verschlüsselt werden muss, und nutzen Sie SquashFS für einen exakten komprimierten Snapshot.
+Der Native-Modus ist die einfachste und schnellste Wahl auf einem kompatiblen Dateisystem.
+Verwenden Sie DynFileFS, wenn das Persistenz-Dateisystem keine Linux-Metadaten abbilden kann.
+Verwenden Sie DynBlk, wenn Sie ein echtes Kernel-Blockgerät mit schlanken Backing-Dateien möchten; der Treiber kann mehrere unabhängige DynBlk-Volumes gleichzeitig bereitstellen, und der Sitzungsmanager verwendet den vom Treiber zurückgegebenen Gerätepfad, anstatt anzunehmen, dass `/dev/dynblk0` frei ist.
+Verwenden Sie Raw, wenn eine feste Zuweisung erforderlich ist, fügen Sie LUKS2 hinzu, wenn die Sitzung verschlüsselt werden muss, und verwenden Sie SquashFS für einen exakten komprimierten Snapshot.
 
 Führen Sie die folgenden Befehle aus, um das tatsächliche Persistenz-Dateisystem und die darauf verfügbaren Modi zu prüfen:
 
@@ -41,30 +42,30 @@ sudo minios-session info
 sudo minios-session status
 ```
 
-Auf schreibgeschützten Medien kann keine Sitzung erstellt werden. Das initrd kann einen vorhandenen SquashFS-Snapshot, der auf FAT, exFAT oder NTFS gespeichert ist, einlesen und aktivieren, da der Snapshot in ein temporäres ext4-Upper extrahiert wird. Das Erstellen oder exakte Speichern eines Snapshots ist jedoch anders: Der private Staging-Arbeitsbereich muss sich auf einem geeigneten POSIX-Dateisystem befinden, das Linux-Metadaten und Union-Whiteouts erhält.
+Es kann keine Sitzung auf einem nur lesbaren Medium erstellt werden. Das initrd kann einen vorhandenen SquashFS-Snapshot, der auf FAT, exFAT oder NTFS gespeichert ist, lesen und aktivieren, da der Snapshot in ein temporäres ext4-Upper extrahiert wird. Das Erstellen oder exakte Speichern eines Snapshots ist anders: Der private Staging-Arbeitsbereich muss sich auf einem geeigneten POSIX-Dateisystem befinden, das Linux-Metadaten und Union-Whiteouts beibehält.
 
 ## Boot-Auswahl
 
-Jeder erkannte Persistenz-Parameter aktiviert die Persistenzverwaltung. MiniOS Boot-Menüs bieten in der Regel Einträge für Fortsetzen, Neu, Auswahl und Nicht-Persistent. Die maßgebliche Beschreibung der Selektor-, Kompatibilitäts-, Fallback- und Aktivierungslogik findet sich unter[Initrd-Persistenz](/reference/boot-process/Persistence-Internals).
+Jeder erkannte Persistenz-Parameter aktiviert die Persistenzverwaltung. MiniOS-Bootmenüs bieten in der Regel Fortsetzen-, Neu-, Auswahl- und Nicht-persistent-Einträge. Die maßgebliche Beschreibung der Selektor-, Kompatibilitäts-, Fallback- und Aktivierungssemantik finden Sie unter [Initrd-Persistenz](/reference/boot-process/Persistence-Internals).
 
 | Parameter | Bedeutung |
 |-----------|---------|
-| `perch` | Verwendet den Legacy-Best-Effort-Fortsetzungsweg. Es wird der Standardwert aus den Metadaten versucht, aber kein Ersatz erstellt, wenn keiner nutzbar ist. |
-| `perchdir=resume` | Setzt den Standardwert aus den Metadaten fort und erlaubt, falls dieser fehlt oder inkompatibel ist, dem initrd die Erstellung eines neuen kompatiblen Ersatzes. Dies ist das aktuelle Verhalten beim Fortsetzen über das Boot-Menü. |
+| `perch` | Verwendet den Legacy-Best-Effort-Fortsetzungsweg. Es wird der Metadaten-Standard versucht, aber kein Ersatz erstellt, wenn keiner nutzbar ist. |
+| `perchdir=resume` | Setzt den Metadaten-Standard fort und erlaubt dem initrd, einen neuen kompatiblen Ersatz zu erstellen, wenn dieser fehlt oder inkompatibel ist. Dies ist das aktuelle Verhalten des Bootmenü-Fortsetzens. |
 | `perchdir=new` | Erstellt eine neue nummerierte Sitzung. |
-| `perchdir=ask` | Wählt eine bestehende Sitzung aus oder erstellt eine während des Bootvorgangs. |
+| `perchdir=ask` | Wählt eine vorhandene Sitzung aus oder erstellt eine während des Bootvorgangs. |
 | `perchdir=<id>` | Wählt diese nummerierte Sitzung direkt aus. |
-| `perchdir=<device/path>` | Verwendet einen Persistenzspeicherort auf einem Gerät, einschließlich`/dev/...` und `label:...`-Formate, die vom initrd verarbeitet werden. |
-| `perchmode=<mode>` | Setzt `native`, `dynfilefs`, `dynblk`, `raw`, oder `squashfs`. |
-| `perchencrypt=luks` | Verschlüsselt eine neu erstellte Raw-, DynFileFS- oder DynBlk-Sitzung mit LUKS2. Bestehende Sitzungen übernehmen die Verschlüsselung nur aus den Metadaten. |
-| `perchcomp=<codec>` | Wählt DynBlk-Backend-Kompression für eine neue DynBlk-Sitzung. Die Kompression wird auf `none` erzwungen, wenn DynBlk in LUKS2 eingebettet ist. |
-| `perchsize=<size>` | Legt eine neue oder größere Containergröße fest; reine Zahlenwerte werden in MiB zugewiesen und `MB`, `GB`, und `TB`-Suffixe werden akzeptiert. |
+| `perchdir=<device/path>` | Verwendet einen Persistenzspeicherort auf einem Gerät, einschließlich `/dev/...` und `label:...`-Formen, die vom initrd verarbeitet werden. |
+| `perchmode=<mode>` | Setzt `native`, `dynfilefs`, `dynblk`, `vmdk`, oder `raw` .`squashfs` |
+| `perchencrypt=luks` | Verschlüsselt eine neu erstellte Raw-, DynFileFS-, DynBlk- oder VMDK-Sitzung mit LUKS2. Bestehende Sitzungen übernehmen die Verschlüsselung nur aus den Metadaten. |
+| `perchcomp=<codec>` | Wählt DynBlk-Backend-Komprimierung für eine neue DynBlk-Sitzung. Die Komprimierung wird auf `none` erzwungen, wenn DynBlk in LUKS2 eingebettet ist. |
+| `perchsize=<size>` | Setzt eine neue oder größere Containergröße; reine Werte werden in MiB zugewiesen und `MB`, `GB`, und `TB`-Suffixe werden akzeptiert. |
 
-Wird für eine neue Sitzung kein Modus angegeben, verwendet der Bootvorgang den nativen Modus. Auf FAT32/NTFS/exFAT fällt die native Boot-Erstellung auf DynFileFS zurück. Ein neuer Raw-Container hat standardmäßig 4000 MiB. Neue DynFileFS- und DynBlk-Boot-Sitzungen ohne `perchsize` nutzen bis zu 16 GiB; wenn nach der Sicherheitsreserve weniger Speicherplatz verbleibt, wird die automatische Größe reduziert. DynFileFS berücksichtigt auch den Index-Overhead und das RAM-Limit. Explizites DynBlk-Wachstum ist auf 512 GiB begrenzt.
-SquashFS-Sitzungen können aus dem laufenden System mit dem MiniOS-Sitzungsmanager oder `minios-session create squashfs`. Die Initrd-Einrichtung erstellt nur Metadaten der Generation Null und hält die beschreibbare obere Ebene in RAM. Das laufende System erstellt den ersten `changes.sb` Snapshot bei Bedarf oder beim Herunterfahren.
+Wenn für eine neue Sitzung kein Modus angegeben ist, wird beim Booten der Native-Modus verwendet. Bei FAT32/NTFS/exFAT fällt die native Boot-Erstellung auf DynFileFS zurück. Ein neuer Raw-Container hat standardmäßig 4000 MiB. Neue DynFileFS-, DynBlk- und VMDK-Boot-Sitzungen ohne `perchsize` verwenden bis zu 16 GiB; wenn nach der Sicherheitsreserve weniger Speicherplatz verbleibt, wird die automatische Größe reduziert. DynFileFS berücksichtigt auch den Index-Overhead und die RAM-Grenze. Explizites DynBlk-Wachstum richtet sich nach der installierten Backend-Grenze, die mit `dynblk limits --format dynblk` abgefragt werden kann.
+SquashFS-Sitzungen können aus dem laufenden System mit dem MiniOS-Sitzungsmanager oder `minios-session create squashfs`. Initrd erstellt nur Generation-0-Sitzungsmetadaten und hält die beschreibbare Upper-Schicht in RAM. Das laufende System erstellt den ersten `changes.sb`-Snapshot bei Bedarf oder beim Herunterfahren.
 
-Beim Fortsetzen prüft MiniOS die aufgezeichnete Version, Edition, das Union-Dateisystem und den Modus. Ein explizites `perchdir=resume` kann eine neue Sitzung erstellen, anstatt einen fehlenden oder inkompatiblen Standard zu verwenden. Reine `perch`, direkte numerische Auswahl und andere Legacy-Fortsetzungsanfragen erstellen diesen Ersatz nicht automatisch.
-Bei interaktiver Auswahl wird eine Warnung angezeigt, bevor eine inkompatible Sitzung zugelassen wird. Falls Auswahl oder Aktivierung dennoch fehlschlagen, startet das System normalerweise mit einer RAM-oberen Ebene und einer Persistenzwarnung.
+Beim Fortsetzen prüft MiniOS die aufgezeichnete Version, Edition, das Union-Dateisystem und den Modus. Mit `perchdir=resume` kann eine neue Sitzung erstellt werden, anstatt einen fehlenden oder inkompatiblen Standard zu verwenden. Reine `perch`-, direkte numerische Auswahl und andere Legacy-Fortsetzungsanfragen erstellen diesen Ersatz nicht automatisch.
+Bei interaktiver Auswahl wird eine Warnung angezeigt, bevor eine inkompatible Sitzung zugelassen wird. Falls Auswahl oder Aktivierung dennoch fehlschlagen, startet das System mit einem RAM-Upper und einer Persistenzwarnung.
 
 Der Sitzungspeicher hat folgendes Format:
 
@@ -77,7 +78,7 @@ minios/changes/
 ```
 
 `session.conf` speichert die Standard- und laufenden IDs sowie pro Sitzung Modus, Version, Edition, Union-Dateisystem, Größe, Status und modusspezifische Einstellungen.
-Es handelt sich um persistente Metadaten, die von der Boot-Implementierung geschrieben werden, aber für sich allein keinen Nachweis über den aktuellen Laufzeitstatus liefern. Bearbeiten oder verschieben Sie keine nummerierten Sitzungsdaten, während eine Sitzung eingehängt ist; verwenden Sie den MiniOS-Sitzungsmanager oder `minios-session`.
+Es handelt sich um persistente Metadaten, die von der Boot-Implementierung geschrieben werden, aber nicht allein den aktuellen Laufzeitstatus beweisen. Bearbeiten oder verschieben Sie keine nummerierten Sitzungsdaten, während eine Sitzung gemountet ist; verwenden Sie den MiniOS-Sitzungsmanager oder `minios-session`.
 
 ## Aktive und laufende Sitzungen
 
@@ -86,7 +87,7 @@ Diese Begriffe beschreiben unterschiedliche Zustände:
 - Die **aktive** Sitzung ist standardmäßig für den nächsten Start ausgewählt.
 - Begrifflich ist die **laufende** Sitzung diejenige, deren beschreibbare Ebene tatsächlich die Persistenz für den aktuellen Start bereitstellt.
 
-Das persistente `running=` Feld dokumentiert diese beabsichtigte Beziehung. Ein Absturz, ein fehlgeschlagener Union-Aufbau, ein kopierter Store oder ein unterbrochener Shutdown können dazu führen, dass es veraltet ist, selbst wenn der aktuelle Start RAM oder eine andere Sitzung verwendet. Vorgänge wie das Speichern von SquashFS erfordern daher den geschützten, boot-ID-gebundenen Current-Boot-Status des initrd und das verifizierte, eingehängte Upper; sie vertrauen nicht nur auf `running=` allein. Siehe [Aktive, laufende und Current-Boot-Zustände](/reference/boot-process/Persistence-Internals#active-running-and-current-boot-state).
+Das persistente `running=` Feld dokumentiert diese beabsichtigte Beziehung. Ein Absturz, ein fehlgeschlagener Union-Aufbau, ein kopierter Store oder ein unterbrochener Shutdown können dazu führen, dass es veraltet ist, selbst wenn der aktuelle Start RAM oder eine andere Sitzung verwendet. Vorgänge wie das Speichern von SquashFS erfordern daher den geschützten, boot-ID-gebundenen Current-Boot-Status des initrd und das verifizierte, eingehängte Upper; sie vertrauen nicht nur auf `running=` allein. Siehe [Aktive, laufende und Current-Boot-Zustände](/reference/boot-process/Persistence-Internals#aktiver-laufender-und-aktueller-boot-status).
 
 Das Aktivieren einer Sitzung ändert den nächsten Start, wechselt aber nicht das aktuelle Union-Dateisystem:
 
@@ -100,7 +101,7 @@ Die aktive Sitzung kann weder gelöscht noch direkt konvertiert werden. Eine lau
 
 ## Befehlsreferenz
 
-Sitzungen auflisten und den Store prüfen:
+Sitzungen auflisten und Speicher prüfen:
 
 ```bash
 sudo minios-session list
@@ -122,7 +123,7 @@ sudo minios-session create squashfs --policy shutdown
 sudo minios-session create squashfs --policy manual --autosave 60
 ```
 
-`create` ohne Modus wählt nativ aus. Die Erstellung von SquashFS erfasst die aktuellen Live-Änderungen und hat keine feste Größe. Die Abschaltregel ist standardmäßig `shutdown`; periodisches Speichern ist standardmäßig deaktiviert.
+`create` ohne Modus wählt Native. Die Erstellung von SquashFS erfasst die aktuellen Live-Änderungen und hat keine feste Größe. Die Abschalt-Policy ist standardmäßig auf `shutdown` gesetzt; periodisches Speichern ist standardmäßig deaktiviert.
 
 Eine SquashFS-Sitzung speichern und konfigurieren:
 
@@ -133,7 +134,7 @@ sudo minios-session settings <squashfs-id> --shutdown off --autosave 0
 sudo minios-session settings <squashfs-id> --shutdown on --autosave 60
 ```
 
-Gültige Intervalle für periodisches Speichern sind `30`, `60`, `120`, `240`, und `480` Minuten; `0` deaktiviert das periodische Speichern. Abschalt- und periodische Einstellungen sind unabhängig voneinander.
+Gültige periodische Intervalle sind `30`, `60`, `120`, `240`, und `480` Minuten; `0` deaktiviert das periodische Speichern. Die Einstellungen für Abschalten und periodisches Speichern sind unabhängig voneinander.
 
 Exportieren und Importieren von `.tar.zst`-Archiven:
 
@@ -146,7 +147,7 @@ sudo minios-session import /path/to/session.tar.zst --force-mode dynblk
 sudo minios-session import /path/to/session.tar.zst --force-mode raw --force-encryption luks
 ```
 
-Nur `.tar.zst`-Importe werden akzeptiert. Pfade und Archiv-Inhalte werden überprüft, und die Extraktion ist begrenzt. `--auto-convert` wählt einen kompatiblen Modus für das aktuelle Dateisystem. `--force-mode <mode>` wählt explizit einen verfügbaren Modus. Export, Kopieren und Konvertierung werden für SquashFS-Sitzungen nicht unterstützt; speichern Sie stattdessen den Snapshot und kopieren Sie das komplette inaktive Sitzungsverzeichnis.
+Nur `.tar.zst`-Importe werden akzeptiert. Pfade und Archivmitglieder werden validiert, und die Extraktion ist begrenzt. `--auto-convert` wählt einen kompatiblen Modus für das aktuelle Dateisystem. `--force-mode <mode>` wählt explizit einen verfügbaren Modus. Export, Kopieren und Konvertierung werden für SquashFS-Sitzungen nicht unterstützt; speichern Sie den Snapshot und kopieren Sie stattdessen das komplette inaktive Sitzungsverzeichnis.
 
 Sitzung kopieren oder konvertieren:
 
@@ -160,7 +161,7 @@ sudo minios-session convert <id> dynblk --size 16GB --new-session
 sudo minios-session convert <id> raw --to-encryption luks --size 4GB --new-session
 ```
 
-`copy` ist eine logische Dateisystem-Kopie und weist immer eine neue Sitzungs-ID zu. Backend, Kapazität oder Verschlüsselung können geändert werden; neue ext4- und LUKS-Identitäten werden erstellt. `clone` kopiert ein getrenntes Backend physisch und erhält dessen LUKS-Header, Keyslots, LUKS-UUID und ext4-UUID. `convert` ersetzt standardmäßig die Quelle; verwenden Sie `--new-session` um die Quelle zu erhalten. Eine Größe ist nur für ein Container-Ziel relevant.
+`copy` ist eine logische Dateisystemkopie und weist immer eine neue Sitzungs-ID zu. Es kann Backend, Kapazität oder Verschlüsselung ändern und erstellt neue ext4- und LUKS-Identitäten. `clone` kopiert ein getrenntes Backend physisch und behält LUKS-Header, Keyslots, LUKS-UUID und ext4-UUID bei. `convert` ersetzt standardmäßig die Quelle; verwenden Sie `--new-session` um die Quelle zu erhalten. Eine Größe ist nur für ein Containerziel relevant.
 
 Sitzungen vergrößern, löschen oder bereinigen:
 
@@ -171,9 +172,9 @@ sudo minios-session cleanup
 sudo minios-session cleanup --days 30
 ```
 
-Resize unterstützt DynFileFS, DynBlk und Raw-Sitzungen, auch in verschlüsselter Form, und erfordert eine größere Zielgröße als die aktuelle. DynBlk-Resize vergrößert zuerst das virtuelle Blockgerät und erweitert dann das ext4-Dateisystem; die neue virtuelle Kapazität wird dabei nicht vorab zugewiesen. Die Bereinigung betrifft standardmäßig Sitzungen, die älter als 30 Tage sind.
+Resize unterstützt DynFileFS-, DynBlk-, VMDK- und Raw-Sitzungen, auch in verschlüsselter Form, und erfordert eine größere Zielgröße als die aktuelle. DynBlk-Resize vergrößert zuerst das virtuelle Blockgerät und erweitert dann das ext4-Dateisystem; die neue virtuelle Kapazität wird nicht vorab zugewiesen. Die Bereinigung betrifft standardmäßig Sitzungen, die älter als 30 Tage sind.
 
-Alle Befehle akzeptieren `--json`, und ein anderer Sitzungs-Store kann mit `--sessions-dir PATH` ausgewählt werden:
+Alle Befehle akzeptieren `--json`, und ein anderer Sitzungspeicher kann mit `--sessions-dir PATH` ausgewählt werden:
 
 ```bash
 sudo minios-session --json list
@@ -207,10 +208,10 @@ Verschlüsselte Exporte enthalten entschlüsselte logische Sitzungsdateien, nich
 
 ## Backups und fehlgeschlagene Sitzungen
 
-Für native, DynFileFS, DynBlk und Raw-Sitzungen, einschließlich verschlüsselter Varianten, verwenden Sie `export` für logische Backups anstelle des Kopierens eines gemounteten Sitzungsverzeichnisses. Bewahren Sie das erstellte Archiv auf einem anderen Gerät auf und prüfen Sie, ob es importiert werden kann, bevor Sie sich darauf verlassen. Beim Import wird immer eine neue, nummerierte Sitzung erstellt; aktivieren Sie diese explizit, sobald sie einsatzbereit ist.
-Für SquashFS- und Komplettgeräte-Backup-Verfahren siehe [Backup von MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS).
+Für Native-, DynFileFS-, DynBlk-, VMDK- und Raw-Sitzungen, auch in verschlüsselter Form, verwenden Sie `export` für logische Backups anstelle des Kopierens eines gemounteten Sitzungsverzeichnisses. Bewahren Sie das resultierende Archiv auf einem anderen Gerät auf und überprüfen Sie, ob es importiert werden kann, bevor Sie sich darauf verlassen. Der Import erstellt immer eine neue nummerierte Sitzung; aktivieren Sie sie explizit, wenn sie einsatzbereit ist.
+Für SquashFS- und vollständige Geräte-Backup-Verfahren siehe [Backup von MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS).
 
-Wenn eine Sitzung fehlschlägt, nachdem der Speicher voll ist, ein Schreibvorgang unterbrochen wurde oder wiederholt leere Sitzungen entstehen, nehmen Sie keine weiteren Änderungen am betroffenen Speicher vor. Exportieren Sie nach Möglichkeit zuerst eine lesbare, nicht laufende Sitzung und folgen Sie dann [Fehlerbehebung](/maintenance-and-recovery/Troubleshooting).
+Wenn eine Sitzung nach vollem Speicher, unterbrochenem Schreibvorgang oder wiederholtem Erstellen leerer Sitzungen fehlschlägt, stoppen Sie alle Änderungen am betroffenen Speicher. Exportieren Sie nach Möglichkeit zuerst eine lesbare, nicht laufende Sitzung und folgen Sie dann [Fehlerbehebung](/maintenance-and-recovery/Troubleshooting).
 
 Beginnen Sie die Diagnose, ohne Sitzungsdaten zu verändern:
 
@@ -222,4 +223,66 @@ sudo minios-session status
 sudo minios-session info
 ```
 
-Beim Systemstart werden Container-Dateisysteme vor dem schreibbaren Aktivieren geprüft. Schwere Fehler bei der Dateisystemprüfung bewahren den Container zur Wiederherstellung, anstatt ihn schreibbar einzubinden. SquashFS erkennt einen nicht ordnungsgemäß beendeten Zustand und stellt den zuletzt erfolgreich gespeicherten Snapshot wieder her. Sitzungen löschen Sie ausschließlich über den MiniOS-Sitzungsmanager oder `minios-session delete`; entfernen Sie Sitzungsverzeichnisse nicht manuell.
+Beim Booten werden Container-Dateisysteme vor der beschreibbaren Aktivierung geprüft. Schwere Dateisystemprüfungsfehler bewahren den Container zur Wiederherstellung, anstatt ihn beschreibbar zu mounten. SquashFS erkennt einen nicht bereinigten vorherigen Zustand und stellt den zuletzt erfolgreich gespeicherten Snapshot wieder her. Löschen Sie Sitzungen nur über den MiniOS-Sitzungsmanager oder `minios-session delete`; entfernen Sie Sitzungsverzeichnisse nicht manuell.
+
+## Nicht genutzten DynBlk- und VMDK-Speicher zurückgeben
+
+Klicken Sie im Sitzungsmanager mit der rechten Maustaste auf eine DynBlk- oder VMDK-Sitzung und wählen Sie **Freier Speicher...**.
+Der Dialog funktioniert sowohl für die laufende Sitzung als auch für eine inaktive Sitzung. Bei einer
+Plaintext-Sitzung wird zuerst das interne ext4 getrimmt, bevor der Treiber aufgefordert wird,
+Speicher freizugeben. Eine inaktive Sitzung wird temporär verbunden und anschließend getrennt; das
+Gerät der laufenden Sitzung bleibt verbunden.
+
+```sh
+minios-session reclaim 3 --json
+# Explicitly permit live-data relocation (additional flash writes):
+minios-session reclaim 3 --compact --json
+```
+
+Das Kompaktieren-Kontrollkästchen ist **standardmäßig deaktiviert**, auch bei exFAT. Es gibt keine
+automatische Kompaktierungs-Alternative. Verschlüsselte Sitzungen geben nur Speicher frei, der dem Treiber bereits bekannt ist; dieser Vorgang aktiviert kein Discard durch LUKS und
+offenbart nicht das Allokationsmuster. Gerätefehler und fehlgeschlagenes Trimmen beenden den Vorgang.
+.
+
+### Low-Level-Treiberbefehle
+
+Beim aktuellen DynBlk-Native- oder Split-VMDK-Backend macht das Verwerfen kompletter Grains
+deren Platzierung wiederverwendbar. Auf einem ext4-unterlegten Dateisystem können ausgemusterte Bereiche
+auch automatisch gelocht werden. Bei exFAT beschränkt sich die automatische Bereinigung auf das Abschneiden
+vollständig freier Dateiende. **Die automatische Bereinigung verschiebt niemals Live-Daten.**
+
+Verwenden Sie `fstrim` auf dem gemounteten inneren Änderungsdateisystem (nicht auf dem kombinierten AUFS/OverlayFS
+Root), um gelöschte Blöcke zu melden, dann `dynblk reclaim /dev/dynblkN --execute` für
+nicht-verschiebende Bereinigung. Wählen Sie das tatsächliche Sitzungsgerät aus, nicht einen angenommenen Index.
+Um eine schreibintensive In-Place-Kompaktierung manuell anzufordern, fügen Sie `--compact` hinzu.
+Dies funktioniert, ohne das Image zu konvertieren oder die Größe des virtuellen Dateisystems zu ändern;
+andere Lese-/Schreibvorgänge können zwischen den Rückgewinnungsschritten erfolgen. Es ist keine automatische Alternative.
+Die optionale `--scan-zeroes` liest zugeordnete Grains und ist standardmäßig deaktiviert.
+
+Diese Befehle sind auch im neu aufgebauten initrd-DynBlk-CLI verfügbar. Keine automatische
+Kompaktierung beim Start aktiviert. Verschlüsselte Sitzungen behalten ihre bestehende Discard-Policy bei; die Tools aktivieren dm-crypt-Discard-Passthrough nicht stillschweigend.
+Nur-Lese- oder 
+\-Anbindungen können nicht zurückgewonnen werden. Gemeldete gelochte`cache=unsafe`Bereiche und abgeschnittene Längen entsprechen nicht dem gemessenen freien Dateisystemplatz.
+.
+
+## VMDK-Sitzungs-Workflows
+
+VMDK ist ein eigenständiger Sitzungsmodus, kein neuer Komprimierungscodec. Erstellen, Aktivieren,
+Vergrößern, Export/Import, Kopieren, Klonen und Konvertieren nutzen dieselben Sitzungsmanager-
+Befehle wie andere Containermodi:
+
+```sh
+minios-session create vmdk 16384 --activate
+minios-session copy 3 --to-mode vmdk --size 16384
+minios-session import /path/to/session.tar.zst --force-mode vmdk
+```
+
+Sitzungsarchive enthalten logische Dateien und Metadaten, aber kein beliebiges externes
+VMDK-Volume. Verwaltete VMDK-Sitzungen verwenden den kanonischen `volume.vmdk`Descriptor
+und alle zugehörigen `volume-sNNN.vmdk`Teildateien. Benennen Sie keine Teile um und kopieren Sie kein laufendes Image
+am Treiber vorbei. Der Wechsel zwischen Native-DynBlk und VMDK erfordert eine explizite
+Kopie/Konvertierung; das manuelle Ändern von `session_mode` ist keine Konvertierung.
+
+Der Installer bietet VMDK nur an, wenn es zur Laufzeit unterstützt wird, und lehnt Quell-
+Images ab, deren kopierte initrds die `vmdk-session-v1`-Fähigkeit nicht enthalten. Aktualisieren Sie CLI,
+Treiber, Sitzungstools und Boot-Skripte gemeinsam, bevor Sie VMDK-Sitzungen erstellen.

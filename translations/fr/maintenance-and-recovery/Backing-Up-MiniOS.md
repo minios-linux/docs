@@ -37,11 +37,11 @@ L’exportation crée une copie logique du contenu de la session, et non une cop
 
 Pour une session LUKS, l’archive contient les fichiers logiques déchiffrés. Protégez l’archive séparément si les données doivent rester chiffrées.
 
-### sessions SquashFS
+### Sessions SquashFS
 
-Le gestionnaire de session actuel n’exporte ni ne copie les sessions SquashFS. Utilisez **Enregistrer maintenant** avant l’arrêt afin que la capture actuelle soit complète, puis protégez séparément les fichiers importants. Si vous avez besoin d’une copie complète et restaurable de l’ensemble du périphérique MiniOS, créez plutôt une image hors ligne du périphérique.
+Le gestionnaire de session actuel n’exporte ni ne copie les sessions SquashFS. Utilisez **Enregistrer maintenant** avant l’arrêt pour que l’instantané soit complet, puis protégez séparément les fichiers importants. Si vous avez besoin d’une copie complète et restaurable de l’ensemble du périphérique MiniOS, créez plutôt une image du périphérique hors ligne.
 
-Ne comptez pas sur la copie manuelle d’un répertoire de session monté ni sur la reconstruction de `session.conf`, des segments DynFileFS, des fichiers de support DynBlk ou d’autres métadonnées de conteneur comme méthode de sauvegarde. Une sauvegarde manuelle bit à bit de DynBlk n’est sûre que lorsque le volume est détaché et doit préserver l’intégralité de son `volume000.db` jusqu’à `volume063.db` l’espace de noms exactement tel qu’il existe ; la sauvegarde logique de `minios-session export` est recommandée.
+Ne comptez pas sur la copie manuelle d’un répertoire de session monté ni sur la reconstruction de `session.conf`, des segments DynFileFS, des fichiers de support DynBlk ou d’autres métadonnées du conteneur comme méthode de sauvegarde. Une sauvegarde manuelle octet par octet DynBlk n’est sûre que lorsque le volume est détaché et doit préserver toutes les `volume*.db` parties existantes, y compris les numéros comportant quatre chiffres ou plus, exactement comme ils existent ; une `minios-session export` sauvegarde logique est préférable.
 
 ## Sauvegarder la configuration et les modules
 

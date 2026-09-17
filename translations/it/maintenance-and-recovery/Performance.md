@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-16
+updated: 2026-09-17
 ---
 
 # Prestazioni
@@ -26,15 +26,15 @@ La persistenza sposta l'I/O del livello scrivibile dal RAM allo storage o a un c
 
 ### Modalità di persistenza (`perchmode`)
 
-- **`native`:** Memorizza il layer scrivibile direttamente come file ordinari. Offre il minimo overhead per i container e non ha una dimensione fissa, ma richiede un filesystem di supporto che conservi i metadati e le operazioni Linux di cui MiniOS ha bisogno.
-- **`raw`:** Utilizza un'unica immagine ext4 a capacità fissa. La lunghezza del file è impostata sulla capacità richiesta e la crescita è esplicita, quindi è semplice e prevedibile ma non offre il comportamento thin-capacity dei backend dinamici. FAT32 limita la singola immagine a 4000 MiB.
-- **`dynfilefs`:** Il backend FUSE/format-400 espande lo storage del payload su richiesta e supporta supporti altrimenti non idonei. Il suo indice non è sparso: ogni blocco logico dichiarato da 4 KiB richiede un offset di 8 byte, quindi la capacità logica costa circa 2 MiB di RAM e circa 2 MiB di storage per l'indice di supporto per GiB anche quando il payload è vuoto. Questo rende efficienti le capacità moderate, ma le capacità thin di grandi dimensioni risultano costose in anticipo.
-- **`dynblk`:** Il backend format-1 kernel block presenta un normale dispositivo a blocchi mentre il thin `volumeNNN.db` backend cresce su richiesta. Le mappature runtime sono sparse e allocano un blocco da 4 KiB per 128 blocchi logici, quindi i dati mappati densamente richiedono circa 8 MiB di mapping RAM per GiB, ma la capacità virtuale non allocata non consuma chunk di mapping. L'indice ad albero interno fisso è di soli 396.312 byte per dispositivo collegato e i contatori di riferimento delle pagine sono sparsi. Il driver, non MiniOS, sceglie il budget di mapping predefinito pari a circa il 25% della RAM utilizzabile, con un limite massimo di 4096 MiB. Questo favorisce capacità sparse di grandi dimensioni; un volume riempito densamente può consumare più mapping RAM per GiB rispetto a DynFileFS.
-- **`squashfs`:** Memorizza uno snapshot compresso e ricostruisce il layer scrivibile superiore in RAM a ogni avvio. Minimizza lo storage persistente per sessioni perlopiù stabili, ma comporta costi in termini di CPU e RAM durante il ripristino e riscrive lo snapshot al salvataggio.
+- **`native`:** Memorizza il layer scrivibile direttamente come file ordinari. Offre il minimo overhead di container e nessuna dimensione fissa, ma richiede un filesystem di supporto che preservi i metadati Linux e le operazioni di cui MiniOS ha bisogno.
+- **`raw`:** Utilizza un'unica immagine ext4 a capacità fissa. La lunghezza del file viene impostata sulla capacità richiesta e la crescita è esplicita, quindi è semplice e prevedibile ma non offre il comportamento a capacità dinamica dei backend dinamici. FAT32 limita la singola immagine a 4000 MiB.
+- **`dynfilefs`:** Il backend FUSE/format-400 espande lo spazio di archiviazione del payload su richiesta e supporta anche supporti altrimenti non idonei. Il suo indice non è sparso: ogni blocco logico dichiarato da 4 KiB richiede un offset da 8 byte, quindi la capacità logica costa circa 2 MiB di RAM e circa 2 MiB di spazio indice per GiB anche quando il payload è vuoto. Questo rende efficienti le capacità moderate, ma le capacità sottili di grandi dimensioni risultano costose in anticipo.
+- **`dynblk`:** Il backend format-1 `DBSPRS01` kernel mantiene le tabelle di mappatura su disco e una cache di metadati limitata in RAM (predefinita 1 MiB). Riempire un dispositivo esistente non alloca una mappa residente completa. Le descrizioni delle estensioni e le directory scalano con le parti dichiarate; la cache dei file e la memoria del codec sono aggiuntive. `dynblk limits --format dynblk` riporta il limite massimo della geometria; `dynblk status /dev/dynblkN --json` mostra i buffer conteggiati e le statistiche della cache. Le sovrascritture raw ordinarie rimangono in posizione; gli aggiornamenti compressi parziali attualmente ricomprimono un blocco da 64 KiB. Scegli consapevolmente la policy della cache degli allegati: `unsafe` rinuncia alle garanzie di durabilità.
+- **`squashfs`:** Memorizza uno snapshot compresso e ricostruisce il livello scrivibile in RAM a ogni avvio. Minimizza lo spazio persistente per sessioni per lo più stabili, ma comporta costi di CPU e RAM durante il ripristino e riscrive lo snapshot al salvataggio.
 
-LUKS2 può avvolgere Raw, DynFileFS o DynBlk. La cifratura aggiunge overhead per lo sblocco e le operazioni crittografiche, mantenendo però la capacità e il comportamento di storage del backend sottostante.
+LUKS2 può avvolgere Raw, DynFileFS o DynBlk. La cifratura aggiunge overhead per lo sblocco e la crittografia, mantenendo però la capacità e il comportamento di archiviazione del backend sottostante.
 
-Esegui benchmark dei carichi di lavoro rappresentativi direttamente sul dispositivo reale. Differenze tra controller flash, filesystem, bridge USB, cifratura, compressione e tipologia di carico sono più affidabili di una classifica universale delle modalità di persistenza.
+Esegui benchmark dei carichi di lavoro rappresentativi direttamente sul dispositivo reale. Controller flash, filesystem, bridge USB, cifratura, compressione e differenze di carico sono fattori più affidabili rispetto a una classifica universale delle modalità di persistenza.
 
 ## Configurazione ZRAM
 

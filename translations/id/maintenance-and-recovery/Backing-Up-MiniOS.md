@@ -37,11 +37,11 @@ Ekspor ini merupakan salinan logis dari isi sesi, bukan salinan byte-per-byte da
 
 Untuk sesi LUKS, arsip berisi file logis yang sudah didekripsi. Lindungi arsip ini secara terpisah jika data perlu tetap terenkripsi.
 
-### SquashFS sesi
+### Sesi SquashFS
 
-Session Manager saat ini tidak mengekspor atau menyalin sesi SquashFS. Gunakan **Simpan Sekarang** sebelum mematikan agar snapshot saat ini lengkap, lalu lindungi file penting secara terpisah. Jika Anda membutuhkan salinan lengkap yang dapat dipulihkan dari seluruh perangkat MiniOS, buat image perangkat offline sebagai gantinya.
+Session Manager saat ini tidak mengekspor atau menyalin sesi SquashFS. Gunakan **Simpan Sekarang** sebelum mematikan perangkat agar snapshot saat ini lengkap, lalu lindungi file penting secara terpisah. Jika Anda membutuhkan salinan lengkap yang dapat dipulihkan dari seluruh perangkat MiniOS, buat image perangkat offline sebagai gantinya.
 
-Jangan mengandalkan penyalinan manual direktori sesi yang ter-mount atau merekonstruksi `session.conf`, segmen DynFileFS, file backing DynBlk, atau metadata kontainer lain sebagai metode cadangan. Cadangan manual DynBlk byte-per-byte hanya aman saat volume terlepas dan harus mempertahankan seluruh `volume000.db` hingga `volume063.db` namespace persis seperti aslinya; `minios-session export` logis lebih disarankan.
+Jangan mengandalkan penyalinan manual direktori sesi yang sedang ter-mount atau merekonstruksi `session.conf`, segmen DynFileFS, file backing DynBlk, atau metadata kontainer lainnya sebagai metode cadangan. Cadangan manual byte-per-byte DynBlk hanya aman saat volume tidak terhubung dan harus mempertahankan semua `volume*.db` bagian yang ada, termasuk angka dengan empat digit atau lebih, persis seperti aslinya; `minios-session export` lebih disarankan.
 
 ## Cadangkan konfigurasi dan modul
 

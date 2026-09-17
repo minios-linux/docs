@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-16
+updated: 2026-09-17
 ---
 
 # Internal Persistensi
@@ -15,22 +15,22 @@ Tanpa parameter persistensi, MiniOS akan menyimpan perubahan di RAM dan membuang
 
 Meminta persistensi tidak menjamin fitur ini aktif. Jika target hanya-baca, penuh, rusak, atau tidak kompatibel, MiniOS dapat melanjutkan dengan layer sementara di RAM. Bacalah peringatan saat startup sebelum mengandalkan perubahan yang tersimpan.
 
-## Penjelasan Parameter
+## Penjelasan parameter
 
-| Parameter | Fungsinya untuk memberi tahu MiniOS | Pilihan umum |
+| Parameter | Menjelaskan apa yang dilakukan MiniOS | Pilihan umum |
 |---|---|---|
-| `perchdir=resume` | Buka sesi default yang kompatibel dan, jika kondisi mendukung, buat pengganti jika tidak dapat digunakan. | Pekerjaan harian biasa. |
-| `perchdir=new` | Buat sesi baru dengan nomor tertentu. | Biarkan workspace yang sudah ada tetap tidak berubah. |
-| `perchdir=ask` | Tampilkan sesi yang tersimpan setelah penyimpanan yang dapat dilanjutkan ditemukan dan memungkinkan Anda memilih salah satunya. Tidak dapat membuat sesi pertama pada penyimpanan kosong. | Beberapa workspace yang sudah ada di satu perangkat; gunakan `perchdir=new` untuk sesi pertama. |
+| `perchdir=resume` | Membuka sesi default yang kompatibel dan, jika kondisi mendukung, membuat pengganti jika tidak dapat digunakan. | Pekerjaan harian biasa. |
+| `perchdir=new` | Membuat sesi baru dengan nomor tertentu. | Mempertahankan workspace yang sudah ada tanpa perubahan. |
+| `perchdir=ask` | Menampilkan sesi yang tersimpan setelah penyimpanan yang dapat dilanjutkan ditemukan dan memungkinkan Anda memilih salah satunya. Tidak dapat membuat sesi pertama pada storage yang kosong. | Beberapa workspace yang sudah ada di satu perangkat; gunakan `perchdir=new` untuk sesi pertama. |
 | `perchdir=NUMBER` | Meminta sesi bernomor tertentu. | Entri boot kustom yang stabil setelah memeriksa ID sesi. |
-| `perchmode=MODE` | Pilih `native`, `dynfilefs`, `dynblk`, `raw`, atau `squashfs`. | Sesuaikan filesystem pendukung dan model persistensi yang diinginkan. |
-| `perchencrypt=luks` | Tambahkan lapisan LUKS2 saat membuat sesi Raw, DynFileFS, atau DynBlk. | Enkripsi backend container yang didukung. |
-| `perchsize=SIZE` | Minta ukuran untuk sesi container baru atau yang sedang bertambah. | DynFileFS, DynBlk, atau raw; enkripsi tidak mengubah semantik ukuran backend. |
-| `perchcomp=CODEC` | Pilih kompresi backend DynBlk untuk sesi DynBlk yang baru dibuat. | `none`, `lz4`, `lz4hc`, `lzo`, `lzo-rle`, `zstd`, `deflate`, atau `842`; ketersediaan tetap tergantung pada kernel yang sedang berjalan. Kompresi dinonaktifkan jika LUKS membungkus DynBlk. |
-| `perchreserve=MB` | Kurangi margin saat menentukan ukuran container baru atau yang bertambah, dan atur ambang peringatan ruang rendah. | Sisakan ruang kerja saat mengalokasikan container; ini bukan kuota saat runtime. |
+| `perchmode=MODE` | Pilih `native`, `dynfilefs`, `dynblk`, `vmdk`, `raw`, atau `squashfs`. | Sesuaikan filesystem pendukung dan model persistensi yang diinginkan. |
+| `perchencrypt=luks` | Tambahkan lapisan LUKS2 saat membuat sesi Raw, DynFileFS, DynBlk, atau VMDK. | Enkripsi backend container yang didukung. |
+| `perchsize=SIZE` | Meminta ukuran sesi container baru atau yang sedang bertambah. | DynFileFS, DynBlk, VMDK, atau raw; enkripsi tidak mengubah semantik ukuran backend. |
+| `perchcomp=CODEC` | Pilih kompresi backend DynBlk untuk sesi DynBlk yang baru dibuat. | `none`, `lz4`, `lz4hc`, `lzo`, `lzo-rle`, `zstd`, `deflate`, atau `842`; ketersediaan tetap tergantung pada kernel yang berjalan. Kompresi dinonaktifkan saat LUKS membungkus DynBlk. |
+| `perchreserve=MB` | Kurangi margin saat menentukan ukuran container baru atau yang bertambah dan atur ambang peringatan ruang rendah. | Sisakan ruang kerja saat mengalokasikan container; ini bukan kuota runtime. |
 | `perch` | Gunakan perilaku resume lama tanpa pembuatan pengganti otomatis. | Kompatibilitas dengan entri kustom yang sudah ada; lebih disarankan `perchdir=resume` untuk menu saat ini. |
 
-Jangan gabungkan persistensi dengan `toram` jika Anda mengharapkan perubahan ditulis kembali ke perangkat asli. MiniOS mengaktifkan sesi hasil salinan di RAM, dan perubahan pada salinan tersebut akan hilang saat shutdown.
+Jangan gabungkan persistensi dengan `toram` saat Anda mengharapkan perubahan akan ditulis kembali ke perangkat asli. MiniOS mengaktifkan sesi yang disalin di RAM, dan perubahan pada salinan tersebut akan hilang saat shutdown.
 
 ## Persistensi bersifat eksplisit
 
@@ -85,32 +85,32 @@ Mode penyimpanan adalah bagian dari kompatibilitas. Jika seleksi mencapai backen
 
 ## Cadangan ruang dan ukuran
 
-MiniOS menggunakan 256 MiB sebagai margin alokasi default dan ambang peringatan ruang rendah. Perhitungan ini menggunakan blok filesystem 1024-byte. `perchreserve` menerima angka bulat tak bertanda tanpa satuan, dibatasi maksimal 4096, dan akan kembali ke 256 jika tidak diisi atau tidak valid. Margin ini mengurangi ruang yang ditawarkan untuk container baru atau yang bertambah besar. Ini bukan kuota: sesi native atau penulisan berikutnya tetap dapat menggunakan sisa ruang filesystem. Saat boot, peringatan akan muncul jika ruang kosong saat ini sama dengan atau di bawah ambang batas.
+MiniOS menggunakan 256 MiB sebagai margin alokasi default dan ambang peringatan ruang rendah. Perhitungan menggunakan blok filesystem 1024-byte. `perchreserve` menerima angka bulat tak bertanda tanpa satuan, dibatasi maksimal 4096, dan akan kembali ke 256 jika kosong atau tidak valid. Margin ini mengurangi ruang yang ditawarkan untuk container baru atau yang bertambah. Ini bukan kuota: sesi native atau penulisan berikutnya masih dapat menggunakan sisa ruang filesystem. Boot akan memperingatkan jika ruang kosong saat ini sama dengan atau di bawah ambang batas.
 
-Ukuran container menggunakan jumlah bulat yang dialokasikan dalam satuan MiB:
+Ukuran container menggunakan jumlah bulat yang dialokasikan dalam MiB:
 
 - Angka tanpa satuan, `M`, atau `MB` berarti MiB.
 - `G` atau `GB` mengalikan angka dengan 1000 MiB.
 - `T` atau `TB` mengalikan angka dengan 1.000.000 MiB.
-- Container tipe Raw dibatasi hingga 1.000.000 MiB dan juga oleh ruang yang tersedia setelah cadangan. DynFileFS memiliki batas terpisah yang memperhitungkan RAM dan batas keras 2.000.000 MiB. DynBlk memiliki batas format/ABI sendiri sebesar 512 GiB.
+- Container Raw dibatasi hingga 1.000.000 MiB dan oleh ruang yang tersedia setelah cadangan. DynFileFS memiliki batas khusus yang memperhitungkan RAM dan batas keras 2.000.000 MiB. DynBlk mendapatkan batas geometri format native dari `dynblk limits --format dynblk`; MiniOS tidak memberlakukan batas 512-GiB terpisah.
 - Raw adalah satu file pendukung, sehingga FAT32 membatasinya hingga 4000 MiB di MiniOS. Batas yang sama berlaku saat Raw dibungkus dalam LUKS2.
-- Sesi raw baru secara default berukuran 4000 MiB. Enkripsi tidak membuat kebijakan ukuran LUKS terpisah: raw terenkripsi, DynFileFS, atau sesi DynBlk tetap mengikuti aturan ukuran backend dasarnya.
-- Sesi DynFileFS baru yang dibuat initrd tanpa `perchsize` menggunakan kapasitas logis hingga 16 GiB. Jika media penyimpanan tidak dapat menampung sebanyak itu setelah `perchreserve` dan overhead indeks DynFileFS, maka default akan dikurangi sesuai kapasitas yang tersedia. Indeks format-400 memerlukan sekitar 2 MiB RAM dan sekitar 2 MiB penyimpanan per GiB kapasitas logis yang dideklarasikan, bahkan saat payload masih kosong. Karena itu, MiniOS juga membatasi kapasitas DynFileFS dari RAM fisik dan oleh batas keras 2.000.000 MiB yang telah diuji.
-- Sesi DynBlk baru tanpa `perchsize` mengikuti batas otomatis 16 GiB yang sama dan akan dikurangi jika ruang penyimpanan yang tersisa kurang setelah `perchreserve`. Ukuran virtual DynBlk yang eksplisit tetap merupakan permintaan kapasitas tipis dan hanya dibatasi oleh batas format/ABI 512 GiB; file pendukung fisik dibuat secara bertahap. DynBlk memiliki kebijakan pemetaan-memori sparse sendiri dan tidak memerlukan MiniOS untuk mengatur anggaran tersebut.
+- Sesi raw baru secara default berukuran 4000 MiB. Enkripsi tidak membuat kebijakan ukuran LUKS terpisah: Raw terenkripsi, DynFileFS, DynBlk, atau sesi VMDK mengikuti aturan ukuran backend dasarnya.
+- Sesi DynFileFS baru yang dibuat initrd tanpa `perchsize` menggunakan hingga 16 GiB kapasitas logis. Jika media pendukung tidak dapat menampung sebanyak itu setelah `perchreserve` dan overhead indeks DynFileFS, default dikurangi ke kapasitas yang tersedia. Indeks format-400 memakan sekitar 2 MiB dari RAM dan sekitar 2 MiB penyimpanan pendukung per GiB kapasitas logis yang dideklarasikan, meskipun payload masih kosong. MiniOS juga membatasi kapasitas DynFileFS dari RAM fisik dan oleh batas keras 2.000.000 MiB yang telah diuji.
+- Sesi DynBlk baru tanpa `perchsize` mengikuti batas otomatis 16 GiB yang sama dan akan dikurangi jika ruang pendukung yang tersisa kurang setelah `perchreserve`. Ukuran DynBlk eksplisit adalah permintaan kapasitas tipis yang diperiksa terhadap batas backend terpasang. Metadata untuk bagian yang dideklarasikan dibuat di awal, namun ruang payload akan bertambah sesuai kebutuhan. DynBlk memiliki cache metadata terbatas yang terpisah dari pemenuhan payload.
 
-Pertumbuhan container bersifat best-effort dan penyusutan tidak didukung. `perchsize` tidak mengatur ukuran sesi native maupun SquashFS. Manajer Sesi MiniOS mengatur container raw dan DynFileFS yang dibuat manual menjadi 4000 MiB dan DynBlk menjadi 16 GiB; varian terenkripsi menggunakan default backend yang sama. Lihat [Manajemen sesi](/using-minios/Sessions-and-Persistence).
+Pertumbuhan container bersifat best-effort dan pengurangan ukuran tidak didukung. `perchsize` tidak menentukan ukuran sesi native atau SquashFS. Manajer Sesi MiniOS mengatur default container raw dan DynFileFS yang dibuat manual ke 4000 MiB dan DynBlk ke 16 GiB; varian terenkripsi menggunakan default backend yang sama. Lihat [Manajemen sesi](/using-minios/Sessions-and-Persistence).
 
-## Aktivasi penyimpanan
+## Aktivasi storage
 
-Semua backend yang berhasil harus menyediakan writable upper yang diharapkan oleh union filesystem yang dipilih. Mount backend saja tidak membuktikan bahwa persistensi sudah aktif. Native, DynFileFS, DynBlk, dan raw dapat memperbarui metadata sesi persisten sebelum validasi union; SquashFS menunda commit metadata tersebut. Raw, DynFileFS, dan DynBlk juga dapat menggunakan enkripsi LUKS2. Status current-boot yang terlindungi hanya dipublikasikan setelah union root terakhir dipastikan menggunakan upper yang diharapkan.
+Semua backend yang berhasil harus menyediakan upper writable yang diharapkan oleh union filesystem yang dipilih. Mount backend saja tidak membuktikan bahwa persistensi aktif. Native, DynFileFS, DynBlk, VMDK, dan raw dapat memperbarui metadata sesi persisten sebelum validasi union; SquashFS menunda komit metadata tersebut. Raw, DynFileFS, DynBlk, dan VMDK juga dapat menggunakan enkripsi LUKS2. Status boot saat ini yang dilindungi hanya dipublikasikan setelah root union terakhir dipastikan menggunakan upper yang diharapkan.
 
-| Backend | Representasi persisten | Model kapasitas | Persyaratan penyimpanan dasar | Lapisan LUKS2 MiniOS |
+| Backend | Representasi persisten | Model kapasitas | Kebutuhan storage pendukung | Lapisan LUKS2 MiniOS |
 |---|---|---|---|---|
-| `native` | File dan direktori langsung di direktori sesi bernomor | Menggunakan ruang filesystem dasar secara langsung; `perchsize` tidak berlaku | Filesystem writable yang lolos uji perilaku POSIX | Tidak |
-| `dynfilefs` | Format-400 `changes.dat` ditambah file segmen yang menampilkan ext4 `virtual.dat` | Payload tipis dengan indeks berukuran kapasitas yang padat | Penyimpanan writable POSIX, FAT32, NTFS, atau exFAT | Ya |
-| `dynblk` | Format-1 `volumeNNN.db` file yang menampilkan `/dev/dynblkN`, dengan ext4 di atasnya | Perangkat blok virtual tipis dengan pemetaan runtime yang sparse | Filesystem yang diterima oleh backend kernel DynBlk dan sumber daya backend yang cukup | Ya |
-| `raw` | Satu file berukuran tetap `changes.img` yang berisi ext4 | File dibuat sesuai ukuran logis yang diminta; hanya dapat bertambah | Filesystem writable yang dapat menampung image; FAT32 dibatasi hingga 4000 MiB | Ya |
-| `squashfs` | Snapshot `changes.sb` terkompresi; writable runtime upper direkonstruksi di RAM | Ukuran snapshot mengikuti perubahan yang ditangkap; `perchsize` tidak berlaku | Snapshot yang sudah ada dapat dibaca dari media writable yang didukung, namun penyimpanan persis membutuhkan filesystem staging yang mendukung POSIX | Tidak |
+| `native` | File dan folder langsung di direktori sesi bernomor | Menggunakan ruang filesystem pendukung secara langsung; `perchsize` tidak berlaku | Filesystem writable yang lolos uji perilaku POSIX | Tidak |
+| `dynfilefs` | Format-400 `changes.dat` ditambah file segmen yang menampilkan ext4 `virtual.dat` | Payload tipis dengan indeks berukuran padat | Storage writable POSIX, FAT32, NTFS, atau exFAT | Ya |
+| `dynblk` | Format-1 `volumeNNN.db` file yang menampilkan `/dev/dynblkN`, dengan ext4 di atasnya | Perangkat blok virtual tipis dengan pemetaan disk-resident dan cache terbatas | Filesystem yang diterima oleh backend kernel DynBlk dan sumber daya backend yang cukup | Ya |
+| `raw` | Satu file berukuran tetap `changes.img` yang berisi ext4 | File dibuat sesuai ukuran logis yang diminta; hanya bertambah | Filesystem writable yang dapat menampung image; FAT32 dibatasi hingga 4000 MiB | Ya |
+| `squashfs` | Terkompresi `changes.sb` snapshot; upper runtime writable direkonstruksi di RAM | Ukuran snapshot mengikuti perubahan yang ditangkap; `perchsize` tidak berlaku | Snapshot yang sudah ada dapat dibaca dari media writable yang didukung, namun penyimpanan persis memerlukan filesystem staging yang mendukung POSIX | Tidak |
 
 ### Native
 
@@ -130,13 +130,36 @@ Image logis berisi ext4. Image yang sudah ada akan diperiksa sebelum proses moun
 
 ### DynBlk
 
-Mode `dynblk` ini adalah backend block-device kernel yang terpisah dari DynFileFS. Setiap sesi bernomor memiliki namespace `volume000.db` sendiri dengan namespace yang dibuat secara dinamis `volume001.db` hingga `volume063.db` sibling. Melampirkan volume melalui `/dev/dynblk-control` akan mengembalikan perangkat whole-disk yang dialokasikan secara dinamis seperti `/dev/dynblk0` atau `/dev/dynblk3`; MiniOS harus menggunakan perangkat yang dikembalikan dan tidak boleh mengasumsikan bahwa `dynblk0` tersedia. Beberapa volume DynBlk dapat dilampirkan secara bersamaan.
+Mode `dynblk` menggunakan perangkat blok kernel, terpisah dari DynFileFS. Setiap sesi bernomor memiliki `volume000.db` dan semua saudara bernomor (`volume001.db`, ..., `volume1000.db`, dan seterusnya). Tata letak native adalah `DBSPRS01`, format disk **1**. Tata letak yang tidak didukung akan ditolak, bukan diam-diam dikonversi. Pastikan versi CLI dan modul yang terpasang sesuai.
 
-MiniOS membuat ext4 langsung pada perangkat whole-disk DynBlk, memeriksa ext4 yang sudah ada sebelum digunakan secara writeable, dan mendukung pertumbuhan hingga batas format-1 sebesar 512 GiB. Proses pengecilan tidak didukung. Status boot yang dilindungi akan mencatat secara tepat `/dev/dynblkN` yang digunakan oleh sesi persisten yang sedang berjalan sehingga saat shutdown, perangkat yang sama akan dilepas setelah filesystem-nya di-unmount. Hal ini tetap akurat meskipun Session Manager sementara melampirkan sesi DynBlk lain secara paralel.
+MiniOS membuat ext4 pada seluruh disk yang dikembalikan oleh `/dev/dynblk-control`, seperti `/dev/dynblk3`; tidak mengasumsikan bahwa `dynblk0` bebas. ext4 yang sudah ada akan diperiksa sebelum digunakan secara writable. Status boot yang dilindungi mencatat perangkat tersebut secara persis sehingga shutdown hanya melepaskannya setelah semua pengguna dan filesystem upper ditutup. Beberapa perangkat independen dapat digunakan bersamaan.
 
-Kapasitas virtual bersifat tipis: tidak ada ruang host yang dialokasikan sebelumnya atau pemetaan RAM. DynBlk menyimpan 128 pemetaan logis 4 KiB di setiap chunk runtime 4 KiB, sehingga memori pemetaan padat sekitar 8 MiB/GiB. Pointer pohon level-0 berada bersama chunk sparse tersebut; indeks internal-node tetap sebesar 396.312 byte per perangkat yang terpasang, dan penghitung referensi physical-page dialokasikan secara dinamis dalam chunk 4 KiB yang masing-masing mencakup 8 MiB ruang backing. Jika tidak ada anggaran pemetaan eksplisit, driver DynBlk akan memilih sekitar 25% dari RAM yang dapat digunakan kernel setelah normalisasi 64 MiB, dengan batas maksimum 4096 MiB. MiniOS menyerahkan kebijakan tersebut kepada driver.
+Session Manager, installer, dan initramfs melakukan query ke `dynblk limits --format dynblk` untuk batas geometri backend yang terpasang. Resource guard saat ini mengizinkan 65536 part: rentang logis standar 1-GiB memungkinkan hingga 64 TiB. Batas fisik part yang lebih kecil akan mengurangi batas virtual. Ini adalah batas geometri, bukan jaminan host dapat membuka sebanyak itu file atau memiliki cukup RAM/storage. Pertumbuhan didukung; pengurangan tidak.
 
-Volume DynBlk baru dapat menggunakan kompresi backend yang dipilih dengan `perchcomp`. Kompresi merupakan properti dari format penyimpanan DynBlk dan akan tetap untuk volume tersebut setelah dibuat. Jika LUKS2 membungkus DynBlk, maka MiniOS memaksa kompresi DynBlk ke `none`, karena lapisan enkripsi berada di atas perangkat DynBlk. Penulisan aktual tetap dapat gagal karena ruang kosong filesystem bawah, namespace backing 64-part, atau penerimaan pemetaan DynBlk. Perangkat yang gagal atau terblokir hanya akan dilepas setelah filesystem atasnya tidak lagi ter-mount; proses pemulihan akan memvalidasi format yang tersimpan pada saat attach berikutnya.
+Tabel pemetaan disimpan di disk. `--map-memory-mb` mengatur cache metadata per perangkat (default 1 MiB, rentang 1..64 MiB), tidak lagi berupa persentase dari RAM atau batas data yang dipetakan. Deskripsi extent, vektor file terbuka, dan direktori kecil bertambah sesuai geometri yang dideklarasikan, bukan isi payload. Attach akan memindai metadata pemetaan dan sementara membangun ulang status alokasi satu part per waktu; tidak membaca setiap payload. Full `dynblk check` akan membaca payload. `engine_memory_bytes` tidak termasuk page cache filesystem, internal codec, dan alokasi kernel lainnya.
+
+File metadata untuk semua part yang dideklarasikan diinisialisasi saat create/grow; data aktual tetap tipis. Setiap part dibatasi 4000 MiB. Cadangkan seluruh namespace yang terlepas, tanpa mengasumsikan tiga digit atau part terakhir tetap. Volume baru dapat memilih kompresi dengan `perchcomp`; pemuatan berikutnya menggunakan codec yang tersimpan. LUKS2 di atas DynBlk memaksa kompresi ke `none`. Penulisan parsial ke data terkompresi saat ini akan mengompresi ulang grain 64-KiB terkait. Kegagalan storage atau resource masih dapat menyebabkan penulisan gagal; filesystem upper harus di-unmount sebelum detach.
+
+### Sesi VMDK
+
+Mode sesi `vmdk` menggunakan driver yang sama dengan image `twoGbMaxExtentSparse`
+asli. Primernya adalah `volume.vmdk`, dengan `volume-s001.vmdk` dan part berikutnya
+; setiap part mencakup hingga 2 GiB ruang logis. Deskriptornya dibatasi
+kurang dari 1 MiB, jadi panjang nama file dan jumlah extent membatasi kapasitas.
+Session Manager, Installer, dan initramfs melakukan query ke `dynblk limits --format vmdk`.
+Mode native tetap menggunakan `volume000.db`; kedua mode tidak menafsirkan ulang 
+file satu sama lain. Sesi yang dikelola tidak mengimpor VMDK eksternal yang dipartisi sembarangan 
+sebagai metadata sesi.
+
+Dukungan sesi VMDK diiklankan oleh `vmdk-session-v1` di
+`/etc/minios-initramfs-dynblk` dalam initrd. Runtime saat ini dan setiap
+initrd sumber yang disalin oleh Installer harus mendukungnya. VMDK tidak memiliki kompresi native;
+`perchcomp` akan diabaikan dengan peringatan saat boot dan Session Manager akan menolak 
+codec VMDK non-`none`. LUKS tetap menjadi lapisan terpisah opsional. Kedua mode mempublikasikan
+mode sesi aktual dan pemilik `dynblk_device` di boot-state yang dilindungi,
+dan kedua implementasi shutdown akan menutup perangkat tersebut setelah semua pengguna keluar.
+
+Kedua format driver mendukung `writeback`, `writethrough`, `none`, `directsync` dan kebijakan attachment `unsafe`eksplisit. Mode langsung saat ini memerlukan ext2/ext4 di bawahnya. `mount -t dynblk /path/to/image /mnt -o inner-fstype=ext4,cache=writeback` mengaitkan filesystem yang sudah ada; `umount` melepaskan perangkat yang dimiliki helper setelah pengguna terakhir menutupnya. `dynblk load` memiliki masa aktif eksplisit. Ini tidak membuat filesystem atau membuka kunci LUKS.
 
 ### Raw
 
@@ -146,15 +169,15 @@ Citra Raw yang sudah ada akan diperiksa dengan `e2fsck` sebelum proses mounting 
 
 ### Lapisan enkripsi LUKS
 
-LUKS2 adalah lapisan enkripsi opsional yang dapat dipilih dengan `perchencrypt=luks` saat membuat sesi Raw, DynFileFS, atau DynBlk. Sesi yang sudah ada mengambil status enkripsinya dari metadata sesi; penentuan `perchencrypt` setelahnya tidak akan mengubah atau mengonversi sesi plaintext yang sudah ada.
+LUKS2 adalah lapisan enkripsi opsional yang dipilih dengan `perchencrypt=luks` saat membuat sesi Raw, DynFileFS, DynBlk, atau VMDK. Sesi yang sudah ada mengambil status enkripsi dari metadata sesi; menentukan `perchencrypt` setelahnya tidak akan menafsirkan ulang atau mengonversi sesi plaintext yang sudah ada.
 
-Batas enkripsi tergantung pada backend: Raw menghubungkan `changes.img` melalui perangkat loop dan menempatkan LUKS2 di dalam file tersebut; DynFileFS menghubungkan `virtual.dat` yang diekspos melalui perangkat loop dan mengenkripsi image logis tersebut; DynBlk menggunakan `/dev/dynblkN` perangkat blok secara langsung sebagai sumber LUKS2. Pada ketiga kasus tersebut, MiniOS membuat ext4 di dalam `/dev/mapper/...`, sehingga isi dan metadata filesystem di dalam mapper akan terenkripsi saat tidak digunakan. Metadata backend di luar batas LUKS, file boot, metadata sesi, dan file lain pada media penyimpanan tetap tidak terenkripsi.
+Batas enkripsi tergantung pada backend: Raw mengaitkan `changes.img` melalui perangkat loop dan menempatkan LUKS2 di dalam file tersebut; DynFileFS mengaitkan `virtual.dat` yang diekspos melalui perangkat loop dan mengenkripsi image logis tersebut; DynBlk menggunakan perangkat blok `/dev/dynblkN` secara langsung sebagai sumber LUKS2. Pada ketiga kasus, MiniOS membuat ext4 di dalam `/dev/mapper/...`, sehingga isi filesystem dan metadata di dalam mapper terenkripsi saat diam. Metadata backend di luar batas LUKS, file boot, metadata sesi, dan file lain di media persistensi tetap tidak terenkripsi.
 
-Default ukuran, batas pertumbuhan, pembatasan FAT32, dan perilaku alokasi thin/fixed tetap mengikuti backend yang digunakan. Initrd melakukan autentikasi sebelum memperbesar backend terenkripsi yang sudah ada, menutup mapper sebelum pertumbuhan backend, lalu membukanya kembali, memeriksa ext4, dan memperluas filesystem sebelum melakukan mounting. Untuk DynBlk terenkripsi, kompresi backend dipaksa ke `none`.
+Default ukuran, batas pertumbuhan, pembatasan FAT32, dan perilaku alokasi tipis/tetap tetap mengikuti backend dasarnya. Initrd melakukan autentikasi sebelum menambah backend terenkripsi yang sudah ada, menutup mapper sebelum pertumbuhan backend, lalu membukanya kembali, memeriksa ext4, dan memperbesar filesystem sebelum mount. Untuk DynBlk terenkripsi, kompresi backend dipaksa ke `none`.
 
-Proses pembuatan meminta frasa sandi dua kali. Sesi terenkripsi yang sudah ada mengizinkan tiga kali percobaan membuka kunci di konsol boot. Tiga frasa sandi yang ditolak akan memicu jalur boot fatal: MiniOS tidak akan melanjutkan di RAM, tidak akan mengubah sesi yang sama menjadi plaintext, memilih backend lain, atau membuat pengganti. Kegagalan lain saat pembuatan, pengecekan, resize, atau mounting tetap mengikuti mekanisme pemulihan backend tanpa fallback ke plaintext. Frasa sandi tidak disimpan di metadata sesi maupun dikirim sebagai argumen perintah. Ekspor logis berisi file sesi yang telah didekripsi, bukan image backend terenkripsi.
+Saat pembuatan, passphrase diminta dua kali. Sesi terenkripsi yang sudah ada mengizinkan tiga kali percobaan unlock di konsol boot. Tiga passphrase yang ditolak akan memicu jalur boot fatal: MiniOS tidak akan melanjutkan di RAM, menafsirkan ulang sesi yang sama sebagai plaintext, memilih backend lain, atau membuat pengganti. Kegagalan pembuatan, pemeriksaan, resize, atau mount lainnya tetap mengikuti perilaku pemulihan backend tanpa fallback plaintext. Passphrase tidak disimpan di metadata sesi atau dikirim sebagai argumen perintah. Ekspor logis berisi file sesi yang sudah didekripsi, bukan image backend terenkripsi.
 
-Lihat [Keamanan](/maintenance-and-recovery/Security) untuk penjelasan batas perlindungan dan pertimbangan backup.
+Lihat [Keamanan](/maintenance-and-recovery/Security) untuk batas perlindungan dan pertimbangan backup.
 
 ### SquashFS
 
@@ -188,3 +211,16 @@ Field metadata tersebut bisa saja usang setelah crash, kegagalan penulisan metad
 Dengan `toram` dan permintaan persistence yang dikenali, store sesi akan disalin ke RAM sebelum aktivasi. Sesi yang disalin dapat writable dan dapat digunakan sebagai upper yang berjalan, namun status boot saat ini ditandai sebagai non-durable. Perubahan pada salinan RAM tersebut tidak akan kembali ke perangkat asli dan akan hilang saat shutdown.
 
 Untuk panduan operasional terkait, lihat [Mode boot](/using-minios/Boot-Modes), [Parameter boot](/reference/Boot-Parameters), [Sesi dan persistence](/using-minios/Sessions-and-Persistence), [Mencadangkan MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS), [Keamanan](/maintenance-and-recovery/Security), dan [Pemecahan masalah](/maintenance-and-recovery/Troubleshooting).
+
+## Reklamasi ruang berbasis sesi
+
+`minios-session reclaim ID` beroperasi pada kedua format blok. Untuk sesi plaintext
+akan melaporkan rentang ext4 kosong dengan FITRIM, lalu memanggil `dynblk reclaim`.
+Untuk sesi aktif, perangkat terikat pada status boot saat ini yang dilindungi dan
+mount ext4 aktual akan diperiksa; root union tidak pernah dipangkas langsung.
+Sesi tidak aktif akan di-attach dan di-mount sementara untuk operasi ini.
+
+Baik boot maupun shutdown tidak menjalankan kompaksi secara otomatis. `--compact` adalah
+pilihan eksplisit pengguna di CLI atau opsi dialog Session Manager yang tidak dicentang.
+Tanpa itu, hanya hole punching (jika didukung) dan truncation free-tail yang terjadi.
+Kebijakan discard LUKS tidak diubah oleh perintah sesi.

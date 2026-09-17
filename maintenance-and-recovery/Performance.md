@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-16
+updated: 2026-09-17
 ---
 # Performance
 
@@ -29,7 +29,7 @@ Persistence moves writable-layer I/O from temporary RAM to storage or a containe
 - **`native`:** Stores the writable layer directly as ordinary files. It has the least container overhead and no fixed container size, but requires a backing filesystem that preserves the Linux metadata and operations MiniOS needs.
 - **`raw`:** Uses one fixed-capacity ext4 image. Its file length is set to the requested capacity and growth is explicit, so it is simple and predictable but lacks the thin-capacity behavior of the dynamic backends. FAT32 limits the single image to 4000 MiB.
 - **`dynfilefs`:** The FUSE/format-400 backend expands payload storage on demand and supports otherwise unsuitable media. Its index is not sparse: every declared 4 KiB logical block needs one 8-byte offset, so logical capacity costs about 2 MiB of RAM and about 2 MiB of backing-index storage per GiB even when the payload is empty. This makes moderate capacities efficient but large thin capacities expensive up front.
-- **`dynblk`:** The format-1 kernel block backend presents a normal block device while thin `volumeNNN.db` backing grows on demand. Runtime mappings are sparse and allocate one 4 KiB chunk for 128 logical blocks, so densely mapped data costs about 8 MiB of mapping RAM per GiB, but unallocated virtual capacity consumes no mapping chunk. The fixed internal tree index is only 396,312 bytes per attached device and page-reference counters are sparse. The driver, not MiniOS, chooses the default mapping budget at approximately 25% of usable RAM, capped at 4096 MiB. This favors large sparse capacities; a densely filled volume can consume more mapping RAM per GiB than DynFileFS.
+- **`dynblk`:** The format-1 `DBSPRS01` kernel backend keeps mapping tables on disk and a bounded metadata cache in RAM (default 1 MiB). Filling an existing device does not allocate a full resident map. Extent descriptions and directories scale with declared parts; file cache and codec memory are additional. `dynblk limits --format dynblk` reports the geometry ceiling; `dynblk status /dev/dynblkN --json` reports accounted buffers and cache statistics. Ordinary raw overwrites stay in place; partial compressed updates currently recompress a 64-KiB grain. Choose the attachment cache policy deliberately: `unsafe` gives up durability guarantees.
 - **`squashfs`:** Stores a compressed snapshot and reconstructs the writable upper in RAM for each boot. It minimizes persistent storage for mostly stable sessions but pays CPU and RAM costs during restore and rewrites the snapshot when saving.
 
 LUKS2 can wrap Raw, DynFileFS, or DynBlk. Encryption adds unlock and crypto overhead while keeping the underlying backend's capacity and storage behavior.

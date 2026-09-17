@@ -37,11 +37,11 @@ La exportación es una copia lógica del contenido de la sesión, no una copia b
 
 Para una sesión LUKS, el archivo de respaldo contiene los archivos lógicos desencriptados. Proteja el archivo por separado si los datos deben permanecer cifrados.
 
-### Sesiones de SquashFS
+### Sesiones SquashFS
 
-El gestor de sesiones actual no exporta ni copia sesiones de SquashFS. Utiliza **Guardar ahora** antes de apagar para que la instantánea actual esté completa y protege los archivos importantes por separado. Si necesitas una copia completa y recuperable de todo el dispositivo MiniOS, crea una imagen de dispositivo offline.
+El Gestor de Sesiones actual no exporta ni copia sesiones SquashFS. Utiliza **Guardar ahora** antes de apagar para que la instantánea actual esté completa y luego protege los archivos importantes por separado. Si necesitas una copia completa y restaurable de todo el dispositivo MiniOS, crea una imagen del dispositivo sin conexión.
 
-No confíes en copiar manualmente el directorio de una sesión montada ni en reconstruir `session.conf`, segmentos DynFileFS, archivos de respaldo DynBlk u otros metadatos de contenedores como método de copia de seguridad. Un respaldo manual de DynBlk, byte por byte, solo es seguro cuando el volumen está desmontado y debe conservar todo su `volume000.db` hasta `volume063.db` el namespace exactamente como existe; se prefiere el respaldo lógico de `minios-session export`.
+No confíes en copiar manualmente el directorio de una sesión montada ni en reconstruir `session.conf`, segmentos DynFileFS, archivos de respaldo DynBlk u otros metadatos del contenedor como método de respaldo. Una copia manual, byte por byte, de respaldo DynBlk solo es segura si el volumen está desmontado y debe conservar todas las partes existentes `volume*.db` exactamente como están, incluyendo los números con cuatro o más dígitos; se recomienda mantener la estructura lógica `minios-session export` siempre que sea posible.
 
 ## Respalda configuración y módulos
 

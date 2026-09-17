@@ -108,17 +108,17 @@ sudo minios-session status
 sudo minios-session info
 ```
 
-Periksa mode boot yang dipilih, ruang tulis yang tersedia, kompatibilitas sistem file, dan kompatibilitas sesi. Aturan pemilihan detail ada di [Sesi dan persistensi](/using-minios/Sessions-and-Persistence) dan [Internal persistensi](/reference/boot-process/Persistence-Internals).
+Periksa mode boot yang dipilih, ruang tulis yang tersedia, kompatibilitas filesystem, dan kompatibilitas sesi. Aturan pemilihan detail ada di [Sesi dan persistensi](/using-minios/Sessions-and-Persistence) dan [Internal persistensi](/reference/boot-process/Persistence-Internals).
 
-Jika ada sesi penting yang tidak berjalan `native`, `dynfilefs`, `dynblk`, `raw`, atau `luks` masih dapat dibaca, ekspor sesi tersebut **sebelum** mencoba-coba dengan penyimpanannya:
+Jika sebuah sesi penting yang tidak sedang berjalan `native`, `dynfilefs`, `dynblk`, `raw`, atau `luks` masih dapat dibaca, ekspor sesi tersebut **sebelum** mencoba-coba dengan penyimpanan:
 
 ```bash
 sudo minios-session export <id> /path/to/session.tar.zst
 ```
 
-Jika Session Manager tidak dapat membaca atau mengekspor sesi, hentikan penulisan ke sumber dan simpan salinan offline dari penyimpanan yang terdampak sebelum melakukan tindakan lebih lanjut. Untuk sesi DynBlk yang terlepas, `dynblk inspect /path/to/volume000.db` dan `dynblk check /path/to/volume000.db` menyediakan diagnostik format hanya-baca; jangan jalankan pada volume yang masih terpasang. MiniOS tidak menyediakan prosedur manual universal untuk membangun ulang segmen DynFileFS, merekonstruksi bagian pendukung DynBlk, memperbaiki sistem file internal, atau merekonstruksi metadata sesi. Pemulihan semacam ini tergantung pada sistem file/kontainer dan hanya boleh dilakukan pada salinan jika data tersebut memang sangat berharga.
+Jika Session Manager tidak dapat membaca atau mengekspor sesi, hentikan penulisan ke sumber dan simpan salinan offline dari penyimpanan yang terdampak sebelum melakukan tindakan lebih lanjut. Untuk sesi DynBlk yang terlepas, `dynblk inspect /path/to/volume000.db --metadata-only` dan `dynblk check /path/to/volume000.db` menyediakan diagnostik format hanya-baca; jangan jalankan pada volume yang masih terpasang. MiniOS tidak menyediakan prosedur manual universal untuk membangun ulang segmen DynFileFS, merekonstruksi bagian pendukung DynBlk, memperbaiki filesystem internal, atau merekonstruksi metadata sesi. Pemulihan seperti ini bersifat spesifik untuk filesystem/container dan sebaiknya hanya dilakukan pada salinan jika nilai data memang layak dipulihkan.
 
-Lihat [Mencadangkan MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS) untuk alur kerja backup dan impor sesi yang didukung.
+Lihat [Mencadangkan MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS) untuk alur kerja pencadangan dan impor sesi yang didukung.
 
 ## Masalah penyimpanan dan ruang kosong
 
@@ -157,3 +157,22 @@ lsusb
 Untuk kegagalan boot berulang pada media MiniOS yang dapat ditulis, `EXPORT_LOGS=true` di `config.conf` mengekspor log boot di bawah `minios/log/`. Lihat [config.conf](/reference/configuration/config.conf).
 
 Hapus kredensial, private key, rahasia Wi-Fi, dan informasi pribadi lainnya sebelum membagikan log. Untuk bug yang dapat direproduksi, sertakan cuplikan yang relevan dan buka issue di [pelacak issue MiniOS](https://github.com/minios-linux/minios-live/issues).
+
+### Sesi VMDK tidak tersedia
+
+Perbarui driver/CLI DynBlk dan alat sesi secara bersamaan, lalu bangun ulang
+initrd boot. Initrd yang berjalan harus mengumumkan `vmdk-session-v1`; Installer juga
+memeriksa setiap sumber initrd yang akan disalin. Penanda DynBlk lama yang kosong hanya
+menandakan dukungan blok native dan tidak menjamin dukungan boot sesi VMDK.
+Jangan mengubah mode sesi yang sudah ada secara manual: gunakan salinan eksplisit atau
+konversi ke format lain.
+
+### Mengosongkan ruang di DynBlk atau sesi VMDK
+
+Gunakan menu konteks Session Manager **Bebaskan Ruang...**, atau
+`minios-session reclaim ID --json`. Untuk sesi plaintext, ini akan memangkas
+ext4 internal lalu mereklamasi penyimpanan tanpa memindahkan data aktif. Pada exFAT,
+celah di bagian dalam mungkin tetap teralokasi; `--compact` adalah pilihan manual terpisah
+yang memindahkan data aktif dan menulis lebih banyak ke perangkat flash. Tidak ada yang mengaktifkan
+kompaksi atau LUKS discard secara otomatis. Sesi terenkripsi hanya dapat mereklamasi
+ruang yang sudah diketahui oleh driver dasar melalui perintah ini.

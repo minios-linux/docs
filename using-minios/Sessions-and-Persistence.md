@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-16
+updated: 2026-09-17
 program_commits:
   minios-session-manager: 69436959d893a9870aca23e91b346d06b49eb98d
   minios-tools: 7cdd0e10c0f610ebc581efa82105b747437a6125
@@ -23,11 +23,12 @@ The equivalent command-line tool is `minios-session`. Its modifying commands req
 |------|---------|------------------|--------------------|
 | `native` | Changes stored directly in the session directory | Requires a writable filesystem that preserves the Linux metadata and operations MiniOS probes for. Capacity follows free backing space; `perchsize` does not apply. | No |
 | `dynfilefs` | Expandable ext4 `virtual.dat` backed by format-400 segment files | Works on writable POSIX, FAT32, NTFS, and exFAT filesystems. Payload is thin, but the mapping index scales with declared logical capacity. | Yes |
-| `dynblk` | Thin ext4 filesystem on a kernel block device backed by `volumeNNN.db` files | Requires the DynBlk CLI, kernel module, and initrd capability. Boot-created size is up to 16 GiB by default; the format ceiling is 512 GiB. Sparse mapping RAM is budgeted separately. | Yes |
+| `dynblk` | Thin ext4 filesystem on a kernel block device backed by `volumeNNN.db` files | Requires the DynBlk CLI, kernel module, and initrd capability. Boot-created size is up to 16 GiB by default; the maximum is reported by `dynblk limits`. Disk-resident mappings use a bounded metadata cache. | Yes |
+| `vmdk` | Thin ext4 filesystem on a standard split sparse VMDK, exposed by the DynBlk driver | Uses `volume.vmdk` and `volume-sNNN.vmdk`. No compression. Requires `vmdk-session-v1` in the running initrd capability marker. Same 16-GiB manual default as DynBlk; query `dynblk limits --format vmdk` for limits. | Yes |
 | `raw` | Single `changes.img` file containing ext4 | Fixed logical capacity with explicit growth only. Works on writable POSIX, FAT32, NTFS, and exFAT filesystems; FAT32 is limited to 4000 MiB. | Yes |
 | `squashfs` | Compressed snapshot in `changes.sb`; runtime writable upper is reconstructed in RAM | `perchsize` does not apply. Existing snapshots can be restored from supported writable media, while exact saving requires a POSIX-capable staging filesystem. | No |
 
-Raw, DynFileFS, and DynBlk can optionally carry a LUKS2 encryption layer. The storage backend remains the session mode, and session metadata records encryption separately. DynFileFS and raw created with `minios-session` default to 4000 MiB; DynBlk defaults to 16 GiB. Size values are allocated in MiB; `GB` and `TB` suffixes convert to 1000 and 1,000,000 MiB. Raw is limited to 4000 MiB on FAT32 whether encrypted or not. DynFileFS payload data grows on demand, but its format-400 index is sized for the full logical capacity and costs about 2 MiB of RAM plus about 2 MiB of backing storage per GiB. DynBlk capacity is thin and its runtime mapping is sparse: dense mappings cost about 8 MiB/GiB, while unused virtual capacity consumes no mapping chunk. The DynBlk driver selects its own automatic mapping budget at about 25% of usable RAM, capped at 4096 MiB; MiniOS does not override that policy. Actual writes remain limited by lower-filesystem free space and backend resource admission. Container resize operations can only grow a session; shrinking is not supported.
+Raw, DynFileFS, DynBlk, and VMDK can optionally carry a LUKS2 encryption layer. The storage backend remains the session mode, and session metadata records encryption separately. DynFileFS and raw created with `minios-session` default to 4000 MiB; DynBlk and VMDK default to 16 GiB. Size values are allocated in MiB; `GB` and `TB` suffixes convert to 1000 and 1,000,000 MiB. Raw is limited to 4000 MiB on FAT32 whether encrypted or not. DynFileFS payload data grows on demand, but its format-400 index is sized for the full logical capacity and costs about 2 MiB of RAM plus about 2 MiB of backing storage per GiB. DynBlk keeps mapping tables on disk and a bounded metadata cache in RAM, defaulting to 1 MiB rather than a percentage of RAM. Its extent/file vectors and directories grow with declared parts, while payload fill does not require a full resident map. Query the installed capacity limit with `dynblk limits --format dynblk`. Actual writes remain limited by lower-filesystem free space and backend resource admission. Container resize operations can only grow a session; shrinking is not supported.
 
 Native mode is the simplest and fastest choice on a compatible filesystem.
 Use DynFileFS when the persistence filesystem cannot represent Linux metadata.
@@ -55,12 +56,12 @@ Any recognized persistence parameter enables persistence handling. MiniOS boot m
 | `perchdir=ask` | Select an existing session or create one during boot. |
 | `perchdir=<id>` | Select that numbered session directly. |
 | `perchdir=<device/path>` | Use a persistence location on a device, including `/dev/...` and `label:...` forms handled by the initrd. |
-| `perchmode=<mode>` | Set `native`, `dynfilefs`, `dynblk`, `raw`, or `squashfs`. |
-| `perchencrypt=luks` | Encrypt a newly created Raw, DynFileFS, or DynBlk session with LUKS2. Existing sessions derive encryption only from metadata. |
+| `perchmode=<mode>` | Set `native`, `dynfilefs`, `dynblk`, `vmdk`, `raw`, or `squashfs`. |
+| `perchencrypt=luks` | Encrypt a newly created Raw, DynFileFS, DynBlk, or VMDK session with LUKS2. Existing sessions derive encryption only from metadata. |
 | `perchcomp=<codec>` | Select DynBlk backend compression for a new DynBlk session. Compression is forced to `none` when DynBlk is wrapped in LUKS2. |
 | `perchsize=<size>` | Set a new or larger container size; plain values are allocated in MiB and `MB`, `GB`, and `TB` suffixes are accepted. |
 
-If no mode is specified for a new session, boot uses native mode. On FAT32/NTFS/exFAT, native boot creation falls back to DynFileFS. A new raw container defaults to 4000 MiB. New DynFileFS and DynBlk boot sessions without `perchsize` use up to 16 GiB; when less backing space remains after the safety reserve, the automatic size is reduced. DynFileFS also accounts for its index overhead and RAM limit. Explicit DynBlk growth is capped at 512 GiB.
+If no mode is specified for a new session, boot uses native mode. On FAT32/NTFS/exFAT, native boot creation falls back to DynFileFS. A new raw container defaults to 4000 MiB. New DynFileFS, DynBlk, and VMDK boot sessions without `perchsize` use up to 16 GiB; when less backing space remains after the safety reserve, the automatic size is reduced. DynFileFS also accounts for its index overhead and RAM limit. Explicit DynBlk growth follows the installed backend limit, queried with `dynblk limits --format dynblk`.
 SquashFS sessions can be captured from the running system with MiniOS Session Manager or `minios-session create squashfs`. Initrd setup creates only generation-zero session metadata and keeps the writable upper layer in RAM. The running system creates the first `changes.sb` snapshot on demand or at shutdown.
 
 When resuming, MiniOS checks the recorded version, edition, union filesystem, and mode. Literal `perchdir=resume` can create a new session instead of using an absent or incompatible default. Bare `perch`, direct numeric selection, and other legacy resume requests do not automatically create that replacement.
@@ -171,7 +172,7 @@ sudo minios-session cleanup
 sudo minios-session cleanup --days 30
 ```
 
-Resize supports DynFileFS, DynBlk, and raw sessions, including encrypted forms, and requires a size larger than the current size. DynBlk resize grows the virtual block device first and then expands its ext4 filesystem; it does not preallocate the new virtual capacity. Cleanup defaults to sessions older than 30 days.
+Resize supports DynFileFS, DynBlk, VMDK, and raw sessions, including encrypted forms, and requires a size larger than the current size. DynBlk resize grows the virtual block device first and then expands its ext4 filesystem; it does not preallocate the new virtual capacity. Cleanup defaults to sessions older than 30 days.
 
 All commands accept `--json`, and a different session store can be selected with `--sessions-dir PATH`:
 
@@ -207,7 +208,7 @@ Encrypted exports contain decrypted logical session files, not the encrypted bac
 
 ## Backups and failed sessions
 
-For native, DynFileFS, DynBlk, and raw sessions, including encrypted forms, use `export` for logical backups rather than copying a mounted session directory. Keep the resulting archive on another device and verify that it can be imported before relying on it. Import always creates a new numbered session; activate it explicitly when it is ready to use.
+For native, DynFileFS, DynBlk, VMDK, and raw sessions, including encrypted forms, use `export` for logical backups rather than copying a mounted session directory. Keep the resulting archive on another device and verify that it can be imported before relying on it. Import always creates a new numbered session; activate it explicitly when it is ready to use.
 For SquashFS and whole-device backup procedures, see [Backing up MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS).
 
 If a session fails after the storage fills, a write is interrupted, or empty sessions are created repeatedly, stop modifying the affected storage. Export a readable non-running session first when possible, then follow [Troubleshooting](/maintenance-and-recovery/Troubleshooting).
@@ -223,3 +224,65 @@ sudo minios-session info
 ```
 
 At boot, container filesystems are checked before writable activation. Serious filesystem-check failures preserve the container for recovery instead of mounting it writable. SquashFS detects an unclean previous state and restores the last successfully saved snapshot. Delete sessions only through MiniOS Session Manager or `minios-session delete`; do not remove session directories manually.
+
+## Returning unused DynBlk and VMDK storage
+
+In Session Manager, right-click a DynBlk or VMDK session and choose **Free Space...**.
+The dialog works for both the running session and an inactive session. For a
+plaintext session it trims the internal ext4 before asking the driver to reclaim
+space. An inactive session is attached temporarily and then disconnected; the
+running session's device remains connected.
+
+```sh
+minios-session reclaim 3 --json
+# Explicitly permit live-data relocation (additional flash writes):
+minios-session reclaim 3 --compact --json
+```
+
+The compaction checkbox is **off by default**, including on exFAT. There is no
+automatic compaction fallback. Encrypted sessions reclaim only space already
+known to the driver; this operation does not enable discard through LUKS or
+reveal its allocation pattern. Device errors and failed trim stop the operation.
+
+### Low-level driver commands
+
+With the current DynBlk native or split VMDK backend, discard of complete grains
+makes their placement reusable. On an ext4 backing filesystem, retired ranges
+can also be hole-punched automatically. On exFAT, automatic cleanup only truncates
+completely free file tails. **Automatic cleanup never moves live data.**
+
+Use `fstrim` on the mounted inner changes filesystem (not the combined AUFS/OverlayFS
+root) to report deleted blocks, then `dynblk reclaim /dev/dynblkN --execute` for
+non-moving cleanup. Select the actual session device, not an assumed index.
+To request write-intensive in-place compaction manually, add `--compact`.
+It works without converting the image or changing virtual filesystem size;
+other reads/writes may run between reclaim steps. It is not an automatic fallback.
+The optional `--scan-zeroes` reads mapped grains, and is not enabled by default.
+
+These commands are also available in the rebuilt initrd DynBlk CLI. No automatic
+startup compaction is enabled. Encrypted sessions retain their existing discard
+policy; the tools do not silently enable dm-crypt discard passthrough.
+Read-only or `cache=unsafe` attachments cannot be reclaimed. Reported punched
+ranges and truncated lengths are not the same as measured filesystem free space.
+
+## VMDK session workflows
+
+VMDK is a separate session mode, not a new compression codec. Create, activate,
+resize, export/import, copy, clone and conversion use the same Session Manager
+commands as other container modes:
+
+```sh
+minios-session create vmdk 16384 --activate
+minios-session copy 3 --to-mode vmdk --size 16384
+minios-session import /path/to/session.tar.zst --force-mode vmdk
+```
+
+Session archives contain logical files and metadata, not an arbitrary external
+VMDK attachment. Managed VMDK sessions use the canonical `volume.vmdk` descriptor
+and all its `volume-sNNN.vmdk` siblings. Do not rename parts or copy a live image
+behind the driver. Switching between native DynBlk and VMDK requires an explicit
+copy/conversion; changing `session_mode` by hand is not conversion.
+
+The installer offers VMDK only when supported by the runtime and rejects source
+images whose copied initrds lack the `vmdk-session-v1` capability. Update the CLI,
+driver, session tools and boot scripts together before creating VMDK sessions.

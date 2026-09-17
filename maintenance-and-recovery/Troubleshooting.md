@@ -115,7 +115,7 @@ If an important non-running `native`, `dynfilefs`, `dynblk`, `raw`, or `luks` se
 sudo minios-session export <id> /path/to/session.tar.zst
 ```
 
-If Session Manager cannot read or export the session, stop writing to the source and preserve an offline copy of the affected storage before further work. For a detached DynBlk session, `dynblk inspect /path/to/volume000.db` and `dynblk check /path/to/volume000.db` provide read-only format diagnostics; do not run them against a volume that is still attached. MiniOS does not define a universal manual procedure for rebuilding DynFileFS segments, reconstructing DynBlk backing parts, repairing an inner filesystem, or reconstructing session metadata. Such recovery is filesystem/container-specific and should be attempted only on a copy when the value of the data justifies it.
+If Session Manager cannot read or export the session, stop writing to the source and preserve an offline copy of the affected storage before further work. For a detached DynBlk session, `dynblk inspect /path/to/volume000.db --metadata-only` and `dynblk check /path/to/volume000.db` provide read-only format diagnostics; do not run them against a volume that is still attached. MiniOS does not define a universal manual procedure for rebuilding DynFileFS segments, reconstructing DynBlk backing parts, repairing an inner filesystem, or reconstructing session metadata. Such recovery is filesystem/container-specific and should be attempted only on a copy when the value of the data justifies it.
 
 See [Backing up MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS) for supported backup and session-import workflows.
 
@@ -156,3 +156,22 @@ lsusb
 For repeat boot failures on writable MiniOS media, `EXPORT_LOGS=true` in `config.conf` exports boot logs under `minios/log/`. See [config.conf](/reference/configuration/config.conf).
 
 Remove credentials, private keys, Wi-Fi secrets, and other private information before sharing logs. For a reproducible defect, include the relevant excerpts and open an issue in the [MiniOS issue tracker](https://github.com/minios-linux/minios-live/issues).
+
+### VMDK sessions are not offered
+
+Update the DynBlk driver/CLI and the session tools together, then rebuild the
+boot initrd. The running initrd must advertise `vmdk-session-v1`; Installer also
+checks every source initrd it will copy. The old empty DynBlk marker only
+indicates native block support and does not promise VMDK session boot support.
+Do not change an existing session's mode by hand: use an explicit copy or
+conversion to the other format.
+
+### Freeing space in DynBlk or VMDK sessions
+
+Use Session Manager's context menu **Free Space...**, or
+`minios-session reclaim ID --json`. For plaintext sessions this trims the
+internal ext4 and then reclaims storage without moving live data. On exFAT,
+interior gaps may remain allocated; `--compact` is a separate manual choice
+which relocates live data and writes more to the flash device. Nothing enables
+compaction or LUKS discard automatically. An encrypted session can reclaim only
+space already known to the underlying driver through this command.

@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-16
+updated: 2026-09-17
 ---
 
 # Persistenz-Interna
@@ -15,20 +15,20 @@ Ohne einen Persistenz-Parameter speichert MiniOS Änderungen in RAM und verwirft
 
 Das Anfordern von Persistenz garantiert nicht, dass sie tatsächlich aktiv ist. Ist das Ziel schreibgeschützt, voll, beschädigt oder inkompatibel, kann MiniOS mit einer temporären RAM-Ebene fortfahren. Lesen Sie die Startwarnung, bevor Sie sich auf gespeicherte Änderungen verlassen.
 
-## Parameter erklärt
+## Parametererklärung
 
-| Parameter | Was es MiniOS mitteilt | Typische Auswahl |
+| Parameter | Was es über MiniOS aussagt | Typische Auswahl |
 |---|---|---|
-| `perchdir=resume` | Öffnet die standardmäßige kompatible Sitzung und erstellt, sofern unterstützt, einen Ersatz, wenn diese nicht verwendet werden kann. | Normale tägliche Arbeit. |
-| `perchdir=new` | Eine neue nummerierte Sitzung erstellen. | Einen bestehenden Arbeitsbereich unverändert lassen. |
-| `perchdir=ask` | Zeigt gespeicherte Sitzungen an, nachdem ein fortsetzbarer Speicher gefunden wurde, und ermöglicht die Auswahl. Die erste Sitzung kann auf leerem Speicher nicht erstellt werden. | Mehrere bestehende Arbeitsbereiche auf einem Gerät; verwenden Sie `perchdir=new` für die erste Sitzung. |
-| `perchdir=NUMBER` | Eine bestimmte nummerierte Sitzung anfordern. | Stabiler benutzerdefinierter Boot-Eintrag nach Überprüfung der Sitzungs-ID. |
-| `perchmode=MODE` | Wählen Sie `native`, `dynfilefs`, `dynblk`, `raw` oder `squashfs`. | Das zugrunde liegende Dateisystem und das gewünschte Persistenzmodell anpassen. |
-| `perchencrypt=luks` | Fügen Sie beim Erstellen einer Raw-, DynFileFS- oder DynBlk-Sitzung eine LUKS2-Schicht hinzu. | Einen unterstützten Container-Backend verschlüsseln. |
-| `perchsize=SIZE` | Die Größe einer neuen oder wachsenden Container-Sitzung anfordern. | DynFileFS, DynBlk oder raw; Verschlüsselung ändert nichts an der Backend-Größenlogik. |
-| `perchcomp=CODEC` | Wählen Sie DynBlk Backend-Komprimierung für eine neu erstellte DynBlk-Sitzung. | `none`, `lz4`, `lz4hc`, `lzo`, `lzo-rle`, `zstd`, `deflate` oder `842`; die Verfügbarkeit hängt weiterhin vom laufenden Kernel ab. Die Komprimierung ist deaktiviert, wenn LUKS DynBlk umschließt. |
-| `perchreserve=MB` | Beim Festlegen der Größe eines neuen oder wachsenden Containers wird eine Reserve abgezogen und die Warnschwelle für wenig Speicherplatz gesetzt. | Beim Anlegen eines Containers wird Arbeitsbereich freigehalten; dies ist kein Laufzeit-Kontingent. |
-| `perch` | Das ältere Resume-Verhalten ohne automatische Ersatz-Erstellung verwenden. | Kompatibilität mit einem bestehenden benutzerdefinierten Eintrag; bevorzugen Sie `perchdir=resume` für aktuelle Menüs. |
+| `perchdir=resume` | Öffnet die standardmäßig kompatible Sitzung und erstellt unter unterstützten Bedingungen einen Ersatz, wenn diese nicht verwendet werden kann. | Normale tägliche Arbeit. |
+| `perchdir=new` | Erstellt eine neue, nummerierte Sitzung. | Belässt einen bestehenden Arbeitsbereich unverändert. |
+| `perchdir=ask` | Zeigt gespeicherte Sitzungen an, nachdem ein fortsetzbarer Speicher gefunden wurde, und ermöglicht die Auswahl. Die erste Sitzung auf einem leeren Speicher kann damit nicht erstellt werden. | Mehrere vorhandene Arbeitsbereiche auf einem Gerät; verwenden Sie `perchdir=new` für die erste Sitzung. |
+| `perchdir=NUMBER` | Fordert eine bestimmte nummerierte Sitzung an. | Stabiler benutzerdefinierter Boot-Eintrag nach Überprüfung der Sitzungs-ID. |
+| `perchmode=MODE` | Wählen Sie `native`, `dynfilefs`, `dynblk`, `vmdk`, `raw`, oder `squashfs`. | Abgleich des zugrunde liegenden Dateisystems und des gewünschten Persistenzmodells. |
+| `perchencrypt=luks` | Fügt beim Erstellen einer Raw-, DynFileFS-, DynBlk- oder VMDK-Sitzung eine LUKS2-Schicht hinzu. | Verschlüsselt ein unterstütztes Container-Backend. |
+| `perchsize=SIZE` | Fordert die Größe einer neuen oder wachsenden Container-Sitzung an. | DynFileFS, DynBlk, VMDK oder Raw; Verschlüsselung ändert die Backend-Größenlogik nicht. |
+| `perchcomp=CODEC` | Wählen Sie DynBlk-Backend-Komprimierung für eine neu erstellte DynBlk-Sitzung. | `none`, `lz4`, `lz4hc`, `lzo`, `lzo-rle`, `zstd`, `deflate`, oder `842`; die Verfügbarkeit hängt weiterhin vom laufenden Kernel ab. Komprimierung ist deaktiviert, wenn LUKS DynBlk umschließt. |
+| `perchreserve=MB` | Zieht beim Festlegen der Größe eines neuen oder wachsenden Containers eine Reserve ab und setzt die Warnschwelle für wenig Speicherplatz. | Lässt Arbeitsbereich beim Zuweisen eines Containers frei; dies ist kein Laufzeit-Kontingent. |
+| `perch` | Verwendet das ältere Resume-Verhalten ohne automatische Ersatz-Erstellung. | Kompatibilität mit einem bestehenden benutzerdefinierten Eintrag; bevorzugen Sie `perchdir=resume` für aktuelle Menüs. |
 
 Kombinieren Sie Persistenz nicht mit `toram` wenn Sie erwarten, dass Änderungen auf das Originalgerät zurückgeschrieben werden. MiniOS aktiviert die kopierte Sitzung in RAM, und Änderungen an dieser Kopie gehen beim Herunterfahren verloren.
 
@@ -83,34 +83,34 @@ Das explizite `perchdir=resume` erstellt eine neue nummerierte Sitzung, wenn das
 
 Der Speichermodus ist Teil der Kompatibilität. Wenn die Auswahl die Backend-Dispatch erreicht, fällt ein unbekannter angeforderter Modus auf `native` zurück, dessen Probe dann ggf. DynFileFS auf ungeeignetem Speicher auswählt. Eine bestehende Sitzung mit anderem aufgezeichnetem Modus kann stattdessen an der früheren Kompatibilitätsprüfung scheitern; eine Legacy-Resume-Anfrage setzt dann in RAM fort, anstatt auf dieses Fallback zu gelangen.
 
-## Reserven und Größen für Speicherplatz
+## Speicherreserve und Größen
 
-MiniOS verwendet standardmäßig 256 MiB als Allokationspuffer und Schwellenwert für die Speicherplatzwarnung. Die Berechnung basiert auf 1024-Byte-Dateisystemblöcken. `perchreserve` akzeptiert eine positive ganze Zahl ohne Einheit, ist auf 4096 begrenzt und fällt auf 256 zurück, wenn kein Wert oder ein ungültiger Wert angegeben wird. Die Reserve verringert den Speicherplatz, der einem neuen oder wachsenden Container angeboten wird. Es handelt sich nicht um ein Quota: Eine native Sitzung oder spätere Schreibvorgänge können den verbleibenden Speicherplatz weiterhin nutzen. Beim Systemstart erfolgt eine Warnung, wenn der aktuelle freie Speicherplatz den Schwellenwert erreicht oder unterschreitet.
+MiniOS verwendet 256 MiB als Standard-Reserverand und Warnschwelle für wenig Speicherplatz. Die Berechnung erfolgt mit 1024-Byte-Dateisystemblöcken. `perchreserve` akzeptiert eine vorzeichenlose Ganzzahl ohne Einheit, ist auf 4096 begrenzt und fällt auf 256 zurück, wenn der Wert fehlt oder ungültig ist. Die Reserve verringert den für einen neuen oder wachsenden Container angebotenen Speicherplatz. Es handelt sich nicht um ein Kontingent: Eine native Sitzung oder spätere Schreibvorgänge können den verbleibenden Dateisystemplatz weiterhin nutzen. Beim Booten wird gewarnt, wenn der aktuelle freie Speicherplatz auf oder unter der Schwelle liegt.
 
-Containergrößen werden als ganze Zahlen in MiB zugewiesen:
+Container-Größen werden als ganze Werte in MiB zugewiesen:
 
-- Eine reine Zahl, `M`, oder `MB` steht für MiB.
+- Eine reine Zahl, `M`, oder `MB` bedeutet MiB.
 - `G` oder `GB` multipliziert die Zahl mit 1000 MiB.
 - `T` oder `TB` multipliziert die Zahl mit 1.000.000 MiB.
-- Raw-Container sind auf 1.000.000 MiB sowie auf den nach der Reserve verfügbaren Speicherplatz begrenzt. DynFileFS besitzt eine eigene, RAM-abhängige Begrenzung und ein festes Limit von 2.000.000 MiB. DynBlk hat eine eigene Obergrenze von 512 GiB für das Format/ABI.
+- Raw-Container sind auf 1.000.000 MiB sowie den verfügbaren Speicher nach der Reserve begrenzt. DynFileFS hat ein eigenes, RAM-abhängiges Limit und eine harte Obergrenze von 2.000.000 MiB. DynBlk erhält sein Geometrie-Limit im nativen Format von `dynblk limits --format dynblk`; MiniOS erzwingt keine separate 512-GiB-Obergrenze.
 - Raw ist eine einzelne Backing-Datei, daher begrenzt FAT32 sie in MiniOS auf 4000 MiB. Das gleiche Limit gilt, wenn Raw in LUKS2 eingebettet ist.
-- Eine neue Raw-Sitzung verwendet standardmäßig 4000 MiB. Die Verschlüsselung legt keine eigene LUKS-Größenrichtlinie fest: Ein verschlüsselter Raw-, DynFileFS- oder DynBlk-Container übernimmt die Größenregeln seines zugrunde liegenden Backends.
-- Eine neue, durch initrd erstellte DynFileFS-Sitzung ohne `perchsize` nutzt bis zu 16 GiB logische Kapazität. Falls der zugrundeliegende Speicher nach `perchreserve` und DynFileFS-Index-Overhead letztlich nicht so viel aufnehmen kann, wird der Standardwert auf die verfügbare Kapazität reduziert. Der Format-400-Index benötigt etwa 2 MiB RAM sowie etwa 2 MiB Backing-Speicher pro GiB deklarierter logischer Kapazität, auch wenn die Nutzdaten noch leer sind. MiniOS begrenzt daher auch die DynFileFS-Kapazität durch physischen RAM und ein getestetes festes Limit von 2.000.000 MiB.
-- Eine neue DynBlk-Sitzung ohne `perchsize` folgt ebenfalls der automatischen Obergrenze von 16 GiB und wird reduziert, wenn nach `perchreserve`. Eine explizite DynBlk-Virtuellgröße ist weiterhin eine Thin-Capacity-Anforderung und nur durch die 512 GiB Format/ABI-Obergrenze begrenzt; physische Backing-Dateien werden bei Bedarf erstellt. DynBlk verwaltet seine eigene Sparse-Mapping-Speicherpolitik und benötigt keine MiniOS-Größenangabe für dieses Budget.
+- Eine neue Raw-Sitzung verwendet standardmäßig 4000 MiB. Die Verschlüsselung erstellt keine eigene LUKS-Größenrichtlinie: Ein verschlüsselter Raw-, DynFileFS-, DynBlk- oder VMDK-Container behält die Größenregeln seines zugrunde liegenden Backends bei.
+- Eine neue, durch initrd erstellte DynFileFS-Sitzung ohne `perchsize` verwendet bis zu 16 GiB logische Kapazität. Kann der zugrunde liegende Speicher nach `perchreserve` und DynFileFS-Index-Overhead letztlich nicht so viel aufnehmen, wird der Standard auf die verfügbare Kapazität reduziert. Der Format-400-Index benötigt etwa 2 MiB RAM und etwa 2 MiB Backing-Speicher pro GiB deklarierter logischer Kapazität, selbst wenn der Payload leer ist. MiniOS begrenzt daher auch die DynFileFS-Kapazität durch physischen RAM und eine getestete harte Obergrenze von 2.000.000 MiB.
+- Eine neue DynBlk-Sitzung ohne `perchsize` folgt derselben automatischen 16-GiB-Obergrenze und wird reduziert, wenn nach `perchreserve`. Die explizite DynBlk-Größe ist eine Thin-Capacity-Anforderung, die gegen das installierte Backend-Limit geprüft wird. Die Metadaten für deklarierte Teile werden initial angelegt, aber der Payload-Speicher wächst bei Bedarf. DynBlk besitzt einen begrenzten Metadaten-Cache, unabhängig von der Payload-Belegung.
 
-Das Vergrößern von Containern erfolgt nach dem Best-Effort-Prinzip, das Verkleinern wird nicht unterstützt. `perchsize` bestimmt nicht die Größe von nativen oder SquashFS-Sitzungen. Der MiniOS-Sitzungsmanager setzt manuell erstellte Raw- und DynFileFS-Container standardmäßig auf 4000 MiB und DynBlk auf 16 GiB; verschlüsselte Varianten nutzen die gleichen Backend-Standards. Siehe [Sitzungsverwaltung](/using-minios/Sessions-and-Persistence).
+Container-Wachstum ist best effort, Verkleinerung wird nicht unterstützt. `perchsize` legt keine Größe für native oder SquashFS-Sitzungen fest. Der MiniOS-Sitzungsmanager verwendet für manuell erstellte Raw- und DynFileFS-Container standardmäßig 4000 MiB und für DynBlk 16 GiB; verschlüsselte Varianten nutzen die gleichen Backend-Standards. Siehe [Sitzungsverwaltung](/using-minios/Sessions-and-Persistence).
 
 ## Speicheraktivierung
 
-Alle erfolgreichen Backends müssen das beschreibbare Upper bereitstellen, das vom gewählten Union-Dateisystem erwartet wird. Das Einbinden eines Backends allein beweist nicht, dass Persistenz aktiv ist. Native, DynFileFS, DynBlk und Raw können persistente Sitzungsmetadaten vor der Union-Validierung aktualisieren; SquashFS verzögert dieses Metadaten-Commit. Raw, DynFileFS und DynBlk können zusätzlich LUKS2-Verschlüsselung verwenden. Der geschützte aktuelle Boot-Status wird erst veröffentlicht, nachdem die finale Root-Union bestätigt wurde und das erwartete Upper verwendet.
+Alle erfolgreichen Backends müssen das beschreibbare Upper bereitstellen, das vom gewählten Union-Dateisystem erwartet wird. Das Einbinden eines Backends allein beweist nicht, dass Persistenz aktiv ist. Native, DynFileFS, DynBlk, VMDK und Raw können persistente Sitzungsmetadaten vor der Union-Validierung aktualisieren; SquashFS verzögert dieses Metadaten-Commit. Raw, DynFileFS, DynBlk und VMDK können zusätzlich LUKS2-Verschlüsselung verwenden. Der geschützte Current-Boot-Status wird erst veröffentlicht, nachdem die finale Root-Union bestätigt, dass das erwartete Upper verwendet wird.
 
-| Backend | Persistente Darstellung | Kapazitätsmodell | Anforderungen an das Backing-Storage | MiniOS LUKS2-Schicht |
+| Backend | Persistente Darstellung | Kapazitätsmodell | Anforderungen an den Backing-Speicher | MiniOS LUKS2-Schicht |
 |---|---|---|---|---|
-| `native` | Dateien und Verzeichnisse direkt im nummerierten Sitzungsverzeichnis | Verwendet direkt den Speicherplatz des zugrunde liegenden Dateisystems; `perchsize` nicht zutreffend | Beschreibbares Dateisystem, das die POSIX-Verhaltensprüfung besteht | Nein |
-| `dynfilefs` | Format-400 `changes.dat` plus Segmentdateien mit ext4- `virtual.dat` | Schlanke Nutzlast mit einem dichten, kapazitätsgroßen Index | Beschreibbarer POSIX-, FAT32-, NTFS- oder exFAT-Speicher | Ja |
-| `dynblk` | Format-1 `volumeNNN.db` Dateien mit `/dev/dynblkN`, darüber ext4 | Schlankes virtuelles Blockgerät mit sparsamen Laufzeitzuweisungen | Dateisystem, das vom DynBlk-Kernel-Backend akzeptiert wird, sowie ausreichende Backend-Ressourcen | Ja |
-| `raw` | Einzelne Datei fester Größe `changes.img` mit ext4-Inhalt | Datei wird mit der gewünschten logischen Größe erstellt; nur Wachstum möglich | Beschreibbares Dateisystem, das das Image aufnehmen kann; FAT32 ist auf 4000 MiB begrenzt | Ja |
-| `squashfs` | Komprimiertes `changes.sb` Snapshot; das beschreibbare Laufzeit-Upper wird in RAM rekonstruiert | Snapshot-Größe entspricht den erfassten Änderungen; `perchsize` nicht zutreffend | Vorhandene Snapshots können von unterstützten beschreibbaren Medien gelesen werden, aber exaktes Speichern erfordert ein POSIX-fähiges Staging-Dateisystem | Nein |
+| `native` | Dateien und Verzeichnisse direkt im nummerierten Sitzungsverzeichnis | Verwendet den Speicherplatz des Backing-Dateisystems direkt; `perchsize` ist nicht anwendbar | Beschreibbares Dateisystem, das die POSIX-Verhaltensprüfung besteht | Nein |
+| `dynfilefs` | Format-400 `changes.dat` plus Segmentdateien, die ein ext4 bereitstellen `virtual.dat` | Dünner Payload mit dichtem, kapazitätsgroßem Index | Beschreibbares POSIX-, FAT32-, NTFS- oder exFAT-Medium | Ja |
+| `dynblk` | Format-1 `volumeNNN.db`-Dateien, die `/dev/dynblkN` bereitstellen, mit ext4 darüber | Dünnes virtuelles Blockgerät mit plattengespeicherten Zuordnungen und begrenztem Cache | Dateisystem, das vom DynBlk-Kernel-Backend akzeptiert wird, und ausreichende Backend-Ressourcen | Ja |
+| `raw` | Einzelne Datei fester Größe `changes.img` mit ext4-Inhalt | Datei wird mit der gewünschten logischen Größe erstellt; nur Wachstum möglich | Beschreibbares Dateisystem, das das Abbild aufnehmen kann; FAT32 ist auf 4000 MiB begrenzt | Ja |
+| `squashfs` | Komprimiertes `changes.sb`-Snapshot; beschreibbares Laufzeit-Upper wird in RAM rekonstruiert | Snapshot-Größe folgt den erfassten Änderungen; `perchsize` ist nicht anwendbar | Vorhandene Snapshots können von unterstützten beschreibbaren Medien gelesen werden, aber exaktes Speichern erfordert ein POSIX-fähiges Staging-Dateisystem | Nein |
 
 ### Nativ
 
@@ -130,13 +130,36 @@ Das logische Image enthält ext4. Vor dem beschreibbaren Einbinden werden besteh
 
 ### DynBlk
 
-Der `dynblk`-Modus ist ein Kernel-Block-Device-Backend, getrennt von DynFileFS. Jede nummerierte Sitzung besitzt einen `volume000.db`Namensraum mit bei Bedarf erzeugten `volume001.db` bis `volume063.db`-Geschwistern. Das Anhängen eines Volumes über `/dev/dynblk-control`liefert ein dynamisch zugewiesenes Whole-Disk-Device wie `/dev/dynblk0` oder `/dev/dynblk3`; MiniOS muss das zurückgegebene Device verwenden und darf nicht davon ausgehen, dass `dynblk0`frei ist. Es können gleichzeitig mehrere DynBlk-Volumes angehängt werden.
+Der `dynblk`-Modus verwendet ein Kernel-Blockgerät, getrennt von DynFileFS. Jede nummerierte Sitzung besitzt `volume000.db` und alle ihre nummerierten Geschwister (`volume001.db`, ..., `volume1000.db`, und darüber hinaus). Das native Layout ist `DBSPRS01`, Plattenformat **1**. Nicht unterstützte Layouts werden abgelehnt, statt stillschweigend konvertiert zu werden. Halten Sie die installierte CLI- und Modulversion übereinstimmend.
 
-MiniOS erstellt ext4 direkt auf dem DynBlk Whole-Disk-Device, prüft vorhandenes ext4 vor schreibbarem Zugriff und unterstützt Wachstum bis zum Format-1-Limit von 512 GiB. Verkleinerung wird nicht unterstützt. Der geschützte Boot-Status zeichnet das genaue `/dev/dynblkN`auf, das von der laufenden persistenten Sitzung verwendet wird, sodass beim Herunterfahren genau dieses Device getrennt wird, nachdem das Dateisystem ausgehängt wurde. Dies bleibt auch dann korrekt, wenn der Session Manager vorübergehend eine andere DynBlk-Sitzung parallel anhängt.
+MiniOS erstellt ext4 auf der gesamten Platte, die von `/dev/dynblk-control` zurückgegeben wird, z. B. `/dev/dynblk3`; es wird nicht angenommen, dass `dynblk0` frei ist. Bestehendes ext4 wird vor beschreibbarer Nutzung geprüft. Der geschützte Boot-Status protokolliert genau dieses Gerät, sodass es beim Herunterfahren erst getrennt wird, nachdem alle Nutzer und das Upper-Dateisystem geschlossen wurden. Mehrere unabhängige Geräte können parallel existieren.
 
-Die virtuelle Kapazität ist thin: Es handelt sich nicht um vorab zugewiesenen Host-Speicher oder Mapping-RAM. DynBlk hält 128 logische 4-KiB-Mappings in jedem 4-KiB-Laufzeit-Chunk, sodass der dichte Mapping-Speicher etwa 8 MiB/GiB beträgt. Level-0-Baumzeiger befinden sich zusammen mit diesen sparsamen Chunks; der feste Internal-Node-Index belegt 396.312 Byte pro angehängtem Gerät, und Referenzzähler für physische Seiten werden bei Bedarf in 4-KiB-Chunks zugeteilt, die jeweils 8 MiB Backing-Space abdecken. Wenn kein explizites Mapping-Budget angegeben ist, wählt der DynBlk-Treiber selbst etwa 25 % des vom Kernel gemeldeten nutzbaren RAM nach 64-MiB-Normalisierung, begrenzt auf 4096 MiB. MiniOS überlässt diese Richtlinie dem Treiber.
+Sitzungsmanager, Installer und initramfs fragen `dynblk limits --format dynblk` nach dem Geometrie-Limit des installierten Backends ab. Der aktuelle Ressourcenwächter erlaubt 65536 Teile: Standard-1-GiB-Logikbereiche ermöglichen bis zu 64 TiB. Kleinere physische Teilgrenzen reduzieren das virtuelle Limit. Dies ist eine Geometrie-Obergrenze, kein Versprechen, dass der Host so viele Dateien öffnen kann oder genug RAM/Speicherplatz hat. Wachstum wird unterstützt; Verkleinerung nicht.
 
-Ein neues DynBlk-Volume kann Backend-Komprimierung verwenden, die mit `perchcomp`ausgewählt wird. Komprimierung ist eine Eigenschaft des DynBlk-Speicherformats und nach der Erstellung für dieses Volume festgelegt. Wenn LUKS2 DynBlk kapselt, erzwingt MiniOS DynBlk-Komprimierung auf `none`, da die Verschlüsselungsschicht oberhalb des DynBlk-Geräts liegt. Tatsächliche Schreibvorgänge können dennoch fehlschlagen, etwa durch zu wenig freien Speicher im darunterliegenden Dateisystem, den 64-teiligen Backing-Namensraum oder die DynBlk-Mapping-Zulassung. Ein fehlgeschlagenes oder gesperrtes Gerät wird erst getrennt, nachdem das darüberliegende Dateisystem nicht mehr eingehängt ist; die Wiederherstellung prüft das gespeicherte Format beim nächsten Anhängen.
+Die Mapping-Tabellen liegen auf der Platte. `--map-memory-mb` steuert einen pro Gerät vorhandenen Metadaten-Cache (Standard 1 MiB, Bereich 1..64 MiB), nicht mehr als Prozentsatz von RAM oder als Limit für gemappte Daten. Bereichsbeschreibungen, Open-File-Vektoren und kleine Verzeichnisse wachsen mit deklarierter Geometrie, nicht mit Payload-Belegung. Beim Anhängen werden Mapping-Metadaten gescannt und der Allokationsstatus temporär Teil für Teil neu aufgebaut; es werden nicht alle Payloads gelesen. Ein vollständiges `dynblk check` liest die Payloads. `engine_memory_bytes` schließt den Dateisystem-Page-Cache, Codec-Interna und andere Kernel-Allokationen aus.
+
+Metadaten-Dateien für alle deklarierten Teile werden beim Erstellen/Wachsen initialisiert; tatsächliche Daten bleiben dünn. Teile sind auf 4000 MiB begrenzt. Sichern Sie den kompletten abgetrennten Namensraum, ohne von dreistelligen Zahlen oder einem festen Endteil auszugehen. Ein neues Volume kann Komprimierung mit `perchcomp` wählen; spätere Ladevorgänge nutzen den gespeicherten Codec. LUKS2 über DynBlk erzwingt Komprimierung auf `none`. Teilweise Schreibvorgänge auf komprimierte Daten recomprimieren derzeit das entsprechende 64-KiB-Fragment. Speicher- oder Ressourcenerschöpfung kann weiterhin zu Schreibfehlern führen; das Upper-Dateisystem muss vor dem Trennen ausgehängt werden.
+
+### VMDK-Sitzungen
+
+Der `vmdk`-Sitzungsmodus verwendet denselben Treiber mit echten `twoGbMaxExtentSparse`
+Images. Das Primäre ist `volume.vmdk`, mit `volume-s001.vmdk` und nachfolgenden
+Teilen; jeder Teil umfasst bis zu 2 GiB logischen Speicherplatz. Der Deskriptor ist auf weniger als 1 MiB begrenzt, daher schränken Dateinamenlänge und Extent-Anzahl die Kapazität ein.
+Session Manager, Installer und initramfs fragen 
+ ab.`dynblk limits --format vmdk`.
+Der Native-Modus verwendet weiterhin `volume000.db`; keiner der Modi interpretiert die Dateien des anderen neu.
+Verwaltete Sitzungen importieren keine beliebig extern partitionierte VMDK
+als Sitzungsmetadaten.
+
+VMDK-Sitzungsunterstützung wird von `vmdk-session-v1` in
+`/etc/minios-initramfs-dynblk` im initrd angezeigt. Die aktuelle Laufzeit und jedes
+vom Installer kopierte Quell-initrd müssen dies unterstützen. VMDK bietet keine native Komprimierung;
+`perchcomp` wird beim Booten mit einer Warnung ignoriert und der Session Manager lehnt einen
+nicht-`none`-VMDK-Codec ab. LUKS bleibt eine optionale, separate Schicht. Beide Modi veröffentlichen
+ihren tatsächlichen Sitzungsmodus und das zugehörige `dynblk_device` im geschützten Boot-Status,
+und beide Shutdown-Implementierungen schließen dieses Gerät, nachdem alle Nutzer beendet sind.
+
+Beide Treiberformate unterstützen `writeback`, `writethrough`, `none`, `directsync` und explizite `unsafe`Anbindungsrichtlinien. Direkte Modi erfordern derzeit ext2/ext4 als Basis. `mount -t dynblk /path/to/image /mnt -o inner-fstype=ext4,cache=writeback` bindet ein bestehendes Dateisystem ein; `umount` gibt das vom Helper verwaltete Gerät nach dem letzten Nutzer frei. Manuelles `dynblk load` hat eine explizite Lebensdauer. Dies erstellt kein Dateisystem und entsperrt auch kein LUKS.
 
 ### Raw
 
@@ -146,15 +169,15 @@ Vor dem schreibbaren Einbinden werden bestehende Raw-Images mit `e2fsck` überpr
 
 ### LUKS-Verschlüsselungsschicht
 
-LUKS2 ist eine optionale Verschlüsselungsschicht, die beim Anlegen einer `perchencrypt=luks` Raw-, DynFileFS- oder DynBlk-Sitzung ausgewählt werden kann. Bestehende Sitzungen übernehmen ihren Verschlüsselungsstatus aus den Sitzungsmetadaten; eine spätere Angabe von `perchencrypt` ändert oder konvertiert eine bestehende Klartext-Sitzung nicht.
+LUKS2 ist eine optionale Verschlüsselungsschicht, die mit `perchencrypt=luks` beim Erstellen einer Raw-, DynFileFS-, DynBlk- oder VMDK-Sitzung ausgewählt wird. Bestehende Sitzungen übernehmen ihren Verschlüsselungsstatus aus den Sitzungsmetadaten; eine spätere Angabe von `perchencrypt` ändert oder konvertiert eine bestehende Klartext-Sitzung nicht.
 
-Die Verschlüsselungsgrenze hängt vom Backend ab: Raw bindet `changes.img` über ein Loop-Device ein und legt LUKS2 in diese Datei; DynFileFS bindet das bereitgestellte `virtual.dat` ebenfalls über ein Loop-Device ein und verschlüsselt dieses logische Abbild; DynBlk verwendet das `/dev/dynblkN` Blockgerät direkt als LUKS2-Quelle. In allen drei Fällen erzeugt MiniOS ein ext4-Dateisystem innerhalb von `/dev/mapper/...`, sodass die Dateisysteminhalte und Metadaten innerhalb des Mappers im Ruhezustand verschlüsselt sind. Backend-Metadaten außerhalb der LUKS-Grenze, Bootdateien, Sitzungsmetadaten und andere Dateien auf dem Speichermedium bleiben unverschlüsselt.
+Die Verschlüsselungsgrenze hängt vom Backend ab: Raw bindet `changes.img` über ein Loop-Gerät ein und platziert LUKS2 innerhalb dieser Datei; DynFileFS bindet das bereitgestellte `virtual.dat` über ein Loop-Gerät ein und verschlüsselt dieses logische Abbild; DynBlk verwendet das `/dev/dynblkN` Blockgerät direkt als LUKS2-Quelle. In allen drei Fällen erstellt MiniOS ext4 innerhalb von `/dev/mapper/...`, sodass die Dateisysteminhalte und Metadaten innerhalb des Mappers im Ruhezustand verschlüsselt sind. Backend-Metadaten außerhalb der LUKS-Grenze, Boot-Dateien, Sitzungsmetadaten und andere Dateien auf dem Persistenzmedium bleiben unverschlüsselt.
 
-Größenvorgaben, Wachstumslimits, FAT32-Einschränkungen sowie das Verhalten bei Thin/Fixed Allocation gehören weiterhin zum jeweiligen Backend. Das initrd authentifiziert sich, bevor ein bestehendes verschlüsseltes Backend vergrößert wird, schließt den Mapper vor dem Backend-Wachstum, öffnet ihn anschließend wieder, prüft ext4 und erweitert das Dateisystem vor dem Einhängen. Bei verschlüsseltem DynBlk wird die Backend-Komprimierung auf `none` erzwungen.
+Größenvorgaben, Wachstumslimits, FAT32-Einschränkungen und Thin/Fixed-Allocation-Verhalten bleiben weiterhin beim zugrunde liegenden Backend. Das initrd authentifiziert vor dem Vergrößern eines bestehenden verschlüsselten Backends, schließt den Mapper vor dem Backend-Wachstum, öffnet ihn dann erneut, prüft ext4 und erweitert das Dateisystem vor dem Mounten. Für verschlüsselte DynBlk wird die Backend-Komprimierung auf `none` erzwungen.
 
-Bei der Erstellung wird das Passwort zweimal abgefragt. Bestehende verschlüsselte Sitzungen erlauben drei Entsperrversuche an der Boot-Konsole. Drei abgelehnte Passphrasen führen zu einem fatalen Bootpfad: MiniOS fährt in RAM nicht fort, interpretiert die Sitzung nicht als Klartext, wählt kein anderes Backend und erstellt keinen Ersatz. Andere Fehler beim Erstellen, Prüfen, Vergrößern oder Einhängen behalten ihr backend-spezifisches Wiederherstellungsverhalten ohne Klartext-Fallback bei. Passphrasen werden weder in den Sitzungsmetadaten gespeichert noch als Befehlsargumente übergeben. Logische Exporte enthalten entschlüsselte Sitzungsdateien statt eines verschlüsselten Backend-Abbilds.
+Bei der Erstellung wird das Passwort zweimal abgefragt. Bestehende verschlüsselte Sitzungen erlauben drei Entsperrversuche an der Boot-Konsole. Drei abgelehnte Passwörter führen zu einem fatalen Boot-Pfad: MiniOS fährt in RAM nicht fort, interpretiert die Sitzung nicht als Klartext, wählt kein anderes Backend und erstellt keinen Ersatz. Andere Fehler beim Erstellen, Prüfen, Vergrößern oder Mounten behalten ihr backend-spezifisches Wiederherstellungsverhalten ohne Klartext-Fallback bei. Passwörter werden weder in Sitzungsmetadaten gespeichert noch als Befehlsargumente übergeben. Logische Exporte enthalten entschlüsselte Sitzungsdateien und kein verschlüsseltes Backend-Abbild.
 
-Siehe [Sicherheit](/maintenance-and-recovery/Security) für Informationen zur Schutzgrenze und zu Backup-Überlegungen.
+Siehe [Sicherheit](/maintenance-and-recovery/Security) für die Schutzgrenze und Hinweise zur Datensicherung.
 
 ### SquashFS
 
@@ -188,3 +211,16 @@ Diese Metadaten-Felder können nach einem Absturz, einem fehlgeschlagenen Metada
 Mit `toram` und einer erkannten Persistenz-Anforderung wird der Sitzungs-Store vor der Aktivierung in RAM kopiert. Die kopierte Sitzung kann schreibbar sein und das laufende Upper bereitstellen, aber ihr aktueller Boot-Status ist als nicht dauerhaft markiert. Änderungen an dieser RAM-Kopie werden nicht auf das Originalgerät zurückgeschrieben und gehen beim Herunterfahren verloren.
 
 Weitere Hinweise zum Betrieb finden Sie unter [Boot-Modi](/using-minios/Boot-Modes), [Boot-Parameter](/reference/Boot-Parameters), [Sitzungen und Persistenz](/using-minios/Sessions-and-Persistence), [Backup von MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS), [Sicherheit](/maintenance-and-recovery/Security), und [Fehlerbehebung](/maintenance-and-recovery/Troubleshooting).
+
+## Sitzungsbezogene Speicherbereinigung
+
+`minios-session reclaim ID` arbeitet mit beiden Blockformaten. Für Klartext-
+Sitzungen meldet es freie ext4-Bereiche mit FITRIM und ruft dann `dynblk reclaim`.
+Bei einer aktiven Sitzung ist das Gerät an den geschützten Current-Boot-Status gebunden und
+das tatsächliche ext4-Mount wird geprüft; das Union-Root wird nie direkt getrimmt.
+Inaktive Sitzungen werden für diesen Vorgang temporär eingebunden und gemountet.
+
+Weder beim Booten noch beim Herunterfahren wird die Kompaktierung automatisch ausgeführt. `--compact` ist eine
+explizite Benutzerentscheidung in der CLI oder der nicht aktivierten Option im Sitzungsmanager-Dialog.
+Ohne diese Option werden nur Hole Punching (wo unterstützt) und das Kürzen des freien Endes durchgeführt.
+Die LUKS-Discard-Policy wird durch den Sitzungsbefehl nicht geändert.

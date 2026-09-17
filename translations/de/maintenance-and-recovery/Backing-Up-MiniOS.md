@@ -39,9 +39,9 @@ Bei einer LUKS-Sitzung enthält das Archiv die entschlüsselten logischen Dateie
 
 ### SquashFS-Sitzungen
 
-Der aktuelle Sitzungsmanager exportiert oder kopiert keine SquashFS-Sitzungen. Verwenden Sie **Jetzt speichern** vor dem Herunterfahren, damit der aktuelle Snapshot vollständig ist, und sichern Sie anschließend die wichtigen Dateien separat. Wenn Sie eine vollständig wiederherstellbare Kopie des gesamten MiniOS-Geräts benötigen, erstellen Sie stattdessen ein Offline-Geräteabbild.
+Der aktuelle Sitzungsmanager exportiert oder kopiert keine SquashFS-Sitzungen. Verwenden Sie **Jetzt speichern** vor dem Herunterfahren, damit der aktuelle Snapshot vollständig ist, und sichern Sie wichtige Dateien anschließend separat. Wenn Sie eine vollständige, wiederherstellbare Kopie des gesamten MiniOS-Geräts benötigen, erstellen Sie stattdessen ein Offline-Geräteabbild.
 
-Verlassen Sie sich nicht darauf, ein eingebundenes Sitzungsverzeichnis manuell zu kopieren oder `session.conf`, DynFileFS-Segmente, DynBlk-Backdateien oder andere Container-Metadaten als Backup-Methode zu rekonstruieren. Ein manuelles Byte-für-Byte-DynBlk-Backup ist nur dann sicher, wenn das Volume getrennt ist, und muss den gesamten `volume000.db`-Namespace exakt wie vorhanden erhalten; logisches `volume063.db` wird bevorzugt.`minios-session export`
+Verlassen Sie sich nicht darauf, ein eingebundenes Sitzungsverzeichnis manuell zu kopieren oder `session.conf`, DynFileFS-Segmente, DynBlk-Backupdateien oder andere Container-Metadaten als Backup-Methode zu rekonstruieren. Ein manuelles Byte-für-Byte-DynBlk-Backup ist nur dann sicher, wenn das Volume nicht eingebunden ist und alle vorhandenen `volume*.db` Teile, einschließlich Nummern mit vier oder mehr Ziffern, exakt wie vorhanden erhalten bleiben; logisches `minios-session export` Backup wird bevorzugt.
 
 ## Konfiguration und Module sichern
 
