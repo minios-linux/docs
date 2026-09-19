@@ -33,16 +33,16 @@ Spätere Module haben eine höhere Priorität und können Pfade ersetzen, die vo
 
 ## AUFS und OverlayFS
 
-MiniOS verwendet ein Union-Dateisystem, um die Module und die beschreibbare Ebene als ein gemeinsames Root-Dateisystem darzustellen. Es wählt AUFS, wenn der laufende Kernel dies unterstützt, und greift andernfalls auf OverlayFS zurück. `union=aufs` fordert AUFS an, fällt aber dennoch auf OverlayFS zurück, wenn AUFS nicht verfügbar ist; `union=overlayfs` wählt OverlayFS aus.
+MiniOS verwendet ein Union-Dateisystem, um die Module und die beschreibbare Ebene als ein gemeinsames Root-Dateisystem darzustellen. Wenn der laufende Kernel es unterstützt, wählt es AUFS; andernfalls wird auf OverlayFS zurückgegriffen. `union=aufs`fordert AUFS an, fällt aber dennoch auf OverlayFS zurück, wenn AUFS nicht verfügbar ist; `union=overlayfs`wählt OverlayFS. Unter UEFI Secure Boot lädt initrd das unsignierte `aufs-ng`Modul nicht und verwendet OverlayFS, sofern keine andere nutzbare AUFS-Implementierung bereits vorhanden ist.
 
-Die beiden Implementierungen unterscheiden sich in einem wichtigen Betriebsaspekt:
+Die beiden Implementierungen unterscheiden sich in einem wichtigen Punkt im Betrieb:
 
-- AUFS startet mit dem beschreibbaren Zweig und fügt eingehängte Module als schreibgeschützte Zweige hinzu. MiniOS kann ein Modul im laufenden Root aktivieren oder deaktivieren, sofern das AUFS-Mount diese Operation unterstützt.
-- OverlayFS erhält beim Einhängen des Root seine vollständige, geordnete `lowerdir`-Liste sowie ein `upperdir` und `workdir`. Die Menge der unteren Module kann durch den **MiniOS-Modulmanager** nicht im laufenden Betrieb geändert werden.
+- AUFS startet mit dem beschreibbaren Zweig und fügt eingehängte Module als schreibgeschützte Zweige hinzu. MiniOS kann ein Modul im laufenden Root aktivieren oder deaktivieren, sofern der AUFS-Mount diese Operation unterstützt.
+- OverlayFS erhält seine vollständige, geordnete `lowerdir`Liste beim Mounten des Root-Dateisystems sowie eine `upperdir`und `workdir`. Seine Untermodul-Menge kann von **MiniOS-Modulmanager**.
 
-Der **MiniOS-Modulmanager** trennt daher **Jetzt aktiv**, also die aktuell eingehängte Modulmenge, von **Nächster Start**, den durch aktuelle Medien und Bootregeln ausgewählten Modulen. Das Hinzufügen oder Entfernen eines dauerhaften Moduls wirkt sich normalerweise nur auf den nächsten Start aus. Das Erstellen oder Öffnen eines Moduls aktiviert es nicht. Die Aktivierung und Deaktivierung zur Laufzeit ist nur mit AUFS möglich.
+**MiniOS-Modulmanager**daher wird getrennt zwischen **Aktuell ausgeführt**, dem aktuell eingehängten Modulsatz, und **Nächster Start**, den Modulen, die durch aktuelle Medien und Bootregeln ausgewählt werden. Das Hinzufügen oder Entfernen eines dauerhaften Moduls beeinflusst normalerweise nur den nächsten Start. Ein Modul zu erstellen oder zu öffnen, aktiviert es nicht. Die Laufzeitaktivierung und -deaktivierung sind nur mit AUFS möglich.
 
-Nachdem das Root-Dateisystem zusammengesetzt und die frühe Initialisierung abgeschlossen ist, verwendet das LiveKit-initrd `pivot_root`, behält das alte initrd für die Abschaltaufgaben bei und startet das Init des neuen Root. Der Dracut-Pfad bereitet dasselbe zusammengesetzte Root vor, überlässt aber den abschließenden `switch_root` Dracut. Siehe [Initrd-Modulladen](/reference/boot-process/Module-Loading) für die genaue Übergabegrenze.
+Nachdem das Root-Dateisystem zusammengebaut und die frühe Initialisierung abgeschlossen ist, verwendet das LiveKit-initrd `pivot_root`, behält das alte initrd für Aufgaben beim Herunterfahren und startet das Init des neuen Root-Dateisystems. Der dracut-Pfad bereitet dasselbe zusammengebaute Root vor, überlässt aber die abschließende `switch_root`dracut. Siehe [Initrd-Modulladen](/reference/boot-process/Module-Loading) für die genaue Übergabegrenze.
 
 ## Beschreibbare Ebene und Sitzungen
 

@@ -33,16 +33,16 @@ I moduli successivi hanno priorità superiore e possono sostituire i percorsi fo
 
 ## AUFS e OverlayFS
 
-MiniOS utilizza un filesystem unione per presentare i moduli e il layer scrivibile come un unico filesystem root. Seleziona AUFS quando il kernel in esecuzione lo supporta e, in caso contrario, ricorre a OverlayFS. `union=aufs` richiede AUFS, ma ricorre comunque a OverlayFS quando AUFS non è disponibile; `union=overlayfs` seleziona OverlayFS.
+MiniOS utilizza un union filesystem per presentare i moduli e il layer scrivibile come un unico filesystem root. Seleziona AUFS quando il kernel in esecuzione lo supporta e in caso contrario passa a OverlayFS. `union=aufs` richiede AUFS ma utilizza comunque OverlayFS se AUFS non è disponibile; `union=overlayfs` seleziona OverlayFS. Con UEFI Secure Boot, initrd non carica il modulo non firmato `aufs-ng` e utilizza OverlayFS a meno che non sia già presente un'altra implementazione AUFS utilizzabile.
 
 Le due implementazioni presentano una differenza operativa importante:
 
-- AUFS parte dal branch scrivibile e aggiunge i moduli montati come branch di sola lettura. MiniOS può attivare o disattivare un modulo nel root in esecuzione quando il mount AUFS supporta tale operazione.
-- OverlayFS riceve la sua lista ordinata completa di `lowerdir` quando il root viene montato, oltre a un `upperdir` e `workdir`. Il suo insieme di moduli inferiori non può essere modificato al volo dal **Gestore moduli MiniOS**.
+- AUFS parte dal ramo scrivibile e aggiunge i moduli montati come rami in sola lettura. MiniOS può attivare o disattivare un modulo nel root attivo se il mount AUFS supporta questa operazione.
+- OverlayFS riceve l'elenco completo e ordinato `lowerdir` dei moduli quando il root viene montato, più un `upperdir` e `workdir`. L'insieme dei moduli inferiori non può essere modificato in tempo reale da **Gestore moduli MiniOS**.
 
-Il **Gestore moduli MiniOS** quindi separa **In esecuzione ora**, l’insieme di moduli montati, da **Prossimo avvio**, i moduli selezionati dai supporti correnti e dalle regole di avvio. L’aggiunta o la rimozione di un modulo permanente normalmente modifica solo il prossimo avvio. Creare o aprire un modulo non lo attiva. L’attivazione e la disattivazione a runtime sono disponibili solo con AUFS.
+**Gestore moduli MiniOS** separa quindi **In esecuzione ora**, l'insieme dei moduli montati, da **Avvio successivo**, i moduli selezionati dai supporti e dalle regole di boot correnti. L'aggiunta o la rimozione di un modulo persistente normalmente modifica solo il prossimo avvio. Creare o aprire un modulo non lo attiva. L'attivazione e la disattivazione in tempo reale sono disponibili solo con AUFS.
 
-Dopo che il root è stato assemblato e il setup iniziale completato, l’initrd di LiveKit utilizza `pivot_root`, mantiene il vecchio initrd per le operazioni di spegnimento ed esegue l’init del nuovo root. Il percorso dracut prepara lo stesso root assemblato ma lascia l’ultimo `switch_root` a dracut. Consulta [Caricamento moduli Initrd](/reference/boot-process/Module-Loading) per i dettagli sul passaggio di consegne.
+Dopo che il root è stato assemblato e il setup iniziale è completato, l'initrd di LiveKit utilizza `pivot_root`, mantiene il vecchio initrd per le operazioni di spegnimento ed esegue l'init del nuovo root. Il percorso dracut prepara lo stesso root assemblato ma lascia il passaggio finale `switch_root` a dracut. Vedi [Caricamento moduli initrd](/reference/boot-process/Module-Loading) per i dettagli sul confine di passaggio.
 
 ## Layer scrivibile e sessioni
 

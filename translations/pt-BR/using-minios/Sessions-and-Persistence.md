@@ -19,21 +19,21 @@ A ferramenta equivalente de linha de comando é `minios-session`. Seus comandos 
 
 ## Modos de sessão
 
-| Modo | Armazenamento | Principais restrições | Camada MiniOS LUKS2 |
+| Modo | Armazenamento | Principais restrições | MiniOS camada LUKS2 |
 |------|---------|------------------|--------------------|
-| `native` | Alterações armazenadas diretamente no diretório da sessão | Requer um sistema de arquivos gravável que preserve os metadados do Linux e as operações para as quais MiniOS faz sondagens. A capacidade acompanha o espaço livre de armazenamento de base; `perchsize` não se aplica. | Não |
-| `dynfilefs` | ext4 expansível `virtual.dat`com arquivos de segmento format-400 como base | Funciona em sistemas de arquivos POSIX graváveis, FAT32, NTFS e exFAT. O payload é enxuto, mas o índice de mapeamento cresce conforme a capacidade lógica declarada. | Sim |
-| `dynblk` | Sistema de arquivos ext4 enxuto em um dispositivo de bloco do kernel, baseado em `volumeNNN.db`arquivos | Requer o CLI DynBlk, módulo do kernel e capacidade initrd. O tamanho criado na inicialização é de até 16 GiB por padrão; o máximo é informado por `dynblk limits`. Os mapeamentos residentes em disco usam um cache de metadados limitado. | Sim |
-| `vmdk` | Sistema de arquivos ext4 enxuto em um VMDK sparse padrão dividido, exposto pelo driver DynBlk | Utiliza `volume.vmdk` e `volume-sNNN.vmdk`. Sem compressão. Requer `vmdk-session-v1` no marcador de capacidade initrd em execução. Mesmo padrão manual de 16 GiB que DynBlk; consulte `dynblk limits --format vmdk` para limites. | Sim |
-| `raw` | Arquivo único `changes.img`contendo ext4 | Capacidade lógica fixa, com crescimento apenas explícito. Funciona em POSIX gravável, FAT32, NTFS e exFAT; FAT32 é limitado a 4000 MiB. | Sim |
-| `squashfs` | Snapshot compactado em `changes.sb`; camada superior gravável em tempo de execução é reconstruída em RAM | `perchsize` não se aplica. Snapshots existentes podem ser restaurados de mídias graváveis compatíveis, enquanto o salvamento exato requer um sistema de arquivos POSIX para staging. | Não |
+| `native` | Alterações armazenadas diretamente no diretório da sessão | Requer um sistema de arquivos gravável que preserve os metadados e operações do Linux para os quais MiniOS faz sondagens. A capacidade segue o espaço livre disponível; `perchsize` não se aplica. | Não |
+| `dynfilefs` | ext4 expansível `virtual.dat` com segmentação em arquivos format-400 | Funciona em sistemas de arquivos POSIX graváveis, FAT32, NTFS e exFAT. O payload é enxuto, mas o índice de mapeamento escala conforme a capacidade lógica declarada. | Sim |
+| `dynblk` | Sistema de arquivos ext4 enxuto em um dispositivo de bloco do kernel, com arquivos de apoio em `volumeNNN.db` arquivos | Requer o CLI DynBlk, módulo do kernel e suporte initrd. O tamanho criado na inicialização é de até 16 GiB por padrão; o máximo é informado por `dynblk limits`. Os mapeamentos residentes em disco usam um cache de metadados limitado. | Sim |
+| `vmdk` | Sistema de arquivos ext4 enxuto em VMDK sparse padrão dividido, exposto pelo driver DynBlk | Utiliza `volume.vmdk` e `volume-sNNN.vmdk`. Sem compressão. Requer `vmdk-session-v1` na marca de capacidade initrd em execução. Mesmo padrão manual de 16 GiB que DynBlk; consulte `dynblk limits --format vmdk` para limites. | Sim |
+| `raw` | Único `changes.img` arquivo contendo ext4 | Capacidade lógica fixa, com crescimento apenas explícito. Funciona em sistemas de arquivos POSIX graváveis, FAT32, NTFS e exFAT; FAT32 é limitado a 4000 MiB. | Sim |
+| `squashfs` | Snapshot compactado em `changes.sb`; camada superior gravável em tempo de execução é reconstruída em RAM | `perchsize` não se aplica. Snapshots existentes podem ser restaurados a partir de mídias graváveis suportadas, enquanto a gravação exata requer um sistema de arquivos POSIX para staging. | Não |
 
-Raw, DynFileFS, DynBlk e VMDK podem opcionalmente utilizar uma camada de criptografia LUKS2. O backend de armazenamento permanece o modo de sessão, e os metadados da sessão registram a criptografia separadamente. DynFileFS e raw criados com `minios-session` têm padrão de 4000 MiB; DynBlk e VMDK têm padrão de 16 GiB. Os valores de tamanho são alocados em MiB; `GB` e `TB`sufixos convertem para 1000 e 1.000.000 MiB. Raw é limitado a 4000 MiB em FAT32, criptografado ou não. Os dados do payload DynFileFS crescem sob demanda, mas seu índice format-400 é dimensionado para a capacidade lógica total e consome cerca de 2 MiB de RAM mais cerca de 2 MiB de armazenamento de base por GiB. DynBlk mantém tabelas de mapeamento em disco e um cache de metadados limitado em RAM, com padrão de 1 MiB em vez de uma porcentagem de RAM. Seus vetores de extensão/arquivo e diretórios crescem conforme as partes declaradas, enquanto o preenchimento do payload não exige um mapa residente completo. Consulte o limite de capacidade instalada com `dynblk limits --format dynblk`. As gravações reais permanecem limitadas pelo espaço livre do sistema de arquivos subjacente e pela admissão de recursos do backend. As operações de redimensionamento de contêiner só permitem aumentar a sessão; redução não é suportada.
+Raw, DynFileFS, DynBlk e VMDK podem, opcionalmente, utilizar camada de criptografia LUKS2. O backend de armazenamento permanece o modo de sessão, e os metadados da sessão registram a criptografia separadamente. DynFileFS e raw criados com `minios-session` têm padrão de 4000 MiB; DynBlk e VMDK têm padrão de 16 GiB. Os valores de tamanho são alocados em MiB; `GB` e `TB` sufixos convertem para 1000 e 1.000.000 MiB. Raw é limitado a 4000 MiB em FAT32, criptografado ou não. Os dados do payload DynFileFS crescem sob demanda, mas seu índice format-400 é dimensionado para a capacidade lógica total e consome cerca de 2 MiB de RAM mais cerca de 2 MiB de armazenamento por GiB. DynBlk mantém tabelas de mapeamento em disco e um cache de metadados limitado em RAM, com padrão de 1 MiB em vez de porcentagem de RAM. Seus vetores de extensão/arquivo e diretórios crescem conforme as partes declaradas, mas o preenchimento do payload não exige um mapa residente completo. Consulte o limite de capacidade instalada com `dynblk limits --format dynblk`. As gravações reais permanecem limitadas pelo espaço livre do sistema de arquivos subjacente e pelos recursos do backend. Operações de redimensionamento do container só permitem aumentar a sessão; redução não é suportada.
 
 O modo nativo é a escolha mais simples e rápida em um sistema de arquivos compatível.
 Use DynFileFS quando o sistema de arquivos de persistência não puder representar metadados do Linux.
-Use DynBlk quando desejar um dispositivo de bloco real do kernel com arquivos de base thin; o driver pode manter vários volumes DynBlk independentes conectados ao mesmo tempo, e o Gerenciador de Sessões usa o caminho do dispositivo retornado pelo driver em vez de assumir que `/dev/dynblk0` está livre.
-Use raw quando for necessário alocação fixa, adicione LUKS2 quando a sessão precisar ser criptografada e use SquashFS para um snapshot compactado exato.
+Use DynBlk se você precisa de um dispositivo de bloco real do kernel com arquivos de apoio thin; o driver pode manter vários volumes DynBlk independentes conectados ao mesmo tempo, e o Gerenciador de Sessão usa o caminho do dispositivo retornado pelo driver, em vez de assumir que `/dev/dynblk0` está livre. DynBlk e VMDK não estão disponíveis com o UEFI Secure Boot ativado, pois MiniOS não assina o módulo externo DynBlk do kernel. O instalador e o Gerenciador de Sessão, portanto, ocultam esses modos e rejeitam solicitações explícitas de criação antes de tentar carregar o módulo.
+Use raw quando for necessário alocação fixa, adicione LUKS2 se a sessão precisar ser criptografada e utilize SquashFS para um snapshot compactado exato.
 
 Execute os comandos a seguir para inspecionar o sistema de arquivos de persistência real e os modos disponíveis nele:
 
@@ -42,30 +42,30 @@ sudo minios-session info
 sudo minios-session status
 ```
 
-Nenhuma sessão pode ser criada em mídia somente leitura. O initrd pode ler e ativar um snapshot SquashFS existente armazenado em FAT, exFAT ou NTFS gravável porque extrai o snapshot para uma camada superior ext4 temporária. Criar ou salvar exatamente um snapshot é diferente: seu espaço de trabalho privado de staging deve estar em um sistema de arquivos POSIX adequado que preserve metadados do Linux e whiteouts de união.
+Nenhuma sessão pode ser criada em mídia somente leitura. O initrd pode ler e ativar um snapshot SquashFS existente armazenado em FAT, exFAT ou NTFS gravável, pois extrai o snapshot para uma camada superior ext4 temporária. Para criar ou salvar exatamente um snapshot, é diferente: o workspace privado de staging precisa estar em um sistema de arquivos POSIX adequado que preserve metadados do Linux e whiteouts de união.
 
 ## Seleção de boot
 
-Qualquer parâmetro de persistência reconhecido habilita o gerenciamento de persistência. Os menus de boot MiniOS normalmente oferecem opções de retomar, novo, seleção e entradas não persistentes. A descrição canônica dos comportamentos de seletor, compatibilidade, fallback e ativação está em [Persistência do initrd](/reference/boot-process/Persistence-Internals).
+Qualquer parâmetro de persistência reconhecido ativa o gerenciamento de persistência. Os menus de boot MiniOS normalmente oferecem opções para retomar, criar nova, selecionar e inicializar sem persistência. A descrição canônica dos comportamentos de seleção, compatibilidade, fallback e ativação está em [Persistência initrd](/reference/boot-process/Persistence-Internals).
 
 | Parâmetro | Significado |
 |-----------|---------|
-| `perch` | Usa o caminho de retomada legado best-effort. Tenta o padrão dos metadados, mas não cria um substituto quando nenhum está utilizável. |
-| `perchdir=resume` | Retoma o padrão dos metadados e, quando ausente ou incompatível, permite que o initrd crie um novo substituto compatível. Este é o comportamento atual de retomada do menu de boot. |
+| `perch` | Utilize o caminho legado de retomada best-effort. Ele tenta usar o padrão de metadados, mas não cria um substituto quando nenhum está disponível. |
+| `perchdir=resume` | Retoma o padrão de metadados e, quando ausente ou incompatível, permite que o initrd crie um novo substituto compatível. Este é o comportamento atual do menu de boot ao retomar. |
 | `perchdir=new` | Aloca uma nova sessão numerada. |
 | `perchdir=ask` | Seleciona uma sessão existente ou cria uma durante o boot. |
-| `perchdir=<id>` | Seleciona diretamente aquela sessão numerada. |
-| `perchdir=<device/path>` | Usa um local de persistência em um dispositivo, incluindo `/dev/...` e `label:...`formas tratadas pelo initrd. |
-| `perchmode=<mode>` | Defina `native`, `dynfilefs`, `dynblk`, `vmdk`, ou `raw` .`squashfs` |
-| `perchencrypt=luks` | Criptografe uma sessão Raw, DynFileFS, DynBlk ou VMDK recém-criada com LUKS2. Sessões existentes derivam a criptografia apenas dos metadados. |
-| `perchcomp=<codec>` | Seleciona compressão de backend DynBlk para uma nova sessão DynBlk. A compressão é forçada para `none` quando DynBlk está envolvido em LUKS2. |
-| `perchsize=<size>` | Define um novo tamanho de contêiner ou aumenta o existente; valores simples são alocados em MiB e `MB`, `GB`, e `TB`sufixos são aceitos. |
+| `perchdir=<id>` | Seleciona diretamente essa sessão numerada. |
+| `perchdir=<device/path>` | Utiliza um local de persistência em um dispositivo, incluindo `/dev/...` e `label:...` formatos tratados pelo initrd. |
+| `perchmode=<mode>` | Defina `native`, `dynfilefs`, `dynblk`, `vmdk`, `raw`, ou `squashfs`. |
+| `perchencrypt=luks` | Criptografa uma sessão Raw, DynFileFS, DynBlk ou VMDK recém-criada com LUKS2. Sessões existentes herdam a criptografia apenas dos metadados. |
+| `perchcomp=<codec>` | Seleciona compressão backend DynBlk para uma nova sessão DynBlk. A compressão é forçada para `none` quando DynBlk está envolto em LUKS2. |
+| `perchsize=<size>` | Define um novo tamanho de container ou aumenta o existente; valores simples são alocados em MiB e `MB`, `GB`, e `TB` sufixos são aceitos. |
 
-Se nenhum modo for especificado para uma nova sessão, o boot usa o modo nativo. Em FAT32/NTFS/exFAT, a criação nativa no boot recai para DynFileFS. Um novo contêiner raw tem padrão de 4000 MiB. Novas sessões de boot DynFileFS, DynBlk e VMDK sem `perchsize` usam até 16 GiB; quando resta menos espaço de base após a reserva de segurança, o tamanho automático é reduzido. DynFileFS também considera a sobrecarga do índice e o limite RAM. O crescimento explícito de DynBlk segue o limite do backend instalado, consultado com `dynblk limits --format dynblk`.
+Se nenhum modo for especificado para uma nova sessão, o boot utiliza o modo nativo. Em FAT32/NTFS/exFAT, a criação nativa recai para DynFileFS. Um novo container raw tem padrão de 4000 MiB. Novas sessões de boot DynFileFS, DynBlk e VMDK sem `perchsize` usam até 16 GiB; se restar menos espaço após a reserva de segurança, o tamanho automático é reduzido. DynFileFS também considera a sobrecarga do índice e o limite de RAM. O crescimento explícito de DynBlk segue o limite do backend instalado, consultado com `dynblk limits --format dynblk`. Com Secure Boot, o initrd não oferece DynBlk/VMDK e trata uma sessão DynBlk/VMDK explícita ou retomada como indisponível, sem tentar carregar o módulo não assinado.
 Sessões SquashFS podem ser capturadas do sistema em execução com o Gerenciador de sessões MiniOS ou `minios-session create squashfs`. A configuração do initrd cria apenas metadados de sessão de geração zero e mantém a camada superior gravável em RAM. O sistema em execução cria o primeiro `changes.sb` snapshot sob demanda ou no desligamento.
 
-Ao retomar, MiniOS verifica a versão registrada, edição, sistema de arquivos union e modo. O literal `perchdir=resume` pode criar uma nova sessão em vez de usar um padrão ausente ou incompatível. `perch`seleção numérica direta e outras solicitações de retomada legadas não criam automaticamente esse substituto.
-A seleção interativa exibe um aviso antes de permitir uma sessão incompatível. Se a seleção ou ativação ainda falhar, o boot normalmente continua com uma camada superior RAM e um aviso de persistência.
+Ao retomar, MiniOS verifica a versão registrada, edição, sistema de arquivos union e modo. O `perchdir=resume` literal pode criar uma nova sessão em vez de usar um padrão ausente ou incompatível. `perch` simples, seleção numérica direta e outros pedidos de retomada legados não criam automaticamente esse substituto.
+A seleção interativa exibe um aviso antes de permitir uma sessão incompatível. Se a seleção ou ativação ainda falhar, o boot continua normalmente com uma camada superior RAM e um aviso de persistência.
 
 O armazenamento de sessões tem esta forma:
 
@@ -77,8 +77,8 @@ minios/changes/
 `-- N/
 ```
 
-`session.conf`registra os IDs padrão e em execução, além do modo, versão, edição, sistema de arquivos union, tamanho, estado e configurações específicas de modo por sessão.
-São metadados persistentes comprometidos pela implementação de boot, não prova do estado atual de execução. Não edite nem mova dados de sessões numeradas enquanto uma sessão estiver montada; use o Gerenciador de sessões MiniOS ou `minios-session`.
+`session.conf` registra os IDs padrão e em execução, além do modo, versão, edição, sistema de arquivos union, tamanho, estado e configurações específicas de modo por sessão.
+São metadados persistentes gravados pela implementação de boot, não prova do estado de execução atual. Não edite nem mova dados de sessões numeradas enquanto uma sessão estiver montada; use o Gerenciador de sessões MiniOS ou `minios-session`.
 
 ## Sessões ativas e em execução
 

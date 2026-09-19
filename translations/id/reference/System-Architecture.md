@@ -33,16 +33,16 @@ Modul yang lebih baru memiliki prioritas lebih tinggi dan dapat menggantikan pat
 
 ## AUFS dan OverlayFS
 
-MiniOS menggunakan union filesystem untuk menyajikan modul dan layer yang dapat ditulis sebagai satu root filesystem. Sistem ini akan memilih AUFS jika kernel yang berjalan mendukungnya, dan akan kembali menggunakan OverlayFS jika tidak. `union=aufs` meminta AUFS, namun tetap akan menggunakan OverlayFS jika AUFS tidak tersedia; `union=overlayfs` memilih OverlayFS.
+MiniOS menggunakan union filesystem untuk menampilkan modul dan layer yang dapat ditulis sebagai satu root filesystem. Sistem ini akan memilih AUFS jika kernel yang berjalan mendukungnya, dan akan menggunakan OverlayFS jika tidak.`union=aufs` meminta AUFS namun tetap akan kembali ke OverlayFS jika AUFS tidak tersedia;`union=overlayfs` memilih OverlayFS. Pada UEFI Secure Boot, initrd tidak memuat modul yang tidak ditandatangani`aufs-ng` modul dan menggunakan OverlayFS kecuali sudah ada implementasi AUFS lain yang dapat digunakan.
 
 Kedua implementasi ini memiliki perbedaan operasional yang penting:
 
-- AUFS dimulai dengan cabang yang dapat ditulis dan menambahkan modul yang di-mount sebagai cabang read-only. MiniOS dapat mengaktifkan atau menonaktifkan modul pada root yang sedang berjalan jika mount AUFS mendukung operasi tersebut.
-- OverlayFS menerima daftar `lowerdir` yang sudah urut dan lengkap saat root di-mount, ditambah dengan `upperdir` dan `workdir`. Set modul bawahnya tidak dapat diubah secara langsung oleh **Manajer Modul MiniOS**.
+- AUFS dimulai dengan branch yang dapat ditulis dan menambahkan modul yang di-mount sebagai branch hanya-baca. MiniOS dapat mengaktifkan atau menonaktifkan modul di root yang sedang berjalan jika mount AUFS mendukung operasi tersebut.
+- OverlayFS menerima urutan lengkap`lowerdir` daftar saat root di-mount, ditambah satu`upperdir` dan`workdir`. Set modul bawahnya tidak dapat diubah secara langsung oleh**Manajer Modul MiniOS**.
 
-Karena itu, **Manajer Modul MiniOS** memisahkan **Sedang berjalan sekarang** (set modul yang sedang di-mount) dari **Boot berikutnya** (modul yang dipilih berdasarkan media dan aturan boot saat ini). Menambah atau menghapus modul yang bersifat persisten biasanya hanya mengubah boot berikutnya. Membuat atau membuka modul tidak otomatis mengaktifkannya. Aktivasi dan deaktivasi modul saat runtime hanya tersedia dengan AUFS.
+**Manajer Modul MiniOS** sehingga memisahkan**Sedang berjalan sekarang**, kumpulan modul yang telah di-mount, dari**Boot berikutnya**, modul yang dipilih berdasarkan media dan aturan boot saat ini. Menambah atau menghapus modul yang bersifat permanen biasanya hanya memengaruhi boot berikutnya. Membuat atau membuka modul tidak langsung mengaktifkannya. Aktivasi dan deaktivasi saat runtime hanya tersedia dengan AUFS.
 
-Setelah root dirakit dan proses setup awal selesai, initrd LiveKit menggunakan `pivot_root`, mempertahankan initrd lama untuk proses shutdown, dan mengeksekusi init pada root baru. Jalur dracut menyiapkan root yang sama, namun menyerahkan proses akhir `switch_root` ke dracut. Lihat [Pemrosesan modul initrd](/reference/boot-process/Module-Loading) untuk detail batas penyerahan proses.
+Setelah root dirakit dan proses setup awal selesai, initrd LiveKit menggunakan`pivot_root`, tetap mempertahankan initrd lama untuk proses shutdown, dan mengeksekusi init pada root baru. Jalur dracut menyiapkan root yang sama, namun menyerahkan proses akhir`switch_root` ke dracut. Lihat[Pemuatan modul initrd](/reference/boot-process/Module-Loading) untuk detail batas penyerahan proses.
 
 ## Lapisan tulis dan sesi
 

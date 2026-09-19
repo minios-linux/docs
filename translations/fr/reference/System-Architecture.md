@@ -33,16 +33,16 @@ Les modules ultérieurs ont une priorité plus élevée et peuvent remplacer les
 
 ## AUFS et OverlayFS
 
-MiniOS utilise un système de fichiers union pour présenter les modules et la couche modifiable comme un seul système de fichiers racine. Il sélectionne AUFS lorsque le noyau en cours d’exécution le prend en charge, et bascule sinon sur OverlayFS. `union=aufs` demande AUFS mais bascule tout de même sur OverlayFS si AUFS n’est pas disponible ; `union=overlayfs` sélectionne OverlayFS.
+MiniOS utilise un système de fichiers union pour présenter les modules et la couche inscriptible comme un seul système de fichiers racine. Il sélectionne AUFS lorsque le noyau en cours d’exécution le prend en charge, et bascule sinon sur OverlayFS. `union=aufs` demande AUFS mais bascule tout de même sur OverlayFS si AUFS n’est pas disponible ; `union=overlayfs` sélectionne OverlayFS. Sous UEFI Secure Boot, l’initrd ne charge pas le `aufs-ng` module non signé et utilise OverlayFS sauf si une autre implémentation AUFS utilisable est déjà présente.
 
-Les deux implémentations présentent une différence opérationnelle importante :
+Les deux implémentations présentent une différence opérationnelle importante :
 
-- AUFS commence par la branche modifiable et ajoute les modules montés comme branches en lecture seule. MiniOS peut activer ou désactiver un module dans la racine en cours si le montage AUFS prend en charge cette opération.
-- OverlayFS reçoit sa liste complète ordonnée `lowerdir` lors du montage de la racine, ainsi qu’un `upperdir` et `workdir`. Son ensemble de modules inférieurs ne peut pas être modifié à chaud par le **Gestionnaire de modules MiniOS**.
+- AUFS commence avec la branche inscriptible et ajoute les modules montés comme branches en lecture seule. MiniOS peut activer ou désactiver un module dans la racine active lorsque le montage AUFS prend en charge cette opération.
+- OverlayFS reçoit sa liste complète et ordonnée `lowerdir` lors du montage de la racine, ainsi qu’un `upperdir` et `workdir`. Son ensemble de modules inférieurs ne peut pas être modifié à chaud par **Gestionnaire de modules MiniOS**.
 
-Le **Gestionnaire de modules MiniOS** distingue donc **En cours d’exécution**, l’ensemble des modules montés, de **Prochain démarrage**, les modules sélectionnés par le média actuel et les règles de démarrage. L’ajout ou la suppression d’un module durable modifie normalement uniquement le prochain démarrage. Créer ou ouvrir un module ne l’active pas. L’activation et la désactivation à chaud ne sont disponibles qu’avec AUFS.
+**Gestionnaire de modules MiniOS** sépare donc **En cours d’exécution**, l’ensemble des modules montés, de **Démarrage suivant**, les modules sélectionnés par le support actuel et les règles de démarrage. Ajouter ou retirer un module persistant modifie normalement uniquement le démarrage suivant. Créer ou ouvrir un module ne l’active pas. L’activation et la désactivation à chaud ne sont possibles qu’avec AUFS.
 
-Une fois la racine assemblée et la configuration initiale terminée, l’initrd LiveKit utilise `pivot_root`, conserve l’ancien initrd pour les tâches d’arrêt, puis exécute l’init de la nouvelle racine. Le chemin dracut prépare la même racine assemblée mais laisse la dernière étape `switch_root` à dracut. Voir [Chargement des modules Initrd](/reference/boot-process/Module-Loading) pour les détails de la transition.
+Une fois la racine assemblée et l’initialisation précoce terminée, l’initrd LiveKit utilise `pivot_root`, conserve l’ancien initrd pour l’arrêt, et exécute l’init de la nouvelle racine. Le chemin dracut prépare la même racine assemblée mais laisse la finalisation `switch_root` à dracut. Voir [Chargement des modules initrd](/reference/boot-process/Module-Loading) pour la description détaillée de la transition.
 
 ## Layer modifiable et sessions
 

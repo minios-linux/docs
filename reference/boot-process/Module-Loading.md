@@ -98,7 +98,7 @@ Other top-level files matching `01-kernel-*.sb` are treated as inactive. The ini
 
 ## Union construction
 
-MiniOS selects `AUFS` when the running kernel supports it and otherwise uses OverlayFS. `union=overlayfs` selects OverlayFS. `union=aufs` requests `AUFS` but falls back to OverlayFS if `AUFS` is unavailable.
+MiniOS selects `AUFS` when the running kernel supports it and otherwise uses OverlayFS. `union=overlayfs` selects OverlayFS. `union=aufs` requests `AUFS` but falls back to OverlayFS if `AUFS` is unavailable. When UEFI Secure Boot is enabled, initrd does not load the unsigned `aufs-ng` module; if no other usable AUFS implementation is already available, OverlayFS is used even when `union=aufs` was requested.
 
 With `AUFS`, the initrd first mounts an empty union with the writable changes branch, then inserts each mounted module as a read-only branch. A failure to create the union is fatal. A failure while appending an individual `AUFS` branch is best effort: boot continues with the branches that were added, while MiniOS does not mark persistence as active for an incomplete union.
 

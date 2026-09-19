@@ -32,7 +32,7 @@ Raw, DynFileFS, DynBlk, and VMDK can optionally carry a LUKS2 encryption layer. 
 
 Native mode is the simplest and fastest choice on a compatible filesystem.
 Use DynFileFS when the persistence filesystem cannot represent Linux metadata.
-Use DynBlk when you want a real kernel block device with thin backing files; the driver can keep several independent DynBlk volumes attached at once, and Session Manager uses the device path returned by the driver rather than assuming `/dev/dynblk0` is free.
+Use DynBlk when you want a real kernel block device with thin backing files; the driver can keep several independent DynBlk volumes attached at once, and Session Manager uses the device path returned by the driver rather than assuming `/dev/dynblk0` is free. DynBlk and VMDK are unavailable while UEFI Secure Boot is enabled because MiniOS does not sign the external DynBlk kernel module. Installer and Session Manager therefore hide these modes and reject explicit creation requests before attempting to load the module.
 Use raw when fixed allocation is required, add LUKS2 when the session must be encrypted, and use SquashFS for an exact compressed snapshot.
 
 Run the following commands to inspect the actual persistence filesystem and the modes available on it:
@@ -61,7 +61,7 @@ Any recognized persistence parameter enables persistence handling. MiniOS boot m
 | `perchcomp=<codec>` | Select DynBlk backend compression for a new DynBlk session. Compression is forced to `none` when DynBlk is wrapped in LUKS2. |
 | `perchsize=<size>` | Set a new or larger container size; plain values are allocated in MiB and `MB`, `GB`, and `TB` suffixes are accepted. |
 
-If no mode is specified for a new session, boot uses native mode. On FAT32/NTFS/exFAT, native boot creation falls back to DynFileFS. A new raw container defaults to 4000 MiB. New DynFileFS, DynBlk, and VMDK boot sessions without `perchsize` use up to 16 GiB; when less backing space remains after the safety reserve, the automatic size is reduced. DynFileFS also accounts for its index overhead and RAM limit. Explicit DynBlk growth follows the installed backend limit, queried with `dynblk limits --format dynblk`.
+If no mode is specified for a new session, boot uses native mode. On FAT32/NTFS/exFAT, native boot creation falls back to DynFileFS. A new raw container defaults to 4000 MiB. New DynFileFS, DynBlk, and VMDK boot sessions without `perchsize` use up to 16 GiB; when less backing space remains after the safety reserve, the automatic size is reduced. DynFileFS also accounts for its index overhead and RAM limit. Explicit DynBlk growth follows the installed backend limit, queried with `dynblk limits --format dynblk`. Under Secure Boot, initrd does not offer DynBlk/VMDK and treats an explicit or resumed DynBlk/VMDK session as unavailable rather than attempting to load the unsigned module.
 SquashFS sessions can be captured from the running system with MiniOS Session Manager or `minios-session create squashfs`. Initrd setup creates only generation-zero session metadata and keeps the writable upper layer in RAM. The running system creates the first `changes.sb` snapshot on demand or at shutdown.
 
 When resuming, MiniOS checks the recorded version, edition, union filesystem, and mode. Literal `perchdir=resume` can create a new session instead of using an absent or incompatible default. Bare `perch`, direct numeric selection, and other legacy resume requests do not automatically create that replacement.

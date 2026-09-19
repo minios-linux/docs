@@ -99,13 +99,13 @@ File tingkat atas lain yang cocok dengan `01-kernel-*.sb` dianggap tidak aktif. 
 
 ## Konstruksi union
 
-MiniOS memilih `AUFS` jika kernel yang berjalan mendukungnya, dan jika tidak, akan menggunakan OverlayFS. `union=overlayfs` memilih OverlayFS. `union=aufs` meminta `AUFS`, tetapi akan kembali ke OverlayFS jika `AUFS` tidak tersedia.
+MiniOS memilih `AUFS` saat kernel yang berjalan mendukungnya dan jika tidak, menggunakan OverlayFS. `union=overlayfs` memilih OverlayFS. `union=aufs` meminta `AUFS` namun akan kembali ke OverlayFS jika `AUFS` tidak tersedia. Ketika UEFI Secure Boot diaktifkan, initrd tidak memuat modul `aufs-ng` yang belum ditandatangani; jika tidak ada implementasi AUFS lain yang dapat digunakan, OverlayFS akan digunakan meskipun `union=aufs` diminta.
 
-Dengan `AUFS`, initrd pertama-tama melakukan mount union kosong dengan cabang perubahan yang dapat ditulis, lalu memasukkan setiap modul yang sudah di-mount sebagai cabang hanya-baca. Kegagalan membuat union bersifat fatal. Jika gagal saat menambahkan cabang `AUFS` secara individual, sistem akan berusaha semaksimal mungkin: proses boot tetap berlanjut dengan cabang yang sudah berhasil ditambahkan, sementara MiniOS tidak menandai persistensi sebagai aktif jika union tidak lengkap.
+Dengan `AUFS`, initrd terlebih dahulu me-mount union kosong dengan cabang perubahan yang dapat ditulis, lalu memasukkan setiap modul yang ter-mount sebagai cabang hanya-baca. Kegagalan membuat union bersifat fatal. Jika gagal menambahkan satu cabang `AUFS` secara individual, sistem akan tetap berusaha: proses boot tetap berjalan dengan cabang yang sudah ditambahkan, sementara MiniOS tidak menandai persistensi sebagai aktif untuk union yang tidak lengkap.
 
-Dengan OverlayFS, seluruh set modul diberikan sebagai satu daftar `lowerdir` yang dibalik saat union di-mount. Layer yang dapat ditulis menyediakan `upperdir` dan `workdir`. Kegagalan melakukan mount union tersebut bersifat fatal. Urutan lower dari kiri ke kanan dan urutan penyisipan `AUFS` keduanya menerapkan aturan yang sama: modul dengan nomor lebih tinggi yang ditambahkan belakangan akan menyembunyikan path yang konflik dari modul sebelumnya.
+Dengan OverlayFS, seluruh set modul diberikan sebagai satu daftar `lowerdir` terbalik saat union di-mount. Layer yang dapat ditulis menyediakan `upperdir` dan `workdir`. Kegagalan me-mount union tersebut bersifat fatal. Urutan lower dari kiri ke kanan dan `AUFS` urutan penyisipan keduanya menerapkan aturan yang sama: modul dengan nomor lebih tinggi yang ditambahkan belakangan akan menyembunyikan path yang bertabrakan dari modul sebelumnya.
 
-Komposisi saat boot ini berbeda dengan aktivasi saat runtime. Setelah startup, `sb activate` dan `sb deactivate` hanya dapat mengubah root yang saat ini di-mount sebagai `AUFS`. Layer bawah OverlayFS tidak dapat diubah secara langsung. Aktivasi saat runtime tidak mengubah pilihan Next Boot, dan menambahkan modul Next Boot tidak mengaktifkannya pada root saat ini. Lihat [Manajer Modul MiniOS](/preparing-and-customizing/Managing-Modules).
+Komposisi saat boot ini berbeda dengan aktivasi saat runtime. Setelah startup, `sb activate` dan `sb deactivate` hanya dapat mengubah root yang saat ini di-mount sebagai `AUFS`. Layer bawah OverlayFS tidak dapat diubah secara langsung. Aktivasi saat runtime tidak mengubah pilihan Next Boot, dan menambahkan modul Next Boot tidak akan mengaktifkannya pada root saat ini. Lihat [Manajer Modul MiniOS](/preparing-and-customizing/Managing-Modules).
 
 ## Toram trim
 

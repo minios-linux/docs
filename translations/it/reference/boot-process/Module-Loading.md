@@ -97,15 +97,15 @@ Quando il triplet del repository è completo, copia il modulo in `minios/` e i f
 
 Altri file di primo livello che corrispondono a `01-kernel-*.sb` vengono trattati come inattivi. L'initrd tenta di spostare ciascun modulo inattivo e i relativi file `vmlinuz` e `initrfs` corrispondenti in `minios/kernels/VERSION/`. Queste operazioni di fallback e rilocazione del repository richiedono un albero dati scrivibile; i singoli errori di rilocazione non sono fatali. Usano sempre `.sb`, indipendentemente da `bext=`. Consulta [Gestione kernel](/preparing-and-customizing/Managing-Kernels) per i workflow supportati di installazione e attivazione del kernel.
 
-## Creazione dell'unione
+## Costruzione dell'unione
 
-MiniOS seleziona `AUFS` quando il kernel in esecuzione lo supporta, altrimenti utilizza OverlayFS. `union=overlayfs` seleziona OverlayFS. `union=aufs` richiede `AUFS`, ma ricorre a OverlayFS se `AUFS` non è disponibile.
+MiniOS seleziona `AUFS` quando il kernel in esecuzione lo supporta, altrimenti utilizza OverlayFS. `union=overlayfs` seleziona OverlayFS. `union=aufs` richiede `AUFS` ma passa a OverlayFS se `AUFS` non è disponibile. Quando UEFI Secure Boot è attivo, initrd non carica il modulo non firmato `aufs-ng`; se non è già disponibile un'altra implementazione AUFS utilizzabile, viene usato OverlayFS anche quando `union=aufs` era stato richiesto.
 
-Con `AUFS`, l'initrd monta prima un'unione vuota con il ramo delle modifiche scrivibili, quindi inserisce ogni modulo montato come ramo in sola lettura. Un errore nella creazione dell'unione è fatale. Un errore durante l'aggiunta di un singolo ramo `AUFS` viene gestito al meglio: l'avvio prosegue con i rami già aggiunti, mentre MiniOS non considera la persistenza attiva per un'unione incompleta.
+Con `AUFS`, l'initrd monta prima un'unione vuota con il branch scrivibile per le modifiche, poi inserisce ogni modulo montato come branch in sola lettura. Un errore nella creazione dell'unione è fatale. Un errore nell'aggiunta di un singolo `AUFS` branch viene gestito al meglio: l'avvio prosegue con i branch già aggiunti, mentre MiniOS non attiva la persistenza per un'unione incompleta.
 
-Con OverlayFS, l'intero set di moduli viene fornito come un'unica lista `lowerdir` invertita al momento del montaggio dell'unione. Il livello scrivibile fornisce il proprio `upperdir` e `workdir`. Un errore nel montaggio di questa unione è fatale. L'ordinamento inferiore da sinistra a destra e l'ordine di inserimento `AUFS` implementano entrambi la stessa regola: i moduli successivi, con numerazione più alta, nascondono i percorsi in conflitto dei moduli precedenti.
+Con OverlayFS, l'intero set di moduli viene fornito come un'unica lista `lowerdir` invertita al momento del mount dell'unione. Il livello scrivibile fornisce il proprio `upperdir` e `workdir`. Un errore nel mount di questa unione è fatale. L'ordinamento inferiore da sinistra a destra e `AUFS` l'ordine di inserimento implementano entrambi la stessa regola: i moduli successivi, con numerazione più alta, nascondono i percorsi in conflitto dei moduli precedenti.
 
-Questa composizione all'avvio è distinta dall'attivazione in fase di esecuzione. Dopo l'avvio, `sb activate` e `sb deactivate` possono modificare solo una root attualmente montata come `AUFS`. I livelli inferiori OverlayFS non possono essere modificati in loco. L'attivazione in fase di esecuzione non modifica la selezione Next Boot, e aggiungere un modulo Next Boot non lo attiva nella root corrente. Consulta [Gestore moduli MiniOS](/preparing-and-customizing/Managing-Modules).
+Questa composizione all'avvio è distinta dall'attivazione in fase di esecuzione. Dopo l'avvio, `sb activate` e `sb deactivate` possono modificare solo una root attualmente montata come `AUFS`. I livelli inferiori OverlayFS non possono essere cambiati direttamente. L'attivazione in fase di esecuzione non modifica la selezione Next Boot, e aggiungere un modulo Next Boot non lo attiva nella root corrente. Vedi [Gestore moduli MiniOS](/preparing-and-customizing/Managing-Modules).
 
 ## Toram trim
 

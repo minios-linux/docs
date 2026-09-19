@@ -33,7 +33,7 @@ Later modules have higher precedence and can replace paths supplied by earlier m
 
 ## AUFS and OverlayFS
 
-MiniOS uses a union filesystem to present the modules and writable layer as one root filesystem. It selects AUFS when the running kernel supports it and falls back to OverlayFS otherwise. `union=aufs` requests AUFS but still falls back to OverlayFS when AUFS is unavailable; `union=overlayfs` selects OverlayFS.
+MiniOS uses a union filesystem to present the modules and writable layer as one root filesystem. It selects AUFS when the running kernel supports it and falls back to OverlayFS otherwise. `union=aufs` requests AUFS but still falls back to OverlayFS when AUFS is unavailable; `union=overlayfs` selects OverlayFS. Under UEFI Secure Boot, initrd does not load the unsigned `aufs-ng` module and uses OverlayFS unless another usable AUFS implementation is already present.
 
 The two implementations have an important operational difference:
 

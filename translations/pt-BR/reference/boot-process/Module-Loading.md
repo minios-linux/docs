@@ -97,15 +97,15 @@ Quando o triplo do repositório está completo, ele copia o módulo para `minios
 
 Outros arquivos de nível superior que correspondam a `01-kernel-*.sb` são tratados como inativos. O initrd tenta mover cada módulo inativo e seus arquivos `vmlinuz` e `initrfs` correspondentes para `minios/kernels/VERSION/`. Essas operações de fallback e realocação do repositório exigem uma árvore de dados gravável; falhas individuais de realocação não são fatais. Sempre utilizam `.sb`, independentemente de `bext=`. Veja [Gerenciamento de kernel](/preparing-and-customizing/Managing-Kernels) para fluxos de trabalho suportados de instalação e ativação do kernel.
 
-## Construção da união
+## Construção de união
 
-MiniOS seleciona `AUFS` quando o kernel em execução oferece suporte, e caso contrário utiliza OverlayFS. `union=overlayfs` seleciona OverlayFS. `union=aufs` solicita `AUFS`, mas recorre a OverlayFS se `AUFS` não estiver disponível.
+MiniOS seleciona `AUFS` quando o kernel em execução oferece suporte; caso contrário, utiliza OverlayFS. `union=overlayfs` seleciona OverlayFS. `union=aufs` solicita `AUFS` mas recorre a OverlayFS se `AUFS` não estiver disponível. Quando o UEFI Secure Boot está ativado, o initrd não carrega o módulo não assinado `aufs-ng`; se nenhuma outra implementação utilizável de AUFS já estiver disponível, OverlayFS será usada mesmo quando `union=aufs` for solicitada.
 
-Com `AUFS`, o initrd primeiro monta uma união vazia com o branch de alterações graváveis e, em seguida, insere cada módulo montado como um branch somente leitura. Uma falha ao criar a união é fatal. Uma falha ao adicionar um branch `AUFS` individual é tratada como melhor esforço: a inicialização continua com os branches que foram adicionados, enquanto MiniOS não marca a persistência como ativa para uma união incompleta.
+Com `AUFS`, o initrd primeiro monta uma união vazia com o branch de alterações graváveis e, em seguida, insere cada módulo montado como um branch somente leitura. Falha ao criar a união é fatal. Uma falha ao adicionar um branch individual de `AUFS` é tratada como melhor esforço: a inicialização continua com os branches já adicionados, enquanto MiniOS não marca a persistência como ativa para uma união incompleta.
 
-Com OverlayFS, o conjunto completo de módulos é fornecido como uma lista `lowerdir` invertida quando a união é montada. A camada gravável fornece seu `upperdir` e `workdir`. Falha ao montar essa união é fatal. A ordenação inferior da esquerda para a direita e a ordem de inserção `AUFS` implementam a mesma regra: módulos posteriores, com números mais altos, ocultam caminhos conflitantes de módulos anteriores.
+Com OverlayFS, o conjunto completo de módulos é fornecido como uma única lista de `lowerdir` invertida quando a união é montada. A camada gravável fornece seu `upperdir` e `workdir`. Falha ao montar essa união é fatal. A ordem inferior da esquerda para a direita e `AUFS` a ordem de inserção implementam a mesma regra: módulos mais recentes, com números mais altos, ocultam caminhos conflitantes de módulos anteriores.
 
-Essa composição em tempo de boot é distinta da ativação em tempo de execução. Após a inicialização, `sb activate` e `sb deactivate` só podem alterar uma raiz que está montada atualmente como `AUFS`. Camadas inferiores OverlayFS não podem ser alteradas no local. A ativação em tempo de execução não altera a seleção do Próximo Boot, e adicionar um módulo de Próximo Boot não o ativa na raiz atual. Veja [Gerenciador de módulos MiniOS](/preparing-and-customizing/Managing-Modules).
+Essa composição em tempo de boot é diferente da ativação em tempo de execução. Após a inicialização, `sb activate` e `sb deactivate` só podem alterar uma raiz que esteja montada como `AUFS`. As camadas inferiores OverlayFS não podem ser alteradas em tempo real. A ativação em tempo de execução não altera a seleção de Próxima Inicialização, e adicionar um módulo de Próxima Inicialização não o ativa na raiz atual. Consulte [Gerenciador de módulos MiniOS](/preparing-and-customizing/Managing-Modules).
 
 ## Toram trim
 

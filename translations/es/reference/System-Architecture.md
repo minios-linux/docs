@@ -33,16 +33,16 @@ Los módulos posteriores tienen mayor precedencia y pueden reemplazar rutas sumi
 
 ## AUFS y OverlayFS
 
-MiniOS utiliza un sistema de archivos en unión para presentar los módulos y la capa escribible como un único sistema de archivos raíz. Selecciona AUFS cuando el kernel en ejecución lo soporta y recurre a OverlayFS en caso contrario. `union=aufs` solicita AUFS, pero aún así recurre a OverlayFS cuando AUFS no está disponible; `union=overlayfs` selecciona OverlayFS.
+MiniOS utiliza un sistema de archivos en unión para presentar los módulos y la capa escribible como un solo sistema de archivos raíz. Selecciona AUFS cuando el kernel en ejecución lo soporta y, en caso contrario, recurre a OverlayFS. `union=aufs` solicita AUFS, pero aún así recurre a OverlayFS cuando AUFS no está disponible; `union=overlayfs` selecciona OverlayFS. Bajo UEFI Secure Boot, initrd no carga el `aufs-ng` módulo sin firmar y utiliza OverlayFS a menos que ya exista otra implementación de AUFS utilizable.
 
-Las dos implementaciones tienen una diferencia operativa importante:
+Las dos implementaciones presentan una diferencia operativa importante:
 
-- AUFS comienza con la rama escribible y añade los módulos montados como ramas de solo lectura. MiniOS puede activar o desactivar un módulo en el sistema raíz en ejecución cuando el montaje AUFS soporta esa operación.
-- OverlayFS recibe su lista `lowerdir` completa y ordenada cuando se monta la raíz, además de un `upperdir` y `workdir`. Su conjunto de módulos inferiores no se puede modificar en caliente mediante el **Gestor de módulos de MiniOS**.
+- AUFS inicia con la rama escribible y añade los módulos montados como ramas de solo lectura. MiniOS puede activar o desactivar un módulo en el sistema raíz en ejecución cuando el montaje AUFS permite esa operación.
+- OverlayFS recibe su lista completa y ordenada `lowerdir` al montar el sistema raíz, además de un `upperdir` y `workdir`. El conjunto de módulos inferiores no puede modificarse en el lugar mediante **Gestor de módulos de MiniOS**.
 
-Por lo tanto, el **Gestor de módulos de MiniOS** separa **Ejecutando ahora**, el conjunto de módulos montados, de **Próximo arranque**, los módulos seleccionados por el medio actual y las reglas de arranque. Agregar o quitar un módulo duradero normalmente solo afecta al próximo arranque. Crear o abrir un módulo no lo activa. La activación y desactivación en tiempo de ejecución solo están disponibles con AUFS.
+**Gestor de módulos de MiniOS** por lo tanto, separa **En ejecución**, el conjunto de módulos montados, de **Próximo arranque**, los módulos seleccionados por los medios y reglas de arranque actuales. Agregar o quitar un módulo duradero normalmente solo afecta el próximo arranque. Crear o abrir un módulo no lo activa. La activación y desactivación en tiempo de ejecución solo están disponibles con AUFS.
 
-Después de ensamblar la raíz y completar la configuración inicial, el initrd de LiveKit utiliza `pivot_root`, conserva el initrd antiguo para tareas de apagado y ejecuta el init de la nueva raíz. La ruta de dracut prepara la misma raíz ensamblada pero deja la ejecución final de `switch_root` a dracut. Consulta [Carga de módulos en Initrd](/reference/boot-process/Module-Loading) para ver los detalles del traspaso.
+Después de ensamblar el sistema raíz y completar la configuración inicial, el initrd de LiveKit utiliza `pivot_root`, conserva el initrd anterior para tareas de apagado y ejecuta el init del nuevo sistema raíz. La ruta de dracut prepara el mismo sistema raíz ensamblado pero deja el paso final `switch_root` a dracut. Consulte [Carga de módulos en initrd](/reference/boot-process/Module-Loading) para conocer el límite exacto de traspaso.
 
 ## Capa editable y sesiones
 
