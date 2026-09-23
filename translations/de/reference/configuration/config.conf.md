@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-31
+updated: 2026-09-23
 ---
 
 # config.conf
@@ -56,33 +56,35 @@ Die genauen Werte hängen vom Abbild und der Build-Konfiguration ab.
 
 ## Standardparameter
 
-| Parameter | Rekonfigurierbar | Bedeutung |
+| Parameter | Konfigurierbar | Bedeutung |
 |---|---|---|
-| `LIVE_CONFIG_CMDLINE` | Ja | Zusätzliche live-config-Optionen. Die tatsächliche Kernel-Kommandozeile wird später angehängt und überschreibt doppelte Optionen. |
+| `LIVE_CONFIG_CMDLINE` | Ja | Zusätzliche live-config-Optionen. Die tatsächliche Kernel-Befehlszeile wird später angehängt und überschreibt bei mehrfachen Optionen. |
 | `LIVE_HOSTNAME` | Ja | System-Hostname. |
 | `LIVE_USERNAME` | Nur beim ersten Start | Name des Live-Benutzers, der während der Ersteinrichtung erstellt wird. |
 | `LIVE_USER_FULLNAME` | Nur beim ersten Start | Vollständiger Name des Live-Benutzers. |
-| `LIVE_USER_DEFAULT_GROUPS` | Nur beim ersten Start | Zusätzliche Gruppen, die beim Erstellen des Live-Benutzers zugewiesen werden. |
-| `LIVE_USER_PASSWORD_CRYPTED` | Nur beim ersten Start | Kryptografischer Hash für das Live-Benutzer-Passwort. |
-| `LIVE_ROOT_PASSWORD_CRYPTED` | Nur beim ersten Start | Kryptografischer Hash für das Root-Passwort. |
-| `LIVE_CONFIG_NOROOT` | Nur beim ersten Start | Wenn aktiviert, unterdrückt die Einrichtung von MiniOS Root-Passwort, sudo und PolicyKit-Berechtigungen. |
+| `LIVE_USER_DEFAULT_GROUPS` | Nur beim ersten Start | Zusätzliche Gruppen, die beim Anlegen des Live-Benutzers zugewiesen werden. |
+| `LIVE_USER_PASSWORD_CRYPTED` | Nur beim ersten Start | Crypt-Hash für das Passwort des Live-Benutzers. |
+| `LIVE_ROOT_PASSWORD_CRYPTED` | Nur beim ersten Start | Crypt-Hash für das Root-Passwort. |
+| `LIVE_CONFIG_NOROOT` | Nur beim ersten Start | Wenn aktiviert, wird die Einrichtung von MiniOS Root-Passwort, sudo und PolicyKit-Berechtigungen unterdrückt. |
 | `LIVE_LOCALES` | Ja | Eine oder mehrere System-Sprachumgebungen (Locales). |
-| `LIVE_TIMEZONE` | Ja | Systemzeitzone, zum Beispiel `Europe/Berlin` oder `Etc/UTC`. |
+| `LIVE_TIMEZONE` | Ja | System-Zeitzone, zum Beispiel `Europe/Berlin` oder `Etc/UTC`. |
 | `LIVE_KEYBOARD_MODEL` | Ja | XKB-Tastaturmodell. |
 | `LIVE_KEYBOARD_LAYOUTS` | Ja | Kommagetrennte Tastatur-Layouts. |
 | `LIVE_KEYBOARD_OPTIONS` | Ja | XKB-Tastaturoptionen. |
 | `LIVE_KEYBOARD_VARIANTS` | Ja | Kommagetrennte Varianten, passend zu den konfigurierten Layouts. |
-| `LIVE_CONFIG_DEBUG` | Ja | Aktiviert die live-config-Debug-Ausgabe, wenn auf `true` gesetzt. |
-| `LIVE_LINK_USER_DIRS` | Ja | Verlinkt verwaltete Benutzerverzeichnisse mit dem konfigurierten Speicherort auf beschreibbaren MiniOS Medien. |
-| `LIVE_BIND_USER_DIRS` | Ja | Bindet verwaltete Benutzerverzeichnisse vom konfigurierten Speicherort auf beschreibbaren MiniOS Medien ein. |
-| `LIVE_USER_DIRS_PATH` | Ja | Speicherort, der vom Link-/Bind-Benutzerverzeichnis-Modus verwendet wird. |
-| `LIVE_MODULE_MODE` | Ja | Wählt die Integration des `simple` oder `merged` live-config-Moduls. |
+| `LIVE_CONFIG_DEBUG` | Ja | Aktiviert die Debug-Ausgabe von live-config, wenn auf `true` gesetzt. |
+| `LIVE_LINK_USER_DIRS` | Ja | Verknüpft verwaltete Benutzerverzeichnisse mit dem konfigurierten Speicherort auf beschreibbaren MiniOS-Medien. Nicht verfügbar im Bind-Modus, bei jedem `toram`-Modus oder bei aktiver LUKS-verschlüsselter Persistenzsitzung. |
+| `LIVE_BIND_USER_DIRS` | Ja | Bindet verwaltete Benutzerverzeichnisse vom konfigurierten Speicherort auf beschreibbaren MiniOS-Medien ein. Nicht verfügbar im Link-Modus, bei jedem `toram`-Modus oder bei aktiver LUKS-verschlüsselter Persistenzsitzung. |
+| `LIVE_USER_DIRS_PATH` | Ja | Speicherort, der im Link-/Bind-Benutzerverzeichnis-Modus verwendet wird. |
+| `LIVE_MODULE_MODE` | Ja | Wählt die Integration des `simple`- oder `merged` live-config-Moduls. |
 | `DEFAULT_TARGET` | Ja | Boot-Ziel: `graphical.target`, `multi-user.target` oder `rescue.target`. |
 | `ENABLE_SERVICES` | Ja | Kommagetrennte Dienste, die beim Booten über `minios-svc` aktiviert werden. |
 | `DISABLE_SERVICES` | Ja | Kommagetrennte Dienste, die beim Booten über `minios-svc` deaktiviert werden. |
-| `EXPORT_LOGS` | Ja | Wenn `true`, werden MiniOS und die live-config-Startprotokolle auf beschreibbare MiniOS Medien exportiert. |
+| `EXPORT_LOGS` | Ja | Wenn `true` aktiviert ist, werden MiniOS und die live-config-Startprotokolle auf beschreibbare MiniOS-Medien exportiert. |
 
-Die generierte Datei ist keine vollständige Liste aller von `minios-live-config` unterstützten Optionen. Zusätzliche Variablen für die Vorkonfiguration von kabelgebundenem Netzwerk, Sicherheitsrichtlinien, Hooks, Preseeding, Xorg und anderen Komponenten können manuell ergänzt werden. Siehe [live-config](/reference/configuration/live-config) für die vollständige Referenz.
+Die erzeugte Datei ist keine vollständige Liste aller von `minios-live-config` unterstützten Möglichkeiten. Zusätzliche Variablen für die Vorkonfiguration von kabelgebundenen Netzwerken, Sicherheitsrichtlinien, Hooks, Preseeding, Xorg und andere Komponenten können manuell hinzugefügt werden. Siehe [live-config](/reference/configuration/live-config) für die vollständige Referenz.
+
+Die `user-media` Komponente verweigert sowohl die Aktivierung als auch das Zurückkopieren, solange die aktive Persistenzsitzung LUKS-verschlüsselt ist. Es wird der tatsächliche Verschlüsselungsstatus zur Laufzeit verwendet: Der `perchencrypt=luks` Kernel-Parameter fordert die Verschlüsselung nur beim Erstellen einer neuen Sitzung an und beschreibt keine bestehende Sitzung.
 
 ## Vorkonfiguration für kabelgebundene Netzwerke
 

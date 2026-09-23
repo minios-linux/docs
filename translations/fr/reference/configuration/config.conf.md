@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-31
+updated: 2026-09-23
 ---
 
 # config.conf
@@ -58,31 +58,33 @@ Les valeurs exactes dépendent de l’image et de la configuration de la constru
 
 | Paramètre | Reconfigurable | Signification |
 |---|---|---|
-| `LIVE_CONFIG_CMDLINE` | Oui | Options supplémentaires pour live-config. La véritable ligne de commande du noyau est ajoutée ensuite et prévaut en cas d’options répétées. |
+| `LIVE_CONFIG_CMDLINE` | Oui | Options supplémentaires pour live-config. La ligne de commande réelle du noyau est ajoutée ensuite et prévaut en cas d’options répétées. |
 | `LIVE_HOSTNAME` | Oui | Nom d’hôte du système. |
-| `LIVE_USERNAME` | Premier démarrage uniquement | Nom de l’utilisateur live créé lors de l’installation initiale. |
+| `LIVE_USERNAME` | Premier démarrage uniquement | Nom de l’utilisateur live créé lors de l’initialisation. |
 | `LIVE_USER_FULLNAME` | Premier démarrage uniquement | Nom complet de l’utilisateur live. |
-| `LIVE_USER_DEFAULT_GROUPS` | Premier démarrage uniquement | Groupes supplémentaires attribués lors de la création de l’utilisateur live. |
-| `LIVE_USER_PASSWORD_CRYPTED` | Premier démarrage uniquement | Hachage crypté du mot de passe de l’utilisateur live. |
-| `LIVE_ROOT_PASSWORD_CRYPTED` | Premier démarrage uniquement | Hachage crypté du mot de passe root. |
-| `LIVE_CONFIG_NOROOT` | Premier démarrage uniquement | Si activé, désactive la configuration du mot de passe root MiniOS, sudo et PolicyKit. |
+| `LIVE_USER_DEFAULT_GROUPS` | Premier démarrage uniquement | Groupes supplémentaires attribués à la création de l’utilisateur live. |
+| `LIVE_USER_PASSWORD_CRYPTED` | Premier démarrage uniquement | Empreinte cryptée du mot de passe de l’utilisateur live. |
+| `LIVE_ROOT_PASSWORD_CRYPTED` | Premier démarrage uniquement | Empreinte cryptée du mot de passe root. |
+| `LIVE_CONFIG_NOROOT` | Premier démarrage uniquement | Si activé, désactive la configuration des privilèges root (MiniOS), sudo et PolicyKit. |
 | `LIVE_LOCALES` | Oui | Une ou plusieurs locales système. |
 | `LIVE_TIMEZONE` | Oui | Fuseau horaire du système, par exemple `Europe/Berlin` ou `Etc/UTC`. |
 | `LIVE_KEYBOARD_MODEL` | Oui | Modèle de clavier XKB. |
-| `LIVE_KEYBOARD_LAYOUTS` | Oui | Dispositions de clavier séparées par des virgules. |
+| `LIVE_KEYBOARD_LAYOUTS` | Oui | Agencements de clavier séparés par des virgules. |
 | `LIVE_KEYBOARD_OPTIONS` | Oui | Options de clavier XKB. |
-| `LIVE_KEYBOARD_VARIANTS` | Oui | Variantes séparées par des virgules, associées aux dispositions configurées. |
-| `LIVE_CONFIG_DEBUG` | Oui | Active la sortie de débogage de live-config si défini à `true`. |
-| `LIVE_LINK_USER_DIRS` | Oui | Lie les répertoires utilisateurs gérés à l’emplacement configuré sur un support MiniOS inscriptible. |
-| `LIVE_BIND_USER_DIRS` | Oui | Monte en bind les répertoires utilisateurs gérés depuis l’emplacement configuré sur un support MiniOS inscriptible. |
-| `LIVE_USER_DIRS_PATH` | Oui | Emplacement utilisé par le mode lien/bind des répertoires utilisateurs. |
-| `LIVE_MODULE_MODE` | Oui | Sélectionne l’intégration du module live-config `simple` ou `merged`. |
-| `DEFAULT_TARGET` | Oui | Cible de démarrage : `graphical.target`, `multi-user.target` ou `rescue.target`. |
+| `LIVE_KEYBOARD_VARIANTS` | Oui | Variantes séparées par des virgules, associées aux agencements configurés. |
+| `LIVE_CONFIG_DEBUG` | Oui | Active la sortie de débogage de live-config si la valeur est `true`. |
+| `LIVE_LINK_USER_DIRS` | Oui | Lie les répertoires utilisateur gérés à l’emplacement configuré sur un support MiniOS inscriptible. Indisponible en mode bind, tout mode `toram` ou lors d’une session de persistance chiffrée LUKS active. |
+| `LIVE_BIND_USER_DIRS` | Oui | Monte les répertoires utilisateur gérés depuis l’emplacement configuré sur un support MiniOS inscriptible en mode bind. Indisponible en mode link, tout mode `toram` ou lors d’une session de persistance chiffrée LUKS active. |
+| `LIVE_USER_DIRS_PATH` | Oui | Emplacement utilisé par le mode link/bind pour les répertoires utilisateur. |
+| `LIVE_MODULE_MODE` | Oui | Sélectionne l’intégration du module `simple` ou `merged` live-config. |
+| `DEFAULT_TARGET` | Oui | Cible de démarrage : `graphical.target`, `multi-user.target`, ou `rescue.target`. |
 | `ENABLE_SERVICES` | Oui | Services séparés par des virgules activés au démarrage via `minios-svc`. |
 | `DISABLE_SERVICES` | Oui | Services séparés par des virgules désactivés au démarrage via `minios-svc`. |
-| `EXPORT_LOGS` | Oui | Si `true`, exporte MiniOS et les journaux de démarrage live-config vers un support MiniOS inscriptible. |
+| `EXPORT_LOGS` | Oui | Lorsque `true`, exporte MiniOS et les journaux de démarrage de live-config vers un support MiniOS inscriptible. |
 
-Le fichier généré n’est pas une liste exhaustive de tout ce qui est pris en charge par `minios-live-config`. Des variables supplémentaires pour la préconfiguration du réseau filaire, la sécurité, les hooks, le preseeding, Xorg et d’autres composants peuvent être ajoutées manuellement. Voir [live-config](/reference/configuration/live-config) pour la référence complète.
+Le fichier généré n’est pas une liste exhaustive de tout ce qui est pris en charge par `minios-live-config`. D’autres variables pour la préconfiguration réseau filaire, la sécurité, les hooks, le preseeding, Xorg et d’autres composants peuvent être ajoutées manuellement. Voir [live-config](/reference/configuration/live-config) pour la documentation complète.
+
+Le composant `user-media` refuse l’activation et la copie de données tant que la session de persistance active est chiffrée avec LUKS. Il se base sur l’état de chiffrement en cours d’exécution : le paramètre `perchencrypt=luks` du noyau ne fait que demander le chiffrement lors de la création d’une nouvelle session et ne décrit pas une session existante.
 
 ## Préconfiguration du réseau filaire
 

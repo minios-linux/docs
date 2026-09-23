@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-31
+updated: 2026-09-23
 ---
 
 # config.conf
@@ -58,31 +58,33 @@ Os valores exatos dependem da imagem e da configuração de build.
 
 | Parâmetro | Reconfigurável | Significado |
 |---|---|---|
-| `LIVE_CONFIG_CMDLINE` | Sim | Opções adicionais do live-config. A linha de comando real do kernel é adicionada depois e prevalece para opções repetidas. |
+| `LIVE_CONFIG_CMDLINE` | Sim | Opções adicionais do live-config. A linha de comando real do kernel é adicionada depois e prevalece em caso de opções repetidas. |
 | `LIVE_HOSTNAME` | Sim | Nome do host do sistema. |
 | `LIVE_USERNAME` | Apenas no primeiro boot | Nome do usuário live criado durante a configuração inicial. |
 | `LIVE_USER_FULLNAME` | Apenas no primeiro boot | Nome completo do usuário live. |
-| `LIVE_USER_DEFAULT_GROUPS` | Apenas no primeiro boot | Grupos suplementares atribuídos quando o usuário live é criado. |
-| `LIVE_USER_PASSWORD_CRYPTED` | Apenas no primeiro boot | Hash criptográfico para a senha do usuário live. |
-| `LIVE_ROOT_PASSWORD_CRYPTED` | Apenas no primeiro boot | Hash criptográfico para a senha de root. |
-| `LIVE_CONFIG_NOROOT` | Apenas no primeiro boot | Quando ativado, suprime a configuração de senha de root, sudo e privilégios do PolicyKit do MiniOS. |
+| `LIVE_USER_DEFAULT_GROUPS` | Apenas no primeiro boot | Grupos suplementares atribuídos ao criar o usuário live. |
+| `LIVE_USER_PASSWORD_CRYPTED` | Apenas no primeiro boot | Hash criptografado da senha do usuário live. |
+| `LIVE_ROOT_PASSWORD_CRYPTED` | Apenas no primeiro boot | Hash criptografado da senha de root. |
+| `LIVE_CONFIG_NOROOT` | Apenas no primeiro boot | Quando ativado, suprime a configuração de privilégios de root (MiniOS), sudo e PolicyKit. |
 | `LIVE_LOCALES` | Sim | Um ou mais locales do sistema. |
 | `LIVE_TIMEZONE` | Sim | Fuso horário do sistema, por exemplo `Europe/Berlin` ou `Etc/UTC`. |
 | `LIVE_KEYBOARD_MODEL` | Sim | Modelo de teclado XKB. |
 | `LIVE_KEYBOARD_LAYOUTS` | Sim | Layouts de teclado separados por vírgula. |
 | `LIVE_KEYBOARD_OPTIONS` | Sim | Opções de teclado XKB. |
 | `LIVE_KEYBOARD_VARIANTS` | Sim | Variantes separadas por vírgula correspondentes aos layouts configurados. |
-| `LIVE_CONFIG_DEBUG` | Sim | Ativa a saída de debug do live-config quando definido como `true`. |
-| `LIVE_LINK_USER_DIRS` | Sim | Faz links dos diretórios de usuário gerenciados para o local configurado em mídia MiniOS gravável. |
-| `LIVE_BIND_USER_DIRS` | Sim | Faz bind-mount dos diretórios de usuário gerenciados a partir do local configurado em mídia MiniOS gravável. |
-| `LIVE_USER_DIRS_PATH` | Sim | Local utilizado pelo modo de link/bind de diretórios de usuário. |
-| `LIVE_MODULE_MODE` | Sim | Seleciona integração do módulo live-config `simple` ou `merged`. |
+| `LIVE_CONFIG_DEBUG` | Sim | Ativa a saída de depuração do live-config quando definido como `true`. |
+| `LIVE_LINK_USER_DIRS` | Sim | Vincula os diretórios de usuário gerenciados ao local configurado em mídia gravável MiniOS. Indisponível no modo bind, em qualquer modo `toram` ou com uma sessão de persistência LUKS ativa. |
+| `LIVE_BIND_USER_DIRS` | Sim | Realiza bind-mount dos diretórios de usuário gerenciados a partir do local configurado em mídia gravável MiniOS. Indisponível no modo link, em qualquer modo `toram` ou com uma sessão de persistência LUKS ativa. |
+| `LIVE_USER_DIRS_PATH` | Sim | Local utilizado pelo modo link/bind de diretórios de usuário. |
+| `LIVE_MODULE_MODE` | Sim | Seleciona integração de módulo `simple` ou `merged` do live-config. |
 | `DEFAULT_TARGET` | Sim | Destino de boot: `graphical.target`, `multi-user.target` ou `rescue.target`. |
-| `ENABLE_SERVICES` | Sim | Serviços separados por vírgula ativados no boot via `minios-svc`. |
-| `DISABLE_SERVICES` | Sim | Serviços separados por vírgula desativados no boot via `minios-svc`. |
-| `EXPORT_LOGS` | Sim | Quando `true`, exporta MiniOS e logs de inicialização do live-config para mídia MiniOS gravável. |
+| `ENABLE_SERVICES` | Sim | Serviços separados por vírgula ativados na inicialização via `minios-svc`. |
+| `DISABLE_SERVICES` | Sim | Serviços separados por vírgula desativados na inicialização via `minios-svc`. |
+| `EXPORT_LOGS` | Sim | Quando `true`, exporta MiniOS e os logs de inicialização do live-config para mídia gravável MiniOS. |
 
-O arquivo gerado não é uma lista exaustiva de tudo que o `minios-live-config` suporta. Variáveis adicionais para pré-configuração de rede cabeada, postura de segurança, hooks, preseeding, Xorg e outros componentes podem ser adicionadas manualmente. Veja [live-config](/reference/configuration/live-config) para a referência completa.
+O arquivo gerado não é uma lista exaustiva de tudo que é suportado pelo `minios-live-config`. Variáveis adicionais para pré-configuração de rede cabeada, postura de segurança, hooks, preseeding, Xorg e outros componentes podem ser adicionadas manualmente. Consulte [live-config](/reference/configuration/live-config) para a referência completa.
+
+O componente `user-media` recusa tanto a ativação quanto o copy-back enquanto a sessão de persistência ativa estiver criptografada com LUKS. Ele utiliza o estado real de criptografia em tempo de execução: o parâmetro do kernel `perchencrypt=luks` apenas solicita criptografia ao criar uma nova sessão e não descreve uma sessão já existente.
 
 ## Pré-configuração de rede cabeada
 

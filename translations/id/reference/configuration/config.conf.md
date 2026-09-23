@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-31
+updated: 2026-09-23
 ---
 
 # config.conf
@@ -56,33 +56,35 @@ Nilai pastinya tergantung pada image dan konfigurasi build.
 
 ## Parameter standar
 
-| Parameter | Dapat dikonfigurasi ulang | Arti |
+| Parameter | Dapat dikonfigurasi ulang | Makna |
 |---|---|---|
-| `LIVE_CONFIG_CMDLINE` | Ya | Opsi tambahan live-config. Kernel command line yang sebenarnya akan ditambahkan kemudian dan akan menang untuk opsi yang berulang. |
+| `LIVE_CONFIG_CMDLINE` | Ya | Opsi live-config tambahan. Baris perintah kernel yang sebenarnya akan ditambahkan kemudian dan akan mengutamakan opsi yang sama jika ada pengulangan. |
 | `LIVE_HOSTNAME` | Ya | Hostname sistem. |
-| `LIVE_USERNAME` | Hanya boot pertama | Nama pengguna live yang dibuat saat setup awal. |
-| `LIVE_USER_FULLNAME` | Hanya boot pertama | Nama lengkap pengguna live. |
-| `LIVE_USER_DEFAULT_GROUPS` | Hanya boot pertama | Grup tambahan yang diberikan saat pengguna live dibuat. |
-| `LIVE_USER_PASSWORD_CRYPTED` | Hanya boot pertama | Crypt hash untuk password pengguna live. |
-| `LIVE_ROOT_PASSWORD_CRYPTED` | Hanya boot pertama | Crypt hash untuk password root. |
-| `LIVE_CONFIG_NOROOT` | Hanya boot pertama | Jika diaktifkan, menonaktifkan pengaturan password root MiniOS, sudo, dan hak istimewa PolicyKit. |
+| `LIVE_USERNAME` | Hanya saat boot pertama | Nama pengguna live yang dibuat selama proses setup awal. |
+| `LIVE_USER_FULLNAME` | Hanya saat boot pertama | Nama lengkap pengguna live. |
+| `LIVE_USER_DEFAULT_GROUPS` | Hanya saat boot pertama | Grup tambahan yang diberikan saat pengguna live dibuat. |
+| `LIVE_USER_PASSWORD_CRYPTED` | Hanya saat boot pertama | Hash crypt untuk password pengguna live. |
+| `LIVE_ROOT_PASSWORD_CRYPTED` | Hanya saat boot pertama | Hash crypt untuk password root. |
+| `LIVE_CONFIG_NOROOT` | Hanya saat boot pertama | Jika diaktifkan, menonaktifkan pengaturan hak istimewa MiniOS root-password, sudo, dan PolicyKit. |
 | `LIVE_LOCALES` | Ya | Satu atau lebih locale sistem. |
 | `LIVE_TIMEZONE` | Ya | Zona waktu sistem, misalnya `Europe/Berlin` atau `Etc/UTC`. |
 | `LIVE_KEYBOARD_MODEL` | Ya | Model keyboard XKB. |
-| `LIVE_KEYBOARD_LAYOUTS` | Ya | Tata letak keyboard dipisahkan koma. |
+| `LIVE_KEYBOARD_LAYOUTS` | Ya | Tata letak keyboard yang dipisahkan koma. |
 | `LIVE_KEYBOARD_OPTIONS` | Ya | Opsi keyboard XKB. |
-| `LIVE_KEYBOARD_VARIANTS` | Ya | Varian dipisahkan koma yang dicocokkan dengan tata letak yang dikonfigurasi. |
-| `LIVE_CONFIG_DEBUG` | Ya | Mengaktifkan output debug live-config saat diatur ke `true`. |
-| `LIVE_LINK_USER_DIRS` | Ya | Menghubungkan direktori pengguna yang dikelola ke lokasi yang dikonfigurasi pada media MiniOS yang dapat ditulis. |
-| `LIVE_BIND_USER_DIRS` | Ya | Bind-mount direktori pengguna yang dikelola dari lokasi yang dikonfigurasi pada media MiniOS yang dapat ditulis. |
-| `LIVE_USER_DIRS_PATH` | Ya | Lokasi yang digunakan oleh mode link/bind direktori pengguna. |
-| `LIVE_MODULE_MODE` | Ya | Memilih integrasi modul live-config `simple` atau `merged`. |
+| `LIVE_KEYBOARD_VARIANTS` | Ya | Varian yang dipisahkan koma sesuai dengan tata letak yang dikonfigurasi. |
+| `LIVE_CONFIG_DEBUG` | Ya | Mengaktifkan output debug live-config jika diatur ke `true`. |
+| `LIVE_LINK_USER_DIRS` | Ya | Menautkan direktori pengguna yang dikelola ke lokasi yang dikonfigurasi pada media MiniOS yang dapat ditulis. Tidak tersedia pada mode bind, mode `toram` apa pun, atau sesi persistensi terenkripsi LUKS yang aktif. |
+| `LIVE_BIND_USER_DIRS` | Ya | Bind-mount direktori pengguna yang dikelola dari lokasi yang dikonfigurasi pada media MiniOS yang dapat ditulis. Tidak tersedia pada mode link, mode `toram` apa pun, atau sesi persistensi terenkripsi LUKS yang aktif. |
+| `LIVE_USER_DIRS_PATH` | Ya | Lokasi yang digunakan oleh mode direktori pengguna link/bind. |
+| `LIVE_MODULE_MODE` | Ya | Memilih `simple` atau `merged` integrasi modul live-config. |
 | `DEFAULT_TARGET` | Ya | Target boot: `graphical.target`, `multi-user.target`, atau `rescue.target`. |
-| `ENABLE_SERVICES` | Ya | Service yang diaktifkan saat boot, dipisahkan koma, melalui `minios-svc`. |
-| `DISABLE_SERVICES` | Ya | Service yang dinonaktifkan saat boot, dipisahkan koma, melalui `minios-svc`. |
-| `EXPORT_LOGS` | Ya | Jika `true`, mengekspor log MiniOS dan startup live-config ke media MiniOS yang dapat ditulis. |
+| `ENABLE_SERVICES` | Ya | Layanan yang diaktifkan saat boot, dipisahkan koma, melalui `minios-svc`. |
+| `DISABLE_SERVICES` | Ya | Layanan yang dinonaktifkan saat boot, dipisahkan koma, melalui `minios-svc`. |
+| `EXPORT_LOGS` | Ya | Saat `true`, mengekspor MiniOS dan log startup live-config ke media MiniOS yang dapat ditulis. |
 
-File yang dihasilkan ini bukan daftar lengkap dari semua yang didukung oleh `minios-live-config`. Variabel tambahan untuk pra-konfigurasi jaringan kabel, keamanan, hooks, preseeding, Xorg, dan komponen lain dapat ditambahkan secara manual. Lihat [live-config](/reference/configuration/live-config) untuk referensi lengkap.
+File yang dihasilkan bukan daftar lengkap dari semua yang didukung oleh `minios-live-config`. Variabel tambahan untuk pra-konfigurasi jaringan kabel, keamanan, hooks, preseeding, Xorg, dan komponen lain dapat ditambahkan secara manual. Lihat [live-config](/reference/configuration/live-config) untuk referensi lengkap.
+
+Komponen `user-media` menolak aktivasi maupun copy-back saat sesi persistensi aktif terenkripsi LUKS. Komponen ini menggunakan status enkripsi runtime yang sebenarnya: parameter kernel `perchencrypt=luks` hanya meminta enkripsi saat membuat sesi baru dan tidak menggambarkan sesi yang sudah ada.
 
 ## Pra-konfigurasi jaringan kabel
 

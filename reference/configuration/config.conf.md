@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-31
+updated: 2026-09-23
 ---
 
 # config.conf
@@ -73,8 +73,8 @@ The exact values depend on the image and build configuration.
 | `LIVE_KEYBOARD_OPTIONS` | Yes | XKB keyboard options. |
 | `LIVE_KEYBOARD_VARIANTS` | Yes | Comma-separated variants matched to the configured layouts. |
 | `LIVE_CONFIG_DEBUG` | Yes | Enables live-config debug output when set to `true`. |
-| `LIVE_LINK_USER_DIRS` | Yes | Links managed user directories to the configured location on writable MiniOS media. |
-| `LIVE_BIND_USER_DIRS` | Yes | Bind-mounts managed user directories from the configured location on writable MiniOS media. |
+| `LIVE_LINK_USER_DIRS` | Yes | Links managed user directories to the configured location on writable MiniOS media. Unavailable with bind mode, any `toram` mode, or an active LUKS-encrypted persistence session. |
+| `LIVE_BIND_USER_DIRS` | Yes | Bind-mounts managed user directories from the configured location on writable MiniOS media. Unavailable with link mode, any `toram` mode, or an active LUKS-encrypted persistence session. |
 | `LIVE_USER_DIRS_PATH` | Yes | Location used by link/bind user-directory mode. |
 | `LIVE_MODULE_MODE` | Yes | Selects `simple` or `merged` live-config module integration. |
 | `DEFAULT_TARGET` | Yes | Boot target: `graphical.target`, `multi-user.target`, or `rescue.target`. |
@@ -83,6 +83,8 @@ The exact values depend on the image and build configuration.
 | `EXPORT_LOGS` | Yes | When `true`, exports MiniOS and live-config startup logs to writable MiniOS media. |
 
 The generated file is not an exhaustive list of everything supported by `minios-live-config`. Additional variables for wired network preconfiguration, security posture, hooks, preseeding, Xorg, and other components can be added manually. See [live-config](/reference/configuration/live-config) for the complete reference.
+
+The `user-media` component refuses both activation and copy-back while the active persistence session is LUKS-encrypted. It uses the actual runtime encryption state: the `perchencrypt=luks` kernel parameter only requests encryption when creating a new session and does not describe an existing session.
 
 ## Wired network preconfiguration
 

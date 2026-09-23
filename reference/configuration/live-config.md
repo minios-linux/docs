@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-31
+updated: 2026-09-23
 program_commits:
   minios-live-config: 069fa46ba4601f41966e479f63d90b2888e4df50
 ---
@@ -58,8 +58,8 @@ Some individual components can change their behaviour upon a boot parameter.
 - **live-config.xorg-resolution=XORG_RESOLUTION | xorg-resolution=XORG_RESOLUTION**: Allows one to set xorg resolution instead of autodetecting it, e.g. 1024x768.
 - **live-config.wlan-driver=WLAN_DRIVER | wlan-driver=WLAN_DRIVER**: Allows one to set WLAN driver instead of autodetecting it. If a PCI ID is specified in `/usr/share/live/config/broadcom-sta/*DRIVER*.ids` within the live system, the *DRIVER* is enforced for these devices. If both a boot parameter and an override are found, the boot parameter takes precedence.
 - **live-config.module-mode=simple|merged | module-mode=simple|merged**: Allows you to specify the module mode for live configuration. When set to `merged`, the system will update user accounts, rebuild caches, and refresh package settings so that configuration changes are dynamically integrated into the running system.
-- **live-config.link-user-dirs | link-user-dirs**: Links the managed user directories to the configured path on the MiniOS data medium.
-- **live-config.bind-user-dirs | bind-user-dirs**: Bind-mounts the managed user directories from the configured path on the MiniOS data medium. This option is mutually exclusive with `link-user-dirs`.
+- **live-config.link-user-dirs | link-user-dirs**: Links the managed user directories to the configured path on the MiniOS data medium. It is mutually exclusive with bind mode and unavailable with any `toram` mode or while the active persistence session is LUKS-encrypted.
+- **live-config.bind-user-dirs | bind-user-dirs**: Bind-mounts the managed user directories from the configured path on the MiniOS data medium. It is mutually exclusive with link mode and has the same `toram` and active-session encryption restrictions.
 - **live-config.user-dirs-path=PATH | user-dirs-path=PATH**: Sets the media-relative path used by `link-user-dirs` or `bind-user-dirs`. The default is `/minios/userdata`.
 - **live-config.hooks=filesystem|medium|URL1|URL2|...|URLn | hooks=medium|filesystem|URL1|URL2|...|URLn**: Fetches and executes arbitrary files from a temporary file in the running live system. URLs are handled by `wget` and may use HTTP, FTP, or `file://`; required interpreters and other dependencies must already be installed. The keyword `filesystem` expands files in `/usr/lib/live/config-hooks/`; `medium` expands files in `minios/config-hooks/` on the detected live medium (with an ISO-path fallback in the hook component). Explicit local files can use `file:///run/initramfs/memory/data/minios/config-hooks/FILE` or `file:///PATH` in the live root. Pipe-separated entries execute in the order specified; files expanded by a keyword use shell glob order. Examples are installed under `/usr/share/doc/live-config/examples/hooks/`.
 
@@ -152,7 +152,7 @@ The network component records `/var/lib/live/config/network` after successfully 
 - **LIVE_BIND_USER_DIRS=true|false**: Enables or disables bind mounts of the user's standard data directories from the writable MiniOS drive. The corresponding boot parameter is the bare `live-config.bind-user-dirs` flag. Bind mode cannot be combined with link mode or any `toram` mode.
 - **LIVE_USER_DIRS_PATH=PATH**: This variable corresponds to the `**live-config.user-dirs-path**=*PATH*` parameter. It specifies a safe path inside the FAT32, exFAT, or NTFS MiniOS drive. The default is `/minios/userdata`; dot and parent-directory segments are rejected.
 
-User-media setup never merges two non-empty directories automatically. A local non-empty directory is migrated only when its media destination is empty. When the feature is disabled, managed media data is copied back before links are removed. A failed validation or copy leaves the existing user directories in place and records the reason in `/var/lib/live/config/user-media.status`.
+User-media setup never merges two non-empty directories automatically. A local non-empty directory is migrated only when its media destination is empty. When the feature is disabled, managed media data is copied back before links are removed. User-media activation and copy-back are blocked while the active persistence session is LUKS-encrypted, preventing session data from being moved to unencrypted MiniOS media. This decision uses the actual active encryption state: `perchencrypt=luks` only requests encryption when creating a new session and does not describe an existing session. A failed validation or copy leaves the existing user directories in place and records the reason in `/var/lib/live/config/user-media.status`.
 - **LIVE_MODULE_MODE=simple|merged**: This variable holds the state specified by the `live-config.module-mode` (or `module-mode`) parameter. When it is set to `merged`, the live system applies updates (via minios-update-users, minios-update-cache, and minios-update-dpkg) to merge custom configurations with the base environment.
 - **LIVE_CONFIG_DEBUG=true|false**: This variable corresponds to the `**live-config.debug**` parameter.
 

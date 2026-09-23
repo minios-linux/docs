@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-17
+updated: 2026-09-23
 ---
 # Boot parameters
 
@@ -75,6 +75,9 @@ This table is a quick reference. Source precedence and accepted `from=` forms ar
 | `xorg-driver` | Every boot | Selects an Xorg driver instead of autodetection. | `xorg-driver=nouveau` |
 | `xorg-resolution` | Every boot | Sets the Xorg resolution instead of autodetection. | `xorg-resolution=1920x1080` |
 | `module-mode` | Every boot | With `merged`, integrates configuration changes into the running live system. | `module-mode=merged` |
+| `link-user-dirs` | Every boot | Links the managed user directories to writable MiniOS media. It is mutually exclusive with `bind-user-dirs` and unavailable with any `toram` mode or while the active persistence session is LUKS-encrypted. Active encryption is determined from the running session, not from the `perchencrypt` creation request. | `link-user-dirs` |
+| `bind-user-dirs` | Every boot | Bind-mounts the managed user directories from writable MiniOS media. It has the same `toram` and active-session encryption restrictions as `link-user-dirs`. | `bind-user-dirs` |
+| `user-dirs-path` | Every boot | Sets the media-relative location used by `link-user-dirs` or `bind-user-dirs`. Default: `/minios/userdata`. | `user-dirs-path=/minios/userdata` |
 | `hooks` | Every boot | Fetches and executes hooks from the filesystem, live medium, or wget-supported URLs. | `hooks=filesystem`<br>`hooks=http://example.com/script.sh` |
 
 ## Security considerations
