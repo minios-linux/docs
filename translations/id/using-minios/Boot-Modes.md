@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-31
+updated: 2026-09-26
 ---
 
 # Mode boot
@@ -28,11 +28,13 @@ Memilih entri menu persisten meminta sesi; ini tidak menjamin sesi dapat dibuka.
 
 ## Mulai MiniOS
 
-**Mulai MiniOS** adalah entri menu pertama dan default. Ini ditujukan untuk penggunaan normal, termasuk boot pertama pada perangkat MiniOS yang baru disiapkan.
+**Mulai MiniOS** adalah entri menu pertama dan default. Opsi ini ditujukan untuk penggunaan normal, termasuk saat pertama kali menyalakan perangkat MiniOS yang baru disiapkan.
 
-MiniOS secara otomatis mencari sesi persisten yang kompatibel. Jika sesi default yang dapat digunakan tersedia, sesi tersebut akan dilanjutkan. Jika tidak ada, MiniOS dapat membuat sesi yang kompatibel secara otomatis jika tersedia penyimpanan yang dapat ditulis.
+MiniOS secara otomatis mencari sesi persisten yang kompatibel. Jika sesi default yang dapat digunakan tersedia, maka sesi tersebut akan dilanjutkan. Jika tidak ada, MiniOS dapat membuat sesi yang kompatibel secara otomatis ketika media penyimpanan yang dapat ditulis tersedia.
 
-Jika persistensi tidak dapat dibuat atau diaktifkan karena penyimpanan hanya-baca, penuh, rusak, atau tidak sesuai, MiniOS akan melanjutkan dengan layer tulis sementara dan melaporkan bahwa sesi tidak persisten. Periksa peringatan tersebut sebelum melakukan pekerjaan yang harus bertahan setelah reboot.
+Jika persistensi tidak dapat dibuat atau diaktifkan karena penyimpanan hanya-baca, penuh, rusak, atau tidak sesuai, MiniOS akan tetap berjalan dengan lapisan sementara yang dapat ditulis dan memberi tahu bahwa sesi tidak persisten. Periksa peringatan tersebut sebelum melakukan pekerjaan yang harus bertahan setelah reboot.
+
+Untuk sesi persisten yang berfungsi, Konfigurator MiniOS dapat menyimpan log dan cache biasa yang dipilih di RAM sambil tetap mempertahankan diagnostik boot dan data pengguna di penyimpanan. Ketiga pengaturan beserta batas RAM dijelaskan pada [Performa](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch). Pengaturan ini tidak berpengaruh pada **Mulai tanpa menyimpan** boot.
 
 ## Mulai sesi baru
 

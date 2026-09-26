@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-23
+updated: 2026-09-26
 program_commits:
     minios-live-config: 069fa46ba4601f41966e479f63d90b2888e4df50
 ---
@@ -171,58 +171,6 @@ I progetti downstream possono inserire i propri componenti in /usr/lib/live/conf
 Non è ancora realmente possibile rimuovere i componenti in modo sensato senza dover fornire un pacchetto **live-config** modificato localmente o usare dpkg-divert. Tuttavia, lo stesso risultato si può ottenere disabilitando i rispettivi componenti tramite il meccanismo live-config.nocomponents, vedi sopra. Per evitare di dover sempre specificare i componenti disabilitati tramite parametro di avvio, è consigliabile usare un file di configurazione, vedi sopra.
 
 I file di configurazione per il sistema live stesso è preferibile inserirli in un proprio pacchetto debian. Un pacchetto di esempio contenente una configurazione di esempio si trova in /usr/share/doc/live-config/examples.
-
-# COMPONENTI
-
-**live-config** attualmente offre i seguenti componenti in /usr/lib/live/config.
-
-- **nss-systemd**: rimuove o ripristina il modulo NSS di systemd in /etc/nsswitch.conf per aggirare un noto problema di systemd.
-- **debconf**: permette di applicare file di preseed arbitrari posizionati sul supporto live o su un server http/ftp.
-- **hostname**: configura /etc/hostname e /etc/hosts.
-- **issue-setup**: imposta il file /etc/issue con un banner di benvenuto e informazioni sulla distribuzione.
-- **live-debconfig_passwd**: configura le password utente e root tramite live-debconfig.
-- **user-setup**: aggiunge un account utente live.
-- **user-groups**: aggiunge l'utente live ai gruppi supplementari dichiarati dai moduli installati. I gruppi esistenti elencati in `/usr/share/live/config/user-default-groups.d/*.groups` vengono applicati dopo la creazione dell'utente e nelle successive esecuzioni di live-config.
-- **root-setup**: imposta o aggiorna la password di root e configura l'ambiente utente root.
-- **sudo**: concede privilegi sudo all'utente live.
-- **user-ssh-keys**: sincronizza i file `authorized_keys.<username>` specifici dell'utente tra il supporto live e le home directory degli utenti. Supporta più utenti contemporaneamente (ad es. `authorized_keys.root`, `authorized_keys.live`, `authorized_keys.admin`).
-- **user-media**: collega o effettua bind-mount delle directory utente validate sul supporto dati MiniOS scrivibile esistente, con migrazione sicura e copia di ritorno quando disabilitato.
-- **locales**: configura le locali.
-- **tzdata**: configura /etc/timezone.
-- **xorg-service**: configura il nome utente in xorg.service e applica la postura X11 quando supportato.
-- **gdm3**: configura l'autologin in gdm3.
-- **sddm**: configura l'autologin in sddm.
-- **kdm**: configura l'autologin in kdm.
-- **lightdm**: configura l'autologin in lightdm.
-- **lxdm**: configura l'autologin in lxdm.
-- **nodm**: configura l'autologin in nodm.
-- **slim**: configura l'autologin in slim.
-- **xinit**: configura l'autologin con xinit.
-- **keyboard-configuration**: configura la tastiera.
-- **sysvinit**: configura l'autologin console tramite `/etc/inittab` quando sysvinit è installato. Le scorciatoie `noautologin` e `nottyautologin` sopprimono questa configurazione.
-- **sysv-rc**: configura sysv-rc disabilitando i servizi elencati.
-- **apport**: disabilita apport.
-- **gnome-panel-data**: disabilita il pulsante di blocco schermo.
-- **gnome-power-manager**: disabilita l'ibernazione.
-- **gnome-screensaver**: controlla il blocco schermo GNOME secondo `LIVE_LOCKSCREEN_MODE`.
-- **kaboom**: disabilita la procedura guidata di migrazione KDE (squeeze e versioni successive).
-- **kde-services**: disabilita alcuni servizi KDE indesiderati (squeeze e versioni successive).
-- **policykit**: concede privilegi utente tramite PolicyKit.
-- **ssl-cert**: rigenera i certificati snake-oil SSL.
-- **xrdp**: configura la postura XRDP rilassata, rafforzata o disabilitata quando XRDP è installato.
-- **anacron**: disabilita anacron.
-- **util-linux**: disabilita il servizio hwclock di util-linux.
-- **login**: disabilita lastlog.
-- **xserver-xorg**: configura xserver-xorg.
-- **network**: configura la policy IPv4 cablata durevole tramite un file chiave sicuro di NetworkManager o una sezione ifupdown. Viene eseguito prima dei servizi di rete, valida tutti i valori e registra solo dopo una scrittura riuscita.
-- **openssh-server**: ricrea le chiavi host OpenSSH e scrive la policy di root-login o password-authentication richiesta esplicitamente.
-- **xfce4-panel**: configura xfce4-panel con le impostazioni predefinite.
-- **xscreensaver**: controlla il blocco xscreensaver secondo `LIVE_LOCKSCREEN_MODE`.
-- **broadcom-sta**: configura i driver WLAN broadcom-sta.
-- **hyperv**: configura le impostazioni X11 per migliorare la compatibilità sulle piattaforme Microsoft Hyper-V.
-- **ntfs3**: gestisce le regole udev per il supporto NTFS3.
-- **config-module-mode**: configura la modalità modulo di sistema e aggiorna cache, impostazioni utente e dpkg.
-- **hooks**: permette di eseguire comandi arbitrari da un file posizionato sul supporto live o su un server http/ftp.
 
 # FILE
 

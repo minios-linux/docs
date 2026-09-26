@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-31
+updated: 2026-09-26
 ---
 # Boot modes
 
@@ -32,6 +32,8 @@ Choosing a persistent menu entry requests a session; it does not guarantee that 
 MiniOS automatically looks for a compatible persistent session. If a usable default session exists, it resumes that session. If none exists, MiniOS can create a compatible session automatically when suitable writable storage is available.
 
 If persistence cannot be created or activated because the storage is read-only, full, damaged, or otherwise unsuitable, MiniOS continues with a temporary writable layer and reports that the session is not persistent. Check that warning before doing work that must survive a reboot.
+
+For a working persistent session, MiniOS Configurator can keep selected ordinary logs and caches in RAM while retaining boot diagnostics and user data on storage. The three settings and their RAM limits are described under [Performance](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch). They have no effect on a **Start without saving** boot.
 
 ## Start a new session
 

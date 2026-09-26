@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-17
+updated: 2026-09-26
 ---
 
 # Internos de persistência
@@ -102,15 +102,15 @@ O crescimento do container é feito por melhor esforço e a redução de tamanho
 
 ## Ativação de armazenamento
 
-Todos os backends bem-sucedidos devem fornecer o upper gravável esperado pelo sistema de arquivos union selecionado. Montar um backend, por si só, não garante que a persistência está ativa. Native, DynFileFS, DynBlk, VMDK e raw podem atualizar os metadados da sessão persistente antes da validação do union; SquashFS adia esse commit de metadados. Raw, DynFileFS, DynBlk e VMDK também podem usar criptografia LUKS2. O estado protegido do boot atual só é publicado após a confirmação de que o union root usa o upper esperado.
+Todos os backends bem-sucedidos devem fornecer o upper gravável esperado pelo sistema de arquivos union selecionado. Montar um backend, por si só, não comprova que a persistência está ativa. Os formatos Native, DynFileFS, DynBlk, VMDK e raw podem atualizar os metadados persistentes da sessão antes da validação do union; SquashFS adia esse commit de metadados. Raw, DynFileFS, DynBlk e VMDK também podem utilizar criptografia LUKS2. O estado protegido do boot atual só é publicado após a confirmação de que o union root final está usando o upper esperado.
 
-| Backend | Representação persistente | Modelo de capacidade | Requisitos de armazenamento de base | Camada LUKS2 MiniOS |
+| Backend | Representação persistente | Modelo de capacidade | Requisitos do armazenamento de base | Camada LUKS2 MiniOS |
 |---|---|---|---|---|
-| `native` | Arquivos e diretórios diretamente no diretório da sessão numerada | Usa o espaço do sistema de arquivos de base diretamente; `perchsize` não se aplica | Sistema de arquivos gravável que passa no teste de comportamento POSIX | Não |
-| `dynfilefs` | Format-400 `changes.dat` mais arquivos de segmento expondo um ext4 `virtual.dat` | Payload thin com índice denso do tamanho da capacidade | Armazenamento gravável POSIX, FAT32, NTFS ou exFAT | Sim |
-| `dynblk` | Format-1 `volumeNNN.db` arquivos expondo `/dev/dynblkN`, com ext4 por cima | Dispositivo de bloco virtual thin com mapeamentos residentes em disco e cache limitado | Sistema de arquivos aceito pelo backend do kernel DynBlk e recursos de backend suficientes | Sim |
-| `raw` | Arquivo único de tamanho fixo `changes.img` contendo ext4 | O arquivo é criado com o tamanho lógico solicitado; só cresce | Sistema de arquivos gravável capaz de armazenar a imagem; FAT32 é limitado a 4000 MiB | Sim |
-| `squashfs` | Snapshot `changes.sb` compactado; upper gravável em tempo de execução é reconstruído em RAM | O tamanho do snapshot segue as alterações capturadas; `perchsize` não se aplica | Snapshots existentes podem ser lidos de mídias graváveis compatíveis, mas o salvamento exato exige um sistema de arquivos de staging compatível com POSIX | Não |
+| `native` | Arquivos e diretórios diretamente no diretório de sessão numerado | Utiliza o espaço do sistema de arquivos de base diretamente; `perchsize` não se aplica | Sistema de arquivos gravável que passa no teste de comportamento POSIX | Não |
+| `dynfilefs` | Formato-400 `changes.dat` mais arquivos de segmento expondo um ext4 `virtual.dat` | Payload enxuto com um índice denso do tamanho da capacidade | Armazenamento gravável POSIX, FAT32, NTFS ou exFAT | Sim |
+| `dynblk` | Formato-1 `volumeNNN.db` arquivos expondo `/dev/dynblkN`, com ext4 sobreposto | Dispositivo de bloco virtual enxuto com mapeamentos residentes em disco e cache limitado | Sistema de arquivos aceito pelo backend do kernel DynBlk e recursos de backend suficientes | Sim |
+| `raw` | Arquivo único de tamanho fixo `changes.img` contendo ext4 | Arquivo é criado com o tamanho lógico solicitado; crescimento apenas | Sistema de arquivos gravável capaz de armazenar a imagem; FAT32 é limitado a 4000 MiB | Sim |
+| `squashfs` | Snapshot `changes.sb` compactado; o upper gravável de runtime é reconstruído em RAM | O tamanho do snapshot acompanha as alterações capturadas; `perchsize` não se aplica | Snapshots existentes podem ser lidos de mídias graváveis suportadas; a gravação exata requer um armazenamento de persistência compatível com POSIX | Não |
 
 ### Nativo
 
@@ -181,16 +181,20 @@ Veja [Segurança](/maintenance-and-recovery/Security) para informações sobre l
 
 ### SquashFS
 
-O initrd normalmente ativa uma sessão existente de SquashFS. A configuração interativa cria metadados de geração zero com salvamento no desligamento habilitado, mas não cria `changes.sb`; a camada superior gravável existe apenas em RAM até que o sistema em execução realize o primeiro salvamento sob demanda ou no desligamento. Uma sessão de geração zero é válida somente quando os campos de artefato de snapshot e `changes.sb` estão ausentes. Para gerações posteriores, a ativação valida metadados rigorosos e de valor único para o snapshot, incluindo seu hash, tamanhos compactados e descompactados, contagem de entradas, tipo de união e política de salvamento. Também verifica o tipo e o tamanho exato do arquivo, a RAM e swap disponíveis, o hash SHA-256 antes e depois da extração, e a compatibilidade atual da união.
+O initrd normalmente ativa uma sessão SquashFS existente. A configuração interativa cria metadados de geração zero com salvamento no desligamento habilitado, mas não cria `changes.sb`; a camada upper gravável existe apenas em RAM até que o sistema em execução realize o primeiro salvamento sob demanda ou no desligamento. Uma sessão de geração zero é válida somente quando os campos de artefato de snapshot e `changes.sb` estão ausentes. Para gerações posteriores, a ativação valida metadados rigorosos e de valor único para o snapshot, incluindo seu digest, tamanhos comprimido e descomprimido, contagem de entradas, tipo de union e política de salvamento. Também verifica o tipo e tamanho exatos do arquivo, o espaço disponível em RAM e swap, o hash SHA-256 antes e depois da extração, e a compatibilidade atual do union.
 
-O snapshot é extraído com tratamento rigoroso de erros e xattr em uma imagem ext4 temporária e limitada em RAM. Para OverlayFS, essa imagem contém diretórios separados de `changes` e `workdir`; para AUFS, sua raiz é o ramo gravável.
-Metadados malformados, memória insuficiente, alteração de hash, erros de extração ou uma política inválida impedem a ativação e deixam a inicialização em sua camada superior padrão RAM.
+O snapshot é extraído com tratamento rigoroso de erros e xattr para uma imagem ext4 temporária e limitada em RAM. Para OverlayFS, essa imagem contém diretórios separados de `changes` e `workdir`; para AUFS, sua raiz é o branch gravável.
+Metadados malformados, memória insuficiente, alterações no hash, erros de extração ou uma política inválida impedem a ativação e mantêm o boot no upper padrão RAM.
 
-Uma sessão marcada como `dirty` indica que a inicialização anterior não completou a transição de desligamento limpo. SquashFS então avisa e restaura o último `changes.sb` salvo com sucesso; alterações não salvas do boot interrompido não constituem uma segunda geração de rollback.
+Uma sessão marcada como `dirty` significa que o boot anterior não completou a transição de desligamento limpo. SquashFS então avisa e restaura o último `changes.sb` salvo com sucesso; alterações não salvas do boot interrompido não constituem uma segunda geração de rollback.
 
-O Gerenciador de sessões MiniOS e o backend de salvamento do sistema criam e substituem atomicamente snapshots SquashFS usando captura exata. A ativação do boot pode ler um snapshot existente de um armazenamento FAT, exFAT ou NTFS gravável porque a extração ocorre na camada superior ext4 temporária. A criação e o salvamento exato continuam restritos ao sistema de arquivos: sua área de preparação privada deve preservar links, propriedade, permissões, xattrs, ACLs, capacidades e whiteouts de união, então o salvamento atual exige um sistema de arquivos POSIX adequado.
+O Gerenciador de sessões MiniOS e o backend de salvamento do sistema criam e substituem snapshots SquashFS de forma atômica usando captura exata. A ativação do boot pode ler um snapshot existente de mídias FAT, exFAT ou NTFS graváveis, pois a extração ocorre no upper ext4 temporário. A criação e o salvamento exato continuam restritos ao sistema de arquivos: o armazenamento da sessão deve suportar criação de workspace privado, metadados Linux e publicação durável em um sistema de arquivos POSIX adequado.
 
-SquashFS não possui `perchsize`: seu tamanho armazenado segue as alterações capturadas e compactadas, enquanto a memória em tempo de execução é determinada pela camada superior gravável extraída. A camada de persistência LUKS MiniOS não envolve `changes.sb`; se for necessária confidencialidade do snapshot, o armazenamento de base deve ser criptografado fora desta camada. Veja [Gerenciamento de sessões](/using-minios/Sessions-and-Persistence).
+Durante o salvamento, o backend primeiro captura uma árvore de arquivos estável em armazenamento de memória privada de root quando o initrd fornece um tmpfs confiável com espaço suficiente. Quando RAM é insuficiente, essa árvore utiliza o workspace de disco anterior. O compressor grava diretamente em um diretório privado modo-0700 no sistema de arquivos da sessão, e não em uma imagem RAM adicional seguida de outra cópia em disco. MiniOS verifica o resultado comprimido e sua identidade, sincroniza, move para um nome candidato privado e revalida o candidato antes de substituir atômica e ativamente o `changes.sb`. Cópias ou compressões com falha não substituem o último snapshot bem-sucedido.
+
+Com uma sessão durável saudável, `/var/log/minios` e `/var/log/live` são montados por bind a partir de `boot-logs/` dentro da sessão numerada. Esses diagnósticos de inicialização são gravados independentemente do upper RAM e do snapshot de desligamento. Um boot cujo armazenamento de persistência não foi ativado de forma durável não pode garantir que esses logs sobreviverão a um reinício. Logs e caches comuns podem ser configurados separadamente; veja [Desempenho](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch).
+
+SquashFS não possui `perchsize`: seu tamanho armazenado segue as alterações comprimidas capturadas, enquanto a memória em tempo de execução é determinada pelo upper gravável extraído. A camada de persistência LUKS MiniOS não encapsula `changes.sb`; se confidencialidade do snapshot for necessária, o armazenamento de base deve ser criptografado fora desta camada. Veja [Gerenciamento de sessões](/using-minios/Sessions-and-Persistence).
 
 ## Ativação da união e limite de recuperação
 

@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-17
+updated: 2026-09-26
 ---
 
 # Interni della persistenza
@@ -102,15 +102,15 @@ La crescita del container è best-effort e la riduzione non è supportata. `perc
 
 ## Attivazione dello storage
 
-Tutti i backend riusciti devono fornire l'upper scrivibile previsto dal filesystem union selezionato. Il mount di un backend non prova di per sé che la persistenza sia attiva. Native, DynFileFS, DynBlk, VMDK e raw possono aggiornare i metadati di sessione persistente prima della validazione union; SquashFS rimanda il commit dei metadati. Raw, DynFileFS, DynBlk e VMDK possono anche utilizzare la cifratura LUKS2. Lo stato protetto dell'avvio corrente viene pubblicato solo dopo che la root union finale è confermata con l'upper previsto.
+Tutti i backend validi devono fornire la directory superiore scrivibile richiesta dal filesystem unione selezionato. Il semplice mount di un backend non garantisce che la persistenza sia attiva. I backend Native, DynFileFS, DynBlk, VMDK e raw possono aggiornare i metadati di sessione persistente prima della validazione dell’unione; SquashFS rimanda il commit dei metadati. Raw, DynFileFS, DynBlk e VMDK possono inoltre utilizzare la cifratura LUKS2. Lo stato protetto del boot corrente viene pubblicato solo dopo che l’unione root finale è confermata con la directory superiore attesa.
 
-| Backend | Rappresentazione persistente | Modello di capacità | Requisiti di storage di supporto | Layer LUKS2 MiniOS |
+| Backend | Rappresentazione persistente | Modello di capacità | Requisiti dello storage di supporto | Livello LUKS2 MiniOS |
 |---|---|---|---|---|
-| `native` | File e cartelle direttamente nella directory della sessione numerata | Utilizza direttamente lo spazio del filesystem di supporto; `perchsize` non si applica | Filesystem scrivibile che supera il test di comportamento POSIX | No |
-| `dynfilefs` | Format-400 `changes.dat` più file segmento che espongono un ext4 `virtual.dat` | Payload thin con indice denso della capacità | Storage scrivibile POSIX, FAT32, NTFS o exFAT | Sì |
-| `dynblk` | Format-1 `volumeNNN.db` file che espongono `/dev/dynblkN`, con ext4 sopra | Thin virtual block device con mapping residenti su disco e cache limitata | Filesystem accettato dal backend kernel DynBlk e risorse backend sufficienti | Sì |
-| `raw` | Singolo file a dimensione fissa `changes.img` contenente ext4 | Il file viene creato con la dimensione logica richiesta; solo crescita | Filesystem scrivibile in grado di contenere l'immagine; FAT32 è limitato a 4000 MiB | Sì |
-| `squashfs` | Compressed `changes.sb` snapshot; upper scrivibile a runtime viene ricostruito in RAM | La dimensione dello snapshot segue le modifiche catturate; `perchsize` non si applica | Gli snapshot esistenti possono essere letti da supporti scrivibili compatibili, ma il salvataggio esatto richiede un filesystem di staging compatibile POSIX | No |
+| `native` | File e directory direttamente nella directory di sessione numerata | Utilizza direttamente lo spazio del filesystem di supporto; `perchsize` non applicabile | Filesystem scrivibile che supera il test di comportamento POSIX | No |
+| `dynfilefs` | Format-400 `changes.dat` più file segmento che espongono un ext4 `virtual.dat` | Payload leggero con un indice denso della dimensione della capacità | Storage scrivibile POSIX, FAT32, NTFS o exFAT | Sì |
+| `dynblk` | Format-1 `volumeNNN.db` file che espongono `/dev/dynblkN`, con ext4 sopra | Dispositivo a blocchi virtuale leggero con mappature residenti su disco e una cache limitata | Filesystem accettato dal backend kernel DynBlk e risorse backend sufficienti | Sì |
+| `raw` | Singolo file a dimensione fissa `changes.img` contenente ext4 | Il file viene creato alla dimensione logica richiesta; solo crescita | Filesystem scrivibile in grado di contenere l’immagine; FAT32 è limitato a 4000 MiB | Sì |
+| `squashfs` | Snapshot `changes.sb` compresso; il livello superiore scrivibile a runtime viene ricostruito in RAM | La dimensione dello snapshot segue le modifiche acquisite; `perchsize` non applicabile | Gli snapshot esistenti possono essere letti da supporti scrivibili compatibili; il salvataggio esatto richiede uno storage persistente compatibile con POSIX | No |
 
 ### Nativo
 
@@ -181,16 +181,20 @@ Vedi [Sicurezza](/maintenance-and-recovery/Security) per il perimetro di protezi
 
 ### SquashFS
 
-L'initrd normalmente attiva una sessione SquashFS esistente. La configurazione interattiva crea metadati di generazione zero con salvataggio allo spegnimento abilitato ma non crea `changes.sb`; il livello superiore scrivibile esiste solo in RAM finché il sistema in esecuzione non effettua il primo salvataggio su richiesta o allo spegnimento. Una sessione di generazione zero è valida solo quando i campi degli artefatti snapshot e `changes.sb` sono assenti. Per le generazioni successive, l'attivazione valida metadati rigorosi e a valore singolo per lo snapshot, inclusi digest, dimensioni compresse e non compresse, numero di elementi, tipo di union e policy di salvataggio. Controlla anche il tipo di file e la dimensione esatta, la RAM e lo swap disponibili, il digest SHA-256 prima e dopo l'estrazione e la compatibilità union corrente.
+Normalmente l’initrd attiva una sessione SquashFS esistente. La configurazione interattiva crea metadati di generazione zero con salvataggio allo spegnimento abilitato, ma non crea `changes.sb`; il livello superiore scrivibile esiste solo in RAM finché il sistema in esecuzione non effettua il primo salvataggio su richiesta o allo spegnimento. Una sessione di generazione zero è valida solo se i campi degli artifact snapshot e `changes.sb` sono assenti. Per le generazioni successive, l’attivazione valida metadati rigorosi e a valore singolo per lo snapshot, inclusi digest, dimensioni compresse e non compresse, numero di elementi, tipo di unione e policy di salvataggio. Viene inoltre verificato il tipo e la dimensione esatta del file, lo spazio RAM e swap disponibili, il digest SHA-256 prima e dopo l’estrazione e la compatibilità dell’unione attuale.
 
-Lo snapshot viene estratto con gestione rigorosa di errori e xattr in un'immagine ext4 temporanea e limitata in RAM. Per OverlayFS, quell'immagine contiene directory `changes` e `workdir` separate; per AUFS, la root è il ramo scrivibile.
-Metadati non validi, memoria insufficiente, cambiamenti nel digest, errori di estrazione o una policy non valida fanno fallire l'attivazione e lasciano l'avvio sul normale livello superiore RAM.
+Lo snapshot viene estratto con gestione rigorosa degli errori e degli xattr in un’immagine ext4 temporanea e limitata in RAM. Per OverlayFS, quell’immagine contiene directory `changes` e `workdir` separate; per AUFS, la root è il ramo scrivibile.
+Metadati non validi, memoria insufficiente, cambiamenti nel digest, errori di estrazione o una policy non valida causano il fallimento dell’attivazione e lasciano il boot sul livello superiore RAM ordinario.
 
-Una sessione contrassegnata come `dirty` indica che l'avvio precedente non ha completato la transizione di spegnimento pulito. SquashFS avvisa e ripristina l'ultimo `changes.sb` salvato con successo; le modifiche non salvate dell'avvio interrotto non costituiscono una seconda generazione di rollback.
+Una sessione contrassegnata come `dirty` indica che il boot precedente non ha completato la transizione di spegnimento pulito. SquashFS quindi avvisa e ripristina l’ultimo `changes.sb` salvato con successo; le modifiche non salvate dal boot interrotto non costituiscono una seconda generazione di rollback.
 
-Il Gestore sessioni MiniOS e il backend di salvataggio del sistema creano e sostituiscono in modo atomico gli snapshot SquashFS tramite acquisizione esatta. L'attivazione all'avvio può leggere uno snapshot esistente da storage FAT, exFAT o NTFS scrivibile perché l'estrazione avviene nel livello superiore ext4 temporaneo. La creazione e il salvataggio esatto restano vincolati dal filesystem: la loro area di staging privata deve preservare link, proprietà, permessi, xattr, ACL, capability e whiteout union, quindi il salvataggio attuale richiede un filesystem POSIX idoneo.
+Il Gestore sessioni MiniOS e il backend di salvataggio del sistema creano e sostituiscono atomicamente gli snapshot SquashFS tramite acquisizione esatta. L’attivazione del boot può leggere uno snapshot esistente da storage FAT, exFAT o NTFS scrivibile poiché l’estrazione avviene nel livello superiore ext4 temporaneo. La creazione e il salvataggio esatto restano vincolati dal filesystem: lo storage della sessione deve supportare la creazione di workspace privati, metadati Linux e pubblicazione durevole su un filesystem POSIX idoneo.
 
-SquashFS non ha `perchsize`: la dimensione salvata segue le modifiche catturate compresse, mentre la memoria a runtime è determinata dal livello superiore scrivibile estratto. Il layer di persistenza LUKS MiniOS non avvolge `changes.sb`; se è richiesta la riservatezza dello snapshot, lo storage di supporto deve essere cifrato esternamente a questo layer. Vedi [Gestione delle sessioni](/using-minios/Sessions-and-Persistence).
+Durante il salvataggio, il backend cattura prima un albero file stabile in memoria privata di proprietà root quando l’initrd fornisce una tmpfs affidabile con spazio sufficiente. Se RAM non è sufficiente, questo albero utilizza invece il workspace su disco precedente. Il compressore scrive direttamente in una directory privata con permessi 0700 sul filesystem di sessione, senza creare un’ulteriore immagine RAM seguita da una copia su disco. MiniOS verifica il risultato compresso e la sua identità, lo sincronizza, lo sposta su un nome candidato privato, quindi rivalida il candidato prima di sostituire atomicamente lo snapshot attivo.`changes.sb`. Copie o compressioni non riuscite non sostituiscono l’ultimo snapshot salvato con successo.
+
+Con una sessione durevole funzionante, `/var/log/minios` e `/var/log/live` vengono montati in bind da `boot-logs/` all’interno della sessione numerata. Queste diagnostiche di avvio vengono quindi scritte indipendentemente dal livello superiore RAM e dallo snapshot di spegnimento. Un boot in cui lo storage persistente non è stato attivato in modo durevole non può garantire che questi log sopravvivano a un riavvio. Log e cache ordinari possono essere configurati separatamente; vedi [Prestazioni](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch).
+
+SquashFS non ha `perchsize`: la sua dimensione memorizzata segue le modifiche compresse acquisite, mentre la memoria runtime è determinata dal livello superiore scrivibile estratto. Il livello di persistenza LUKS MiniOS non avvolge `changes.sb`; se è richiesta la riservatezza dello snapshot, lo storage di supporto deve essere cifrato esternamente a questo livello. Vedi [Gestione sessioni](/using-minios/Sessions-and-Persistence).
 
 ## Attivazione union e confine di ripristino
 

@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-17
+updated: 2026-09-26
 program_commits:
     minios-session-manager: 69436959d893a9870aca23e91b346d06b49eb98d
     minios-tools: 7cdd0e10c0f610ebc581efa82105b747437a6125
@@ -21,28 +21,28 @@ Das entsprechende Kommandozeilenwerkzeug ist `minios-session`. Für Befehle, die
 
 | Modus | Speicher | Hauptbeschränkungen | MiniOS LUKS2-Schicht |
 |------|---------|------------------|--------------------|
-| `native` | Änderungen werden direkt im Sitzungsverzeichnis gespeichert | Erfordert ein beschreibbares Dateisystem, das die Linux-Metadaten und Operationen erhält, die MiniOS prüft. Die Kapazität richtet sich nach dem freien Speicherplatz des Backends; `perchsize` ist nicht anwendbar. | Nein |
-| `dynfilefs` | Erweiterbares ext4-`virtual.dat`-Dateisystem, das von format-400 Segmentdateien unterstützt wird | Funktioniert auf beschreibbaren POSIX-, FAT32-, NTFS- und exFAT-Dateisystemen. Die Nutzlast ist schlank, aber der Mapping-Index skaliert mit der deklarierten logischen Kapazität. | Ja |
-| `dynblk` | Schlankes ext4-Dateisystem auf einem Kernel-Blockgerät, das von `volumeNNN.db`-Dateien unterstützt wird | Erfordert die DynBlk-CLI, Kernelmodul und initrd-Fähigkeit. Die beim Booten erstellte Größe beträgt standardmäßig bis zu 16 GiB; das Maximum wird von `dynblk limits` gemeldet. Auf dem Datenträger gespeicherte Zuordnungen verwenden einen begrenzten Metadaten-Cache. | Ja |
-| `vmdk` | Schlankes ext4-Dateisystem auf einer standardmäßig geteilten, sparsamen VMDK, bereitgestellt durch den DynBlk-Treiber | Verwendet `volume.vmdk` und `volume-sNNN.vmdk`. Keine Komprimierung. Erfordert `vmdk-session-v1` im laufenden initrd-Fähigkeitsmarker. Gleicher manueller 16-GiB-Standard wie DynBlk; prüfen Sie `dynblk limits --format vmdk` für Begrenzungen. | Ja |
-| `raw` | Einzelne `changes.img`-Datei mit ext4 | Feste logische Kapazität mit expliziter Vergrößerung. Funktioniert auf beschreibbaren POSIX-, FAT32-, NTFS- und exFAT-Dateisystemen; FAT32 ist auf 4000 MiB begrenzt. | Ja |
-| `squashfs` | Komprimierter Snapshot in `changes.sb`; zur Laufzeit wird das beschreibbare obere Layer in RAM rekonstruiert | `perchsize` ist nicht anwendbar. Vorhandene Snapshots können von unterstützten beschreibbaren Medien wiederhergestellt werden, während das exakte Speichern ein POSIX-fähiges Staging-Dateisystem erfordert. | Nein |
+| `native` | Änderungen werden direkt im Sitzungsverzeichnis gespeichert | Erfordert ein beschreibbares Dateisystem, das die Linux-Metadaten und Operationen erhält, die MiniOS prüft. Die Kapazität entspricht dem verfügbaren Speicherplatz im Backend; `perchsize` ist nicht relevant. | Nein |
+| `dynfilefs` | Erweiterbares ext4-`virtual.dat`-Dateisystem, das von format-400 Segmentdateien unterstützt wird | Funktioniert auf beschreibbaren POSIX-, FAT32-, NTFS- und exFAT-Dateisystemen. Das Payload ist schlank, aber der Mapping-Index wächst mit der deklarierten logischen Kapazität. | Ja |
+| `dynblk` | Schlankes ext4-Dateisystem auf einem Kernel-Blockgerät, das von `volumeNNN.db`-Dateien unterstützt wird | Erfordert das DynBlk-CLI, Kernel-Modul und initrd-Unterstützung. Die beim Booten erstellte Größe beträgt standardmäßig bis zu 16 GiB; das Maximum wird von `dynblk limits` gemeldet. Auf der Festplatte gespeicherte Zuordnungen verwenden einen begrenzten Metadaten-Cache. | Ja |
+| `vmdk` | Schlankes ext4-Dateisystem auf einer standardmäßig geteilten, sparsamen VMDK, bereitgestellt durch den DynBlk-Treiber | Verwendet `volume.vmdk` und `volume-sNNN.vmdk`. Keine Komprimierung. Erfordert `vmdk-session-v1` im laufenden initrd-Fähigkeitsmarker. Gleicher manueller Standardwert von 16 GiB wie DynBlk; prüfen Sie `dynblk limits --format vmdk` für Begrenzungen. | Ja |
+| `raw` | Einzelne `changes.img`-Datei mit ext4 | Feste logische Kapazität, die nur explizit vergrößert werden kann. Funktioniert auf beschreibbaren POSIX-, FAT32-, NTFS- und exFAT-Dateisystemen; bei FAT32 ist die Größe auf 4000 MiB begrenzt. | Ja |
+| `squashfs` | Komprimierter Snapshot in `changes.sb`; zur Laufzeit wird die beschreibbare obere Schicht in RAM rekonstruiert | `perchsize` ist nicht relevant. Vorhandene Snapshots können von unterstützten beschreibbaren Medien wiederhergestellt werden; für exaktes Speichern ist ein geeignetes POSIX-fähiges Persistenz-Backend erforderlich. | Nein |
 
-Raw, DynFileFS, DynBlk und VMDK können optional mit einer LUKS2-Verschlüsselungsschicht versehen werden. Das Speicher-Backend bleibt der Sitzungsmodus, und Sitzungsmetadaten zeichnen die Verschlüsselung separat auf. DynFileFS und Raw, erstellt mit `minios-session` haben standardmäßig 4000 MiB; DynBlk und VMDK standardmäßig 16 GiB. Größenwerte werden in MiB zugewiesen; `GB` und `TB`-Suffixe entsprechen 1000 bzw. 1.000.000 MiB. Raw ist auf FAT32 auf 4000 MiB begrenzt, unabhängig davon, ob verschlüsselt oder nicht. DynFileFS-Nutzdaten wachsen bei Bedarf, aber sein format-400-Index ist auf die volle logische Kapazität ausgelegt und benötigt etwa 2 MiB RAM plus etwa 2 MiB Backendspeicher pro GiB. DynBlk speichert Mapping-Tabellen auf der Festplatte und einen begrenzten Metadaten-Cache in RAM, standardmäßig 1 MiB statt eines Prozentsatzes von RAM. Seine Bereichs-/Datei-Vektoren und Verzeichnisse wachsen mit den deklarierten Teilen, während die Nutzdatenfüllung keine vollständige Residenzkarte benötigt. Die installierte Kapazitätsgrenze kann mit `dynblk limits --format dynblk` abgefragt werden. Tatsächliche Schreibvorgänge sind durch den freien Speicherplatz des unteren Dateisystems und die Ressourcenfreigabe des Backends begrenzt. Container-Resize-Operationen können eine Sitzung nur vergrößern; Verkleinerung wird nicht unterstützt.
+Raw-, DynFileFS-, DynBlk- und VMDK-Container können optional eine LUKS2-Verschlüsselungsschicht enthalten. Das Speicher-Backend bleibt dabei der Sitzungsmodus, und Sitzungsmetadaten erfassen die Verschlüsselung separat. DynFileFS und Raw, die mit `minios-session` erstellt wurden, haben standardmäßig 4000 MiB; DynBlk und VMDK standardmäßig 16 GiB. Größenwerte werden in MiB zugewiesen; `GB` und `TB`-Suffixe entsprechen 1000 bzw. 1.000.000 MiB. Raw ist auf FAT32, unabhängig von Verschlüsselung, auf 4000 MiB begrenzt. DynFileFS-Payload-Daten wachsen nach Bedarf, aber der format-400-Index wird für die volle logische Kapazität angelegt und benötigt etwa 2 MiB RAM sowie ca. 2 MiB Backendspeicher pro GiB. DynBlk speichert Mapping-Tabellen auf der Festplatte und einen begrenzten Metadaten-Cache in RAM, standardmäßig 1 MiB statt eines prozentualen Anteils von RAM. Die Vektoren für Bereiche/Dateien und Verzeichnisse wachsen mit deklarierten Teilen, während die Payload-Befüllung keine vollständige resident Map benötigt. Die installierte Kapazitätsgrenze kann mit `dynblk limits --format dynblk` abgefragt werden. Tatsächliche Schreibvorgänge sind durch den freien Speicherplatz des unteren Dateisystems und die Ressourcenfreigabe des Backends begrenzt. Container-Resize-Operationen können eine Sitzung nur vergrößern; Verkleinerungen werden nicht unterstützt.
 
-Der Native-Modus ist die einfachste und schnellste Wahl auf einem kompatiblen Dateisystem.
-Verwenden Sie DynFileFS, wenn das Persistenz-Dateisystem keine Linux-Metadaten abbilden kann.
-Nutzen Sie DynBlk, wenn Sie ein echtes Kernel-Blockgerät mit Thin-Backed-Dateien wünschen; der Treiber kann mehrere unabhängige DynBlk-Volumes gleichzeitig bereitstellen, und der Sitzungsmanager verwendet den vom Treiber zurückgegebenen Gerätepfad anstelle der Annahme, dass `/dev/dynblk0` frei ist. DynBlk und VMDK sind nicht verfügbar, solange UEFI Secure Boot aktiviert ist, da MiniOS das externe DynBlk-Kernelmodul nicht signiert. Installer und Sitzungsmanager blenden diese Modi daher aus und lehnen explizite Erstellungsanfragen ab, bevor das Laden des Moduls versucht wird.
-Nutzen Sie Raw bei fest zugewiesenem Speicher, ergänzen Sie LUKS2 bei Verschlüsselungsbedarf und verwenden Sie SquashFS für einen exakten komprimierten Snapshot.
+Der Native-Modus ist die einfachste und schnellste Option auf einem kompatiblen Dateisystem.
+Verwenden Sie DynFileFS, wenn das Persistenz-Dateisystem keine Linux-Metadaten darstellen kann.
+Nutzen Sie DynBlk, wenn Sie ein echtes Kernel-Blockgerät mit Thin-Backed-Dateien wünschen; der Treiber kann mehrere unabhängige DynBlk-Volumes gleichzeitig anbinden, und der Sitzungsmanager verwendet den vom Treiber zurückgegebenen Gerätepfad, statt anzunehmen, dass `/dev/dynblk0` frei ist. DynBlk und VMDK sind nicht verfügbar, solange UEFI Secure Boot aktiviert ist, da MiniOS das externe DynBlk-Kernelmodul nicht signiert. Installer und Sitzungsmanager blenden diese Modi daher aus und lehnen explizite Erstellung ab, bevor sie versuchen, das Modul zu laden.
+Verwenden Sie Raw bei fester Allokation, ergänzen Sie LUKS2 bei Verschlüsselungsbedarf und nutzen Sie SquashFS für einen exakten komprimierten Snapshot.
 
-Führen Sie die folgenden Befehle aus, um das tatsächliche Persistenz-Dateisystem und die darauf verfügbaren Modi zu prüfen:
+Führen Sie die folgenden Befehle aus, um das aktuelle Persistenz-Dateisystem und die darauf verfügbaren Modi zu prüfen:
 
 ```bash
 sudo minios-session info
 sudo minios-session status
 ```
 
-Es kann keine Sitzung auf schreibgeschützten Medien erstellt werden. Das initrd kann einen vorhandenen SquashFS-Snapshot auf beschreibbarem FAT, exFAT oder NTFS lesen und aktivieren, da der Snapshot in ein temporäres ext4-Upper extrahiert wird. Das Erstellen oder exakte Speichern eines Snapshots funktioniert anders: Der private Staging-Arbeitsbereich muss auf einem geeigneten POSIX-Dateisystem liegen, das Linux-Metadaten und Union-Whiteouts erhält.
+Auf schreibgeschützten Medien kann keine Sitzung erstellt werden. Das initrd kann einen bestehenden SquashFS-Snapshot, der auf FAT, exFAT oder NTFS liegt, lesen und aktivieren, da der Snapshot in ein temporäres ext4-Upper extrahiert wird. Das Erstellen oder exakte Speichern eines Snapshots ist anders: Das Persistenz-Backend muss die erforderlichen POSIX-Metadaten und eine private, dauerhafte Veröffentlichung unterstützen. Der Exact-Capture-Arbeitsbaum verwendet, wenn verfügbar, vertrauenswürdige RAM, andernfalls einen Festplattenarbeitsbereich, falls RAM nicht ausreicht.
 
 ## Boot-Auswahl
 
@@ -183,19 +183,23 @@ sudo minios-session --sessions-dir /mnt/store/minios/changes list
 
 ## SquashFS-Speicherverhalten
 
-Eine SquashFS-Sitzung wird in RAM für die laufende beschreibbare Ebene entpackt. Beim Speichern wird ein exaktes Snapshot neu erstellt und validiert, dann wird `changes.sb`.
-Es wird keine Rollback-Generation aufbewahrt. "Jetzt speichern" ist über das Tray-Icon, den MiniOS-Sitzungsmanager oder `minios-session save` unabhängig von der automatischen Richtlinie verfügbar.
+Eine SquashFS-Sitzung wird in RAM für die laufende beschreibbare Schicht entpackt. Beim Speichern wird ein exakter Snapshot neu erstellt und validiert, dann wird `changes.sb`.
+Es wird keine Rollback-Generation aufbewahrt. "Jetzt speichern" ist über das Tray-Symbol, den MiniOS-Sitzungsmanager oder `minios-session save` unabhängig von der automatischen Richtlinie verfügbar.
 
-Das Speichern beim Herunterfahren wird vom Core-MiniOS-Shutdown-Trigger und dem `minios-squashfs-save`-Backend umgesetzt, sodass es nicht davon abhängt, ob der MiniOS-Sitzungsmanager geöffnet oder installiert ist. Das periodische Speichern wird alle 30 Minuten von einem systemd-Timer oder einem SysV-Worker geprüft, die beide das gleiche Autosave-Backend aufrufen. Das Neuerstellen des Snapshots beansprucht CPU und schreibt das komplette Snapshot; Intervalle von einer Stunde oder länger werden empfohlen.
+Für jeden Speichervorgang kopiert MiniOS eine stabile Ansicht des modifizierten Baums in privaten RAM-Speicher, sofern genügend Arbeitsspeicher vorhanden ist. Die Komprimierung schreibt **ein** Abbild in ein privates Verzeichnis innerhalb der nummerierten Sitzung. Erst nach Überprüfung des Dateisysteminhalts, des Hashwerts, der Identität und des dauerhaften Syncs ersetzt der Saver `changes.sb`. Es gibt kein vollständiges zweites komprimiertes Abbild in RAM und keinen zweiten Schreibvorgang dieses Abbilds auf das Persistenzgerät. Ist zu wenig RAM für den Baum vorhanden, fällt nur dieser Arbeitsbaum auf die Festplatte zurück; das komprimierte Kandidat benötigt dennoch einen Schreibvorgang. Siehe [Leistung](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch) für Cache- und Log-Schreibregeln.
 
-Während des RAM-gestützten SquashFS-Betriebs kann ein neu erfasstes und aktiviertes SquashFS-Snapshot das Ziel für das laufende Speichern übernehmen. Nach dieser Übergabe kann das alte laufende Snapshot ohne Neustart entfernt werden:
+Boot-Diagnosen für eine dauerhafte SquashFS-Sitzung werden unter `boot-logs/minios/` und `boot-logs/live/`-Verzeichnissen gespeichert. Sie sind nicht von einem erfolgreichen Shutdown-Snapshot abhängig und bleiben auch dann verfügbar, wenn die letzten Änderungen an der RAM-Upper nicht gespeichert werden konnten. Das Backend muss weiterhin beschreibbar sein; normale Journaldateien können temporär sein, wenn `LIVE_LOG_STORAGE=volatile` ausgewählt ist.
+
+Das Speichern beim Herunterfahren wird vom Core-MiniOS-Shutdown-Trigger und dem `minios-squashfs-save`-Backend umgesetzt und ist daher nicht davon abhängig, dass der MiniOS-Sitzungsmanager geöffnet oder installiert ist. Periodisches Speichern wird alle 30 Minuten durch einen systemd-Timer oder einen SysV-Worker geprüft, beide rufen das gleiche Autosave-Backend auf. Das Neuerstellen des Snapshots benötigt CPU und schreibt den kompletten Snapshot; Intervalle von einer Stunde oder länger werden empfohlen.
+
+Während des RAM-gestützten SquashFS-Betriebs kann ein neu erstellter und aktivierter SquashFS-Snapshot das Ziel für laufende Speicherungen übernehmen. Nach dieser Übergabe kann der alte laufende Snapshot ohne Neustart entfernt werden:
 
 ```bash
 sudo minios-session activate <new-squashfs-id>
 sudo minios-session delete <old-running-squashfs-id> --handoff
 ```
 
-Diese Ausnahme gilt nur für eine gültige Current-Boot-SquashFS-Übergabe. Andere laufende Persistenzmodi bleiben vor dem Löschen geschützt.
+Diese Ausnahme gilt nur für eine gültige aktuelle SquashFS-Übergabe des aktuellen Bootvorgangs. Andere laufende Persistenzmodi bleiben vor Löschung geschützt.
 
 ## Verschlüsselung
 

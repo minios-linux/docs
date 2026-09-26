@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-31
+updated: 2026-09-26
 ---
 
 # Modalità di avvio
@@ -26,13 +26,15 @@ Per un primo avvio normale, lascia selezionato **Avvia MiniOS**. Usa **Avvia sen
 Scegliere una voce di menu persistente richiede una sessione; non garantisce che la sessione possa essere aperta. Se il supporto è di sola lettura, pieno, danneggiato o incompatibile, MiniOS può continuare senza salvare le modifiche. Controlla l'avviso di avvio prima di iniziare un lavoro che deve essere conservato.
 :::
 
-## Avvia MiniOS
+## Avviare MiniOS
 
-**Avvia MiniOS** è la prima voce di menu e quella predefinita. È pensata per l'uso normale, compreso il primo avvio di un dispositivo MiniOS appena preparato.
+**Avviare MiniOS** è la prima voce di menu e quella predefinita. È pensata per l’uso normale, incluso il primo avvio di un dispositivo MiniOS appena preparato.
 
-MiniOS cerca automaticamente una sessione persistente compatibile. Se esiste una sessione predefinita utilizzabile, la riprende. Se non esiste, MiniOS può crearne una compatibile automaticamente quando è disponibile uno spazio di archiviazione scrivibile adeguato.
+MiniOS cerca automaticamente una sessione persistente compatibile. Se esiste una sessione predefinita utilizzabile, viene ripristinata. In caso contrario, MiniOS può creare automaticamente una sessione compatibile quando è disponibile uno spazio di archiviazione scrivibile adatto.
 
-Se la persistenza non può essere creata o attivata perché il supporto è di sola lettura, pieno, danneggiato o comunque non idoneo, MiniOS continua con un layer temporaneo scrivibile e segnala che la sessione non è persistente. Controlla tale avviso prima di svolgere attività che devono sopravvivere a un riavvio.
+Se la persistenza non può essere creata o attivata perché l’archiviazione è di sola lettura, piena, danneggiata o comunque non idonea, MiniOS prosegue con un layer temporaneo scrivibile e segnala che la sessione non è persistente. Controlla questo avviso prima di svolgere attività che devono sopravvivere a un riavvio.
+
+Per una sessione persistente funzionante, il Configuratore MiniOS può mantenere alcuni log e cache ordinari in RAM, conservando comunque le diagnostiche di avvio e i dati utente sull’archiviazione. Le tre impostazioni e i relativi limiti RAM sono descritti in [Prestazioni](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch). Non hanno effetto su un **Avviare senza salvare** avvio.
 
 ## Avvia una nuova sessione
 

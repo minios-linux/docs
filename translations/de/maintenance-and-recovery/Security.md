@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-16
+updated: 2026-09-26
 ---
 
 # Sicherheit
@@ -58,15 +58,17 @@ Startparameter können die Werte in Konfigurationsdateien überschreiben. Überp
 
 ## Persistente Daten verschlüsseln
 
-Unverschlüsselte native, DynFileFS, DynBlk, Raw- und SquashFS-Persistenz können von Personen gelesen werden, die Zugriff auf das Gerät erhalten. MiniOS kann LUKS2 über Raw, DynFileFS oder DynBlk schichten. Für die Erstellung beim Systemstart wählen Sie dies aus mit `perchencrypt=luks`; bestehende Sitzungen übernehmen ihren Verschlüsselungsstatus aus den Sitzungsmetadaten und nicht aus einer späteren Kommandozeilen-Überschreibung.
+Unverschlüsselte native, DynFileFS, DynBlk, Raw- und SquashFS-Persistenz können von jedem gelesen werden, der Zugriff auf das Gerät erhält. MiniOS kann LUKS2 über Raw, DynFileFS oder DynBlk schichten. Für die Erstellung beim Systemstart wählen Sie diese Option aus,`perchencrypt=luks`; bestehende Sitzungen übernehmen ihren Verschlüsselungsstatus aus den Sitzungsmetadaten und nicht durch einen späteren Kommandozeilen-Override.
 
-Die Verschlüsselungsgrenze ist vom Backend abhängig. Raw verschlüsselt das logische Block-Image innerhalb von `changes.img`; DynFileFS verschlüsselt das bereitgestellte `virtual.dat`; DynBlk verschlüsselt das `/dev/dynblkN` Blockgerät direkt. Sitzungsmetadaten, Boot-Dateien, DynFileFS/DynBlk Backend-Metadaten außerhalb des verschlüsselten Block-Images sowie nicht zusammenhängende Dateien auf dem Medium bleiben sichtbar. Die DynBlk Backend-Komprimierung ist deaktiviert, wenn LUKS2 ausgewählt ist.
+Die Verschlüsselungsgrenze variiert je nach Backend. Raw verschlüsselt das logische Block-Image innerhalb von`changes.img`; DynFileFS verschlüsselt das bereitgestellte`virtual.dat`; DynBlk verschlüsselt das`/dev/dynblkN`Blockgerät direkt. Sitzungsmetadaten, Boot-Dateien, DynFileFS/DynBlk Backend-Metadaten außerhalb des verschlüsselten Block-Images und nicht zugehörige Dateien auf dem Medium bleiben sichtbar. DynBlk Backend-Kompression ist deaktiviert, wenn LUKS2 ausgewählt ist.
 
-Das initrd erstellt das verschlüsselte Dateisystem beim ersten Gebrauch und fragt nach der Passphrase; das Installationsprogramm erhält oder speichert diese Passphrase nicht. Beim Booten führen drei fehlgeschlagene Entsperrversuche dazu, dass der Bootvorgang abgebrochen wird, anstatt auf Klartext, ein anderes Backend oder einen In-Memory-Ersatz mit derselben Persistenzanforderung zurückzufallen.
+Das initrd erstellt das verschlüsselte Dateisystem beim ersten Gebrauch und fordert die Passphrase ab; das Installationsprogramm erhält oder speichert diese Passphrase nicht. Beim Systemstart führen drei fehlgeschlagene Entsperrversuche dazu, dass der Bootvorgang abgebrochen wird, statt auf Klartext, ein anderes Backend oder einen In-Memory-Ersatz mit derselben Persistenzanforderung zurückzufallen.
 
-LUKS-Persistenz schützt den Inhalt des Dateisystems, solange der Mapper geschlossen ist. Sie schützt keine Daten nach dem Entsperren, keine unverschlüsselten Boot-Dateien, keine kopierten Dateien außerhalb des verschlüsselten Backends oder ein natives Root-Dateisystem. LUKS-Sitzungspersistenz ist keine native Root-Verschlüsselung. Logische Exporte enthalten entschlüsselte Sitzungsdateien, daher sollten Backup-Archive separat geschützt werden. Verwenden Sie eine starke Passphrase und bewahren Sie ein getestetes Backup auf.
+LUKS-Persistenz schützt die Dateisysteminhalte, solange der Mapper geschlossen ist. Nach dem Entsperren, unverschlüsselte Boot-Dateien, kopierte Dateien außerhalb des verschlüsselten Backends oder ein nativer Root-Dateisystem bleiben ungeschützt. LUKS-Sitzungspersistenz ist keine native Root-Verschlüsselung. Logische Exporte enthalten entschlüsselte Sitzungsdateien, daher sollten Backup-Archive separat geschützt werden. Verwenden Sie eine starke Passphrase und halten Sie ein getestetes Backup bereit.
 
-Siehe [MiniOS-Installationsprogramm](/installing-minios/MiniOS-Installer) und [Sitzungsverwaltung](/using-minios/Sessions-and-Persistence).
+Temporärer Cache oder Journal-Speicher dient der Schreibreduktion, nicht der Verschlüsselung. Selbst mit`LIVE_LOG_STORAGE=volatile`, MiniOS speichert weiterhin`minios-boot`und`live-config`Diagnosedaten auf dem dauerhaften Sitzungs-Speicher. Bei SquashFS liegen diese Dateien außerhalb von`changes.sb`, im Verzeichnis der Sitzung`boot-logs/`ab. Ein unverschlüsseltes Backing-Device gibt diese zusammen mit anderen Dateien preis.`LIVE_CONFIG_DEBUG=true`aktiviert zusätzlich detaillierte Traces und Kopien von Benutzerkonten-Zusammenführungen; lassen Sie Debug im Normalbetrieb deaktiviert und prüfen Sie diese Protokolle, bevor Sie sie weitergeben. Siehe[Leistung](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch).
+
+Siehe[MiniOS-Installationsprogramm](/installing-minios/MiniOS-Installer)und[Sitzungsverwaltung](/using-minios/Sessions-and-Persistence).
 
 ## Updates gezielt anwenden
 

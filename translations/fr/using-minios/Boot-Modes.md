@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-31
+updated: 2026-09-26
 ---
 
 # Modes de démarrage
@@ -28,11 +28,13 @@ Choisir une entrée de menu persistante demande une session ; cela ne garantit p
 
 ## Démarrer MiniOS
 
-**Démarrer MiniOS** est la première entrée du menu et celle sélectionnée par défaut. Elle est prévue pour une utilisation normale, y compris lors du premier démarrage d’un périphérique MiniOS fraîchement préparé.
+**Démarrer MiniOS** est la première entrée du menu et celle sélectionnée par défaut. Elle est prévue pour une utilisation normale, y compris lors du premier démarrage d’un appareil MiniOS nouvellement préparé.
 
-MiniOS recherche automatiquement une session persistante compatible. Si une session par défaut utilisable existe, elle est reprise. Si aucune n’existe, MiniOS peut créer automatiquement une session compatible si un espace d’écriture approprié est disponible.
+MiniOS recherche automatiquement une session persistante compatible. Si une session par défaut utilisable existe, elle sera reprise. Si aucune n’est trouvée, MiniOS peut créer automatiquement une session compatible dès qu’un espace de stockage inscriptible approprié est disponible.
 
-Si la persistance ne peut pas être créée ou activée parce que le stockage est en lecture seule, plein, endommagé ou inadapté, MiniOS continue avec une couche temporaire en écriture et signale que la session n’est pas persistante. Vérifiez cet avertissement avant d’effectuer un travail qui doit survivre à un redémarrage.
+Si la persistance ne peut pas être créée ou activée parce que le stockage est en lecture seule, plein, endommagé ou inadapté, MiniOS continue avec une couche temporaire inscriptible et signale que la session n’est pas persistante. Vérifiez cet avertissement avant d’effectuer des opérations qui doivent être conservées après un redémarrage.
+
+Pour une session persistante fonctionnelle, le Configurateur MiniOS peut conserver certains journaux et caches ordinaires dans RAM, tout en gardant les diagnostics de démarrage et les données utilisateur sur le stockage. Les trois paramètres et leurs limites RAM sont décrits dans la section [Performance](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch). Ils n’ont aucun effet lors d’un **Démarrer sans enregistrer** démarrage.
 
 ## Démarrer une nouvelle session
 

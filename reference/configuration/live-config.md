@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-23
+updated: 2026-09-26
 program_commits:
   minios-live-config: 069fa46ba4601f41966e479f63d90b2888e4df50
 ---
@@ -9,6 +9,8 @@ program_commits:
 **live-config** - System Configuration Components
 
 **live-config** contains the components that configure a live system during the boot process (late userspace).
+
+The persistent-session cache and log policy is decided earlier by `minios-boot`, after the live root and its configuration have been prepared but before ordinary services start. The `browser-cache` live-config component applies the per-user mounts after user creation. These policies require a healthy durable `perch` session and a current initrd advertising `perch-storage-v1`; see [Performance](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch) for the effects and limits.
 
 Network boot in the initramfs (`ip=`, PXE, `from=http://…`) is a separate LiveKit layer and is **not** managed by live-config. See [Network boot](/reference/boot-process/Network-Boot).
 
@@ -64,6 +66,14 @@ Some individual components can change their behaviour upon a boot parameter.
 - **live-config.hooks=filesystem|medium|URL1|URL2|...|URLn | hooks=medium|filesystem|URL1|URL2|...|URLn**: Fetches and executes arbitrary files from a temporary file in the running live system. URLs are handled by `wget` and may use HTTP, FTP, or `file://`; required interpreters and other dependencies must already be installed. The keyword `filesystem` expands files in `/usr/lib/live/config-hooks/`; `medium` expands files in `minios/config-hooks/` on the detected live medium (with an ISO-path fallback in the hook component). Explicit local files can use `file:///run/initramfs/memory/data/minios/config-hooks/FILE` or `file:///PATH` in the live root. Pipe-separated entries execute in the order specified; files expanded by a keyword use shell glob order. Examples are installed under `/usr/share/doc/live-config/examples/hooks/`.
 
 > **Security warning:** `live-config` runs as root. Hooks are made executable and run as root, and preseeds alter the system debconf database with root privileges. Plain HTTP and FTP do not authenticate the downloaded content and provide no integrity protection. Prefer reviewed local files or trusted authenticated transport with independent integrity verification; do not use remote hooks or preseeds from untrusted networks.
+
+### MiniOS early storage options
+
+These options are read by `minios-boot` before ordinary services start. They require a healthy durable `perch` session and do not activate one by themselves.
+
+- **live-config.log-storage=persistent|volatile | log-storage=persistent|volatile**: `volatile` places the systemd journal and ordinary `/var/log` files in bounded RAM; boot diagnostics stay on durable storage. Default: `persistent`.
+- **live-config.apt-cache=persistent|volatile | apt-cache=persistent|volatile**: `volatile` places downloaded APT archives in a bounded tmpfs when RAM and swap conditions allow it. Package databases and repository lists stay persistent. Default: `persistent`.
+- **live-config.browser-cache=persistent|volatile | browser-cache=persistent|volatile**: `volatile` requests native-browser caches in RAM. The `browser-cache` component mounts the live user's selected cache directories after the account exists. Default: `persistent`.
 
 ## Boot Parameters (shortcuts)
 
@@ -156,6 +166,12 @@ User-media setup never merges two non-empty directories automatically. A local n
 - **LIVE_MODULE_MODE=simple|merged**: This variable holds the state specified by the `live-config.module-mode` (or `module-mode`) parameter. When it is set to `merged`, the live system applies updates (via minios-update-users, minios-update-cache, and minios-update-dpkg) to merge custom configurations with the base environment.
 - **LIVE_CONFIG_DEBUG=true|false**: This variable corresponds to the `**live-config.debug**` parameter.
 
+## MiniOS cache and log variables
+
+- **LIVE_LOG_STORAGE=persistent|volatile**, **LIVE_APT_CACHE=persistent|volatile**, and **LIVE_BROWSER_CACHE=persistent|volatile**: Independent MiniOS boot-time policies. They also work in `config.conf.d` and `LIVE_CONFIG_CMDLINE`. They do not enable persistence by themselves. See [Configuration file](/reference/configuration/config.conf#cache-and-log-policy-for-a-persistent-session).
+
+Merged-mode helpers retain normal errors, but create detailed command traces and debug copies only when `LIVE_CONFIG_DEBUG=true`.
+
 # CUSTOMIZATION
 
 **live-config** can be easily customized for downstream projects or local usage.
@@ -222,6 +238,7 @@ The configuration files for the live system itself are best put into an own debi
 - **hyperv**: configures X11 settings to improve compatibility on Microsoft Hyper-V platforms.
 - **ntfs3**: manages udev rules for NTFS3 support.
 - **config-module-mode**: configures system module mode and updates caches, user settings, and dpkg.
+- **browser-cache**: after the live user exists, reads the durable `minios-boot` policy and bind-mounts standard native-browser cache directories into a shared bounded RAM filesystem. A separately created Firefox policy disables its disk cache without moving browser profiles. If this component is excluded by `components=` or `nocomponents=`, the early browser-cache request alone does not set up the per-user mounts.
 - **hooks**: allows one to run arbitrary commands from a file placed on the live media or an http/ftp server.
 
 # FILES

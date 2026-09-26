@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-16
+updated: 2026-09-26
 ---
 
 # Seguridad
@@ -56,17 +56,19 @@ SSH puede habilitarse en una imagen MiniOS para tareas de recuperación. En una 
 
 Los parámetros de arranque pueden sobrescribir los valores del archivo de configuración. Verifique comportamientos inesperados del servicio en [Parámetros de arranque](/reference/Boot-Parameters).
 
-## Cifrar datos persistentes
+## Encriptar datos persistentes
 
-La persistencia nativa sin cifrar, DynFileFS, DynBlk, raw y SquashFS puede ser leída por quien obtenga el dispositivo. MiniOS permite superponer LUKS2 sobre Raw, DynFileFS o DynBlk. Para crearla al inicio, selecciónala con `perchencrypt=luks`; las sesiones existentes obtienen su estado de cifrado desde los metadatos de la sesión y no desde una anulación posterior por línea de comandos.
+La persistencia sin cifrar en formato nativo, DynFileFS, DynBlk, raw y SquashFS puede ser leída por cualquier persona que obtenga el dispositivo. MiniOS permite superponer LUKS2 sobre Raw, DynFileFS o DynBlk. Para crear en el arranque, selecciónelo con `perchencrypt=luks`; las sesiones existentes obtienen su estado de cifrado desde los metadatos de la sesión en lugar de una sobrescritura posterior por línea de comandos.
 
-El límite del cifrado varía según el backend. Raw cifra la imagen de bloques lógicos dentro de `changes.img`; DynFileFS cifra el `virtual.dat`; DynBlk cifra el `/dev/dynblkN` dispositivo de bloques directamente. Los metadatos de la sesión, archivos de arranque, metadatos del backend DynFileFS/DynBlk fuera de la imagen cifrada y archivos no relacionados en el medio permanecen visibles. La compresión del backend DynBlk se desactiva cuando se selecciona LUKS2.
+El límite del cifrado varía según el backend. Raw cifra la imagen de bloques lógicos dentro de `changes.img`; DynFileFS cifra el `virtual.dat`; DynBlk cifra el `/dev/dynblkN` dispositivo de bloques directamente. Los metadatos de sesión, archivos de arranque, metadatos del backend DynFileFS/DynBlk fuera de la imagen de bloques cifrada y archivos no relacionados en el medio permanecen visibles. La compresión del backend DynBlk se desactiva cuando se selecciona LUKS2.
 
-El initrd crea el sistema de archivos cifrado en el primer uso y solicita su frase de acceso; el instalador no recibe ni almacena esa frase. Al arrancar, tres intentos fallidos de desbloqueo detienen el proceso de arranque en vez de volver a texto plano, otro backend o un reemplazo en memoria bajo la misma solicitud de persistencia.
+El initrd crea el sistema de archivos cifrado en el primer uso y solicita su frase de acceso; el instalador no recibe ni almacena esa frase. Al arrancar, tres intentos fallidos de desbloqueo detienen el proceso de arranque en vez de volver a texto plano, a otro backend o a un reemplazo en memoria bajo la misma solicitud de persistencia.
 
-La persistencia LUKS protege el contenido del sistema de archivos mientras el mapper está cerrado. No protege los datos después de desbloquear, los archivos de arranque sin cifrar, los archivos copiados fuera del backend cifrado ni un sistema de archivos raíz nativo. La persistencia de sesión LUKS no es cifrado nativo de raíz. Las exportaciones lógicas contienen archivos de sesión descifrados, por lo que debes proteger los archivos de respaldo por separado. Usa una frase de acceso robusta y mantén una copia de seguridad probada.
+La persistencia LUKS protege el contenido del sistema de archivos mientras el mapper está cerrado. No protege los datos después del desbloqueo, los archivos de arranque sin cifrar, los archivos copiados fuera del backend cifrado ni un sistema de archivos raíz nativo. La persistencia de sesión LUKS no es cifrado de raíz nativo. Las exportaciones lógicas contienen archivos de sesión descifrados, por lo que es necesario proteger los archivos de respaldo por separado. Utilice una frase de acceso robusta y mantenga una copia de seguridad probada.
 
-Consulta [Instalador de MiniOS](/installing-minios/MiniOS-Installer) y [Gestión de sesiones](/using-minios/Sessions-and-Persistence).
+El almacenamiento temporal en caché o diario es una opción para reducir escrituras, no para cifrar. Incluso con `LIVE_LOG_STORAGE=volatile`, MiniOS mantiene `minios-boot` y `live-config` diagnósticos en el almacenamiento duradero de la sesión. Para SquashFS estos archivos quedan fuera de `changes.sb`, en el directorio `boot-logs/` de la sesión. Un dispositivo de respaldo sin cifrar los expone junto con sus demás archivos. `LIVE_CONFIG_DEBUG=true` también habilita trazas detalladas y copias de entradas de fusión de cuentas de usuario; mantenga la depuración desactivada en uso normal y revise esos registros antes de compartirlos. Consulte [Rendimiento](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch).
+
+Consulte [Instalador de MiniOS](/installing-minios/MiniOS-Installer) y [Gestión de sesiones](/using-minios/Sessions-and-Persistence).
 
 ## Aplicar actualizaciones de forma deliberada
 

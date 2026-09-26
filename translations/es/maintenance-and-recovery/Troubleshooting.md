@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-13
+updated: 2026-09-26
 ---
 
 # Solución de problemas
@@ -122,7 +122,7 @@ Consulte [Respaldo de MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS) para 
 
 ## Problemas de almacenamiento y espacio libre
 
-Inspecciona dispositivos y puntos de montaje sin modificarlos:
+Inspecciona los dispositivos y puntos de montaje sin modificarlos:
 
 ```bash
 lsblk -o NAME,SIZE,TYPE,FSTYPE,LABEL,UUID,MOUNTPOINTS,MODEL
@@ -131,9 +131,11 @@ df -hT
 df -ih
 ```
 
-Un sistema de archivos lleno puede provocar fallos en operaciones de paquetes, guardados de sesión incompletos y otros errores secundarios. Libera espacio moviendo o eliminando solo datos conocidos tras confirmar el sistema de archivos correcto. Utiliza el Gestor de sesiones de MiniOS para eliminar sesiones en lugar de borrar manualmente directorios de sesión numerados.
+Un sistema de archivos lleno puede provocar fallos en operaciones de paquetes, guardados de sesión incompletos y otros errores secundarios. Libera espacio moviendo o eliminando solo los datos conocidos, y solo después de confirmar el sistema de archivos correcto. Utiliza el Gestor de sesiones de MiniOS para eliminar sesiones en lugar de borrar manualmente los directorios de sesión numerados.
 
-La reparación de sistemas de archivos no es una operación genérica de MiniOS. Si el propio sistema de archivos está dañado, desmóntalo, primero guarda los datos importantes o una imagen, y utiliza un procedimiento de reparación adecuado para ese sistema de archivos y dispositivo de almacenamiento.
+Si `LIVE_APT_CACHE=volatile`, también revisa `findmnt -T /var/cache/apt/archives` y `df -h /var/cache/apt/archives`: el área de archivos es un sistema de archivos RAM limitado y una descarga grande puede llenarlo incluso si el dispositivo USB tiene espacio disponible. Con `LIVE_LOG_STORAGE=volatile`, el `/var/log` tiene un límite separado de 32 MiB para RAM. Llenar cualquiera de estas áreas no hace que MiniOS cambie automáticamente a escribir esos archivos en el dispositivo USB. Consulta [Rendimiento](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch).
+
+La reparación del sistema de archivos no es una operación genérica de MiniOS. Si el sistema de archivos está dañado, desmóntalo, guarda primero los datos importantes o una imagen, y utiliza un procedimiento de reparación adecuado para ese sistema de archivos y dispositivo de almacenamiento.
 
 ## Cambios de paquetes y actualizaciones del sistema
 
@@ -154,9 +156,21 @@ lspci -nnk
 lsusb
 ```
 
-Para fallos repetidos de arranque en medios MiniOS con escritura, `EXPORT_LOGS=true` en `config.conf` exporta los registros de arranque en `minios/log/`. Consulta [config.conf](/reference/configuration/config.conf).
+Para fallos repetidos de arranque en medios MiniOS regrabables, `EXPORT_LOGS=true` en `config.conf` exporta los registros de arranque en `minios/log/`. Consulta [config.conf](/reference/configuration/config.conf).
 
-Elimina credenciales, claves privadas, contraseñas Wi-Fi y otra información confidencial antes de compartir los registros. Si el error es reproducible, incluye los fragmentos relevantes y abre un reporte en el [seguimiento de incidencias de MiniOS](https://github.com/minios-linux/minios-live/issues).
+En una sesión duradera y saludable de `perch` , los dos registros obligatorios de inicio ya se conservan independientemente de `LIVE_LOG_STORAGE`:
+
+```bash
+sudo ls -l /var/log/minios/minios-boot.log*
+sudo ls -l /var/log/live/config.log*
+sudo cat /run/initramfs/minios-persistence/boot-state
+findmnt -T /var/log
+findmnt -T /var/log/minios
+```
+
+Las versiones `.1`, `.2` y `.3` son de arranques anteriores. El montaje `/var/log` habitual puede ser `tmpfs` mientras `/var/log/minios` y `/var/log/live` permanecen en el almacén de persistencia. Para SquashFS, estos registros también se encuentran en `minios/changes/<session-id>/boot-logs/`, fuera de `changes.sb`; se conservan incluso si falla la instantánea de apagado. Una activación fallida o no duradera de `perch` no garantiza un destino persistente para los registros. Con `LIVE_LOG_STORAGE=volatile`, `journalctl -b` y otros registros habituales están disponibles solo para el **arranque actual**. Activa los registros detallados de `minios-update-*` solo cuando sea necesario; los errores normales se reportan igualmente sin ello.`LIVE_CONFIG_DEBUG=true`
+
+Elimina credenciales, claves privadas, contraseñas Wi-Fi y cualquier otra información confidencial antes de compartir los registros. Para un error reproducible, incluye los fragmentos relevantes y abre un reporte en el [seguimiento de incidencias de MiniOS](https://github.com/minios-linux/minios-live/issues).
 
 ### No se ofrecen sesiones VMDK
 

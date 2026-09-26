@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-13
+updated: 2026-09-26
 ---
 # Troubleshooting
 
@@ -132,6 +132,8 @@ df -ih
 
 A full filesystem can cause failed package operations, incomplete session saves, and other secondary errors. Free space by moving or deleting known data only after confirming the correct filesystem. Use MiniOS Session Manager for session deletions instead of removing numbered session directories by hand.
 
+If `LIVE_APT_CACHE=volatile`, also check `findmnt -T /var/cache/apt/archives` and `df -h /var/cache/apt/archives`: the archive area is a limited RAM filesystem and a large download can fill it even when the USB device has free space. With `LIVE_LOG_STORAGE=volatile`, ordinary `/var/log` has a separate 32 MiB RAM limit. Filling either area does not cause MiniOS to switch silently to writing those files onto the USB device. See [Performance](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch).
+
 Filesystem repair is not a generic MiniOS operation. If the filesystem itself is damaged, unmount it, preserve important data or an image first, and use a repair procedure appropriate to that filesystem and storage device.
 
 ## Package changes and system updates
@@ -154,6 +156,18 @@ lsusb
 ```
 
 For repeat boot failures on writable MiniOS media, `EXPORT_LOGS=true` in `config.conf` exports boot logs under `minios/log/`. See [config.conf](/reference/configuration/config.conf).
+
+In a healthy durable `perch` session, the two mandatory startup logs are already retained regardless of `LIVE_LOG_STORAGE`:
+
+```bash
+sudo ls -l /var/log/minios/minios-boot.log*
+sudo ls -l /var/log/live/config.log*
+sudo cat /run/initramfs/minios-persistence/boot-state
+findmnt -T /var/log
+findmnt -T /var/log/minios
+```
+
+The `.1`, `.2`, and `.3` versions are earlier boots. The ordinary `/var/log` mount can be `tmpfs` while `/var/log/minios` and `/var/log/live` remain on the persistence store. For SquashFS, these logs also live under `minios/changes/<session-id>/boot-logs/`, outside `changes.sb`; they survive even if the shutdown snapshot fails. A failed or non-durable `perch` activation has no guaranteed persistent log destination. With `LIVE_LOG_STORAGE=volatile`, `journalctl -b` and other ordinary logs are available for the **current** boot only. Enable detailed `minios-update-*` traces using `LIVE_CONFIG_DEBUG=true` only when needed; normal errors are still reported without it.
 
 Remove credentials, private keys, Wi-Fi secrets, and other private information before sharing logs. For a reproducible defect, include the relevant excerpts and open an issue in the [MiniOS issue tracker](https://github.com/minios-linux/minios-live/issues).
 

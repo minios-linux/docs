@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-17
+updated: 2026-09-26
 program_commits:
     minios-session-manager: 69436959d893a9870aca23e91b346d06b49eb98d
     minios-tools: 7cdd0e10c0f610ebc581efa82105b747437a6125
@@ -21,19 +21,19 @@ L’outil équivalent en ligne de commande est `minios-session`. Les commandes d
 
 | Mode | Stockage | Contraintes principales | MiniOS couche LUKS2 |
 |------|---------|------------------|--------------------|
-| `native` | Modifications enregistrées directement dans le répertoire de session | Nécessite un système de fichiers inscriptible qui préserve les métadonnées Linux et les opérations pour lesquelles MiniOS effectue des vérifications. La capacité dépend de l’espace libre disponible ; `perchsize` n’est pas applicable. | Non |
-| `dynfilefs` | ext4 extensible `virtual.dat` basée sur des fichiers segments format-400 | Fonctionne sur les systèmes de fichiers POSIX inscriptibles, FAT32, NTFS et exFAT. La charge utile est légère, mais l’index de mappage évolue avec la capacité logique déclarée. | Oui |
-| `dynblk` | Système de fichiers ext4 fin sur un périphérique bloc du noyau basé sur `volumeNNN.db` fichiers | Nécessite le CLI DynBlk, le module noyau et la capacité initrd. La taille créée au démarrage est de 16 Gio par défaut ; le maximum est indiqué par `dynblk limits`. Les mappages résidents sur disque utilisent un cache de métadonnées limité. | Oui |
-| `vmdk` | Système de fichiers ext4 fin sur un VMDK sparse standard fractionné, exposé par le pilote DynBlk | Utilise `volume.vmdk` et `volume-sNNN.vmdk`. Pas de compression. Nécessite `vmdk-session-v1` dans le marqueur de capacité initrd actif. Même valeur manuelle par défaut de 16 Gio que DynBlk ; interroger `dynblk limits --format vmdk` pour les limites. | Oui |
-| `raw` | Fichier unique `changes.img` contenant ext4 | Capacité logique fixe avec extension explicite uniquement. Fonctionne sur POSIX inscriptible, FAT32, NTFS et exFAT ; FAT32 est limité à 4000 Mio. | Oui |
-| `squashfs` | Instantané compressé dans `changes.sb` ; la couche supérieure inscriptible à l’exécution est reconstruite dans RAM | `perchsize` n’est pas applicable. Les instantanés existants peuvent être restaurés depuis un support inscriptible compatible, tandis que l’enregistrement exact nécessite un système de fichiers de transit compatible POSIX. | Non |
+| `native` | Modifications enregistrées directement dans le répertoire de session | Nécessite un système de fichiers inscriptible qui préserve les métadonnées Linux et les opérations détectées par MiniOS. La capacité dépend de l’espace libre sur le support ; `perchsize` non applicable. | Non |
+| `dynfilefs` | ext4 extensible `virtual.dat` basé sur des fichiers segments format-400 | Fonctionne sur les systèmes de fichiers POSIX inscriptibles, FAT32, NTFS et exFAT. Le volume de données est léger, mais l’index de correspondance évolue selon la capacité logique déclarée. | Oui |
+| `dynblk` | Système de fichiers ext4 fin sur un périphérique bloc du noyau basé sur `volumeNNN.db` fichiers | Nécessite l’interface CLI DynBlk, le module noyau et la capacité initrd. La taille créée au démarrage est jusqu’à 16 Gio par défaut ; le maximum est indiqué par `dynblk limits`. Les mappages résidents sur disque utilisent un cache de métadonnées limité. | Oui |
+| `vmdk` | Système de fichiers ext4 fin sur un VMDK sparse standard découpé, exposé par le pilote DynBlk | Utilise `volume.vmdk` et `volume-sNNN.vmdk`. Pas de compression. Nécessite `vmdk-session-v1` dans le marqueur de capacité initrd actif. Même valeur manuelle par défaut de 16 Gio que DynBlk ; interroger `dynblk limits --format vmdk` pour les limites. | Oui |
+| `raw` | Fichier unique `changes.img` contenant ext4 | Capacité logique fixe, extensible uniquement de façon explicite. Fonctionne sur POSIX inscriptible, FAT32, NTFS et exFAT ; FAT32 est limité à 4000 Mio. | Oui |
+| `squashfs` | Instantané compressé dans `changes.sb` ; la partie supérieure inscriptible à l’exécution est reconstruite dans RAM | `perchsize` non applicable. Les instantanés existants peuvent être restaurés depuis un support inscriptible pris en charge ; l’enregistrement exact nécessite un stockage persistant compatible POSIX. | Non |
 
-Raw, DynFileFS, DynBlk et VMDK peuvent éventuellement intégrer une couche de chiffrement LUKS2. Le backend de stockage reste le mode de session, et les métadonnées de session enregistrent le chiffrement séparément. DynFileFS et raw créés avec `minios-session` sont à 4000 Mio par défaut ; DynBlk et VMDK sont à 16 Gio par défaut. Les tailles sont allouées en Mio ; `GB` et `TB` les suffixes convertissent en 1000 et 1 000 000 Mio. Raw est limité à 4000 Mio sur FAT32, chiffré ou non. Les données utiles DynFileFS augmentent à la demande, mais son index format-400 est dimensionné pour la capacité logique totale et coûte environ 2 Mio de RAM plus environ 2 Mio de stockage par Gio. DynBlk conserve les tables de mappage sur disque et un cache de métadonnées limité dans RAM, avec une valeur par défaut de 1 Mio au lieu d’un pourcentage de RAM. Ses vecteurs d’étendue/fichier et répertoires évoluent avec les parties déclarées, tandis que le remplissage de la charge utile ne nécessite pas de carte résidente complète. Interrogez la limite de capacité installée avec `dynblk limits --format dynblk`. Les écritures réelles restent limitées par l’espace libre du système de fichiers sous-jacent et les ressources du backend. Les opérations de redimensionnement du conteneur ne peuvent qu’augmenter la session ; la réduction n’est pas prise en charge.
+Raw, DynFileFS, DynBlk et VMDK peuvent intégrer en option une couche de chiffrement LUKS2. Le backend de stockage reste le mode de session, et les métadonnées de session enregistrent le chiffrement séparément. DynFileFS et raw créés avec `minios-session` ont une taille par défaut de 4000 Mio ; DynBlk et VMDK par défaut à 16 Gio. Les valeurs de taille sont allouées en Mio ; `GB` et `TB` les suffixes convertissent en 1000 et 1 000 000 Mio. Raw est limité à 4000 Mio sur FAT32, chiffré ou non. Les données de charge utile DynFileFS croissent à la demande, mais son index format-400 est dimensionné pour la capacité logique totale et coûte environ 2 Mio de RAM plus environ 2 Mio de stockage par Gio. DynBlk conserve les tables de correspondance sur disque et un cache de métadonnées limité dans RAM, par défaut à 1 Mio plutôt qu’un pourcentage de RAM. Ses vecteurs d’étendue/fichier et répertoires évoluent avec les parties déclarées, tandis que le remplissage de la charge utile ne nécessite pas de carte résidente complète. Interrogez la limite de capacité installée avec `dynblk limits --format dynblk`. Les écritures réelles restent limitées par l’espace libre du système de fichiers sous-jacent et les ressources du backend. Les opérations de redimensionnement de conteneur ne peuvent qu’augmenter une session ; la réduction n’est pas prise en charge.
 
 Le mode natif est le choix le plus simple et le plus rapide sur un système de fichiers compatible.
 Utilisez DynFileFS lorsque le système de fichiers de persistance ne peut pas représenter les métadonnées Linux.
-Utilisez DynBlk si vous souhaitez un véritable périphérique bloc noyau avec fichiers de support fins ; le pilote peut maintenir plusieurs volumes DynBlk indépendants attachés simultanément, et le Gestionnaire de sessions utilise le chemin du périphérique retourné par le pilote au lieu de supposer que `/dev/dynblk0` est libre. DynBlk et VMDK ne sont pas disponibles lorsque le Secure Boot UEFI est activé car MiniOS ne signe pas le module noyau externe DynBlk. L’installateur et le Gestionnaire de sessions masquent donc ces modes et refusent les créations explicites avant de tenter de charger le module.
-Utilisez raw si une allocation fixe est requise, ajoutez LUKS2 si la session doit être chiffrée, et utilisez SquashFS pour un instantané compressé exact.
+Utilisez DynBlk si vous souhaitez un véritable périphérique bloc noyau avec des fichiers de support fins ; le pilote peut maintenir plusieurs volumes DynBlk indépendants connectés simultanément, et le Gestionnaire de sessions utilise le chemin du périphérique retourné par le pilote au lieu de supposer que `/dev/dynblk0` est libre. DynBlk et VMDK sont indisponibles lorsque le Secure Boot UEFI est activé car MiniOS ne signe pas le module noyau externe DynBlk. L’installateur et le Gestionnaire de sessions masquent donc ces modes et refusent les demandes de création explicites avant de tenter de charger le module.
+Utilisez raw si une allocation fixe est requise, ajoutez LUKS2 si la session doit être chiffrée, et SquashFS pour un instantané compressé exact.
 
 Exécutez les commandes suivantes pour inspecter le système de fichiers de persistance réel et les modes disponibles dessus :
 
@@ -42,7 +42,7 @@ sudo minios-session info
 sudo minios-session status
 ```
 
-Aucune session ne peut être créée sur un support en lecture seule. L’initrd peut lire et activer un instantané SquashFS existant stocké sur FAT, exFAT ou NTFS inscriptible car il extrait l’instantané dans une couche supérieure ext4 temporaire. La création ou l’enregistrement exact d’un instantané est différente : son espace de travail privé doit être sur un système de fichiers POSIX adapté qui préserve les métadonnées Linux et les whiteouts d’union.
+Aucune session ne peut être créée sur un support en lecture seule. L’initrd peut lire et activer un instantané SquashFS existant stocké sur FAT, exFAT ou NTFS inscriptible car il extrait l’instantané dans un ext4 temporaire supérieur. Créer ou enregistrer exactement un instantané est différent : le stockage persistant doit prendre en charge les métadonnées POSIX requises ainsi qu’une publication privée et durable. L’arborescence de travail pour la capture exacte utilise RAM de confiance quand disponible, avec un espace de travail disque en secours si RAM est insuffisant.
 
 ## Sélection de démarrage
 
@@ -181,21 +181,25 @@ sudo minios-session --json list
 sudo minios-session --sessions-dir /mnt/store/minios/changes list
 ```
 
-## Comportement de sauvegarde SquashFS
+## Comportement d’enregistrement SquashFS
 
-Une session SquashFS est extraite dans RAM pour la couche modifiable en cours d’exécution. La sauvegarde reconstruit et valide un instantané exact, puis remplace de façon atomique `changes.sb`.
-Aucune génération de restauration n’est conservée. Sauvegarder maintenant est disponible depuis l’icône de la zone de notification, le Gestionnaire de sessions MiniOS, ou `minios-session save` quelle que soit la politique automatique.
+Une session SquashFS est extraite dans RAM pour la couche inscriptible en cours. L’enregistrement reconstruit et valide un instantané exact, puis remplace atomiquement `changes.sb`.
+Aucune génération de restauration n’est conservée. Enregistrer maintenant est accessible depuis l’icône de la zone de notification, le Gestionnaire de sessions MiniOS ou `minios-session save` quelle que soit la politique automatique.
 
-La sauvegarde à l’arrêt est gérée par le déclencheur d’arrêt principal MiniOS et le backend `minios-squashfs-save`, elle ne dépend donc pas de l’ouverture ou de l’installation du Gestionnaire de sessions MiniOS. La sauvegarde périodique est vérifiée toutes les 30 minutes par un minuteur systemd ou un worker SysV, qui appellent tous deux le même backend d’enregistrement automatique. La reconstruction de l’instantané consomme du CPU et écrit l’instantané complet ; il est recommandé d’utiliser des intervalles d’une heure ou plus.
+À chaque enregistrement, MiniOS copie une vue stable de l’arborescence modifiée dans le stockage privé RAM si la mémoire le permet. La compression écrit **une** image dans un répertoire privé au sein de la session numérotée. Ce n’est qu’après avoir vérifié le contenu du système de fichiers, l’empreinte, l’identité et la synchronisation durable que l’enregistreur remplace `changes.sb`. Il n’y a pas de seconde image compressée complète dans RAM ni de second enregistrement de cette image sur le périphérique de persistance. Si la mémoire RAM est insuffisante pour l’arborescence, seule cette arborescence de travail bascule sur disque ; le candidat compressé nécessite toujours un enregistrement. Voir [Performances](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch) pour les politiques de cache et d’écriture du journal.
 
-Pendant une opération RAM-backed SquashFS, un instantané SquashFS nouvellement capturé et activé peut prendre le contrôle de la cible de sauvegarde en cours d’utilisation. Après ce transfert, l’ancien instantané actif peut être supprimé sans redémarrage :
+Les diagnostics de démarrage pour une session SquashFS durable sont stockés dans son `boot-logs/minios/` et `boot-logs/live/` répertoires. Ils ne dépendent pas d’un instantané d’arrêt réussi et restent disponibles même si les dernières modifications de la partie supérieure RAM n’ont pas pu être enregistrées. Le support de stockage doit rester inscriptible ; les fichiers journaux ordinaires peuvent sinon être temporaires si `LIVE_LOG_STORAGE=volatile` est sélectionné.
+
+L’enregistrement à l’arrêt est mis en œuvre par le déclencheur d’arrêt principal MiniOS et le `minios-squashfs-save` backend, il ne dépend donc pas de la présence ou de l’installation du Gestionnaire de sessions MiniOS. L’enregistrement périodique est vérifié toutes les 30 minutes par un minuteur systemd ou un worker SysV, qui appellent tous deux le même backend d’enregistrement automatique. La reconstruction de l’instantané consomme du CPU et écrit l’instantané complet ; il est recommandé de choisir des intervalles d’une heure ou plus.
+
+Pendant le fonctionnement basé sur RAM et SquashFS, un instantané nouvellement capturé et activé SquashFS peut prendre la main sur la cible d’enregistrement en cours. Après ce transfert, l’ancien instantané actif peut être supprimé sans redémarrage :
 
 ```bash
 sudo minios-session activate <new-squashfs-id>
 sudo minios-session delete <old-running-squashfs-id> --handoff
 ```
 
-Cette exception s’applique uniquement à un transfert valide de démarrage actuel SquashFS. Les autres modes de persistance en cours d’exécution restent protégés contre la suppression.
+Cette exception ne s’applique qu’à un transfert valide de démarrage en cours SquashFS. Les autres modes de persistance actifs restent protégés contre la suppression.
 
 ## Chiffrement
 

@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-13
+updated: 2026-09-26
 ---
 
 # Solução de problemas
@@ -131,7 +131,9 @@ df -hT
 df -ih
 ```
 
-Um sistema de arquivos cheio pode causar falhas em operações de pacotes, salvamento de sessões incompleto e outros erros secundários. Libere espaço movendo ou excluindo dados conhecidos somente após confirmar o sistema de arquivos correto. Use o Gerenciador de sessões MiniOS para excluir sessões, em vez de remover manualmente diretórios de sessões numerados.
+Um sistema de arquivos cheio pode causar falhas em operações de pacotes, salvamento de sessões incompletos e outros erros secundários. Libere espaço movendo ou excluindo dados conhecidos, sempre após confirmar o sistema de arquivos correto. Para excluir sessões, utilize o Gerenciador de sessões MiniOS em vez de remover manualmente diretórios de sessões numerados.
+
+Se `LIVE_APT_CACHE=volatile`, verifique também `findmnt -T /var/cache/apt/archives` e `df -h /var/cache/apt/archives`: a área de arquivamento é um sistema de arquivos RAM limitado, e um download grande pode preenchê-la mesmo que o dispositivo USB tenha espaço livre. Com `LIVE_LOG_STORAGE=volatile`, o `/var/log` comum tem um limite separado de 32 MiB para RAM. Preencher qualquer uma dessas áreas não faz com que o MiniOS passe a gravar esses arquivos no dispositivo USB automaticamente. Veja [Desempenho](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch).
 
 O reparo do sistema de arquivos não é uma operação genérica de MiniOS. Se o próprio sistema de arquivos estiver danificado, desmonte-o, salve primeiro os dados importantes ou uma imagem, e utilize um procedimento de reparo adequado para aquele sistema de arquivos e dispositivo de armazenamento.
 
@@ -139,7 +141,7 @@ O reparo do sistema de arquivos não é uma operação genérica de MiniOS. Se o
 
 Se os problemas começaram após alterações de pacotes APT, lembre-se de que uma sessão persistente ao vivo pode sobrescrever arquivos dos módulos MiniOS somente leitura. Teste **Iniciar sem salvar** para comparar com o conjunto original de módulos. Veja [Atualizando MiniOS](/maintenance-and-recovery/Updating-MiniOS) para entender a diferença entre manutenção via APT e mudança de versões MiniOS.
 
-## Coletando logs
+## Coleta de logs
 
 Informações úteis incluem:
 
@@ -154,9 +156,21 @@ lspci -nnk
 lsusb
 ```
 
-Para falhas repetidas de boot em mídias MiniOS graváveis, `EXPORT_LOGS=true` em `config.conf` exporta os logs de boot em `minios/log/`. Veja [config.conf](/reference/configuration/config.conf).
+Para falhas repetidas de inicialização em mídias MiniOS graváveis, `EXPORT_LOGS=true` em `config.conf` exporta logs de inicialização em `minios/log/`. Veja [config.conf](/reference/configuration/config.conf).
 
-Remova credenciais, chaves privadas, senhas de Wi-Fi e outras informações confidenciais antes de compartilhar os logs. Para um defeito reproduzível, inclua os trechos relevantes e abra um chamado no [rastreador de issues MiniOS](https://github.com/minios-linux/minios-live/issues).
+Em uma sessão durável e saudável de `perch` , os dois logs obrigatórios de inicialização já são mantidos independentemente de `LIVE_LOG_STORAGE`:
+
+```bash
+sudo ls -l /var/log/minios/minios-boot.log*
+sudo ls -l /var/log/live/config.log*
+sudo cat /run/initramfs/minios-persistence/boot-state
+findmnt -T /var/log
+findmnt -T /var/log/minios
+```
+
+As versões `.1`, `.2` e `.3` são inicializações anteriores. O ponto de montagem `/var/log` comum pode ser `tmpfs` enquanto `/var/log/minios` e `/var/log/live` permanecem no armazenamento persistente. Para SquashFS, esses logs também ficam em `minios/changes/<session-id>/boot-logs/`, fora de `changes.sb`; eles permanecem mesmo se o snapshot de desligamento falhar. Uma ativação falha ou não durável de `perch` não garante um destino persistente para logs. Com `LIVE_LOG_STORAGE=volatile`, `journalctl -b` e outros logs comuns ficam disponíveis apenas para a **inicialização atual**. Ative rastreamentos detalhados de `minios-update-*` usando `LIVE_CONFIG_DEBUG=true` apenas quando necessário; erros normais ainda são reportados sem isso.
+
+Remova credenciais, chaves privadas, senhas Wi-Fi e outras informações confidenciais antes de compartilhar logs. Para um defeito reproduzível, inclua os trechos relevantes e abra um chamado no [rastreador de issues MiniOS](https://github.com/minios-linux/minios-live/issues).
 
 ### Sessões VMDK não estão disponíveis
 

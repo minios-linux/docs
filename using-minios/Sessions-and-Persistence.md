@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-17
+updated: 2026-09-26
 program_commits:
   minios-session-manager: 69436959d893a9870aca23e91b346d06b49eb98d
   minios-tools: 7cdd0e10c0f610ebc581efa82105b747437a6125
@@ -26,7 +26,7 @@ The equivalent command-line tool is `minios-session`. Its modifying commands req
 | `dynblk` | Thin ext4 filesystem on a kernel block device backed by `volumeNNN.db` files | Requires the DynBlk CLI, kernel module, and initrd capability. Boot-created size is up to 16 GiB by default; the maximum is reported by `dynblk limits`. Disk-resident mappings use a bounded metadata cache. | Yes |
 | `vmdk` | Thin ext4 filesystem on a standard split sparse VMDK, exposed by the DynBlk driver | Uses `volume.vmdk` and `volume-sNNN.vmdk`. No compression. Requires `vmdk-session-v1` in the running initrd capability marker. Same 16-GiB manual default as DynBlk; query `dynblk limits --format vmdk` for limits. | Yes |
 | `raw` | Single `changes.img` file containing ext4 | Fixed logical capacity with explicit growth only. Works on writable POSIX, FAT32, NTFS, and exFAT filesystems; FAT32 is limited to 4000 MiB. | Yes |
-| `squashfs` | Compressed snapshot in `changes.sb`; runtime writable upper is reconstructed in RAM | `perchsize` does not apply. Existing snapshots can be restored from supported writable media, while exact saving requires a POSIX-capable staging filesystem. | No |
+| `squashfs` | Compressed snapshot in `changes.sb`; runtime writable upper is reconstructed in RAM | `perchsize` does not apply. Existing snapshots can be restored from supported writable media; exact saving requires a suitable POSIX-capable persistence store. | No |
 
 Raw, DynFileFS, DynBlk, and VMDK can optionally carry a LUKS2 encryption layer. The storage backend remains the session mode, and session metadata records encryption separately. DynFileFS and raw created with `minios-session` default to 4000 MiB; DynBlk and VMDK default to 16 GiB. Size values are allocated in MiB; `GB` and `TB` suffixes convert to 1000 and 1,000,000 MiB. Raw is limited to 4000 MiB on FAT32 whether encrypted or not. DynFileFS payload data grows on demand, but its format-400 index is sized for the full logical capacity and costs about 2 MiB of RAM plus about 2 MiB of backing storage per GiB. DynBlk keeps mapping tables on disk and a bounded metadata cache in RAM, defaulting to 1 MiB rather than a percentage of RAM. Its extent/file vectors and directories grow with declared parts, while payload fill does not require a full resident map. Query the installed capacity limit with `dynblk limits --format dynblk`. Actual writes remain limited by lower-filesystem free space and backend resource admission. Container resize operations can only grow a session; shrinking is not supported.
 
@@ -42,7 +42,7 @@ sudo minios-session info
 sudo minios-session status
 ```
 
-No session can be created on read-only media. The initrd can read and activate an existing SquashFS snapshot stored on writable FAT, exFAT, or NTFS because it extracts the snapshot into a temporary ext4 upper. Creating or exactly saving a snapshot is different: its private staging workspace must be on a suitable POSIX filesystem that preserves Linux metadata and union whiteouts.
+No session can be created on read-only media. The initrd can read and activate an existing SquashFS snapshot stored on writable FAT, exFAT, or NTFS because it extracts the snapshot into a temporary ext4 upper. Creating or exactly saving a snapshot is different: the persistence store must support the required POSIX metadata and private, durable publication. The exact-capture working tree uses trusted RAM when available, with a disk-workspace fallback if RAM is insufficient.
 
 ## Boot selection
 
@@ -185,6 +185,10 @@ sudo minios-session --sessions-dir /mnt/store/minios/changes list
 
 A SquashFS session is unpacked into RAM for the running writable layer. Saving rebuilds and validates an exact snapshot, then atomically replaces `changes.sb`.
 No rollback generation is retained. Save Now is available from the tray icon, MiniOS Session Manager, or `minios-session save` regardless of the automatic policy.
+
+For each save, MiniOS copies a stable view of the modified tree into private RAM storage when memory permits. Compression writes **one** image to a private directory within the numbered session. Only after checking its filesystem contents, digest, identity, and durable sync does the saver replace `changes.sb`. There is no full second compressed image in RAM or second write of that image to the persistence device. With too little RAM for the tree, only that working tree falls back to disk; the compressed candidate still needs one write. See [Performance](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch) for cache and log write policies.
+
+Boot diagnostics for a durable SquashFS session are stored under its `boot-logs/minios/` and `boot-logs/live/` directories. They do not depend on a successful shutdown snapshot and remain available even when the last changes to the RAM upper could not be saved. The backing store must still be writable; ordinary journal files may instead be temporary if `LIVE_LOG_STORAGE=volatile` is selected.
 
 Shutdown saving is implemented by the core MiniOS shutdown trigger and the `minios-squashfs-save` backend, so it does not depend on MiniOS Session Manager being open or installed. Periodic saving is checked every 30 minutes by a systemd timer or a SysV worker, both of which call the same autosave backend. Rebuilding the snapshot consumes CPU and writes the complete snapshot; intervals of one hour or longer are recommended.
 

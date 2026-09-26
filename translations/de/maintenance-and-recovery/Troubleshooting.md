@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-13
+updated: 2026-09-26
 ---
 
 # Fehlerbehebung
@@ -122,7 +122,7 @@ Siehe [Backup von MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS) für unte
 
 ## Speicher- und Speicherplatzprobleme
 
-Geräte und Einhängepunkte prüfen, ohne Änderungen vorzunehmen:
+Geräte und Einhängepunkte untersuchen, ohne Änderungen vorzunehmen:
 
 ```bash
 lsblk -o NAME,SIZE,TYPE,FSTYPE,LABEL,UUID,MOUNTPOINTS,MODEL
@@ -131,9 +131,11 @@ df -hT
 df -ih
 ```
 
-Ein volles Dateisystem kann zu fehlgeschlagenen Paketoperationen, unvollständigen Sitzungs-Speicherungen und weiteren Folgefehlern führen. Schaffen Sie freien Speicherplatz, indem Sie bekannte Daten verschieben oder löschen – aber erst, nachdem Sie das richtige Dateisystem bestätigt haben. Für das Löschen von Sitzungen verwenden Sie den MiniOS-Sitzungsmanager, anstatt nummerierte Sitzungsverzeichnisse manuell zu entfernen.
+Ein volles Dateisystem kann zu fehlgeschlagenen Paketoperationen, unvollständigen Sitzungs-Speicherungen und weiteren Folgefehlern führen. Schaffen Sie Speicherplatz, indem Sie bekannte Daten verschieben oder löschen – aber erst, nachdem Sie das richtige Dateisystem identifiziert haben. Für das Löschen von Sitzungen verwenden Sie den MiniOS-Sitzungsmanager, anstatt nummerierte Sitzungsverzeichnisse manuell zu entfernen.
 
-Die Reparatur eines Dateisystems ist keine allgemeine MiniOS-Operation. Wenn das Dateisystem selbst beschädigt ist, hängen Sie es aus, sichern Sie wichtige Daten oder ein Abbild, und führen Sie eine für das jeweilige Dateisystem und Speichermedium geeignete Reparaturprozedur durch.
+Falls `LIVE_APT_CACHE=volatile`, prüfen Sie auch `findmnt -T /var/cache/apt/archives` und `df -h /var/cache/apt/archives`: Der Archivbereich ist ein begrenztes RAM-Dateisystem, und ein großer Download kann diesen Bereich füllen, selbst wenn auf dem USB-Gerät noch freier Speicher vorhanden ist. Mit `LIVE_LOG_STORAGE=volatile`, das normale `/var/log` hat ein separates Limit von 32 MiB für RAM. Wenn einer dieser Bereiche voll ist, wechselt MiniOS nicht automatisch dazu, diese Dateien auf das USB-Gerät zu schreiben. Siehe [Leistung](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch).
+
+Die Reparatur eines Dateisystems ist keine allgemeine MiniOS-Operation. Ist das Dateisystem selbst beschädigt, hängen Sie es aus, sichern Sie zuerst wichtige Daten oder ein Abbild, und führen Sie dann ein für dieses Dateisystem und Speichermedium geeignetes Reparaturverfahren durch.
 
 ## Paketänderungen und Systemaktualisierungen
 
@@ -154,7 +156,19 @@ lspci -nnk
 lsusb
 ```
 
-Bei wiederholten Startfehlern auf beschreibbaren MiniOS-Medien, `EXPORT_LOGS=true` in `config.conf` werden Startprotokolle exportiert unter `minios/log/`. Siehe [config.conf](/reference/configuration/config.conf).
+Bei wiederholten Boot-Fehlschlägen auf beschreibbaren MiniOS-Medien, `EXPORT_LOGS=true` in `config.conf` exportiert Boot-Protokolle unter `minios/log/`. Siehe [config.conf](/reference/configuration/config.conf).
+
+In einer intakten, dauerhaften `perch`-Sitzung werden die beiden obligatorischen Startprotokolle unabhängig von `LIVE_LOG_STORAGE` bereits gespeichert:
+
+```bash
+sudo ls -l /var/log/minios/minios-boot.log*
+sudo ls -l /var/log/live/config.log*
+sudo cat /run/initramfs/minios-persistence/boot-state
+findmnt -T /var/log
+findmnt -T /var/log/minios
+```
+
+Die `.1`, `.2` und `.3`-Versionen stammen von früheren Starts. Das normale `/var/log`-Dateisystem kann `tmpfs` während `/var/log/minios` und `/var/log/live` auf dem Persistenzspeicher verbleiben. Für SquashFS liegen diese Protokolle ebenfalls unter `minios/changes/<session-id>/boot-logs/`, außerhalb von `changes.sb`; sie bleiben erhalten, selbst wenn der Shutdown-Snapshot fehlschlägt. Eine fehlgeschlagene oder nicht-dauerhafte `perch`-Aktivierung hat kein garantiertes Ziel für persistente Protokolle. Mit `LIVE_LOG_STORAGE=volatile`, `journalctl -b` und andere normale Protokolle sind nur für den **aktuellen** Bootvorgang verfügbar. Aktivieren Sie detaillierte `minios-update-*`-Traces mit `LIVE_CONFIG_DEBUG=true` nur bei Bedarf; normale Fehler werden auch ohne diese Option gemeldet.
 
 Entfernen Sie Zugangsdaten, private Schlüssel, WLAN-Passwörter und andere vertrauliche Informationen, bevor Sie Protokolle weitergeben. Bei einem reproduzierbaren Fehler fügen Sie die relevanten Ausschnitte bei und eröffnen ein Ticket im [MiniOS-Issue-Tracker](https://github.com/minios-linux/minios-live/issues).
 

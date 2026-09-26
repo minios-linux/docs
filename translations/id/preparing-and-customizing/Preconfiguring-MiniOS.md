@@ -1,12 +1,12 @@
 ---
-updated: 2026-08-26
+updated: 2026-09-26
 program_commits:
     minios-configurator: d2e9837de73c3c95ac3717168969a882ec97f04c
 ---
 
-# Prakonfigurasi MiniOS
+# Pra-konfigurasi MiniOS
 
-Konfigurator MiniOS adalah editor grafis untuk pengaturan MiniOS `live-config`. Aplikasi ini memvalidasi perubahan dan menulis konfigurasi untuk proses boot berikutnya. Tidak mengubah sistem yang sedang berjalan secara langsung.
+Konfigurator MiniOS adalah editor grafis untuk konfigurasi langsung MiniOS. Perubahan akan divalidasi dan konfigurasi akan disimpan untuk digunakan saat boot berikutnya. Pilihan awal untuk cache/log akan diterapkan oleh `minios-boot`; komponen live-config lainnya berjalan setelahnya. Menyimpan tidak langsung mengubah sistem yang sedang berjalan.
 
 ## Mulai konfigurator
 
@@ -31,10 +31,10 @@ MiniOS dapat membaca konfigurasi dari dua lokasi:
 - `minios/config.conf` dan `minios/config.conf.d/*.conf` pada media live
 - `/etc/live/config.conf` dan `/etc/live/config.conf.d/*.conf` di filesystem root yang sedang berjalan
 
-Konfigurator MiniOS hanya mengedit file yang dipilih. Jika tanpa argumen path, aplikasi ini akan mengedit file runtime `/etc/live/config.conf`; tidak langsung membuka file di media. MiniOS menyinkronkan konfigurasi yang lebih baru antara filesystem runtime dan media MiniOS yang dapat ditulis saat boot. Media hanya-baca tidak dapat menerima perubahan runtime, dan konfigurasi runtime persisten bisa tetap independen dari salinan di media.
+Konfigurator MiniOS hanya mengedit file yang dipilih. Jika tidak ada argumen path, maka akan mengedit file runtime `/etc/live/config.conf`; tidak membuka file media secara langsung. MiniOS melakukan sinkronisasi konfigurasi terbaru antara filesystem runtime dan media MiniOS yang dapat ditulis saat boot. Media read-only tidak dapat menerima perubahan runtime, dan konfigurasi runtime yang persisten dapat tetap independen dari salinan di media.
 
-Untuk setiap opsi, parameter kernel memiliki prioritas dibanding file konfigurasi, dan konfigurasi media lebih diutamakan daripada konfigurasi filesystem root.
-Gunakan `-i` untuk menimpa pengaturan yang dikenali dari command line kernel saat ini di editor:
+Saat boot, MiniOS menyinkronkan file media dan runtime berdasarkan waktu modifikasi. Untuk kebijakan penyimpanan baru, `config.conf.d` fragmen yang lebih baru akan menimpa file utama, `LIVE_CONFIG_CMDLINE` lalu file utama, dan terakhir baris perintah kernel yang sebenarnya akan digunakan.
+Gunakan `-i` untuk menimpa pengaturan yang dikenali dari baris perintah kernel saat ini di editor:
 
 ```bash
 minios-configurator --inherit-cmdline /etc/live/config.conf
@@ -48,7 +48,9 @@ Setiap kontrol menyatakan kapan pengaturan tersebut digunakan. Menyimpan tidak p
 
 ### Diterapkan setelah reboot
 
-Hostname, locale, zona waktu, keyboard, target boot, pemilihan layanan, mode modul, penanganan media direktori pengguna, pengaturan debug, dan ekspor log akan dibaca pada boot berikutnya. Lakukan reboot setelah menyimpan untuk menerapkannya.
+Hostname, locale, zona waktu, keyboard, target boot, pemilihan layanan, mode modul, penanganan media direktori pengguna, pengaturan debug, ekspor log, dan tiga pengaturan penyimpanan Lanjutan akan dibaca pada boot berikutnya. Lakukan reboot setelah menyimpan untuk menerapkan perubahan.
+
+Pada **Lanjutan**, **Penyimpanan log sistem**, **Cache unduhan APT**, dan **Cache browser** masing-masing menyediakan `persistent` (default) atau `volatile`. Pilihan `volatile` hanya berlaku pada sesi `perch` yang sehat dan tahan lama. Log dari `minios-boot` dan `live-config` tetap persisten meskipun log biasa bersifat sementara. Status paket APT dan profil browser tetap persisten; hanya log dan cache yang dipilih yang dipindahkan ke RAM yang terbatas. Pengaturan browser dijalankan setelah pengguna live dibuat. Konfigurator akan memberi peringatan jika initrd yang berjalan tidak memiliki `perch-storage-v1` penanda yang dibutuhkan untuk pengaturan ini. Lihat [Performa](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch) sebelum memilih ukuran RAM untuk perangkat dengan memori rendah.
 
 ### Hanya digunakan untuk sesi baru
 
@@ -58,9 +60,9 @@ Profil keamanan adalah preset editor. Nama profil tidak disimpan; pengaturan kea
 
 ## Direktori pengguna dan persistensi
 
-Melakukan linking dan bind mount pada direktori pengguna bersifat saling eksklusif. Keduanya menggunakan media data lokal MiniOS yang dapat ditulis dan path relatif terhadap media yang aman. Fitur ini tidak tersedia jika menggunakan `toram`, `toram=full`, atau `toram=trim`, dan MiniOS tidak secara otomatis menggabungkan dua pohon direktori yang sudah berisi data.
+Menautkan dan bind mount direktori pengguna bersifat saling eksklusif. Keduanya menggunakan media data lokal MiniOS yang dapat ditulis dan path relatif ke media yang aman. Fitur ini tidak tersedia dengan `toram`, `toram=full`, atau `toram=trim`, dan MiniOS tidak secara otomatis menggabungkan dua pohon direktori yang sudah berisi data.
 
-`perchmode` dan `perchsize` adalah parameter boot initramfs, bukan pengaturan Konfigurator MiniOS. Konfigurator MiniOS tidak membuat, membuka kunci, mengubah ukuran, atau memperbaiki container persistensi. Untuk persistensi terenkripsi, aplikasi ini hanya melaporkan apakah marker enkripsi initramfs tersedia.
+`perchmode` dan `perchsize` adalah parameter boot initramfs, bukan pengaturan Konfigurator MiniOS. Kontrol penyimpanan cache/log yang baru tidak memilih atau membuat `perch` sesi. Konfigurator MiniOS tidak membuat, membuka, mengubah ukuran, atau memperbaiki kontainer persistensi. Untuk persistensi terenkripsi, aplikasi ini akan melaporkan apakah penanda enkripsi initramfs tersedia.
 
 ## Perilaku penyimpanan
 

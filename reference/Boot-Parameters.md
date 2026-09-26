@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-23
+updated: 2026-09-26
 ---
 # Boot parameters
 
@@ -40,6 +40,9 @@ This table is a quick reference. Source precedence and accepted `from=` forms ar
 | `perchencrypt` | Creation only | Optional encryption layer for a newly created `raw`, `dynfilefs`, `dynblk`, or `vmdk` session. `perchencrypt=luks` requires the versioned `luks-layer-v1` initramfs capability. Existing sessions derive encryption only from `session_encryption[N]`, so this parameter does not reinterpret or convert them. | `perchmode=raw perchencrypt=luks`<br>`perchmode=dynfilefs perchencrypt=luks`<br>`perchmode=dynblk perchencrypt=luks` |
 | `perchcomp` | Creation only | Selects DynBlk backend compression for a newly created DynBlk session: `none`, `lz4`, `lz4hc`, `lzo`, `lzo-rle`, `zstd`, `deflate`, or `842`. The selected kernel codec must be available. When `perchencrypt=luks` wraps DynBlk, MiniOS forces DynBlk compression to `none`. VMDK has no compression: boot ignores a non-`none` codec with a warning. | `perchmode=dynblk perchcomp=lz4`<br>`perchmode=dynblk perchcomp=zstd` |
 | `perch` | Every boot | Enables the legacy persistence resume path. Unlike `perchdir=resume`, it does not automatically create a compatible replacement when no usable default session exists. | `perch` |
+| `log-storage` or `live-config.log-storage` | Every boot, with durable `perch` | `persistent` (default) or `volatile`. In volatile mode, journald uses up to 32 MiB of RAM and ordinary `/var/log` uses a 32 MiB tmpfs. `minios-boot` and `live-config` boot logs remain on the writable persistence store. A full RAM log filesystem stops accepting writes rather than overflowing onto the USB device. | `log-storage=volatile` |
+| `apt-cache` or `live-config.apt-cache` | Every boot, with durable `perch` | `persistent` (default) or `volatile` for `/var/cache/apt/archives`. The RAM mount is 256 or 512 MiB when enough memory is available and no non-zRAM swap is active; large downloads can exhaust it. `/var/lib/apt/lists` and dpkg state remain persistent. | `apt-cache=volatile` |
+| `browser-cache` or `live-config.browser-cache` | Every boot, with durable `perch` | `persistent` (default) or `volatile` for standard native-browser caches. After the live user exists, selected `~/.cache` subdirectories use a shared 512 MiB tmpfs, and Firefox disk caching is disabled by a managed system policy when no other Firefox policy file is present. Profiles and unrelated application caches remain persistent. | `browser-cache=volatile` |
 | `toram` | Every boot | Bare `toram` is `full`. With persistence, full's top-level `*` copy omits dotfiles; without persistence it omits `changes` but copies other top-level entries, including dotfiles. Trim copies required `config.conf`, regular-file `authorized_keys`, selected top-level and recursive modules, and the complete `changes/` tree when persistence is requested; it omits `boot/`, `kernels/`, `rootcopy/`, `config.conf.d/`, logs, other nonmodule data, and the separate persistence-module tier. Neither mode checks RAM capacity first. A persistence store copied to RAM is non-durable, and changes are not copied back. Remove media only after confirming that the source, loops, and mappings detached successfully. | `toram`<br>`toram=trim`<br>`toram=full` |
 | `text` | Every boot | Starts in text console mode. | `text` |
 | `automount` | Every boot | Enables automatic mounting of storage devices. | `automount` |
@@ -79,6 +82,8 @@ This table is a quick reference. Source precedence and accepted `from=` forms ar
 | `bind-user-dirs` | Every boot | Bind-mounts the managed user directories from writable MiniOS media. It has the same `toram` and active-session encryption restrictions as `link-user-dirs`. | `bind-user-dirs` |
 | `user-dirs-path` | Every boot | Sets the media-relative location used by `link-user-dirs` or `bind-user-dirs`. Default: `/minios/userdata`. | `user-dirs-path=/minios/userdata` |
 | `hooks` | Every boot | Fetches and executes hooks from the filesystem, live medium, or wget-supported URLs. | `hooks=filesystem`<br>`hooks=http://example.com/script.sh` |
+
+The three storage-policy parameters are parsed by `minios-boot` before the normal init system, **not** by the early persistence selector. They do not enable `perch` and take effect only after successful durable persistence activation. A compatible initrd advertises `perch-storage-v1` at `/run/initramfs/etc/minios-initramfs-storage`. Configurator and `config.conf` provide the same choices; see [Performance](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch) for limits, precedence, and browser installation caveats.
 
 ## Security considerations
 

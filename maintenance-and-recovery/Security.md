@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-16
+updated: 2026-09-26
 ---
 # Security
 
@@ -65,6 +65,8 @@ The encryption boundary differs by backend. Raw encrypts the logical block image
 The initrd creates the encrypted filesystem on first use and asks for its passphrase; the installer does not receive or store that passphrase. At boot, three rejected unlock attempts stop the boot path rather than falling back to plaintext, another backend, or an in-memory replacement under the same persistence request.
 
 LUKS persistence protects the filesystem contents while the mapper is closed. It does not protect data after unlock, the unencrypted boot files, copied files outside the encrypted backend, or a native root filesystem. LUKS session persistence is not native root encryption. Logical exports contain decrypted session files, so protect backup archives separately. Use a strong passphrase and keep a tested backup.
+
+Temporary cache or journal storage is a write-reduction choice, not encryption. Even with `LIVE_LOG_STORAGE=volatile`, MiniOS keeps `minios-boot` and `live-config` diagnostics on the durable session store. For SquashFS these files are outside `changes.sb`, under the session's `boot-logs/` directory. An unencrypted backing device exposes them along with its other files. `LIVE_CONFIG_DEBUG=true` additionally enables detailed traces and copies of user-account merge inputs; keep debug disabled in ordinary use and review those logs before sharing them. See [Performance](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch).
 
 See [MiniOS Installer](/installing-minios/MiniOS-Installer) and [Session management](/using-minios/Sessions-and-Persistence).
 

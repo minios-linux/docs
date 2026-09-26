@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-17
+updated: 2026-09-26
 ---
 
 # Internal Persistensi
@@ -100,17 +100,17 @@ Ukuran container menggunakan jumlah bulat yang dialokasikan dalam MiB:
 
 Pertumbuhan container bersifat best-effort dan pengurangan ukuran tidak didukung. `perchsize` tidak menentukan ukuran sesi native atau SquashFS. Manajer Sesi MiniOS mengatur default container raw dan DynFileFS yang dibuat manual ke 4000 MiB dan DynBlk ke 16 GiB; varian terenkripsi menggunakan default backend yang sama. Lihat [Manajemen sesi](/using-minios/Sessions-and-Persistence).
 
-## Aktivasi storage
+## Aktivasi penyimpanan
 
-Semua backend yang berhasil harus menyediakan upper writable yang diharapkan oleh union filesystem yang dipilih. Mount backend saja tidak membuktikan bahwa persistensi aktif. Native, DynFileFS, DynBlk, VMDK, dan raw dapat memperbarui metadata sesi persisten sebelum validasi union; SquashFS menunda komit metadata tersebut. Raw, DynFileFS, DynBlk, dan VMDK juga dapat menggunakan enkripsi LUKS2. Status boot saat ini yang dilindungi hanya dipublikasikan setelah root union terakhir dipastikan menggunakan upper yang diharapkan.
+Semua backend yang berhasil harus menyediakan writable upper yang diharapkan oleh union filesystem yang dipilih. Mount backend saja tidak membuktikan bahwa persistensi sudah aktif. Native, DynFileFS, DynBlk, VMDK, dan raw dapat memperbarui metadata sesi persisten sebelum validasi union; SquashFS menunda commit metadata tersebut. Raw, DynFileFS, DynBlk, dan VMDK juga dapat menggunakan enkripsi LUKS2. Status current-boot yang terlindungi hanya dipublikasikan setelah root union terakhir dikonfirmasi menggunakan upper yang diharapkan.
 
-| Backend | Representasi persisten | Model kapasitas | Kebutuhan storage pendukung | Lapisan LUKS2 MiniOS |
+| Backend | Representasi persisten | Model kapasitas | Persyaratan penyimpanan belakang | Lapisan LUKS2 MiniOS |
 |---|---|---|---|---|
-| `native` | File dan folder langsung di direktori sesi bernomor | Menggunakan ruang filesystem pendukung secara langsung; `perchsize` tidak berlaku | Filesystem writable yang lolos uji perilaku POSIX | Tidak |
-| `dynfilefs` | Format-400 `changes.dat` ditambah file segmen yang menampilkan ext4 `virtual.dat` | Payload tipis dengan indeks berukuran padat | Storage writable POSIX, FAT32, NTFS, atau exFAT | Ya |
-| `dynblk` | Format-1 `volumeNNN.db` file yang menampilkan `/dev/dynblkN`, dengan ext4 di atasnya | Perangkat blok virtual tipis dengan pemetaan disk-resident dan cache terbatas | Filesystem yang diterima oleh backend kernel DynBlk dan sumber daya backend yang cukup | Ya |
-| `raw` | Satu file berukuran tetap `changes.img` yang berisi ext4 | File dibuat sesuai ukuran logis yang diminta; hanya bertambah | Filesystem writable yang dapat menampung image; FAT32 dibatasi hingga 4000 MiB | Ya |
-| `squashfs` | Terkompresi `changes.sb` snapshot; upper runtime writable direkonstruksi di RAM | Ukuran snapshot mengikuti perubahan yang ditangkap; `perchsize` tidak berlaku | Snapshot yang sudah ada dapat dibaca dari media writable yang didukung, namun penyimpanan persis memerlukan filesystem staging yang mendukung POSIX | Tidak |
+| `native` | File dan direktori langsung di direktori sesi bernomor | Menggunakan ruang filesystem backing secara langsung; `perchsize` tidak berlaku | Filesystem yang dapat ditulis dan lolos uji perilaku POSIX | Tidak |
+| `dynfilefs` | Format-400 `changes.dat` ditambah file segmen yang mengekspose ext4 `virtual.dat` | Payload tipis dengan indeks berdensitas sesuai kapasitas | Penyimpanan POSIX, FAT32, NTFS, atau exFAT yang dapat ditulis | Ya |
+| `dynblk` | Format-1 `volumeNNN.db` file yang mengekspose `/dev/dynblkN`, dengan ext4 di atasnya | Perangkat blok virtual tipis dengan pemetaan di disk dan cache terbatas | Filesystem yang diterima oleh backend kernel DynBlk dan sumber daya backend yang cukup | Ya |
+| `raw` | Satu file berukuran tetap `changes.img` yang berisi ext4 | File dibuat sesuai ukuran logis yang diminta; hanya bisa bertambah | Filesystem yang dapat ditulis dan mampu menampung image; FAT32 terbatas hingga 4000 MiB | Ya |
+| `squashfs` | Snapshot `changes.sb` terkompresi; writable runtime upper direkonstruksi di RAM | Ukuran snapshot mengikuti perubahan yang ditangkap; `perchsize` tidak berlaku | Snapshot yang sudah ada dapat dibaca dari media yang dapat ditulis dan didukung; penyimpanan persisten yang mendukung POSIX diperlukan untuk penyimpanan yang persis | Tidak |
 
 ### Native
 
@@ -181,16 +181,20 @@ Lihat [Keamanan](/maintenance-and-recovery/Security) untuk batas perlindungan da
 
 ### SquashFS
 
-Initrd biasanya mengaktifkan sesi SquashFS yang sudah ada. Pengaturan interaktif membuat metadata generasi nol dengan penyimpanan saat shutdown diaktifkan, namun tidak membuat `changes.sb`; layer atas yang dapat ditulis hanya ada di RAM hingga sistem berjalan melakukan penyimpanan pertama secara on demand atau saat shutdown. Sesi generasi nol hanya valid jika field artefak snapshot dan `changes.sb` tidak ada. Untuk generasi berikutnya, aktivasi akan memvalidasi metadata snapshot yang ketat dan bernilai tunggal, termasuk digest, ukuran terkompresi dan tidak terkompresi, jumlah entri, tipe union, dan kebijakan penyimpanan. Sistem juga memeriksa tipe file dan ukuran pastinya, ketersediaan RAM dan swap, digest SHA-256 sebelum dan sesudah ekstraksi, serta kompatibilitas union saat ini.
+Initrd biasanya mengaktifkan sesi SquashFS yang sudah ada. Setup interaktif membuat metadata generasi-nol dengan penyimpanan saat shutdown diaktifkan, namun tidak membuat `changes.sb`; writable upper layer hanya ada di RAM sampai sistem berjalan melakukan penyimpanan pertama secara on demand atau saat shutdown. Sesi generasi-nol hanya valid jika field artefak snapshot dan `changes.sb` tidak ada. Untuk generasi berikutnya, aktivasi memvalidasi metadata snapshot yang ketat dan bernilai tunggal, termasuk digest, ukuran terkompresi dan tidak terkompresi, jumlah entri, tipe union, dan kebijakan penyimpanan. Juga diperiksa tipe file dan ukuran tepat, RAM dan swap yang tersedia, digest SHA-256 sebelum dan sesudah ekstraksi, serta kompatibilitas union saat ini.
 
-Snapshot diekstrak dengan penanganan error dan xattr yang ketat ke dalam image ext4 sementara yang terbatas di RAM. Untuk OverlayFS, image tersebut berisi direktori `changes` dan `workdir`; untuk AUFS, root-nya adalah cabang yang dapat ditulis.
-Metadata yang rusak, memori tidak cukup, perubahan digest, error ekstraksi, atau kebijakan tidak valid akan menyebabkan aktivasi gagal dan boot tetap menggunakan upper RAM biasa.
+Snapshot diekstrak dengan penanganan error dan xattr yang ketat ke dalam image ext4 sementara yang terbatas di RAM. Untuk OverlayFS, image tersebut berisi direktori `changes` dan `workdir`; untuk AUFS, root-nya adalah writable branch.
+Metadata yang rusak, memori tidak cukup, perubahan digest, error ekstraksi, atau kebijakan tidak valid akan menggagalkan aktivasi dan sistem boot tetap menggunakan upper RAM biasa.
 
-Sesi yang ditandai `dirty` berarti boot sebelumnya tidak menyelesaikan transisi shutdown yang bersih. SquashFS kemudian akan memberikan peringatan dan memulihkan `changes.sb` terakhir yang berhasil disimpan; perubahan yang belum disimpan dari boot yang terputus tersebut tidak dihitung sebagai generasi rollback kedua.
+Sesi yang ditandai `dirty` berarti boot sebelumnya tidak menyelesaikan transisi shutdown bersih. SquashFS kemudian memberikan peringatan dan mengembalikan `changes.sb` terakhir yang berhasil disimpan; perubahan yang belum disimpan dari boot yang terputus bukan generasi rollback kedua.
 
-Manajer Sesi MiniOS dan backend penyimpanan sistem membuat serta mengganti snapshot SquashFS secara atomik menggunakan capture yang presisi. Aktivasi boot dapat membaca snapshot yang sudah ada dari penyimpanan FAT, exFAT, atau NTFS yang dapat ditulis karena proses ekstraksi berlangsung di upper ext4 sementara. Pembuatan dan penyimpanan presisi tetap bergantung pada filesystem: area staging privatnya harus mempertahankan link, kepemilikan, mode, xattr, ACL, capability, dan union whiteout, sehingga penyimpanan saat ini memerlukan filesystem POSIX yang sesuai.
+Manajer Sesi MiniOS dan backend penyimpanan sistem membuat dan mengganti snapshot SquashFS secara atomik dengan metode capture yang presisi. Aktivasi boot dapat membaca snapshot yang sudah ada dari penyimpanan FAT, exFAT, atau NTFS yang dapat ditulis karena ekstraksi terjadi di upper ext4 sementara. Pembuatan dan penyimpanan persis tetap bergantung pada filesystem: store sesi harus mendukung pembuatan workspace privat, metadata Linux, dan publikasi yang tahan lama pada filesystem POSIX yang sesuai.
 
-SquashFS tidak memiliki `perchsize`: ukuran yang disimpan mengikuti perubahan terkompresi yang dicapture, sedangkan memori runtime ditentukan oleh upper yang dapat ditulis hasil ekstraksi. Layer persistensi LUKS MiniOS tidak membungkus `changes.sb`; jika kerahasiaan snapshot diperlukan, media penyimpanan harus dienkripsi di luar layer ini. Lihat [Manajemen sesi](/using-minios/Sessions-and-Persistence).
+Saat proses penyimpanan, backend terlebih dahulu menangkap pohon file yang stabil di penyimpanan memori privat milik root jika initrd menyediakan tmpfs terpercaya dengan ruang yang cukup. Jika RAM tidak cukup, pohon ini menggunakan workspace disk sebelumnya. Kompresor menulis langsung ke satu direktori mode-0700 privat di filesystem sesi, bukan ke image RAM tambahan lalu disalin ke disk lagi. MiniOS memverifikasi hasil kompresi dan identitasnya, melakukan sync, memindahkan ke nama kandidat privat, lalu merevalidasi kandidat sebelum mengganti `changes.sb` secara atomik. Salinan atau kompresi yang gagal tidak akan menggantikan snapshot terakhir yang berhasil.
+
+Dengan sesi yang tahan lama dan sehat, `/var/log/minios` dan `/var/log/live` di-bind-mount dari `boot-logs/` di dalam sesi bernomor. Diagnostik startup ini ditulis secara independen dari upper RAM dan snapshot shutdown. Boot yang store persistensinya tidak diaktifkan secara tahan lama tidak dapat menjamin log tersebut akan bertahan setelah restart. Log dan cache biasa dapat dikonfigurasi terpisah; lihat [Performa](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch).
+
+SquashFS tidak memiliki `perchsize`: ukuran yang disimpan mengikuti perubahan terkompresi yang ditangkap, sedangkan memori runtime ditentukan oleh writable upper yang diekstrak. Lapisan persistensi LUKS MiniOS tidak membungkus `changes.sb`; jika kerahasiaan snapshot diperlukan, penyimpanan belakang harus dienkripsi di luar lapisan ini. Lihat [Manajemen sesi](/using-minios/Sessions-and-Persistence).
 
 ## Aktivasi union dan batas pemulihan
 

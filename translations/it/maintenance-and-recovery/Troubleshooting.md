@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-13
+updated: 2026-09-26
 ---
 
 # Risoluzione dei problemi
@@ -131,9 +131,11 @@ df -hT
 df -ih
 ```
 
-Un filesystem pieno può causare errori nelle operazioni sui pacchetti, salvataggi di sessione incompleti e altri errori secondari. Libera spazio spostando o eliminando solo dati noti, dopo aver verificato il filesystem corretto. Per eliminare sessioni, usa Gestore sessioni MiniOS invece di rimuovere manualmente le cartelle delle sessioni numerate.
+Un filesystem pieno può causare errori nelle operazioni sui pacchetti, salvataggi di sessione incompleti e altri errori secondari. Libera spazio spostando o eliminando solo dati noti, dopo aver verificato il filesystem corretto. Per eliminare sessioni, utilizza Gestore sessioni MiniOS invece di rimuovere manualmente le cartelle delle sessioni numerate.
 
-La riparazione del filesystem non è un'operazione generica di MiniOS. Se il filesystem è danneggiato, smontalo, salva prima i dati importanti o un'immagine, e utilizza una procedura di riparazione adatta a quel filesystem e al dispositivo di archiviazione.
+Se `LIVE_APT_CACHE=volatile`, controlla anche `findmnt -T /var/cache/apt/archives` e `df -h /var/cache/apt/archives`: l’area archivio è un filesystem RAM limitato e un download di grandi dimensioni può saturarla anche se il dispositivo USB ha ancora spazio libero. Con `LIVE_LOG_STORAGE=volatile`, la normale `/var/log` ha un limite separato di 32 MiB su RAM. Il riempimento di una delle due aree non fa sì che MiniOS scriva automaticamente quei file sul dispositivo USB. Vedi [Prestazioni](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch).
+
+La riparazione del filesystem non è un’operazione MiniOS generica. Se il filesystem è danneggiato, smontalo, salva prima i dati importanti o un’immagine, e utilizza una procedura di riparazione adatta a quel filesystem e dispositivo di archiviazione.
 
 ## Modifiche ai pacchetti e aggiornamenti di sistema
 
@@ -141,7 +143,7 @@ Se i problemi sono iniziati dopo modifiche ai pacchetti APT, ricorda che una ses
 
 ## Raccolta dei log
 
-Informazioni utili includono:
+Le informazioni utili includono:
 
 ```bash
 uname -a
@@ -156,7 +158,19 @@ lsusb
 
 Per errori di avvio ripetuti su supporti MiniOS scrivibili, `EXPORT_LOGS=true` in `config.conf` esporta i log di avvio in `minios/log/`. Vedi [config.conf](/reference/configuration/config.conf).
 
-Rimuovi credenziali, chiavi private, password Wi-Fi e altre informazioni riservate prima di condividere i log. Per un difetto riproducibile, includi gli estratti rilevanti e apri una segnalazione nel [tracker delle segnalazioni MiniOS](https://github.com/minios-linux/minios-live/issues).
+In una sessione durevole e funzionante `perch`, i due log di avvio obbligatori vengono già mantenuti indipendentemente da `LIVE_LOG_STORAGE`:
+
+```bash
+sudo ls -l /var/log/minios/minios-boot.log*
+sudo ls -l /var/log/live/config.log*
+sudo cat /run/initramfs/minios-persistence/boot-state
+findmnt -T /var/log
+findmnt -T /var/log/minios
+```
+
+Le versioni `.1`, `.2` e `.3` sono avvii precedenti. Il mount normale `/var/log` può essere `tmpfs` mentre `/var/log/minios` e `/var/log/live` restano nello spazio di persistenza. Per SquashFS, questi log si trovano anche in `minios/changes/<session-id>/boot-logs/`, fuori da `changes.sb`; vengono mantenuti anche se lo snapshot di spegnimento fallisce. Un’attivazione `perch` non durevole o non riuscita non garantisce una destinazione persistente per i log. Con `LIVE_LOG_STORAGE=volatile`, `journalctl -b` e altri log normali sono disponibili solo per l’**avvio attuale**. Abilita i log dettagliati `minios-update-*` solo quando necessario; gli errori normali vengono comunque segnalati senza questa opzione.`LIVE_CONFIG_DEBUG=true`
+
+Rimuovi credenziali, chiavi private, password Wi-Fi e altre informazioni riservate prima di condividere i log. Per un problema riproducibile, includi gli estratti rilevanti e apri una segnalazione nel [issue tracker di MiniOS](https://github.com/minios-linux/minios-live/issues).
 
 ### Le sessioni VMDK non sono disponibili
 

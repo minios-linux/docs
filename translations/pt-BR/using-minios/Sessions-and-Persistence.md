@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-17
+updated: 2026-09-26
 program_commits:
     minios-session-manager: 69436959d893a9870aca23e91b346d06b49eb98d
     minios-tools: 7cdd0e10c0f610ebc581efa82105b747437a6125
@@ -19,21 +19,21 @@ A ferramenta equivalente de linha de comando é `minios-session`. Seus comandos 
 
 ## Modos de sessão
 
-| Modo | Armazenamento | Principais restrições | MiniOS camada LUKS2 |
+| Modo | Armazenamento | Principais restrições | Camada MiniOS LUKS2 |
 |------|---------|------------------|--------------------|
-| `native` | Alterações armazenadas diretamente no diretório da sessão | Requer um sistema de arquivos gravável que preserve os metadados e operações do Linux para os quais MiniOS faz sondagens. A capacidade segue o espaço livre disponível; `perchsize` não se aplica. | Não |
-| `dynfilefs` | ext4 expansível `virtual.dat` com segmentação em arquivos format-400 | Funciona em sistemas de arquivos POSIX graváveis, FAT32, NTFS e exFAT. O payload é enxuto, mas o índice de mapeamento escala conforme a capacidade lógica declarada. | Sim |
-| `dynblk` | Sistema de arquivos ext4 enxuto em um dispositivo de bloco do kernel, com arquivos de apoio em `volumeNNN.db` arquivos | Requer o CLI DynBlk, módulo do kernel e suporte initrd. O tamanho criado na inicialização é de até 16 GiB por padrão; o máximo é informado por `dynblk limits`. Os mapeamentos residentes em disco usam um cache de metadados limitado. | Sim |
-| `vmdk` | Sistema de arquivos ext4 enxuto em VMDK sparse padrão dividido, exposto pelo driver DynBlk | Utiliza `volume.vmdk` e `volume-sNNN.vmdk`. Sem compressão. Requer `vmdk-session-v1` na marca de capacidade initrd em execução. Mesmo padrão manual de 16 GiB que DynBlk; consulte `dynblk limits --format vmdk` para limites. | Sim |
-| `raw` | Único `changes.img` arquivo contendo ext4 | Capacidade lógica fixa, com crescimento apenas explícito. Funciona em sistemas de arquivos POSIX graváveis, FAT32, NTFS e exFAT; FAT32 é limitado a 4000 MiB. | Sim |
-| `squashfs` | Snapshot compactado em `changes.sb`; camada superior gravável em tempo de execução é reconstruída em RAM | `perchsize` não se aplica. Snapshots existentes podem ser restaurados a partir de mídias graváveis suportadas, enquanto a gravação exata requer um sistema de arquivos POSIX para staging. | Não |
+| `native` | Alterações salvas diretamente no diretório da sessão | Requer um sistema de arquivos gravável que preserve os metadados do Linux e as operações que MiniOS verifica. A capacidade acompanha o espaço livre de armazenamento de base; `perchsize` não se aplica. | Não |
+| `dynfilefs` | ext4 expansível `virtual.dat` com arquivos de segmento format-400 | Funciona em sistemas de arquivos POSIX graváveis, FAT32, NTFS e exFAT. O payload é leve, mas o índice de mapeamento cresce conforme a capacidade lógica declarada. | Sim |
+| `dynblk` | Sistema de arquivos ext4 leve em um dispositivo de bloco do kernel com arquivos de base thin `volumeNNN.db` arquivos | Requer o CLI DynBlk, módulo do kernel e suporte initrd. O tamanho criado na inicialização é de até 16 GiB por padrão; o máximo é informado por `dynblk limits`. Os mapeamentos residentes em disco usam um cache de metadados limitado. | Sim |
+| `vmdk` | Sistema de arquivos ext4 leve em VMDK padrão sparse dividido, exposto pelo driver DynBlk | Utiliza `volume.vmdk` e `volume-sNNN.vmdk`. Sem compressão. Requer `vmdk-session-v1` no marcador de capacidade initrd em execução. Mesmo padrão manual de 16 GiB que DynBlk; consulte `dynblk limits --format vmdk` para limites. | Sim |
+| `raw` | Arquivo único `changes.img` contendo ext4 | Capacidade lógica fixa, com crescimento apenas explícito. Funciona em sistemas de arquivos POSIX graváveis, FAT32, NTFS e exFAT; FAT32 é limitado a 4000 MiB. | Sim |
+| `squashfs` | Snapshot compactado em `changes.sb`; camada superior gravável em tempo de execução é reconstruída em RAM | `perchsize` não se aplica. Snapshots existentes podem ser restaurados de mídias graváveis suportadas; para salvar exatamente, é necessário um armazenamento persistente compatível com POSIX. | Não |
 
-Raw, DynFileFS, DynBlk e VMDK podem, opcionalmente, utilizar camada de criptografia LUKS2. O backend de armazenamento permanece o modo de sessão, e os metadados da sessão registram a criptografia separadamente. DynFileFS e raw criados com `minios-session` têm padrão de 4000 MiB; DynBlk e VMDK têm padrão de 16 GiB. Os valores de tamanho são alocados em MiB; `GB` e `TB` sufixos convertem para 1000 e 1.000.000 MiB. Raw é limitado a 4000 MiB em FAT32, criptografado ou não. Os dados do payload DynFileFS crescem sob demanda, mas seu índice format-400 é dimensionado para a capacidade lógica total e consome cerca de 2 MiB de RAM mais cerca de 2 MiB de armazenamento por GiB. DynBlk mantém tabelas de mapeamento em disco e um cache de metadados limitado em RAM, com padrão de 1 MiB em vez de porcentagem de RAM. Seus vetores de extensão/arquivo e diretórios crescem conforme as partes declaradas, mas o preenchimento do payload não exige um mapa residente completo. Consulte o limite de capacidade instalada com `dynblk limits --format dynblk`. As gravações reais permanecem limitadas pelo espaço livre do sistema de arquivos subjacente e pelos recursos do backend. Operações de redimensionamento do container só permitem aumentar a sessão; redução não é suportada.
+Raw, DynFileFS, DynBlk e VMDK podem, opcionalmente, usar uma camada de criptografia LUKS2. O backend de armazenamento permanece o modo de sessão, e os metadados da sessão registram a criptografia separadamente. DynFileFS e raw criados com `minios-session` têm padrão de 4000 MiB; DynBlk e VMDK têm padrão de 16 GiB. Os valores de tamanho são alocados em MiB; `GB` e `TB` sufixos convertem para 1000 e 1.000.000 MiB. Raw é limitado a 4000 MiB em FAT32, criptografado ou não. Os dados do payload DynFileFS crescem sob demanda, mas seu índice format-400 é dimensionado para a capacidade lógica total e consome cerca de 2 MiB de RAM mais cerca de 2 MiB de armazenamento de base por GiB. DynBlk mantém tabelas de mapeamento em disco e um cache de metadados limitado em RAM, com padrão de 1 MiB em vez de uma porcentagem de RAM. Seus vetores de extensão/arquivo e diretórios crescem conforme as partes declaradas, enquanto o preenchimento do payload não exige um mapa residente completo. Consulte o limite de capacidade instalada com `dynblk limits --format dynblk`. As gravações reais continuam limitadas pelo espaço livre do sistema de arquivos subjacente e pela admissão de recursos do backend. Operações de redimensionamento do contêiner só permitem crescer a sessão; redução não é suportada.
 
-O modo nativo é a escolha mais simples e rápida em um sistema de arquivos compatível.
+O modo nativo é a opção mais simples e rápida em um sistema de arquivos compatível.
 Use DynFileFS quando o sistema de arquivos de persistência não puder representar metadados do Linux.
-Use DynBlk se você precisa de um dispositivo de bloco real do kernel com arquivos de apoio thin; o driver pode manter vários volumes DynBlk independentes conectados ao mesmo tempo, e o Gerenciador de Sessão usa o caminho do dispositivo retornado pelo driver, em vez de assumir que `/dev/dynblk0` está livre. DynBlk e VMDK não estão disponíveis com o UEFI Secure Boot ativado, pois MiniOS não assina o módulo externo DynBlk do kernel. O instalador e o Gerenciador de Sessão, portanto, ocultam esses modos e rejeitam solicitações explícitas de criação antes de tentar carregar o módulo.
-Use raw quando for necessário alocação fixa, adicione LUKS2 se a sessão precisar ser criptografada e utilize SquashFS para um snapshot compactado exato.
+Use DynBlk quando quiser um dispositivo de bloco real do kernel com arquivos thin de base; o driver pode manter vários volumes DynBlk independentes conectados ao mesmo tempo, e o Gerenciador de Sessões usa o caminho do dispositivo retornado pelo driver em vez de assumir que `/dev/dynblk0` está livre. DynBlk e VMDK não ficam disponíveis com o UEFI Secure Boot ativado, pois MiniOS não assina o módulo externo do kernel DynBlk. O instalador e o Gerenciador de Sessões ocultam esses modos e rejeitam solicitações explícitas de criação antes de tentar carregar o módulo.
+Use raw quando for necessário alocação fixa, adicione LUKS2 quando a sessão precisar ser criptografada e utilize SquashFS para um snapshot compactado exato.
 
 Execute os comandos a seguir para inspecionar o sistema de arquivos de persistência real e os modos disponíveis nele:
 
@@ -42,7 +42,7 @@ sudo minios-session info
 sudo minios-session status
 ```
 
-Nenhuma sessão pode ser criada em mídia somente leitura. O initrd pode ler e ativar um snapshot SquashFS existente armazenado em FAT, exFAT ou NTFS gravável, pois extrai o snapshot para uma camada superior ext4 temporária. Para criar ou salvar exatamente um snapshot, é diferente: o workspace privado de staging precisa estar em um sistema de arquivos POSIX adequado que preserve metadados do Linux e whiteouts de união.
+Nenhuma sessão pode ser criada em mídia somente leitura. O initrd pode ler e ativar um snapshot SquashFS existente armazenado em FAT, exFAT ou NTFS gravável, pois extrai o snapshot para um ext4 temporário superior. Criar ou salvar exatamente um snapshot é diferente: o armazenamento de persistência deve suportar os metadados POSIX necessários e publicação privada e durável. A árvore de trabalho de captura exata usa RAM confiável quando disponível, com fallback para espaço em disco se RAM for insuficiente.
 
 ## Seleção de boot
 
@@ -183,19 +183,23 @@ sudo minios-session --sessions-dir /mnt/store/minios/changes list
 
 ## Comportamento de salvamento SquashFS
 
-Uma sessão SquashFS é descompactada em RAM para a camada gravável em execução. O salvamento reconstrói e valida um snapshot exato, substituindo então de forma atômica `changes.sb`.
-Nenhuma geração de rollback é mantida. O Salvar Agora está disponível pelo ícone da bandeja, Gerenciador de sessões MiniOS ou `minios-session save` independentemente da política automática.
+Uma sessão SquashFS é descompactada em RAM para a camada gravável em execução. Ao salvar, um snapshot exato é reconstruído e validado, substituindo de forma atômica `changes.sb`.
+Nenhuma geração de rollback é mantida. Salvar agora está disponível pelo ícone da bandeja, Gerenciador de sessões MiniOS ou `minios-session save` independentemente da política automática.
 
-O salvamento no desligamento é realizado pelo gatilho de desligamento principal MiniOS e pelo backend `minios-squashfs-save`, portanto não depende do Gerenciador de sessões MiniOS estar aberto ou instalado. O salvamento periódico é verificado a cada 30 minutos por um timer do systemd ou um worker SysV, ambos chamando o mesmo backend de autosave. A reconstrução do snapshot consome CPU e grava o snapshot completo; recomenda-se intervalos de uma hora ou mais.
+A cada salvamento, MiniOS copia uma visão estável da árvore modificada para o armazenamento privado RAM quando há memória disponível. A compressão grava **uma** imagem em um diretório privado dentro da sessão numerada. Só após verificar o conteúdo do sistema de arquivos, o hash, a identidade e a sincronização durável é que o salvador substitui `changes.sb`. Não há uma segunda imagem compactada completa em RAM nem uma segunda gravação dessa imagem no dispositivo de persistência. Com pouca RAM para a árvore, apenas essa árvore de trabalho recai para o disco; o candidato compactado ainda precisa de uma gravação. Veja [Desempenho](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch) para políticas de cache e gravação de log.
 
-Durante a operação RAM-backed SquashFS, um novo snapshot SquashFS capturado e ativado pode assumir o controle do destino de salvamento em execução. Após essa transferência, o snapshot antigo pode ser removido sem reiniciar:
+Os diagnósticos de boot para uma sessão durável SquashFS são armazenados em seu `boot-logs/minios/` e `boot-logs/live/` diretórios. Eles não dependem de um snapshot de desligamento bem-sucedido e continuam disponíveis mesmo quando as últimas alterações na camada superior RAM não puderam ser salvas. O armazenamento de base ainda precisa ser gravável; arquivos de log comuns podem ser temporários se `LIVE_LOG_STORAGE=volatile` estiver selecionado.
+
+O salvamento no desligamento é implementado pelo gatilho de desligamento principal MiniOS e pelo backend `minios-squashfs-save`, portanto, não depende do Gerenciador de sessões MiniOS estar aberto ou instalado. O salvamento periódico é verificado a cada 30 minutos por um timer systemd ou um worker SysV, ambos chamando o mesmo backend de autosave. A reconstrução do snapshot consome CPU e grava o snapshot completo; recomenda-se intervalos de uma hora ou mais.
+
+Durante a operação de RAM com suporte SquashFS, um snapshot recém-capturado e ativado SquashFS pode assumir o controle do destino de salvamento em execução. Após essa transferência, o snapshot anterior em execução pode ser removido sem reinicializar:
 
 ```bash
 sudo minios-session activate <new-squashfs-id>
 sudo minios-session delete <old-running-squashfs-id> --handoff
 ```
 
-Essa exceção se aplica apenas a uma transferência válida do boot atual SquashFS. Outros modos de persistência em execução permanecem protegidos contra exclusão.
+Essa exceção se aplica apenas a uma transferência válida de boot atual SquashFS. Outros modos de persistência em execução permanecem protegidos contra exclusão.
 
 ## Criptografia
 

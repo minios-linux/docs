@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-16
+updated: 2026-09-26
 ---
 
 # Keamanan
@@ -58,13 +58,15 @@ Parameter boot dapat menimpa nilai di file konfigurasi. Periksa perilaku layanan
 
 ## Enkripsi data persisten
 
-Penyimpanan native tanpa enkripsi, DynFileFS, DynBlk, raw, dan SquashFS dapat dibaca oleh siapa saja yang mendapatkan perangkat tersebut. MiniOS dapat melapisi LUKS2 di atas Raw, DynFileFS, atau DynBlk. Untuk pembuatan saat boot, pilih opsi ini melalui `perchencrypt=luks`; sesi yang sudah ada akan mendapatkan status enkripsi dari metadata sesi, bukan dari override command-line yang dilakukan setelahnya.
+Penyimpanan native tanpa enkripsi, DynFileFS, DynBlk, raw, dan SquashFS dapat dibaca oleh siapa saja yang mendapatkan perangkat. MiniOS dapat menambahkan LUKS2 di atas Raw, DynFileFS, atau DynBlk. Untuk pembuatan saat boot, pilih opsi ini dengan `perchencrypt=luks`; sesi yang sudah ada mengambil status enkripsi dari metadata sesi, bukan dari pengaturan command-line setelahnya.
 
-Batas enkripsi berbeda tergantung backend. Raw mengenkripsi image blok logis di dalam `changes.img`; DynFileFS mengenkripsi `virtual.dat`; DynBlk mengenkripsi `/dev/dynblkN` perangkat blok secara langsung. Metadata sesi, file boot, metadata backend DynFileFS/DynBlk di luar image blok terenkripsi, serta file lain yang tidak terkait pada media tetap dapat diakses. Kompresi backend DynBlk akan dinonaktifkan jika LUKS2 dipilih.
+Batas enkripsi berbeda tergantung backend. Raw mengenkripsi image blok logis di dalam `changes.img`; DynFileFS mengenkripsi `virtual.dat`; DynBlk mengenkripsi `/dev/dynblkN` perangkat blok secara langsung. Metadata sesi, file boot, metadata backend DynFileFS/DynBlk di luar image blok terenkripsi, dan file lain yang tidak terkait di media tetap terlihat. Kompresi backend DynBlk dinonaktifkan saat LUKS2 dipilih.
 
-Initrd akan membuat filesystem terenkripsi saat pertama kali digunakan dan meminta passphrase-nya; installer tidak menerima atau menyimpan passphrase tersebut. Saat boot, tiga kali percobaan membuka yang gagal akan menghentikan proses boot, bukan kembali ke plaintext, backend lain, atau pengganti di memori dengan permintaan persistensi yang sama.
+Initrd membuat filesystem terenkripsi saat pertama kali digunakan dan meminta frasa sandi; installer tidak menerima atau menyimpan frasa sandi tersebut. Saat boot, tiga kali percobaan membuka yang gagal akan menghentikan proses boot, bukan kembali ke plaintext, backend lain, atau pengganti di memori dengan permintaan penyimpanan yang sama.
 
-Persistensi LUKS melindungi isi filesystem selama mapper dalam keadaan tertutup. Ini tidak melindungi data setelah unlock, file boot yang tidak terenkripsi, file yang disalin ke luar backend terenkripsi, atau root filesystem native. Persistensi sesi LUKS bukanlah enkripsi root native. Ekspor logis berisi file sesi yang sudah didekripsi, jadi pastikan backup arsip Anda juga terlindungi. Gunakan passphrase yang kuat dan simpan backup yang sudah diuji.
+Penyimpanan LUKS melindungi isi filesystem selama mapper tertutup. Ini tidak melindungi data setelah dibuka, file boot yang tidak terenkripsi, file yang disalin di luar backend terenkripsi, atau filesystem root native. Penyimpanan sesi LUKS bukan enkripsi root native. Ekspor logis berisi file sesi yang sudah didekripsi, jadi arsip cadangan harus diamankan secara terpisah. Gunakan frasa sandi yang kuat dan pastikan backup sudah diuji.
+
+Penyimpanan cache atau jurnal sementara hanya untuk mengurangi penulisan, bukan untuk enkripsi. Meskipun dengan `LIVE_LOG_STORAGE=volatile`, MiniOS tetap menyimpan `minios-boot` dan `live-config` diagnostik pada penyimpanan sesi yang persisten. Untuk SquashFS, file-file ini berada di luar `changes.sb`, di bawah direktori `boot-logs/` sesi. Perangkat penyimpanan tanpa enkripsi akan mengekspos file tersebut bersama file lainnya.`LIVE_CONFIG_DEBUG=true` juga mengaktifkan jejak rinci dan salinan input penggabungan akun pengguna; sebaiknya nonaktifkan debug untuk penggunaan biasa dan tinjau log sebelum membagikannya. Lihat [Performa](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch).
 
 Lihat [Penginstal MiniOS](/installing-minios/MiniOS-Installer) dan [Manajemen sesi](/using-minios/Sessions-and-Persistence).
 

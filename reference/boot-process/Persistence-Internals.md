@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-17
+updated: 2026-09-26
 ---
 # Persistence internals
 
@@ -109,7 +109,7 @@ All successful backends must supply the writable upper expected by the selected 
 | `dynfilefs` | Format-400 `changes.dat` plus segment files exposing an ext4 `virtual.dat` | Thin payload with a dense capacity-sized index | Writable POSIX, FAT32, NTFS, or exFAT storage | Yes |
 | `dynblk` | Format-1 `volumeNNN.db` files exposing `/dev/dynblkN`, with ext4 on top | Thin virtual block device with disk-resident mappings and a bounded cache | Filesystem accepted by the DynBlk kernel backend and enough backend resources | Yes |
 | `raw` | Single fixed-size `changes.img` file containing ext4 | File is created at the requested logical size; growth only | Writable filesystem able to hold the image; FAT32 is limited to 4000 MiB | Yes |
-| `squashfs` | Compressed `changes.sb` snapshot; writable runtime upper is reconstructed in RAM | Snapshot size follows captured changes; `perchsize` does not apply | Existing snapshots can be read from supported writable media, but exact saving requires a POSIX-capable staging filesystem | No |
+| `squashfs` | Compressed `changes.sb` snapshot; writable runtime upper is reconstructed in RAM | Snapshot size follows captured changes; `perchsize` does not apply | Existing snapshots can be read from supported writable media; exact saving requires a suitable POSIX-capable persistence store | No |
 
 ### Native
 
@@ -187,7 +187,11 @@ Malformed metadata, insufficient memory, digest changes, extraction errors, or a
 
 A session marked `dirty` means the previous boot did not complete the clean shutdown transition. SquashFS then warns and restores the last successfully saved `changes.sb`; unsaved changes from the interrupted boot are not a second rollback generation.
 
-MiniOS Session Manager and the system save backend create and atomically replace SquashFS snapshots using exact capture. Boot activation may read an existing snapshot from writable FAT, exFAT, or NTFS storage because extraction occurs in the temporary ext4 upper. Creation and exact saving remain filesystem-gated: their private staging area must preserve links, ownership, modes, xattrs, ACLs, capabilities, and union whiteouts, so current saving requires a suitable POSIX filesystem.
+MiniOS Session Manager and the system save backend create and atomically replace SquashFS snapshots using exact capture. Boot activation may read an existing snapshot from writable FAT, exFAT, or NTFS storage because extraction occurs in the temporary ext4 upper. Creation and exact saving remain filesystem-gated: the session store must support private workspace creation, Linux metadata, and durable publication on a suitable POSIX filesystem.
+
+During saving, the backend first captures a stable file tree in private root-owned memory storage when the initrd provides a trusted tmpfs with sufficient headroom. When RAM is insufficient, this tree uses the previous disk workspace instead. The compressor writes directly into one private mode-0700 directory on the session filesystem, not into an additional RAM image followed by another disk copy. MiniOS verifies the compressed result and its identity, syncs it, moves it to a private candidate name, then revalidates the candidate before atomically replacing the active `changes.sb`. Failed copies or compression do not replace the last successful snapshot.
+
+With a healthy durable session, `/var/log/minios` and `/var/log/live` are bind-mounted from `boot-logs/` inside the numbered session. These startup diagnostics are therefore written independently of the RAM upper and shutdown snapshot. A boot whose persistence store was not activated durably cannot promise those logs will survive a restart. Ordinary logs and caches can be configured separately; see [Performance](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch).
 
 SquashFS has no `perchsize`: its stored size follows the compressed captured changes, while runtime memory is determined by the extracted writable upper. The MiniOS LUKS persistence layer does not wrap `changes.sb`; if snapshot confidentiality is required, the backing storage must be encrypted outside this layer. See [Session management](/using-minios/Sessions-and-Persistence).
 

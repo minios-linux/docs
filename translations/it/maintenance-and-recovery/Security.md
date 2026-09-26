@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-16
+updated: 2026-09-26
 ---
 
 # Sicurezza
@@ -58,15 +58,17 @@ I parametri di avvio possono sovrascrivere i valori dei file di configurazione. 
 
 ## Crittografa i dati persistenti
 
-La persistenza non crittografata nativa, DynFileFS, DynBlk, raw e SquashFS può essere letta da chiunque ottenga il dispositivo. MiniOS può applicare LUKS2 sopra Raw, DynFileFS o DynBlk. Per la creazione al boot, selezionalo con `perchencrypt=luks`; le sessioni esistenti ottengono lo stato di crittografia dai metadati della sessione invece che da una successiva modifica tramite riga di comando.
+La persistenza non crittografata nativa, DynFileFS, DynBlk, raw e SquashFS può essere letta da chiunque ottenga il dispositivo. MiniOS può sovrapporre LUKS2 a Raw, DynFileFS o DynBlk. Per la creazione all'avvio, selezionalo con `perchencrypt=luks`; le sessioni esistenti ottengono il loro stato di crittografia dai metadati della sessione invece che da una successiva modifica tramite riga di comando.
 
-Il perimetro della crittografia varia in base al backend. Raw crittografa l'immagine del blocco logico all'interno `changes.img`; DynFileFS crittografa il `virtual.dat`; DynBlk crittografa direttamente il `/dev/dynblkN` dispositivo a blocchi. I metadati della sessione, i file di avvio, i metadati del backend DynFileFS/DynBlk al di fuori dell'immagine a blocchi crittografata e i file non correlati sul supporto rimangono visibili. La compressione del backend DynBlk viene disabilitata quando si seleziona LUKS2.
+Il perimetro della crittografia varia a seconda del backend. Raw cripta l'immagine a blocchi logici all'interno di `changes.img`; DynFileFS cripta la `virtual.dat`; DynBlk cripta il `/dev/dynblkN` dispositivo a blocchi direttamente. I metadati della sessione, i file di avvio, i metadati backend DynFileFS/DynBlk esterni all'immagine cifrata e i file non correlati sul supporto restano visibili. La compressione backend DynBlk è disabilitata quando si seleziona LUKS2.
 
-L'initrd crea il filesystem crittografato al primo utilizzo e richiede la passphrase; l'installer non riceve né memorizza tale passphrase. All'avvio, tre tentativi di sblocco falliti interrompono il processo di boot invece di tornare al testo in chiaro, a un altro backend o a una sostituzione in memoria con la stessa richiesta di persistenza.
+L'initrd crea il filesystem crittografato al primo utilizzo e richiede la passphrase; l'installer non riceve né memorizza tale passphrase. All'avvio, tre tentativi di sblocco falliti interrompono il processo di boot invece di ricadere su dati in chiaro, un altro backend o una sostituzione in memoria con la stessa richiesta di persistenza.
 
-La persistenza LUKS protegge il contenuto del filesystem quando il mapper è chiuso. Non protegge i dati dopo lo sblocco, i file di avvio non crittografati, i file copiati al di fuori del backend crittografato o un filesystem root nativo. La persistenza di sessione LUKS non è una cifratura nativa del root. Le esportazioni logiche contengono file di sessione decrittati, quindi proteggi gli archivi di backup separatamente. Usa una passphrase robusta e conserva un backup testato.
+La persistenza LUKS protegge il contenuto del filesystem quando il mapper è chiuso. Non protegge i dati dopo lo sblocco, i file di avvio non cifrati, i file copiati fuori dal backend cifrato o un filesystem root nativo. La persistenza di sessione LUKS non equivale alla cifratura del root nativo. Le esportazioni logiche contengono file di sessione decifrati, quindi proteggi separatamente gli archivi di backup. Usa una passphrase robusta e conserva un backup testato.
 
-Vedi [Installatore MiniOS](/installing-minios/MiniOS-Installer) e [Gestione sessioni](/using-minios/Sessions-and-Persistence).
+La cache temporanea o lo storage del journal sono scelte per ridurre le scritture, non per la crittografia. Anche con `LIVE_LOG_STORAGE=volatile`, MiniOS mantiene `minios-boot` e `live-config` la diagnostica nello spazio sessione persistente. Per SquashFS questi file sono fuori da `changes.sb`, nella directory `boot-logs/` della sessione. Un dispositivo di supporto non cifrato li espone insieme agli altri file.`LIVE_CONFIG_DEBUG=true` abilita inoltre tracce dettagliate e copie degli input di merge degli account utente; tieni il debug disabilitato nell'uso ordinario e controlla questi log prima di condividerli. Vedi [Prestazioni](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch).
+
+Consulta [Installatore MiniOS](/installing-minios/MiniOS-Installer) e [Gestione sessioni](/using-minios/Sessions-and-Persistence).
 
 ## Applica gli aggiornamenti in modo consapevole
 

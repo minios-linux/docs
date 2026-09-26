@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-23
+updated: 2026-09-26
 ---
 
 # config.conf
@@ -19,7 +19,7 @@ Cette distinction fait partie du comportement que les utilisateurs doivent conna
 
 ## Configuration générée
 
-Une image MiniOS actuelle génère un fichier `config.conf` avec la structure générale suivante :
+Une image MiniOS actuelle génère une `config.conf` avec la structure générale suivante :
 ```bash
 # live-config settings
 LIVE_CONFIG_CMDLINE="components nottyautologin"
@@ -48,43 +48,46 @@ ENABLE_SERVICES="ssh"
 DISABLE_SERVICES=""
 EXPORT_LOGS="false"
 ```
-Les valeurs exactes dépendent de l’image et de la configuration de la construction.
+Les valeurs exactes dépendent de l’image et de la configuration de build.
 
-::: warning `LIVE_CONFIG_CMDLINE` n’est pas la ligne de commande de l’initramfs
-`LIVE_CONFIG_CMDLINE` fournit des options à **live-config** après l’assemblage du root MiniOS. Les paramètres tels que `from=`, `load=`, `toram` et `perchdir=` doivent être de vrais paramètres de démarrage du noyau ; les placer uniquement dans `LIVE_CONFIG_CMDLINE` est trop tard pour influencer l’initramfs.
+::: warning `LIVE_CONFIG_CMDLINE` n’est pas la ligne de commande initramfs
+`LIVE_CONFIG_CMDLINE` fournit des options après l’assemblage du root MiniOS. Des paramètres comme `from=`, `load=`, `toram`, et `perchdir=` doivent être de vrais paramètres de démarrage du noyau ; les placer uniquement dans `LIVE_CONFIG_CMDLINE` est trop tard pour influencer l’initramfs. Les options de stratégie de stockage `log-storage=`, `apt-cache=`, et `browser-cache=` font exception : `minios-boot` les lit depuis `LIVE_CONFIG_CMDLINE` avant le démarrage des services standards.
 :::
 
 ## Paramètres standards
 
 | Paramètre | Reconfigurable | Signification |
 |---|---|---|
-| `LIVE_CONFIG_CMDLINE` | Oui | Options supplémentaires pour live-config. La ligne de commande réelle du noyau est ajoutée ensuite et prévaut en cas d’options répétées. |
+| `LIVE_CONFIG_CMDLINE` | Oui | Options live-config supplémentaires. La ligne de commande réelle du noyau est ajoutée ensuite et l’emporte en cas d’options répétées. |
 | `LIVE_HOSTNAME` | Oui | Nom d’hôte du système. |
-| `LIVE_USERNAME` | Premier démarrage uniquement | Nom de l’utilisateur live créé lors de l’initialisation. |
+| `LIVE_USERNAME` | Premier démarrage uniquement | Nom de l’utilisateur live créé lors de la configuration initiale. |
 | `LIVE_USER_FULLNAME` | Premier démarrage uniquement | Nom complet de l’utilisateur live. |
-| `LIVE_USER_DEFAULT_GROUPS` | Premier démarrage uniquement | Groupes supplémentaires attribués à la création de l’utilisateur live. |
-| `LIVE_USER_PASSWORD_CRYPTED` | Premier démarrage uniquement | Empreinte cryptée du mot de passe de l’utilisateur live. |
-| `LIVE_ROOT_PASSWORD_CRYPTED` | Premier démarrage uniquement | Empreinte cryptée du mot de passe root. |
-| `LIVE_CONFIG_NOROOT` | Premier démarrage uniquement | Si activé, désactive la configuration des privilèges root (MiniOS), sudo et PolicyKit. |
+| `LIVE_USER_DEFAULT_GROUPS` | Premier démarrage uniquement | Groupes supplémentaires attribués lors de la création de l’utilisateur live. |
+| `LIVE_USER_PASSWORD_CRYPTED` | Premier démarrage uniquement | Empreinte cryptée pour le mot de passe de l’utilisateur live. |
+| `LIVE_ROOT_PASSWORD_CRYPTED` | Premier démarrage uniquement | Empreinte cryptée pour le mot de passe root. |
+| `LIVE_CONFIG_NOROOT` | Premier démarrage uniquement | Si activé, supprime la configuration du mot de passe root MiniOS, sudo et PolicyKit. |
 | `LIVE_LOCALES` | Oui | Une ou plusieurs locales système. |
 | `LIVE_TIMEZONE` | Oui | Fuseau horaire du système, par exemple `Europe/Berlin` ou `Etc/UTC`. |
 | `LIVE_KEYBOARD_MODEL` | Oui | Modèle de clavier XKB. |
-| `LIVE_KEYBOARD_LAYOUTS` | Oui | Agencements de clavier séparés par des virgules. |
-| `LIVE_KEYBOARD_OPTIONS` | Oui | Options de clavier XKB. |
+| `LIVE_KEYBOARD_LAYOUTS` | Oui | Agencements clavier séparés par des virgules. |
+| `LIVE_KEYBOARD_OPTIONS` | Oui | Options clavier XKB. |
 | `LIVE_KEYBOARD_VARIANTS` | Oui | Variantes séparées par des virgules, associées aux agencements configurés. |
-| `LIVE_CONFIG_DEBUG` | Oui | Active la sortie de débogage de live-config si la valeur est `true`. |
-| `LIVE_LINK_USER_DIRS` | Oui | Lie les répertoires utilisateur gérés à l’emplacement configuré sur un support MiniOS inscriptible. Indisponible en mode bind, tout mode `toram` ou lors d’une session de persistance chiffrée LUKS active. |
-| `LIVE_BIND_USER_DIRS` | Oui | Monte les répertoires utilisateur gérés depuis l’emplacement configuré sur un support MiniOS inscriptible en mode bind. Indisponible en mode link, tout mode `toram` ou lors d’une session de persistance chiffrée LUKS active. |
-| `LIVE_USER_DIRS_PATH` | Oui | Emplacement utilisé par le mode link/bind pour les répertoires utilisateur. |
-| `LIVE_MODULE_MODE` | Oui | Sélectionne l’intégration du module `simple` ou `merged` live-config. |
+| `LIVE_CONFIG_DEBUG` | Oui | Active la sortie de debug de live-config si défini sur `true`. |
+| `LIVE_LINK_USER_DIRS` | Oui | Lie les répertoires utilisateurs gérés à l’emplacement configuré sur un support MiniOS inscriptible. Indisponible en mode bind, tout mode `toram` ou avec une session de persistance LUKS active. |
+| `LIVE_BIND_USER_DIRS` | Oui | Monte en bind les répertoires utilisateurs gérés depuis l’emplacement configuré sur un support MiniOS inscriptible. Indisponible en mode link, tout mode `toram` ou avec une session de persistance LUKS active. |
+| `LIVE_USER_DIRS_PATH` | Oui | Emplacement utilisé par le mode utilisateur link/bind. |
+| `LIVE_MODULE_MODE` | Oui | Sélectionne `simple` ou `merged` pour l’intégration du module live-config. |
+| `LIVE_LOG_STORAGE` | Oui | `persistent` (par défaut) ou `volatile` pour les journaux système classiques. Les diagnostics de démarrage restent persistants ; voir [Performance](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch). |
+| `LIVE_APT_CACHE` | Oui | `persistent` (par défaut) ou `volatile` pour les archives APT téléchargées ; l’état des paquets et les listes de dépôts restent persistants. |
+| `LIVE_BROWSER_CACHE` | Oui | `persistent` (par défaut) ou `volatile` pour les chemins de cache navigateur natifs standards. Les profils navigateurs restent persistants. |
 | `DEFAULT_TARGET` | Oui | Cible de démarrage : `graphical.target`, `multi-user.target`, ou `rescue.target`. |
 | `ENABLE_SERVICES` | Oui | Services séparés par des virgules activés au démarrage via `minios-svc`. |
 | `DISABLE_SERVICES` | Oui | Services séparés par des virgules désactivés au démarrage via `minios-svc`. |
-| `EXPORT_LOGS` | Oui | Lorsque `true`, exporte MiniOS et les journaux de démarrage de live-config vers un support MiniOS inscriptible. |
+| `EXPORT_LOGS` | Oui | Lorsque `true`, exporte les journaux de démarrage MiniOS et live-config vers un support MiniOS inscriptible. |
 
-Le fichier généré n’est pas une liste exhaustive de tout ce qui est pris en charge par `minios-live-config`. D’autres variables pour la préconfiguration réseau filaire, la sécurité, les hooks, le preseeding, Xorg et d’autres composants peuvent être ajoutées manuellement. Voir [live-config](/reference/configuration/live-config) pour la documentation complète.
+Le fichier généré n’est pas une liste exhaustive de tout ce qui est pris en charge par `minios-live-config`. D’autres variables pour la préconfiguration réseau filaire, la sécurité, les hooks, le preseeding, Xorg et d’autres composants peuvent être ajoutées manuellement. Voir [live-config](/reference/configuration/live-config) pour la référence complète.
 
-Le composant `user-media` refuse l’activation et la copie de données tant que la session de persistance active est chiffrée avec LUKS. Il se base sur l’état de chiffrement en cours d’exécution : le paramètre `perchencrypt=luks` du noyau ne fait que demander le chiffrement lors de la création d’une nouvelle session et ne décrit pas une session existante.
+Le composant `user-media` refuse l’activation et la copie-retour tant que la session de persistance active est chiffrée LUKS. Il utilise l’état de chiffrement réel à l’exécution : le paramètre `perchencrypt=luks` du noyau ne fait que demander le chiffrement lors de la création d’une nouvelle session et ne décrit pas une session existante.
 
 ## Préconfiguration du réseau filaire
 
@@ -108,15 +111,15 @@ Modifier les valeurs ne remplace pas une session persistante déjà configurée,
 
 Cette fonctionnalité ne configure pas le Wi-Fi. Après le démarrage, la gestion du réseau filaire et sans fil est assurée par NetworkManager. Voir [Réseau](/using-minios/Networking) pour l’utilisation réseau en cours d’exécution et [live-config](/reference/configuration/live-config) pour toutes les variables réseau.
 
-## Paramètres early-userspace de MiniOS
+## Paramètres early-userspace MiniOS
 
-`DEFAULT_TARGET`, `ENABLE_SERVICES`, `DISABLE_SERVICES` et `EXPORT_LOGS` sont des paramètres MiniOS et non des variables live-config. Ils sont lus par `minios-boot` avant que le système d’init habituel ne prenne le relais et sont tous **Reconfigurables : Oui**.
+`DEFAULT_TARGET`, `ENABLE_SERVICES`, `DISABLE_SERVICES`, `EXPORT_LOGS`, et les trois `LIVE_*` stratégies de stockage ci-dessus sont des paramètres de démarrage MiniOS et non des variables tardives de live-config. MiniOS les applique avant que le système d’init prenne la main ; `minios-boot` gère les trois stratégies de stockage. Elles sont toutes **Reconfigurables : Oui**.
 
-Les paramètres de démarrage correspondants `default-target=`, `enable-services=` et `disable-services=` prennent le dessus pour le démarrage en cours. Le paramètre `text` force `multi-user.target`.
+Les paramètres de démarrage correspondants `default-target=`, `enable-services=`, et `disable-services=` sont prioritaires pour le démarrage en cours. Le paramètre `text` force `multi-user.target`.
 
-Les versions Toolbox et Ultra actuelles ajoutent `ssh` à `ENABLE_SERVICES`. Pour désactiver explicitement SSH, placez-le dans `DISABLE_SERVICES` ; le retirer simplement de `ENABLE_SERVICES` ne demande pas la désactivation.
+Les builds Toolbox et Ultra actuels ajoutent `ssh` à `ENABLE_SERVICES`. Pour désactiver explicitement SSH, ajoutez-le dans `DISABLE_SERVICES` ; le retirer simplement de `ENABLE_SERVICES` ne suffit pas à demander la désactivation.
 
-Avec `EXPORT_LOGS="true"`, un support MiniOS inscriptible reçoit les journaux de démarrage ci-dessous :
+Avec `EXPORT_LOGS="true"`, les supports MiniOS inscriptibles reçoivent les journaux de démarrage ci-dessous :
 
 ```text
 minios/log/YYYYMMDD_HHMMSS/
@@ -126,31 +129,39 @@ minios/log/YYYYMMDD_HHMMSS/
 
 Les journaux d’exécution correspondants sont `/var/log/minios/minios-boot.log` et `/var/log/live/config.log`.
 
+## Politique de cache et de logs pour une session persistante
+
+Pour limiter les écritures lors d’une session `perch`, ajoutez les paramètres séparément :
+
+```bash
+LIVE_LOG_STORAGE="volatile"
+LIVE_APT_CACHE="volatile"
+LIVE_BROWSER_CACHE="volatile"
+```
+
+Ils acceptent aussi `persistent`, la valeur par défaut. `minios-boot` accepte les mêmes paramètres depuis `/etc/live/config.conf.d/*.conf`, `LIVE_CONFIG_CMDLINE` (`log-storage=volatile`, `apt-cache=volatile`, `browser-cache=volatile`), ou via les paramètres du noyau. Les fragments ultérieurs remplacent les précédents, le blob de paramètres l’emporte sur les clés de fichiers, et les paramètres du noyau ont la priorité finale. Les trois options sont indépendantes et ne demandent pas à elles seules la persistance. Un initrd compatible annonce `perch-storage-v1` sur `/run/initramfs/etc/minios-initramfs-storage` ; le Configurateur MiniOS signale si l’initrd actuel ne l’annonce pas.
+
+Les politiques ne s’appliquent à un prochain démarrage que si la persistance est effectivement activée sur un support inscriptible durable. Avec `toram`, persistance échouée ou **Démarrer sans enregistrer**, la politique volatile demandée n’est pas considérée comme une preuve que quoi que ce soit sera sauvegardé. Le composant browser-cache s’exécute après `minios-boot`, une fois l’utilisateur live créé. Voir [Performance](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch) pour les limites exactes RAM, les chemins navigateurs pris en charge, les conditions de repli et les journaux restant sur le support.
+
 ## Source, copie d’exécution et priorité
 
-Le répertoire de données MiniOS sélectionné contient normalement les fichiers sources suivants :
+Le répertoire de données MiniOS sélectionné contient normalement ces fichiers sources :
 
 | Répertoire de données sélectionné | Système en cours d’exécution |
 |---|---|
 | `config.conf` | `/etc/live/config.conf` |
 | `config.conf.d/*.conf` | `/etc/live/config.conf.d/*.conf` |
 
-Sur un support monté normalement, ils sont visibles sous `minios/config.conf` et `minios/config.conf.d/*.conf`, souvent sous `/run/initramfs/memory/data/` pendant l’exécution du système.
+Sur un support monté normalement, ils apparaissent comme `minios/config.conf` et `minios/config.conf.d/*.conf`, souvent sous `/run/initramfs/memory/data/` pendant le fonctionnement du système.
 
-La synchronisation a lieu au démarrage ; il ne s’agit pas d’un moniteur de fichiers :
+La synchronisation s’effectue au démarrage ; il ne s’agit pas d’une surveillance de fichiers :
 
-- La copie la plus récente de `config.conf` l’emporte selon la date de modification. Une copie plus récente sur le support est copiée dans le root live. Une copie d’exécution plus récente est recopiée uniquement si le répertoire de données MiniOS sélectionné est inscriptible.
-- Chaque fichier `config.conf.d/*.conf` est synchronisé indépendamment par nom de base, selon les mêmes règles de date et de possibilité d’écriture. Aucun fichier n’est supprimé d’un côté ou de l’autre.
-- Si l’horloge est antérieure à la dernière date de synchronisation enregistrée, la comparaison des dates est ignorée et seuls les fichiers de destination manquants sont recopiés.
-- `toram=trim` copie `config.conf` mais omet `config.conf.d/`. La commande `toram` copie l’arborescence complète des données, mais la synchronisation cible alors la copie RAM plutôt que le support source détaché.
-Après synchronisation, `live-config` lit d’abord `/etc/live/config.conf`, puis `/etc/live/config.conf.d/*.conf` selon l’ordre glob shell. Un fragment ultérieur peut donc remplacer une valeur du fichier principal ou d’un fragment précédent.
+- La copie la plus récente de `config.conf` l’emporte selon la date de modification. Une copie plus récente sur le support est copiée dans la racine live. Une copie d’exécution plus récente est copiée en retour uniquement si le répertoire de données MiniOS sélectionné est inscriptible.
+- Chaque fichier `config.conf.d/*.conf` est synchronisé indépendamment par nom de base, selon les mêmes règles d’horodatage et de droits en écriture. Aucun fichier n’est supprimé d’un côté ou de l’autre.
+- Si l’horloge système est antérieure à la dernière synchronisation enregistrée, la comparaison des dates est ignorée et seuls les fichiers manquants sont copiés vers la destination.
+- `toram=trim` copie `config.conf` mais omet `config.conf.d/`. Un `toram` copie complet de l’arborescence de données, mais la synchronisation cible alors la copie RAM plutôt que le support source détaché.
+Après synchronisation, `live-config` lit d’abord `/etc/live/config.conf` puis `/etc/live/config.conf.d/*.conf` selon l’ordre glob shell. Un fragment ultérieur peut donc remplacer une valeur du fichier principal ou d’un fragment précédent.
 
-La véritable ligne de commande du noyau est ajoutée à `LIVE_CONFIG_CMDLINE`. Pour une option présente plusieurs fois, la dernière occurrence sur la ligne de commande du noyau prévaut. `minios-boot` donne également la priorité à ses paramètres du noyau reconnus par rapport aux réglages correspondants de `/etc/live/config.conf`.
+La ligne de commande réelle du noyau est ajoutée à `LIVE_CONFIG_CMDLINE`. Pour une option présente plusieurs fois, la dernière occurrence sur la ligne de commande du noyau l’emporte. Pour les trois stratégies de stockage, `minios-boot` lit le fichier principal synchronisé, puis ses fragments, ensuite le blob d’options, et enfin la ligne de commande réelle du noyau ; le dernier paramètre l’emporte.
 
-Vous pouvez ajouter des variables shell spécifiques au projet dans `config.conf` ou ses fragments et les lire depuis les copies d’exécution. Citez les valeurs comme des chaînes shell et ne mettez pas d’espaces autour de `=`.
-
-## Références associées
-
-- [Paramètres de démarrage](/reference/Boot-Parameters) — paramètres à placer impérativement sur la véritable ligne de commande du noyau et surcharges live-config.
-- [live-config](/reference/configuration/live-config) — référence complète des paramètres, variables, composants et états late-userspace.
-- [Modes de démarrage](/using-minios/Boot-Modes) — comment la persistance et `toram` influent sur le stockage de la configuration.
+Vous pouvez ajouter des variables shell spécifiques au projet dans `config.conf` ou ses fragments et les lire depuis les copies d’exécution. Citez les valeurs comme chaînes shell et ne mettez pas d’espaces autour de `=`.

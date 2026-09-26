@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-31
+updated: 2026-09-26
 ---
 
 # Startmodi
@@ -26,13 +26,15 @@ Für einen normalen ersten Start lassen Sie **Start MiniOS** ausgewählt. Verwen
 Das Auswählen eines persistenten Menüeintrags fordert eine Sitzung an; es garantiert nicht, dass die Sitzung geöffnet werden kann. Ist der Speicher schreibgeschützt, voll, beschädigt oder inkompatibel, kann MiniOS ohne das Speichern von Änderungen fortfahren. Prüfen Sie die Startwarnung, bevor Sie mit Arbeiten beginnen, die erhalten bleiben müssen.
 :::
 
-## Start MiniOS
+## MiniOS starten
 
-**Start MiniOS** ist der erste und Standard-Menüeintrag. Er ist für den normalen Gebrauch gedacht, einschließlich des ersten Starts eines neu vorbereiteten MiniOS-Geräts.
+**MiniOS starten** ist der erste und standardmäßige Menüeintrag. Er ist für die normale Nutzung vorgesehen, einschließlich des ersten Starts eines neu vorbereiteten MiniOS-Geräts.
 
-MiniOS sucht automatisch nach einer kompatiblen persistenten Sitzung. Existiert eine nutzbare Standardsitzung, wird diese fortgesetzt. Falls nicht, kann MiniOS automatisch eine kompatible Sitzung erstellen, wenn geeigneter beschreibbarer Speicher vorhanden ist.
+MiniOS sucht automatisch nach einer kompatiblen persistenten Sitzung. Wenn eine nutzbare Standardsitzung vorhanden ist, wird diese fortgesetzt. Falls keine existiert, kann MiniOS automatisch eine kompatible Sitzung erstellen, sobald geeigneter beschreibbarer Speicher verfügbar ist.
 
-Kann keine Persistenz erstellt oder aktiviert werden, weil der Speicher schreibgeschützt, voll, beschädigt oder anderweitig ungeeignet ist, läuft MiniOS mit einer temporären beschreibbaren Schicht weiter und meldet, dass die Sitzung nicht persistent ist. Prüfen Sie diese Warnung, bevor Sie Arbeiten beginnen, die einen Neustart überstehen müssen.
+Kann keine Persistenz erstellt oder aktiviert werden, weil das Speichermedium schreibgeschützt, voll, beschädigt oder anderweitig ungeeignet ist, arbeitet MiniOS mit einer temporären beschreibbaren Ebene weiter und meldet, dass die Sitzung nicht persistent ist. Prüfen Sie diese Warnung, bevor Sie Aufgaben durchführen, die einen Neustart überstehen müssen.
+
+Für eine funktionierende persistente Sitzung kann der MiniOS-Konfigurator ausgewählte Standardprotokolle und Caches in RAM halten, während Startdiagnosen und Benutzerdaten auf dem Speicher verbleiben. Die drei Einstellungen und ihre RAM-Grenzwerte werden unter [Leistung](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch). Sie haben keine Auswirkung auf einen **Ohne Speichern starten**-Start.
 
 ## Neue Sitzung starten
 

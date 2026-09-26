@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-16
+updated: 2026-09-26
 ---
 
 # Sécurité
@@ -58,13 +58,15 @@ Les paramètres de démarrage peuvent remplacer les valeurs des fichiers de conf
 
 ## Chiffrer les données persistantes
 
-La persistance native non chiffrée, DynFileFS, DynBlk, raw et SquashFS peut être lue par toute personne ayant accès à l’appareil. MiniOS permet de superposer LUKS2 sur Raw, DynFileFS ou DynBlk. Pour la création au démarrage, sélectionnez-le avec `perchencrypt=luks`; les sessions existantes récupèrent leur état de chiffrement à partir des métadonnées de session, et non d’un remplacement ultérieur en ligne de commande.
+Les persistances natives non chiffrées, DynFileFS, DynBlk, raw et SquashFS peuvent être lues par toute personne ayant accès à l’appareil. MiniOS permet de superposer LUKS2 sur Raw, DynFileFS ou DynBlk. Pour la création au démarrage, sélectionnez-le avec `perchencrypt=luks`; les sessions existantes récupèrent leur état de chiffrement à partir des métadonnées de session plutôt que d’un changement ultérieur de la ligne de commande.
 
-La frontière du chiffrement dépend du backend. Raw chiffre l’image du bloc logique à l’intérieur `changes.img`; DynFileFS chiffre le `virtual.dat`; DynBlk chiffre le `/dev/dynblkN` périphérique de bloc directement. Les métadonnées de session, les fichiers de démarrage, les métadonnées du backend DynFileFS/DynBlk en dehors de l’image de bloc chiffrée, ainsi que les fichiers non liés présents sur le support restent visibles. La compression du backend DynBlk est désactivée lorsque LUKS2 est sélectionné.
+La frontière de chiffrement varie selon le backend. Raw chiffre l’image de blocs logiques à l’intérieur de `changes.img`; DynFileFS chiffre le `virtual.dat`; DynBlk chiffre le `/dev/dynblkN` périphérique de blocs directement. Les métadonnées de session, les fichiers de démarrage, les métadonnées du backend DynFileFS/DynBlk en dehors de l’image de blocs chiffrée, ainsi que les fichiers non liés sur le support, restent visibles. La compression du backend DynBlk est désactivée lorsque LUKS2 est sélectionné.
 
-L’initrd crée le système de fichiers chiffré lors de la première utilisation et demande sa phrase de passe ; l’installateur ne reçoit ni ne stocke cette phrase de passe. Au démarrage, trois tentatives de déverrouillage échouées interrompent le processus de démarrage, sans retour au mode non chiffré, à un autre backend ou à un remplacement en mémoire pour la même demande de persistance.
+L’initrd crée le système de fichiers chiffré lors de la première utilisation et demande sa phrase de passe ; l’installateur ne reçoit ni ne stocke cette phrase de passe. Au démarrage, trois tentatives de déverrouillage échouées interrompent le processus de démarrage au lieu de repasser en clair, de basculer sur un autre backend ou de remplacer en mémoire selon la même demande de persistance.
 
-La persistance LUKS protège le contenu du système de fichiers tant que le mapper est fermé. Elle ne protège pas les données après déverrouillage, les fichiers de démarrage non chiffrés, les fichiers copiés en dehors du backend chiffré, ni un système de fichiers racine natif. La persistance de session LUKS n’est pas un chiffrement natif du root. Les exports logiques contiennent les fichiers de session déchiffrés ; pensez donc à protéger séparément les archives de sauvegarde. Utilisez une phrase de passe robuste et conservez une sauvegarde testée.
+La persistance LUKS protège le contenu du système de fichiers tant que le mapper est fermé. Elle ne protège pas les données après le déverrouillage, les fichiers de démarrage non chiffrés, les fichiers copiés hors du backend chiffré, ni un système de fichiers racine natif. La persistance de session LUKS n’est pas un chiffrement racine natif. Les exports logiques contiennent les fichiers de session déchiffrés ; protégez donc les archives de sauvegarde séparément. Utilisez une phrase de passe robuste et conservez une sauvegarde testée.
+
+Le cache temporaire ou le stockage du journal est un choix pour réduire les écritures, pas une mesure de chiffrement. Même avec `LIVE_LOG_STORAGE=volatile`, MiniOS conserve `minios-boot` et `live-config` les diagnostics sur le stockage de session durable. Pour SquashFS, ces fichiers sont en dehors de `changes.sb`, dans le répertoire `boot-logs/` de la session. Un périphérique de stockage non chiffré les expose comme les autres fichiers.`LIVE_CONFIG_DEBUG=true` active également les traces détaillées et les copies des entrées de fusion des comptes utilisateur ; gardez le mode debug désactivé en usage courant et vérifiez ces journaux avant de les partager. Voir [Performances](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch).
 
 Voir [Programme d’installation MiniOS](/installing-minios/MiniOS-Installer) et [Gestion des sessions](/using-minios/Sessions-and-Persistence).
 
