@@ -6,7 +6,7 @@ program_commits:
 
 # Preconfigurazione di MiniOS
 
-Il Configuratore MiniOS è un editor grafico per la configurazione live di MiniOS. Valida le modifiche e scrive la configurazione per un avvio successivo. Le scelte iniziali di cache/log vengono applicate da `minios-boot`; i restanti componenti live-config vengono eseguiti più tardi. Il salvataggio non modifica direttamente il sistema in esecuzione.
+Il Configuratore MiniOS è un editor grafico per la configurazione live di MiniOS. Valida le modifiche e scrive la configurazione per un avvio successivo. Le scelte iniziali di cache/log vengono applicate da `minios-boot`; i restanti componenti live-config vengono eseguiti in seguito. Il salvataggio non modifica direttamente il sistema in esecuzione.
 
 ## Avvia il configuratore
 
@@ -24,17 +24,17 @@ minios-configurator /path/to/config.conf
 
 Il salvataggio richiede l'autenticazione PolicyKit. I collegamenti simbolici e i file di destinazione non regolari vengono rifiutati.
 
-## Configurazione dei supporti e del runtime
+## Configurazione di supporti e runtime
 
 MiniOS può leggere la configurazione da due posizioni:
 
 - `minios/config.conf` e `minios/config.conf.d/*.conf` sul supporto live
 - `/etc/live/config.conf` e `/etc/live/config.conf.d/*.conf` nel filesystem root in esecuzione
 
-Il Configuratore MiniOS modifica solo il file selezionato. Se non viene specificato alcun percorso, modifica il file runtime `/etc/live/config.conf`; non apre direttamente il file sul supporto. MiniOS sincronizza la configurazione più recente tra il filesystem runtime e i supporti MiniOS scrivibili durante l'avvio. I supporti in sola lettura non possono ricevere modifiche runtime e la configurazione runtime persistente può restare indipendente dalla copia sul supporto.
+Il Configuratore MiniOS modifica solo il file selezionato. Se non viene specificato un percorso, modifica il file runtime `/etc/live/config.conf`; non apre direttamente il file sul supporto. MiniOS sincronizza la configurazione più recente tra il filesystem runtime e i supporti MiniOS scrivibili durante l’avvio. I supporti in sola lettura non possono ricevere modifiche runtime, e la configurazione runtime persistente può restare indipendente dalla copia sul supporto.
 
-All'avvio, MiniOS sincronizza i file del supporto e del runtime in base all'orario di modifica. Per le nuove policy di storage, i frammenti `config.conf.d` successivi sovrascrivono il file principale, `LIVE_CONFIG_CMDLINE` viene dopo, e la riga di comando reale del kernel prevale su tutto.
-Usa `-i` per sovrapporre le impostazioni riconosciute dalla riga di comando del kernel corrente nell'editor:
+All’avvio, MiniOS sincronizza i file sul supporto e runtime in base alla data di modifica. Per le nuove policy di storage, i successivi `config.conf.d` frammenti sovrascrivono il file principale, `LIVE_CONFIG_CMDLINE` viene dopo, e la riga di comando effettiva del kernel prevale su tutto.
+Usa `-i` per sovrapporre le impostazioni riconosciute dalla riga di comando del kernel corrente nell’editor:
 
 ```bash
 minios-configurator --inherit-cmdline /etc/live/config.conf
@@ -48,9 +48,9 @@ Ogni controllo indica quando viene utilizzato. Il salvataggio non applica mai un
 
 ### Applicato dopo il riavvio
 
-Hostname, lingua, fuso orario, tastiera, destinazione di avvio, selezione dei servizi, modalità modulo, gestione dei supporti delle directory utente, impostazioni di debug, esportazione dei log e le tre impostazioni avanzate di storage vengono lette a un avvio successivo. Riavvia dopo il salvataggio per applicarle.
+Hostname, lingua, fuso orario, tastiera, destinazione di avvio, selezione dei servizi, modalità modulo, gestione dei supporti delle directory utente, impostazioni di debug, esportazione log e le tre impostazioni avanzate di storage vengono lette a un avvio successivo. Riavvia dopo il salvataggio per applicarle.
 
-In **Avanzate**, **Storage log di sistema**, **Cache download APT**, e **Cache browser** offrono ciascuno `persistent` (predefinito) oppure `volatile`. Le loro `volatile` scelte si applicano solo a una sessione `perch` integra e durevole. I log di `minios-boot` e `live-config` restano persistenti anche quando i log ordinari sono temporanei. Lo stato dei pacchetti APT e i profili del browser rimangono persistenti; solo i log e le cache selezionati vengono spostati su RAM a capacità limitata. La configurazione del browser viene eseguita dopo la creazione dell'utente live. Il Configuratore avvisa se l'initrd in esecuzione non contiene il marcatore `perch-storage-v1` necessario per queste impostazioni. Consulta [Prestazioni](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch) prima di scegliere le dimensioni di RAM su una macchina con poca memoria.
+In **Avanzate**, **Archiviazione log di sistema**, **Cache download APT**, e **Cache browser** offrono ciascuna `persistent` (predefinito) oppure `volatile`. Le loro `volatile` scelte si applicano solo a una sessione sana e durevole `perch`. I log di `minios-boot` e `live-config` restano persistenti anche quando i log ordinari sono temporanei. Lo stato dei pacchetti APT e i profili del browser restano persistenti; solo i log e le cache selezionate vengono spostati su RAM con limiti. La configurazione del browser viene eseguita dopo la creazione dell’utente live. Il Configuratore avvisa se l’initrd in esecuzione non contiene il `perch-storage-v1` marcatore richiesto per queste impostazioni. Vedi [Prestazioni](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch) prima di scegliere le dimensioni di RAM per un computer con poca memoria.
 
 ### Utilizzate solo per una nuova sessione
 
@@ -60,9 +60,9 @@ I profili di sicurezza sono preset dell'editor. Il nome del profilo non viene sa
 
 ## Directory utente e persistenza
 
-Il collegamento e il mount bind delle directory utente sono operazioni alternative. Entrambe utilizzano un supporto dati MiniOS locale scrivibile già esistente e un percorso sicuro relativo al supporto. Non sono disponibili con `toram`, `toram=full`, o `toram=trim`, e MiniOS non unisce automaticamente due alberi di directory già popolati.
+Il collegamento e il mount bind delle directory utente sono modalità alternative ed esclusive. Entrambe utilizzano un supporto dati locale MiniOS già scrivibile e un percorso sicuro relativo al supporto. Non sono disponibili con `toram`, `toram=full`, o `toram=trim`, e MiniOS non unisce automaticamente due alberi di directory già popolati.
 
-`perchmode` e `perchsize` sono parametri di avvio initramfs, non impostazioni del Configuratore MiniOS. I nuovi controlli di storage cache/log non selezionano né creano una `perch` sessione. Il Configuratore MiniOS non crea, sblocca, ridimensiona o ripara un contenitore di persistenza. Per la persistenza cifrata, segnala se il marcatore di cifratura initramfs è presente.
+`perchmode` e `perchsize` sono parametri di avvio initramfs, non impostazioni del Configuratore MiniOS. I nuovi controlli di storage cache/log non selezionano né creano una `perch` sessione. Il Configuratore MiniOS non crea, sblocca, ridimensiona o ripara un contenitore di persistenza. Per la persistenza cifrata segnala se il marcatore di cifratura initramfs è presente.
 
 ## Comportamento del salvataggio
 

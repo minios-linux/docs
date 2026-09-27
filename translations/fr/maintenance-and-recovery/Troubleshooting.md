@@ -122,7 +122,7 @@ Voir [Sauvegarde de MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS) pour le
 
 ## Problèmes d’espace de stockage et d’espace libre
 
-Inspectez les périphériques et points de montage sans les modifier :
+Inspectez les périphériques et les points de montage sans les modifier :
 
 ```bash
 lsblk -o NAME,SIZE,TYPE,FSTYPE,LABEL,UUID,MOUNTPOINTS,MODEL
@@ -131,11 +131,11 @@ df -hT
 df -ih
 ```
 
-Un système de fichiers plein peut entraîner l’échec des opérations de paquets, la sauvegarde incomplète de sessions, et d’autres erreurs secondaires. Libérez de l’espace en déplaçant ou supprimant uniquement des données connues, après avoir confirmé le bon système de fichiers. Utilisez le Gestionnaire de sessions MiniOS pour supprimer des sessions, au lieu de retirer manuellement les répertoires de sessions numérotés.
+Un système de fichiers saturé peut entraîner l’échec des opérations sur les paquets, la sauvegarde incomplète des sessions et d’autres erreurs secondaires. Libérez de l’espace en déplaçant ou supprimant uniquement des données connues, après avoir vérifié le bon système de fichiers. Utilisez le Gestionnaire de sessions MiniOS pour supprimer des sessions, au lieu de retirer manuellement les dossiers de session numérotés.
 
-Si `LIVE_APT_CACHE=volatile`, vérifiez aussi `findmnt -T /var/cache/apt/archives` et `df -h /var/cache/apt/archives`: la zone d’archives est un système de fichiers RAM limité, et un téléchargement volumineux peut la saturer même si le périphérique USB dispose d’espace libre. Avec `LIVE_LOG_STORAGE=volatile`, l’`/var/log` ordinaire a une limite séparée de 32 Mio pour RAM. Saturer l’une ou l’autre zone n’entraîne pas le basculement automatique de MiniOS vers l’écriture de ces fichiers sur le périphérique USB. Voir [Performance](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch).
+Si `LIVE_APT_CACHE=volatile`, vérifiez également `findmnt -T /var/cache/apt/archives` et `df -h /var/cache/apt/archives` : la zone d’archive est un système de fichiers RAM limité et un téléchargement volumineux peut la saturer, même si le périphérique USB dispose d’espace libre. Avec `LIVE_LOG_STORAGE=volatile`, le `/var/log` dispose d’une limite distincte de 32 Mio pour RAM. Saturer l’une ou l’autre zone n’entraîne pas le basculement silencieux de MiniOS vers l’écriture de ces fichiers sur le périphérique USB. Voir [Performances](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch).
 
-La réparation d’un système de fichiers n’est pas une opération MiniOS générique. Si le système de fichiers lui-même est endommagé, démontez-le, sauvegardez d’abord les données importantes ou une image, puis utilisez une procédure de réparation adaptée à ce système de fichiers et à ce support de stockage.
+La réparation du système de fichiers n’est pas une opération MiniOS générique. Si le système de fichiers est endommagé, démontez-le, sauvegardez d’abord les données importantes ou une image, puis utilisez une procédure de réparation adaptée à ce système de fichiers et à ce support de stockage.
 
 ## Modifications de paquets et mises à jour système
 
@@ -143,7 +143,7 @@ Si des problèmes sont apparus après des changements de paquets APT, gardez à 
 
 ## Collecte des journaux
 
-Les informations utiles incluent :
+Les informations utiles comprennent :
 
 ```bash
 uname -a
@@ -156,9 +156,9 @@ lspci -nnk
 lsusb
 ```
 
-Pour des échecs de démarrage répétés sur un support MiniOS inscriptible, `EXPORT_LOGS=true` dans `config.conf` exporte les journaux de démarrage sous `minios/log/`. Voir [config.conf](/reference/configuration/config.conf).
+Pour les échecs répétés au démarrage sur un support MiniOS inscriptible, `EXPORT_LOGS=true` dans `config.conf` exporte les journaux de démarrage sous `minios/log/`. Voir [config.conf](/reference/configuration/config.conf).
 
-Dans une session durable saine `perch`, les deux journaux de démarrage obligatoires sont déjà conservés, quel que soit `LIVE_LOG_STORAGE`:
+Dans une session durable saine `perch`, les deux journaux de démarrage obligatoires sont déjà conservés, quel que soit `LIVE_LOG_STORAGE` :
 
 ```bash
 sudo ls -l /var/log/minios/minios-boot.log*
@@ -168,9 +168,9 @@ findmnt -T /var/log
 findmnt -T /var/log/minios
 ```
 
-Les versions `.1`, `.2` et `.3` correspondent à des démarrages antérieurs. Le point de montage `/var/log` ordinaire peut être `tmpfs` tandis que `/var/log/minios` et `/var/log/live` restent sur l’espace de persistance. Pour SquashFS, ces journaux se trouvent également sous `minios/changes/<session-id>/boot-logs/`, en dehors de `changes.sb` ; ils persistent même si la capture d’arrêt échoue. Une activation de `perch` non durable ou échouée n’a pas de destination de journalisation persistante garantie. Avec `LIVE_LOG_STORAGE=volatile`, `journalctl -b` et les autres journaux ordinaires sont disponibles uniquement pour le **démarrage en cours**. Activez les traces détaillées de `minios-update-*` à l’aide de `LIVE_CONFIG_DEBUG=true` uniquement si nécessaire ; les erreurs normales sont toujours signalées sans cela.
+Les versions `.1`, `.2` et `.3` correspondent à des démarrages antérieurs. Le montage `/var/log` standard peut être `tmpfs` tandis que `/var/log/minios` et `/var/log/live` restent sur le stockage persistant. Pour SquashFS, ces journaux sont également stockés sous `minios/changes/<session-id>/boot-logs/`, en dehors de `changes.sb` ; ils persistent même si la capture d’arrêt échoue. Une activation de `perch` non durable ou échouée n’a pas de destination de journalisation persistante garantie. Avec `LIVE_LOG_STORAGE=volatile`, `journalctl -b` et d’autres journaux standards sont disponibles uniquement pour le **démarrage en cours**. Activez les traces détaillées `minios-update-*` à l’aide de `LIVE_CONFIG_DEBUG=true` uniquement si nécessaire ; les erreurs normales sont toujours signalées sans cela.
 
-Avant de partager les journaux, retirez les identifiants, clés privées, secrets Wi-Fi et autres informations confidentielles. Pour un défaut reproductible, incluez les extraits pertinents et ouvrez un ticket dans le [système de suivi des incidents MiniOS](https://github.com/minios-linux/minios-live/issues).
+Avant de partager les journaux, supprimez les identifiants, clés privées, secrets Wi-Fi et toute autre information confidentielle. Pour un défaut reproductible, incluez les extraits pertinents et ouvrez un ticket dans le [suivi des anomalies MiniOS](https://github.com/minios-linux/minios-live/issues).
 
 ### Les sessions VMDK ne sont pas proposées
 

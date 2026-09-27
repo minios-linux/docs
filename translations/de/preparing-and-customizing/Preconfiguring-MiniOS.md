@@ -6,7 +6,7 @@ program_commits:
 
 # Vorkonfiguration von MiniOS
 
-Der MiniOS-Konfigurator ist ein grafischer Editor für die Live-Konfiguration von MiniOS. Änderungen werden validiert und die Konfiguration für einen späteren Systemstart gespeichert. Frühe Cache-/Log-Speicheroptionen werden angewendet durch `minios-boot`; die übrigen Live-Config-Komponenten laufen später. Das Speichern ändert das laufende System nicht direkt.
+Der MiniOS-Konfigurator ist ein grafischer Editor für die Live-Konfiguration von MiniOS. Er prüft Änderungen und schreibt die Konfiguration für einen späteren Systemstart. Frühe Cache-/Log-Speicheroptionen werden angewendet durch `minios-boot`; die übrigen Live-Config-Komponenten laufen später. Das Speichern wirkt sich nicht direkt auf das laufende System aus.
 
 ## Starten Sie den Konfigurator
 
@@ -26,31 +26,31 @@ Zum Speichern ist eine PolicyKit-Authentifizierung erforderlich. Symlinks und ni
 
 ## Medien- und Laufzeitkonfiguration
 
-MiniOS kann Konfigurationen aus zwei Quellen lesen:
+MiniOS kann die Konfiguration aus zwei Quellen lesen:
 
 - `minios/config.conf` und `minios/config.conf.d/*.conf` auf dem Live-Medium
 - `/etc/live/config.conf` und `/etc/live/config.conf.d/*.conf` im laufenden Root-Dateisystem
 
-Der MiniOS-Konfigurator bearbeitet nur die ausgewählte Datei. Ohne Pfadangabe wird die Laufzeitdatei bearbeitet `/etc/live/config.conf`; die Mediendatei wird nicht direkt geöffnet. MiniOS synchronisiert beim Booten neuere Konfigurationen zwischen dem Laufzeit-Dateisystem und beschreibbaren MiniOS-Medien. Read-only-Medien können keine Laufzeitänderungen übernehmen, und eine persistente Laufzeitkonfiguration bleibt unabhängig von der Medienkopie.
+Der MiniOS-Konfigurator bearbeitet nur die gewählte Datei. Ohne Pfadangabe wird die Laufzeitdatei bearbeitet `/etc/live/config.conf`; die Medium-Datei wird nicht direkt geöffnet. MiniOS synchronisiert beim Booten neuere Konfigurationen zwischen dem Laufzeit-Dateisystem und beschreibbaren MiniOS-Medien. Schreibgeschützte Medien übernehmen keine Laufzeitänderungen und eine persistente Laufzeitkonfiguration kann unabhängig von der Medienkopie bleiben.
 
-Beim Booten synchronisiert MiniOS die Medien- und Laufzeitdateien nach Änderungszeit. Für die neuen Speicherregeln gilt: Spätere `config.conf.d`-Fragmente überschreiben die Hauptdatei, `LIVE_CONFIG_CMDLINE` folgt danach, und die tatsächliche Kernel-Befehlszeile hat zuletzt Vorrang.
-Verwenden Sie `-i` um anerkannte Einstellungen von der aktuellen Kernel-Befehlszeile im Editor zu überlagern:
+Beim Start synchronisiert MiniOS die Medium- und Laufzeitdateien anhand des Änderungsdatums. Für die neuen Speicherregeln gilt: Spätere `config.conf.d` Fragmente überschreiben die Hauptdatei, `LIVE_CONFIG_CMDLINE` kommt danach und die aktuelle Kernel-Befehlszeile hat zuletzt Vorrang.
+Mit `-i` können im Editor anerkannte Einstellungen aus der aktuellen Kernel-Befehlszeile überlagert werden:
 
 ```bash
 minios-configurator --inherit-cmdline /etc/live/config.conf
 ```
 
-Die ausgewählte Datei bleibt das Speicherziel. Unbekannte Kernel-Parameter werden ignoriert.
+Die gewählte Datei bleibt das Speicherziel. Unbekannte Kernel-Parameter werden ignoriert.
 
 ## Wann Einstellungen angewendet werden
 
 Jede Steuerung gibt an, wann sie verwendet wird. Das Speichern wendet eine Einstellung niemals auf die aktuelle Sitzung an.
 
-### Nach dem Neustart angewendet
+### Nach Neustart angewendet
 
-Hostname, Sprache, Zeitzone, Tastatur, Boot-Ziel, Dienstauswahl, Modulauswahl, Benutzerverzeichnis-Medienverwaltung, Debug-Einstellungen, Log-Export und die drei erweiterten Speicheroptionen werden erst beim nächsten Systemstart übernommen. Starten Sie das System nach dem Speichern neu, um diese Einstellungen zu aktivieren.
+Hostname, Sprache, Zeitzone, Tastatur, Bootziel, Dienstauswahl, Modus für Module, Medienverwaltung für Benutzerverzeichnisse, Debug-Einstellungen, Log-Export und die drei erweiterten Speicheroptionen werden erst beim nächsten Start gelesen. Starten Sie das System nach dem Speichern neu, um die Änderungen zu übernehmen.
 
-In **Erweitert**, **Systemlog-Speicher**, **APT-Download-Cache**, und **Browser-Cache** bieten jeweils `persistent` (Standard) oder `volatile`. Ihre `volatile`-Einstellungen gelten nur für eine gesunde, dauerhafte `perch`-Sitzung. Logs von `minios-boot` und `live-config` bleiben persistent, auch wenn gewöhnliche Logs temporär sind. Der APT-Paketstatus und Browser-Profile bleiben erhalten; nur die ausgewählten Logs und Caches werden auf begrenzte RAM verschoben. Die Browser-Einrichtung erfolgt, nachdem der Live-Benutzer erstellt wurde. Der Konfigurator warnt, falls das laufende initrd die `perch-storage-v1`-Markierung für diese Einstellungen nicht enthält. Siehe [Leistung](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch) bevor Sie RAM-Größen für ein System mit wenig Arbeitsspeicher wählen.
+In **Erweitert**, **Systemprotokoll-Speicher**, **APT-Download-Cache**, und **Browser-Cache** bieten jeweils `persistent` (Standard) oder `volatile`. Ihre `volatile` Optionen gelten nur für eine fehlerfreie, dauerhafte `perch` Sitzung. Protokolle von `minios-boot` und `live-config` bleiben auch dann persistent, wenn normale Protokolle nur temporär sind. Der APT-Paketstatus und Browser-Profile bleiben erhalten; nur die ausgewählten Protokolle und Caches werden auf begrenzte RAM verschoben. Die Browser-Einrichtung erfolgt, nachdem der Live-Benutzer erstellt wurde. Der Konfigurator warnt, falls das laufende initrd die `perch-storage-v1` Markierung für diese Einstellungen nicht enthält. Siehe [Leistung](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch) bevor Sie RAM-Größen für ein System mit wenig Arbeitsspeicher wählen.
 
 ### Nur für eine neue Sitzung verwendet
 
@@ -60,9 +60,9 @@ Sicherheitsprofile sind Editor-Voreinstellungen. Der Profilname wird nicht gespe
 
 ## Benutzerverzeichnisse und Persistenz
 
-Das Verlinken und das Bind-Mounten von Benutzerverzeichnissen schließen sich gegenseitig aus. Beide Methoden nutzen ein vorhandenes, beschreibbares lokales MiniOS-Datenmedium und einen sicheren, medienrelativen Pfad. Sie sind nicht verfügbar mit `toram`, `toram=full`, oder `toram=trim`, und MiniOS führt keine automatische Zusammenführung zweier bereits gefüllter Verzeichnisbäume durch.
+Das Verlinken und das Einbinden (Bind Mount) von Benutzerverzeichnissen schließen sich gegenseitig aus. Beide verwenden ein vorhandenes, beschreibbares lokales MiniOS-Datenmedium und einen sicheren, medienrelativen Pfad. Sie sind nicht verfügbar mit `toram` , `toram=full` oder `toram=trim`, und MiniOS führt keine automatische Zusammenführung zweier gefüllter Verzeichnisbäume durch.
 
-`perchmode` und `perchsize` sind Initramfs-Boot-Parameter, keine Einstellungen des MiniOS-Konfigurators. Die neuen Cache-/Log-Speicheroptionen wählen oder erstellen keine `perch`-Sitzung. Der MiniOS-Konfigurator erstellt, entsperrt, vergrößert oder repariert keinen Persistenz-Container. Für verschlüsselte Persistenz wird angezeigt, ob die Initramfs-Verschlüsselungsmarkierung vorhanden ist.
+`perchmode` und `perchsize` sind initramfs-Bootparameter, keine Einstellungen des MiniOS-Konfigurators. Die neuen Cache-/Log-Speicheroptionen wählen oder erstellen keine `perch` Sitzung. Der MiniOS-Konfigurator erstellt, entsperrt, vergrößert oder repariert keinen Persistenzcontainer. Bei verschlüsselter Persistenz wird angezeigt, ob die initramfs-Verschlüsselungsmarkierung vorhanden ist.
 
 ## Speicherverhalten
 

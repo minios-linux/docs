@@ -28,13 +28,13 @@ Choisir une entrée de menu persistante demande une session ; cela ne garantit p
 
 ## Démarrer MiniOS
 
-**Démarrer MiniOS** est la première entrée du menu et celle sélectionnée par défaut. Elle est prévue pour une utilisation normale, y compris lors du premier démarrage d’un appareil MiniOS nouvellement préparé.
+**Démarrer MiniOS** est la première entrée du menu et celle sélectionnée par défaut. Elle est prévue pour une utilisation normale, y compris lors du premier démarrage d’un appareil MiniOS fraîchement préparé.
 
-MiniOS recherche automatiquement une session persistante compatible. Si une session par défaut utilisable existe, elle sera reprise. Si aucune n’est trouvée, MiniOS peut créer automatiquement une session compatible dès qu’un espace de stockage inscriptible approprié est disponible.
+MiniOS recherche automatiquement une session persistante compatible. Si une session par défaut utilisable existe, elle sera reprise. Si aucune n’est trouvée, MiniOS peut créer une session compatible automatiquement dès qu’un espace de stockage inscriptible adapté est disponible.
 
-Si la persistance ne peut pas être créée ou activée parce que le stockage est en lecture seule, plein, endommagé ou inadapté, MiniOS continue avec une couche temporaire inscriptible et signale que la session n’est pas persistante. Vérifiez cet avertissement avant d’effectuer des opérations qui doivent être conservées après un redémarrage.
+Si la persistance ne peut pas être créée ou activée parce que le stockage est en lecture seule, plein, endommagé ou inadapté, MiniOS continue avec une couche temporaire inscriptible et signale que la session n’est pas persistante. Vérifiez cet avertissement avant d’effectuer des actions qui doivent être conservées après un redémarrage.
 
-Pour une session persistante fonctionnelle, le Configurateur MiniOS peut conserver certains journaux et caches ordinaires dans RAM, tout en gardant les diagnostics de démarrage et les données utilisateur sur le stockage. Les trois paramètres et leurs limites RAM sont décrits dans la section [Performance](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch). Ils n’ont aucun effet lors d’un **Démarrer sans enregistrer** démarrage.
+Pour une session persistante fonctionnelle, le Configurateur MiniOS peut conserver certains journaux et caches standards dans RAM, tout en gardant les diagnostics de démarrage et les données utilisateur sur le stockage. Les trois réglages et leurs limites RAM sont détaillés dans la section [Performance](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch). Ils n’ont aucun effet lors d’un **Démarrer sans enregistrer** démarrage.
 
 ## Démarrer une nouvelle session
 

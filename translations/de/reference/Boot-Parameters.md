@@ -95,3 +95,13 @@ Befehle werden durch Leerzeichen getrennt. Siehe die Referenzseiten zu `man boot
 Detaillierte Informationen zu live-config-Parametern finden Sie unter [live-config](/reference/configuration/live-config).
 
 Informationen zum Laden von MiniOS über das Netzwerk (PXE und HTTP ISO) finden Sie unter [Netzwerk-Boot](/reference/boot-process/Network-Boot).
+
+## Parameter für persistenten Sitzungs-Cache und Logdateien
+
+| Parameter | Anwendung | Beschreibung | Beispiel |
+|---|---|---|---|
+| `log-storage` oder `live-config.log-storage` | Bei jedem Systemstart, mit dauerhaftem `perch` | `persistent` (Standard) oder `volatile`. Im flüchtigen Modus nutzt journald bis zu 32 MiB RAM und gewöhnliche `/var/log` verwendet ein 32 MiB tmpfs. `minios-boot` und `live-config` Boot-Logs bleiben auf dem beschreibbaren persistenten Speicher erhalten. Ein volles RAM-Log-Dateisystem nimmt keine weiteren Schreibvorgänge an, anstatt auf das USB-Gerät auszuweichen. | `log-storage=volatile` |
+| `apt-cache` oder `live-config.apt-cache` | Bei jedem Systemstart, mit dauerhaftem `perch` | `persistent` (Standard) oder `volatile` für `/var/cache/apt/archives`. Das RAM-Mount ist 256 oder 512 MiB groß, wenn genügend Arbeitsspeicher verfügbar ist und kein nicht-zRAM-Swap aktiv ist; große Downloads können es erschöpfen. `/var/lib/apt/lists` und der dpkg-Status bleiben persistent. | `apt-cache=volatile` |
+| `browser-cache` oder `live-config.browser-cache` | Bei jedem Systemstart, mit dauerhaftem `perch` | `persistent` (Standard) oder `volatile` für Standard-Native-Browser-Caches. Nach Beenden des Live-Nutzers verwenden ausgewählte `~/.cache` Unterverzeichnisse ein gemeinsames 512 MiB tmpfs, und das Festplatten-Caching von Firefox wird durch eine verwaltete Systemrichtlinie deaktiviert, sofern keine andere Firefox-Policy-Datei vorhanden ist. Profile und nicht zugehörige Anwendungscaches bleiben persistent. | `browser-cache=volatile` |
+
+Die drei Storage-Policy-Parameter werden von `minios-boot` vor dem normalen Init-System, **nicht** vom Early-Persistence-Selector verarbeitet. Sie aktivieren `perch` und greifen erst nach erfolgreicher Aktivierung der dauerhaften Persistenz. Ein kompatibles initrd zeigt `perch-storage-v1` unter `/run/initramfs/etc/minios-initramfs-storage`. Konfigurator und `config.conf` bieten die gleichen Auswahlmöglichkeiten; siehe [Leistung](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch) für Grenzwerte, Prioritäten und Hinweise zur Browser-Installation.

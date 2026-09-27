@@ -28,13 +28,13 @@ Elegir una opción persistente en el menú solicita una sesión; no garantiza qu
 
 ## Iniciar MiniOS
 
-**Iniciar MiniOS** es la primera opción y la predeterminada del menú. Está pensada para el uso normal, incluido el primer arranque de un dispositivo MiniOS recién preparado.
+**Iniciar MiniOS** es la primera opción y la predeterminada en el menú. Está pensada para el uso normal, incluido el primer arranque de un dispositivo MiniOS recién preparado.
 
 MiniOS busca automáticamente una sesión persistente compatible. Si existe una sesión predeterminada utilizable, la reanuda. Si no existe, MiniOS puede crear una sesión compatible automáticamente cuando haya almacenamiento escribible disponible.
 
 Si no se puede crear o activar la persistencia porque el almacenamiento es de solo lectura, está lleno, dañado o no es adecuado, MiniOS continúa con una capa temporal escribible e informa que la sesión no es persistente. Revise esa advertencia antes de realizar tareas que deban mantenerse tras un reinicio.
 
-Para una sesión persistente funcional, el Configurador de MiniOS puede conservar ciertos registros y cachés comunes en RAM, manteniendo los diagnósticos de arranque y los datos de usuario en el almacenamiento. Las tres opciones y sus límites de RAM se describen en [Rendimiento](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch). No afectan a un **Iniciar sin guardar** arranque.
+Para una sesión persistente funcional, el Configurador de MiniOS puede mantener ciertos registros y cachés seleccionados en RAM, conservando los diagnósticos de arranque y los datos de usuario en el almacenamiento. Las tres opciones y sus límites de RAM se describen en [Rendimiento](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch). No tienen efecto en un **Iniciar sin guardar** arranque.
 
 ## Iniciar una nueva sesión
 

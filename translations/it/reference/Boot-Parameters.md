@@ -95,3 +95,13 @@ Separa i comandi con spazi. Consulta le `man bootparam` pagine di riferimento pe
 Per informazioni dettagliate sui parametri di live-config, vedi [live-config](/reference/configuration/live-config).
 
 Per il caricamento di MiniOS tramite rete (PXE e ISO HTTP), consulta [Avvio da rete](/reference/boot-process/Network-Boot).
+
+## Parametri di cache e log per sessioni persistenti
+
+| Parametro | Applicazione | Descrizione | Esempio |
+|---|---|---|---|
+| `log-storage` o `live-config.log-storage` | Ad ogni avvio, con `perch` | `persistent` (predefinito) oppure `volatile`. In modalità volatile, journald utilizza fino a 32 MiB di RAM e la normale `/var/log` utilizza una tmpfs da 32 MiB. `minios-boot` e `live-config` i log di avvio rimangono sull'area di persistenza scrivibile. Un filesystem di log RAM pieno smette di accettare scritture invece di riversare i dati sul dispositivo USB. | `log-storage=volatile` |
+| `apt-cache` o `live-config.apt-cache` | Ad ogni avvio, con `perch` | `persistent` (predefinito) oppure `volatile` per `/var/cache/apt/archives`. Il mount RAM è di 256 o 512 MiB se c'è abbastanza memoria disponibile e non è attivo uno swap non-zRAM; download di grandi dimensioni possono esaurirlo. `/var/lib/apt/lists` e lo stato di dpkg rimangono persistenti. | `apt-cache=volatile` |
+| `browser-cache` o `live-config.browser-cache` | Ad ogni avvio, con `perch` | `persistent` (predefinito) oppure `volatile` per le cache standard dei browser nativi. Dopo la sessione dell'utente live, alcune `~/.cache` sottodirectory utilizzano una tmpfs condivisa da 512 MiB e la cache su disco di Firefox viene disabilitata tramite policy di sistema gestita se non sono presenti altri file di policy di Firefox. I profili e le cache delle applicazioni non correlate restano persistenti. | `browser-cache=volatile` |
+
+I tre parametri di storage-policy vengono interpretati da `minios-boot` prima del normale sistema di init, **non** dal selettore di persistenza iniziale. Non abilitano `perch` e hanno effetto solo dopo l'attivazione riuscita della persistenza durevole. Un initrd compatibile pubblicizza `perch-storage-v1` su `/run/initramfs/etc/minios-initramfs-storage`. Configurator e `config.conf` offrono le stesse opzioni; vedi [Prestazioni](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch) per limiti, priorità e avvertenze sull'installazione del browser.

@@ -95,3 +95,13 @@ Pisahkan perintah dengan spasi. Lihat `man bootparam` halaman referensi untuk pa
 Untuk informasi detail tentang parameter live-config, lihat [live-config](/reference/configuration/live-config).
 
 Untuk memuat MiniOS melalui jaringan (PXE dan HTTP ISO), lihat [Network boot](/reference/boot-process/Network-Boot).
+
+## Parameter cache sesi persisten dan log
+
+| Parameter | Aplikasi | Deskripsi | Contoh |
+|---|---|---|---|
+| `log-storage` atau `live-config.log-storage` | Setiap boot, dengan `perch` | `persistent` (default) atau `volatile`. Pada mode volatile, journald menggunakan hingga 32 MiB RAM dan `/var/log` menggunakan tmpfs 32 MiB. `minios-boot` dan `live-config` log boot tetap berada di media penyimpanan persisten yang dapat ditulis. Sistem file log RAM yang penuh akan berhenti menerima penulisan, bukan melimpah ke perangkat USB. | `log-storage=volatile` |
+| `apt-cache` atau `live-config.apt-cache` | Setiap boot, dengan `perch` | `persistent` (default) atau `volatile` untuk `/var/cache/apt/archives`. Mount RAM berukuran 256 atau 512 MiB jika memori cukup tersedia dan tidak ada swap non-zRAM yang aktif; unduhan besar dapat menghabiskannya. `/var/lib/apt/lists` dan status dpkg tetap persisten. | `apt-cache=volatile` |
+| `browser-cache` atau `live-config.browser-cache` | Setiap boot, dengan `perch` | `persistent` (default) atau `volatile` untuk cache browser-native standar. Setelah pengguna live selesai, beberapa `~/.cache` subdirektori menggunakan tmpfs bersama 512 MiB, dan cache disk Firefox dinonaktifkan melalui kebijakan sistem terkelola jika tidak ada file kebijakan Firefox lain yang tersedia. Profil dan cache aplikasi lain yang tidak terkait tetap persisten. | `browser-cache=volatile` |
+
+Ketiga parameter storage-policy diproses oleh `minios-boot` sebelum sistem init normal, **bukan** oleh pemilih persistensi awal. Parameter ini tidak mengaktifkan `perch` dan hanya berlaku setelah aktivasi persistensi yang berhasil. Initrd yang kompatibel akan menampilkan `perch-storage-v1` pada `/run/initramfs/etc/minios-initramfs-storage`. Konfigurator dan `config.conf` menyediakan pilihan yang sama; lihat [Performa](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch) untuk batasan, prioritas, dan catatan pemasangan browser.

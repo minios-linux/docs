@@ -30,11 +30,11 @@ Memilih entri menu persisten meminta sesi; ini tidak menjamin sesi dapat dibuka.
 
 **Mulai MiniOS** adalah entri menu pertama dan default. Opsi ini ditujukan untuk penggunaan normal, termasuk saat pertama kali menyalakan perangkat MiniOS yang baru disiapkan.
 
-MiniOS secara otomatis mencari sesi persisten yang kompatibel. Jika sesi default yang dapat digunakan tersedia, maka sesi tersebut akan dilanjutkan. Jika tidak ada, MiniOS dapat membuat sesi yang kompatibel secara otomatis ketika media penyimpanan yang dapat ditulis tersedia.
+MiniOS akan otomatis mencari sesi persisten yang kompatibel. Jika sesi default yang dapat digunakan tersedia, maka sesi tersebut akan dilanjutkan. Jika tidak ada, MiniOS dapat membuat sesi yang kompatibel secara otomatis ketika media penyimpanan yang dapat ditulis tersedia.
 
-Jika persistensi tidak dapat dibuat atau diaktifkan karena penyimpanan hanya-baca, penuh, rusak, atau tidak sesuai, MiniOS akan tetap berjalan dengan lapisan sementara yang dapat ditulis dan memberi tahu bahwa sesi tidak persisten. Periksa peringatan tersebut sebelum melakukan pekerjaan yang harus bertahan setelah reboot.
+Jika persistensi tidak dapat dibuat atau diaktifkan karena media penyimpanan hanya-baca, penuh, rusak, atau tidak sesuai, MiniOS akan melanjutkan dengan lapisan sementara yang dapat ditulis dan memberi tahu bahwa sesi tidak persisten. Periksa peringatan tersebut sebelum melakukan pekerjaan yang harus tetap ada setelah reboot.
 
-Untuk sesi persisten yang berfungsi, Konfigurator MiniOS dapat menyimpan log dan cache biasa yang dipilih di RAM sambil tetap mempertahankan diagnostik boot dan data pengguna di penyimpanan. Ketiga pengaturan beserta batas RAM dijelaskan pada [Performa](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch). Pengaturan ini tidak berpengaruh pada **Mulai tanpa menyimpan** boot.
+Untuk sesi persisten yang berfungsi, Konfigurator MiniOS dapat menyimpan log dan cache biasa yang dipilih di RAM sambil tetap menjaga data diagnostik boot dan data pengguna di penyimpanan. Tiga pengaturan beserta batas RAM dijelaskan pada bagian [Performa](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch). Pengaturan ini tidak berpengaruh pada **Mulai tanpa menyimpan** boot.
 
 ## Mulai sesi baru
 

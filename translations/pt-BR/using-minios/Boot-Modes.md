@@ -28,11 +28,13 @@ Escolher uma entrada persistente no menu solicita uma sessão; não garante que 
 
 ## Iniciar MiniOS
 
-**Iniciar MiniOS** é a primeira e padrão entrada do menu. É indicada para uso normal, incluindo o primeiro boot de um dispositivo MiniOS recém-preparado.
+**Iniciar MiniOS** é a primeira e padrão opção do menu. Ela é indicada para uso normal, inclusive no primeiro boot de um dispositivo MiniOS recém-preparado.
 
-MiniOS procura automaticamente por uma sessão persistente compatível. Se existir uma sessão padrão utilizável, ela será retomada. Caso não exista, MiniOS pode criar uma sessão compatível automaticamente, se houver armazenamento gravável disponível.
+O MiniOS procura automaticamente por uma sessão persistente compatível. Se existir uma sessão padrão utilizável, ela será retomada. Caso contrário, o MiniOS pode criar uma sessão compatível automaticamente quando houver armazenamento gravável adequado disponível.
 
-Se a persistência não puder ser criada ou ativada porque o armazenamento está somente leitura, cheio, danificado ou inadequado, MiniOS continua com uma camada temporária gravável e informa que a sessão não é persistente. Verifique esse aviso antes de realizar trabalhos que precisam sobreviver a uma reinicialização.
+Se a persistência não puder ser criada ou ativada porque o armazenamento está somente leitura, cheio, danificado ou de outra forma inadequado, o MiniOS continua com uma camada temporária gravável e informa que a sessão não é persistente. Verifique esse aviso antes de realizar tarefas que precisam sobreviver a uma reinicialização.
+
+Para uma sessão persistente funcional, o Configurador do MiniOS pode manter logs e caches comuns selecionados em RAM, enquanto mantém diagnósticos de boot e dados do usuário no armazenamento. As três configurações e seus limites de RAM são descritos em [Desempenho](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch). Elas não têm efeito em um **Iniciar sem salvar** boot.
 
 ## Iniciar uma nova sessão
 

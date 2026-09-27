@@ -95,3 +95,13 @@ Séparez les commandes par des espaces. Consultez les `man bootparam` pages de r
 Pour plus d’informations sur les paramètres live-config, consultez [live-config](/reference/configuration/live-config).
 
 Pour le chargement de MiniOS via le réseau (PXE et HTTP ISO), voir [Démarrage réseau](/reference/boot-process/Network-Boot).
+
+## Paramètres du cache de session persistant et du journal
+
+| Paramètre | Application | Description | Exemple |
+|---|---|---|---|
+| `log-storage` ou `live-config.log-storage` | À chaque démarrage, avec une persistance durable `perch` | `persistent` (par défaut) ou `volatile`. En mode volatile, journald utilise jusqu’à 32 Mio de RAM et le stockage temporaire classique `/var/log` utilise un tmpfs de 32 Mio. `minios-boot` et `live-config` les journaux de démarrage restent sur le support de persistance en écriture. Un système de fichiers journal RAM saturé n’accepte plus d’écriture au lieu de déborder sur le périphérique USB. | `log-storage=volatile` |
+| `apt-cache` ou `live-config.apt-cache` | À chaque démarrage, avec une persistance durable `perch` | `persistent` (par défaut) ou `volatile` pour `/var/cache/apt/archives`. Le montage RAM fait 256 ou 512 Mio lorsque suffisamment de mémoire est disponible et qu’aucun swap non-zRAM n’est actif ; les téléchargements volumineux peuvent l’épuiser. `/var/lib/apt/lists` et l’état dpkg restent persistants. | `apt-cache=volatile` |
+| `browser-cache` ou `live-config.browser-cache` | À chaque démarrage, avec une persistance durable `perch` | `persistent` (par défaut) ou `volatile` pour les caches natifs standard du navigateur. Après la session de l’utilisateur live, certains `~/.cache` sous-répertoires utilisent un tmpfs partagé de 512 Mio, et la mise en cache disque de Firefox est désactivée par une politique système gérée lorsqu’aucun autre fichier de politique Firefox n’est présent. Les profils et les caches d’applications non liés restent persistants. | `browser-cache=volatile` |
+
+Les trois paramètres de politique de stockage sont analysés par `minios-boot` avant le système d’initialisation normal, **non** par le sélecteur de persistance précoce. Ils n’activent pas `perch` et ne prennent effet qu’après l’activation réussie de la persistance durable. Un initrd compatible annonce `perch-storage-v1` à `/run/initramfs/etc/minios-initramfs-storage`. Configurator et `config.conf` proposent les mêmes choix ; voir [Performances](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch) pour les limites, la priorité et les particularités d’installation du navigateur.

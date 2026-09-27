@@ -131,17 +131,17 @@ df -hT
 df -ih
 ```
 
-Filesystem yang penuh dapat menyebabkan kegagalan operasi paket, penyimpanan sesi yang tidak lengkap, dan error sekunder lainnya. Kosongkan ruang dengan memindahkan atau menghapus data yang sudah diketahui hanya setelah memastikan filesystem yang benar. Gunakan Manajer Sesi MiniOS untuk menghapus sesi, bukan menghapus direktori sesi bernomor secara manual.
+Sistem berkas yang penuh dapat menyebabkan operasi paket gagal, penyimpanan sesi tidak lengkap, dan error sekunder lainnya. Kosongkan ruang dengan memindahkan atau menghapus data yang sudah diketahui hanya setelah memastikan sistem berkas yang benar. Gunakan Manajer Sesi MiniOS untuk menghapus sesi, bukan menghapus direktori sesi bernomor secara manual.
 
-Jika `LIVE_APT_CACHE=volatile`, periksa juga `findmnt -T /var/cache/apt/archives` dan `df -h /var/cache/apt/archives`: area arsip adalah filesystem RAM yang terbatas dan unduhan besar dapat memenuhi area ini meskipun perangkat USB masih memiliki ruang kosong. Dengan `LIVE_LOG_STORAGE=volatile`, `/var/log` biasa memiliki batas terpisah 32 MiB RAM. Jika salah satu area penuh, MiniOS tidak akan otomatis menulis file tersebut ke perangkat USB. Lihat [Performa](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch).
+Jika `LIVE_APT_CACHE=volatile`, periksa juga `findmnt -T /var/cache/apt/archives` dan `df -h /var/cache/apt/archives`: area arsip adalah sistem berkas RAM yang terbatas dan unduhan besar dapat memenuhi area ini meskipun perangkat USB masih memiliki ruang kosong. Dengan `LIVE_LOG_STORAGE=volatile`, `/var/log` biasa memiliki batas terpisah 32 MiB RAM. Jika salah satu area penuh, MiniOS tidak akan otomatis menulis file tersebut ke perangkat USB. Lihat [Performa](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch).
 
-Perbaikan filesystem bukan operasi MiniOS yang umum. Jika filesystem rusak, unmount terlebih dahulu, amankan data penting atau buat image, lalu gunakan prosedur perbaikan yang sesuai dengan filesystem dan perangkat penyimpanan tersebut.
+Perbaikan sistem berkas bukan operasi MiniOS yang umum. Jika sistem berkas rusak, lepas mount, amankan data penting atau buat image terlebih dahulu, lalu gunakan prosedur perbaikan yang sesuai dengan sistem berkas dan perangkat penyimpanan tersebut.
 
 ## Perubahan paket dan pembaruan sistem
 
 Jika masalah muncul setelah ada perubahan paket APT, perlu diingat bahwa sesi live persistent dapat menimpa file dari modul MiniOS yang hanya-baca. Coba **Mulai tanpa menyimpan** untuk membandingkan dengan set modul asli. Lihat [Memperbarui MiniOS](/maintenance-and-recovery/Updating-MiniOS) untuk perbedaan antara pemeliharaan APT dan perubahan rilis MiniOS.
 
-## Mengumpulkan log
+## Mengumpulkan Log
 
 Informasi yang berguna meliputi:
 
@@ -158,7 +158,7 @@ lsusb
 
 Untuk kegagalan boot berulang pada media MiniOS yang dapat ditulis, `EXPORT_LOGS=true` di `config.conf` mengekspor log boot di bawah `minios/log/`. Lihat [config.conf](/reference/configuration/config.conf).
 
-Pada sesi `perch` yang tahan lama dan sehat, dua log startup wajib sudah tersimpan terlepas dari `LIVE_LOG_STORAGE`:
+Pada sesi `perch` yang tahan lama dan sehat, dua log startup wajib sudah disimpan terlepas dari `LIVE_LOG_STORAGE`:
 
 ```bash
 sudo ls -l /var/log/minios/minios-boot.log*
@@ -168,9 +168,9 @@ findmnt -T /var/log
 findmnt -T /var/log/minios
 ```
 
-Versi `.1`, `.2`, dan `.3` adalah boot sebelumnya. Mount `/var/log` biasa dapat `tmpfs` saat `/var/log/minios` dan `/var/log/live` tetap ada di penyimpanan persistensi. Untuk SquashFS, log ini juga disimpan di bawah `minios/changes/<session-id>/boot-logs/`, di luar `changes.sb`; log ini tetap ada meskipun snapshot shutdown gagal. Aktivasi `perch` yang gagal atau tidak tahan lama tidak memiliki tujuan log yang persisten. Dengan `LIVE_LOG_STORAGE=volatile`, `journalctl -b` dan log biasa lainnya tersedia hanya untuk **boot saat ini**. Aktifkan jejak `minios-update-*` detail menggunakan `LIVE_CONFIG_DEBUG=true` hanya jika diperlukan; error normal tetap akan dilaporkan tanpa fitur ini.
+Versi `.1`, `.2`, dan `.3` adalah boot sebelumnya. Mount `/var/log` biasa dapat `tmpfs` saat `/var/log/minios` dan `/var/log/live` tetap ada di penyimpanan persistensi. Untuk SquashFS, log ini juga berada di bawah `minios/changes/<session-id>/boot-logs/`, di luar `changes.sb`; log ini tetap ada meskipun snapshot shutdown gagal. Aktivasi `perch` yang gagal atau tidak tahan lama tidak memiliki tujuan log persisten yang dijamin. Dengan `LIVE_LOG_STORAGE=volatile`, `journalctl -b` dan log biasa lainnya tersedia hanya untuk boot **sekarang**. Aktifkan jejak `minios-update-*` detail menggunakan `LIVE_CONFIG_DEBUG=true` hanya jika diperlukan; error normal tetap akan dilaporkan tanpa fitur ini.
 
-Hapus kredensial, private key, rahasia Wi-Fi, dan informasi pribadi lainnya sebelum membagikan log. Untuk bug yang dapat direproduksi, sertakan cuplikan yang relevan dan buka isu di [pelacak isu MiniOS](https://github.com/minios-linux/minios-live/issues).
+Hapus kredensial, private key, rahasia Wi-Fi, dan informasi pribadi lain sebelum membagikan log. Untuk bug yang dapat direproduksi, sertakan cuplikan yang relevan dan buka tiket di [pelacak isu MiniOS](https://github.com/minios-linux/minios-live/issues).
 
 ### Sesi VMDK tidak tersedia
 

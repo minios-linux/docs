@@ -8,13 +8,15 @@ program_commits:
 
 **live-config** - Componentes de configuración del sistema
 
-**live-config** contiene los componentes que configuran un sistema live durante el proceso de arranque (espacio de usuario tardío).
+**live-config** contiene los componentes que configuran un sistema live durante el proceso de arranque (late userspace).
+
+La política de caché y registro de sesión persistente se decide antes por `minios-boot`, después de preparar el live root y su configuración, pero antes de que inicien los servicios habituales. El `browser-cache` componente live-config aplica los montajes por usuario después de la creación del usuario. Estas políticas requieren una sesión duradera y saludable `perch` y un initrd actual que anuncie `perch-storage-v1`; consulta [Rendimiento](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch) para los efectos y límites.
 
 El arranque por red en el initramfs (`ip=`, PXE, `from=http://…`) es una capa separada de LiveKit y **no** está gestionada por live-config. Consulta [Arranque por red](/reference/boot-process/Network-Boot).
 
-**live-config** se puede configurar mediante parámetros de arranque o archivos de configuración en tiempo de ejecución preparados por el initramfs. La línea de comandos real del kernel se añade después de los valores proporcionados por el archivo `LIVE_CONFIG_CMDLINE`, por lo que los parámetros de arranque que coincidan más tarde tienen prioridad. Los componentes que registran estado bajo `/var/lib/live/config` normalmente se ejecutan solo una vez; los componentes de sincronización y sin estado pueden ejecutarse en cada invocación.
+**live-config** puede configurarse mediante parámetros de arranque o archivos de configuración en tiempo de ejecución preparados por el initramfs. La línea de comandos real del kernel se añade después de los valores proporcionados por archivos, por lo que los parámetros de arranque posteriores tienen prioridad. Los componentes que registran estado bajo `LIVE_CONFIG_CMDLINE` normalmente se ejecutan solo una vez; los componentes de sincronización y sin estado pueden ejecutarse en cada invocación.`/var/lib/live/config`
 
-Si se utiliza *live-build*(7) para construir el sistema live, los parámetros de live-config usados por defecto pueden establecerse mediante la opción `--bootappend-live`, consulta la página del manual de *lb_config*(1).
+Si *live-build*(7) se utiliza para construir el sistema live, los parámetros de live-config usados por defecto pueden establecerse mediante la opción `--bootappend-live`, consulta *lb_config*(1) página del manual.
 
 ## Parámetros de arranque (componentes)
 
@@ -64,6 +66,14 @@ Algunos componentes individuales pueden modificar su comportamiento según un pa
 - **live-config.hooks=filesystem|medium|URL1|URL2|...|URLn | hooks=medium|filesystem|URL1|URL2|...|URLn**: Descarga y ejecuta archivos arbitrarios desde un archivo temporal en el sistema live en ejecución. Las URLs son gestionadas por `wget` y pueden usar HTTP, FTP o `file://`; los intérpretes requeridos y otras dependencias deben estar ya instalados. La palabra clave `filesystem` expande archivos en `/usr/lib/live/config-hooks/`; `medium` expande archivos en `minios/config-hooks/` en el medio live detectado (con una ruta ISO alternativa en el componente hook). Los archivos locales explícitos pueden usar `file:///run/initramfs/memory/data/minios/config-hooks/FILE` o `file:///PATH` en la raíz live. Las entradas separadas por barras verticales se ejecutan en el orden especificado; los archivos expandidos por una palabra clave usan el orden de glob de shell. Ejemplos se instalan en `/usr/share/doc/live-config/examples/hooks/`.
 
 > **Advertencia de seguridad:** `live-config` se ejecuta como root. Los hooks se hacen ejecutables y se ejecutan como root, y los preseeds modifican la base de datos debconf del sistema con privilegios de root. HTTP y FTP sin cifrar no autentican el contenido descargado ni ofrecen protección de integridad. Prefiera archivos locales revisados o transporte autenticado de confianza con verificación de integridad independiente; no use hooks o preseeds remotos desde redes no confiables.
+
+### Opciones tempranas de almacenamiento MiniOS
+
+Estas opciones son leídas por `minios-boot` antes de que se inicien los servicios habituales. Requieren una sesión duradera y estable de `perch` y no la activan por sí mismas.
+
+- **live-config.log-storage=persistent|volatile | log-storage=persistent|volatile**: `volatile` coloca el journal de systemd y los archivos habituales de `/var/log` en un RAM limitado; los diagnósticos de arranque permanecen en almacenamiento duradero. Por defecto: `persistent`.
+- **live-config.apt-cache=persistent|volatile | apt-cache=persistent|volatile**: `volatile` almacena los archivos descargados de APT en un tmpfs limitado cuando las condiciones de RAM y swap lo permiten. Las bases de datos de paquetes y las listas de repositorios permanecen persistentes. Por defecto: `persistent`.
+- **live-config.browser-cache=persistent|volatile | browser-cache=persistent|volatile**: `volatile` solicita cachés nativos del navegador en RAM. El `browser-cache` componente monta los directorios de caché seleccionados por el usuario en vivo después de que la cuenta exista. Por defecto: `persistent`.
 
 ## Parámetros de arranque (accesos directos)
 
@@ -156,6 +166,14 @@ La configuración de usuario-media nunca fusiona automáticamente dos directorio
 - **LIVE_MODULE_MODE=simple|merged**: Esta variable contiene el estado definido por el parámetro `live-config.module-mode` (o `module-mode`). Cuando se establece en `merged`, el sistema live aplica actualizaciones (mediante minios-update-users, minios-update-cache y minios-update-dpkg) para fusionar configuraciones personalizadas con el entorno base.
 - **LIVE_CONFIG_DEBUG=true|false**: Esta variable corresponde al parámetro `**live-config.debug**`.
 
+## Variables de MiniOS cache y registro
+
+- **LIVE_LOG_STORAGE=persistent|volatile**, **LIVE_APT_CACHE=persistent|volatile**, y **LIVE_BROWSER_CACHE=persistent|volatile**: Políticas independientes de arranque MiniOS. También funcionan en `config.conf.d` y `LIVE_CONFIG_CMDLINE`. No habilitan la persistencia por sí solas. Consulte [Archivo de configuración](/reference/configuration/config.conf#cache-and-log-policy-for-a-persistent-session).
+
+El componente `browser-cache` lee la política duradera de `minios-boot` después de que el usuario en vivo existe y monta con bind los directorios estándar de caché del navegador nativo en un sistema de archivos compartido y limitado RAM. Una política de Firefox creada por separado desactiva su caché en disco sin mover los perfiles del navegador. Si este componente se excluye mediante `components=` o `nocomponents=`, la solicitud temprana de caché del navegador por sí sola no configura los montajes por usuario.
+
+Los asistentes en modo combinado conservan los errores normales, pero solo crean trazas detalladas de comandos y copias de depuración cuando `LIVE_CONFIG_DEBUG=true`.
+
 # PERSONALIZACIÓN
 
 **live-config** puede personalizarse fácilmente para proyectos derivados o uso local.
@@ -171,6 +189,58 @@ Lo más recomendable es empaquetar los componentes en un paquete debian propio. 
 Actualmente no es posible eliminar componentes de forma sensata sin requerir enviar un paquete **live-config** modificado localmente o usar dpkg-divert. Sin embargo, se puede lograr lo mismo desactivando los componentes respectivos mediante el mecanismo live-config.nocomponents, ver arriba. Para evitar tener que especificar siempre los componentes desactivados mediante el parámetro de arranque, se recomienda usar un archivo de configuración, ver arriba.
 
 Los archivos de configuración para el propio sistema live es mejor incluirlos en un paquete debian propio. Un paquete de ejemplo con una configuración de ejemplo se encuentra en /usr/share/doc/live-config/examples.
+
+# COMPONENTES
+
+**live-config** actualmente incluye los siguientes componentes en /usr/lib/live/config.
+
+- **nss-systemd**: elimina o restaura el módulo NSS de systemd en /etc/nsswitch.conf para evitar un problema conocido de systemd.
+- **debconf**: permite aplicar archivos preseed arbitrarios ubicados en el medio live o en un servidor http/ftp.
+- **hostname**: configura /etc/hostname y /etc/hosts.
+- **issue-setup**: configura el archivo /etc/issue con un mensaje de bienvenida e información de la distribución.
+- **live-debconfig_passwd**: configura las contraseñas de usuario y root a través de live-debconfig.
+- **user-setup**: crea una cuenta de usuario live.
+- **user-groups**: añade el usuario live a los grupos suplementarios declarados por los módulos instalados. Los grupos existentes listados en `/usr/share/live/config/user-default-groups.d/*.groups` se aplican después de la creación del usuario y en ejecuciones posteriores de live-config.
+- **root-setup**: establece o actualiza la contraseña de root y configura el entorno del usuario root.
+- **sudo**: otorga privilegios de sudo al usuario live.
+- **user-ssh-keys**: sincroniza los archivos `authorized_keys.<username>` específicos de usuario entre el medio live y los directorios home de cada usuario. Permite varios usuarios simultáneamente (por ejemplo, `authorized_keys.root`, `authorized_keys.live`, `authorized_keys.admin`).
+- **user-media**: enlaza o monta con bind los directorios de usuario validados en el medio de datos escribible existente MiniOS, con migración segura y copia de regreso al desactivar.
+- **locales**: configura los locales.
+- **tzdata**: configura /etc/timezone.
+- **xorg-service**: configura el nombre de usuario en xorg.service y aplica la postura X11 cuando sea compatible.
+- **gdm3**: configura el inicio de sesión automático en gdm3.
+- **sddm**: configura el inicio de sesión automático en sddm.
+- **kdm**: configura el inicio de sesión automático en kdm.
+- **lightdm**: configura el inicio de sesión automático en lightdm.
+- **lxdm**: configura el inicio de sesión automático en lxdm.
+- **nodm**: configura el inicio de sesión automático en nodm.
+- **slim**: configura el inicio de sesión automático en slim.
+- **xinit**: configura el inicio de sesión automático con xinit.
+- **keyboard-configuration**: configura el teclado.
+- **sysvinit**: configura el inicio de sesión automático en consola mediante `/etc/inittab` cuando sysvinit está instalado. El `noautologin` y los atajos `nottyautologin` desactivan esa configuración.
+- **sysv-rc**: configura sysv-rc deshabilitando los servicios listados.
+- **apport**: desactiva apport.
+- **gnome-panel-data**: desactiva el botón de bloqueo de pantalla.
+- **gnome-power-manager**: desactiva la hibernación.
+- **gnome-screensaver**: controla el bloqueo de pantalla de GNOME según `LIVE_LOCKSCREEN_MODE`.
+- **kaboom**: desactiva el asistente de migración de KDE (squeeze y posteriores).
+- **kde-services**: desactiva algunos servicios de KDE no deseados (squeeze y posteriores).
+- **policykit**: otorga privilegios al usuario mediante PolicyKit.
+- **ssl-cert**: regenera los certificados snake-oil SSL.
+- **xrdp**: configura el modo relajado, reforzado o desactivado de XRDP cuando XRDP está instalado.
+- **anacron**: desactiva anacron.
+- **util-linux**: desactiva el servicio hwclock de util-linux.
+- **login**: desactiva lastlog.
+- **xserver-xorg**: configura xserver-xorg.
+- **network**: configura la política IPv4 cableada y duradera mediante un archivo clave seguro de NetworkManager o un bloque ifupdown. Se ejecuta antes de los servicios de red, valida todos los valores y solo sella tras una escritura exitosa.
+- **openssh-server**: recrea las claves de host de OpenSSH y aplica la política solicitada para inicio de sesión root o autenticación por contraseña.
+- **xfce4-panel**: configura xfce4-panel con los valores predeterminados.
+- **xscreensaver**: controla el bloqueo de xscreensaver según `LIVE_LOCKSCREEN_MODE`.
+- **broadcom-sta**: configura los controladores WLAN broadcom-sta.
+- **hyperv**: ajusta la configuración de X11 para mejorar la compatibilidad en plataformas Microsoft Hyper-V.
+- **ntfs3**: gestiona las reglas udev para el soporte de NTFS3.
+- **config-module-mode**: configura el modo de módulos del sistema y actualiza cachés, ajustes de usuario y dpkg.
+- **hooks**: permite ejecutar comandos personalizados desde un archivo ubicado en el medio live o en un servidor http/ftp.
 
 # ARCHIVOS
 

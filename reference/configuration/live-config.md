@@ -170,6 +170,8 @@ User-media setup never merges two non-empty directories automatically. A local n
 
 - **LIVE_LOG_STORAGE=persistent|volatile**, **LIVE_APT_CACHE=persistent|volatile**, and **LIVE_BROWSER_CACHE=persistent|volatile**: Independent MiniOS boot-time policies. They also work in `config.conf.d` and `LIVE_CONFIG_CMDLINE`. They do not enable persistence by themselves. See [Configuration file](/reference/configuration/config.conf#cache-and-log-policy-for-a-persistent-session).
 
+The `browser-cache` component reads the durable `minios-boot` policy after the live user exists and bind-mounts standard native-browser cache directories into a shared bounded RAM filesystem. A separately created Firefox policy disables its disk cache without moving browser profiles. If this component is excluded by `components=` or `nocomponents=`, the early browser-cache request alone does not set up the per-user mounts.
+
 Merged-mode helpers retain normal errors, but create detailed command traces and debug copies only when `LIVE_CONFIG_DEBUG=true`.
 
 # CUSTOMIZATION
@@ -238,7 +240,6 @@ The configuration files for the live system itself are best put into an own debi
 - **hyperv**: configures X11 settings to improve compatibility on Microsoft Hyper-V platforms.
 - **ntfs3**: manages udev rules for NTFS3 support.
 - **config-module-mode**: configures system module mode and updates caches, user settings, and dpkg.
-- **browser-cache**: after the live user exists, reads the durable `minios-boot` policy and bind-mounts standard native-browser cache directories into a shared bounded RAM filesystem. A separately created Firefox policy disables its disk cache without moving browser profiles. If this component is excluded by `components=` or `nocomponents=`, the early browser-cache request alone does not set up the per-user mounts.
 - **hooks**: allows one to run arbitrary commands from a file placed on the live media or an http/ftp server.
 
 # FILES

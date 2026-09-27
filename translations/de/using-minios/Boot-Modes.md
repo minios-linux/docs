@@ -28,13 +28,13 @@ Das Auswählen eines persistenten Menüeintrags fordert eine Sitzung an; es gara
 
 ## MiniOS starten
 
-**MiniOS starten** ist der erste und standardmäßige Menüeintrag. Er ist für die normale Nutzung vorgesehen, einschließlich des ersten Starts eines neu vorbereiteten MiniOS-Geräts.
+**MiniOS starten** ist der erste und standardmäßig ausgewählte Menüeintrag. Er ist für die normale Nutzung vorgesehen, einschließlich des ersten Starts eines neu vorbereiteten MiniOS-Geräts.
 
-MiniOS sucht automatisch nach einer kompatiblen persistenten Sitzung. Wenn eine nutzbare Standardsitzung vorhanden ist, wird diese fortgesetzt. Falls keine existiert, kann MiniOS automatisch eine kompatible Sitzung erstellen, sobald geeigneter beschreibbarer Speicher verfügbar ist.
+MiniOS sucht automatisch nach einer kompatiblen persistenten Sitzung. Falls eine verwendbare Standardsitzung vorhanden ist, wird diese fortgesetzt. Andernfalls kann MiniOS bei verfügbarer, beschreibbarer Speicherung automatisch eine kompatible Sitzung erstellen.
 
-Kann keine Persistenz erstellt oder aktiviert werden, weil das Speichermedium schreibgeschützt, voll, beschädigt oder anderweitig ungeeignet ist, arbeitet MiniOS mit einer temporären beschreibbaren Ebene weiter und meldet, dass die Sitzung nicht persistent ist. Prüfen Sie diese Warnung, bevor Sie Aufgaben durchführen, die einen Neustart überstehen müssen.
+Kann keine Persistenz erstellt oder aktiviert werden, weil der Speicher schreibgeschützt, voll, beschädigt oder anderweitig ungeeignet ist, arbeitet MiniOS mit einer temporären, beschreibbaren Schicht weiter und meldet, dass die Sitzung nicht persistent ist. Prüfen Sie diese Warnung, bevor Sie Arbeiten beginnen, die einen Neustart überstehen müssen.
 
-Für eine funktionierende persistente Sitzung kann der MiniOS-Konfigurator ausgewählte Standardprotokolle und Caches in RAM halten, während Startdiagnosen und Benutzerdaten auf dem Speicher verbleiben. Die drei Einstellungen und ihre RAM-Grenzwerte werden unter [Leistung](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch). Sie haben keine Auswirkung auf einen **Ohne Speichern starten**-Start.
+Für eine funktionierende persistente Sitzung kann der MiniOS-Konfigurator ausgewählte Standardprotokolle und Caches in RAM speichern, während Startdiagnosen und Benutzerdaten auf dem Speicher erhalten bleiben. Die drei Einstellungen und ihre RAM-Grenzwerte werden unter [Leistung](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch). Sie haben keine Auswirkung auf einen **Ohne Speichern starten**-Start.
 
 ## Neue Sitzung starten
 
