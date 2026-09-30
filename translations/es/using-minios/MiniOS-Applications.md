@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-31
+updated: 2026-09-30
 ---
 
 # MiniOS aplicaciones
@@ -48,12 +48,12 @@ La mayoría de las herramientas gráficas cuentan con una contraparte de línea 
 
 | Tarea | Herramienta | Ámbito | Documentación |
 |---|---|---|---|
-| Inspeccionar módulos y gestionar los conjuntos de módulos en ejecución o para el próximo arranque | **`sb`** | La inspección de módulos también funciona fuera de una sesión MiniOS en ejecución. Las operaciones en ejecución y para el próximo arranque requieren una disposición de módulos en vivo MiniOS; los cambios requieren permisos de root. | [Inspeccionar y extraer módulos](/preparing-and-customizing/Managing-Modules#inspect-and-extract-modules); [gestionar módulos en ejecución y para el próximo arranque](/preparing-and-customizing/Managing-Modules#manage-running-and-next-boot-modules); `man sb` |
-| Construir un módulo a partir de paquetes de repositorio o archivos locales`.deb` archivos | **`apt2sb`** | Requiere permisos de root y una sesión en vivo MiniOS compatible. Los paquetes se instalan en un entorno de compilación aislado, no en el root en ejecución. | [Crear un módulo desde paquetes](/preparing-and-customizing/Managing-Modules#create-a-module-from-packages); `man apt2sb` |
+| Inspecciona los módulos y gestiona los conjuntos de módulos activos o para el próximo arranque | **`sb`** | La inspección de módulos también funciona fuera de una sesión MiniOS en ejecución. Las operaciones sobre módulos activos y de próximo arranque requieren un entorno de módulos en vivo MiniOS; para realizar cambios se necesita acceso root. | [Inspeccionar y extraer módulos](/preparing-and-customizing/Managing-Modules#inspect-and-extract-modules); [gestionar módulos activos y de próximo arranque](/preparing-and-customizing/Managing-Modules#manage-running-and-next-boot-modules); `man sb` |
+| Construir un módulo a partir de paquetes del repositorio o archivos locales`.deb` archivos | **`apt2sb`** | Requiere permisos de root y una sesión en vivo MiniOS compatible. Los paquetes se instalan en un entorno de compilación aislado, no en el sistema en ejecución. | [Crear un módulo a partir de paquetes](/preparing-and-customizing/Managing-Modules#create-a-module-from-packages); `man apt2sb` |
 | Construir un módulo ejecutando un script de instalación | **`script2sb`** | Requiere permisos de root y una sesión en vivo MiniOS compatible. El script se ejecuta de forma no interactiva en un entorno de compilación aislado. | [Crear un módulo desde un script](/preparing-and-customizing/Managing-Modules#create-a-module-from-a-script); `man script2sb` |
 | Construir un módulo de forma interactiva en un entorno preparado | **`chroot2sb`** | Requiere permisos de root y una sesión en vivo MiniOS compatible. Úsalo cuando la instalación requiera indicaciones o cambios manuales. | [Crear un módulo de forma interactiva](/preparing-and-customizing/Managing-Modules#create-a-module-interactively); `man chroot2sb` |
-| Convertir entre un árbol de directorios y un`.sb` módulo | **`dir2sb`**, **`sb2dir`** | La conversión normal no requiere root y puede utilizarse fuera de una sesión en vivo en ejecución si se dispone de las herramientas y archivos necesarios. | [Crear](/preparing-and-customizing/Managing-Modules#create-a-module-from-a-directory) o [extraer](/preparing-and-customizing/Managing-Modules#inspect-and-extract-modules) un módulo; `man dir2sb`, `man sb2dir` |
-| Capturar los cambios elegibles de la capa de sesión escribible en un módulo | **`savechanges`** | Requiere permisos de root y una sesión en vivo MiniOS en ejecución con un backend de capa escribible compatible. | [Capturar cambios de la sesión actual](/preparing-and-customizing/Managing-Modules#capture-current-session-changes); `man savechanges` |
+| Convertir entre un árbol de directorios y un`.sb` módulo | **`dir2sb`**, **`sb2dir`** | La conversión normal no requiere root y puede realizarse fuera de una sesión en vivo. Para una extracción y reempaquetado fiel con propietarios originales y archivos especiales se necesita root; los flujos de trabajo gráficos solicitan autenticación de administrador. | [Crear](/preparing-and-customizing/Managing-Modules#create-a-module-from-a-directory) o [extraer](/preparing-and-customizing/Managing-Modules#inspect-and-extract-modules) un módulo; `man dir2sb`, `man sb2dir` |
+| Capturar los cambios elegibles de la capa de sesión editable en un módulo | **`savechanges`** | Requiere permisos de root y una sesión en vivo MiniOS en ejecución con un backend de capa editable compatible. | [Capturar cambios de la sesión actual](/preparing-and-customizing/Managing-Modules#capture-current-session-changes); `man savechanges` |
 
 ### Flujos de trabajo de almacenamiento
 

@@ -1,7 +1,7 @@
 ---
-updated: 2026-08-31
+updated: 2026-09-30
 program_commits:
-    minios-module-manager: e277da00c0b2f5fa5f41af140af118e361d2044c
+    minios-module-manager: 7875b73a485eda82b9dc27827842e9b90f115cf7
 ---
 
 # Gestione dei moduli
@@ -31,13 +31,13 @@ L'attivazione e la disattivazione a runtime sono disponibili solo quando il file
 
 Le modifiche per il prossimo avvio sono disponibili solo quando MiniOS trova uno storage per moduli adatto, durevole e scrivibile. I moduli di base e quelli su storage in sola lettura o volatile non possono essere rimossi. I filtri di avvio come `load`, `noload` e `bext` determinano comunque quali moduli vengono selezionati.
 
-## Ispezionare un modulo
+## Ispezione di un modulo
 
-Seleziona un modulo per vedere la sua origine, la dimensione compressa e il contenuto del filesystem. Se il file di origine è disponibile, **Estrai in cartella** crea una nuova directory contenente i file del modulo.
+Seleziona un modulo per visualizzare la posizione del file di origine, la dimensione compressa e il contenuto del filesystem. Se il file di origine è disponibile, **Estrai in cartella** crea una nuova directory contenente i file del modulo.
 
-L'ispezione e l'estrazione ordinaria non richiedono privilegi amministrativi. L'estrazione non sovrascrive mai una destinazione esistente.
+L'ispezione non richiede privilegi di amministratore. **Estrai in cartella** richiede l'autenticazione dell'amministratore per mantenere proprietari, permessi e file speciali. L'estrazione non sovrascrive mai una destinazione esistente e non modifica il modulo di origine.
 
-Puoi anche aprire un file locale `.sb` dal file manager. L'apertura di un file consente solo l'ispezione; non lo attiva né lo aggiunge al prossimo avvio.
+Puoi anche aprire un file locale `.sb` dal file manager. L'apertura di un file ne consente solo l'ispezione; non lo attiva né lo aggiunge al prossimo avvio.
 
 ## Creazione di un modulo
 
@@ -221,7 +221,7 @@ sb inspect 06-example.sb
 sb inspect 06-example.sb --json
 ```
 
-L'ispezione non richiede root e funziona anche al di fuori di una sessione MiniOS in esecuzione.
+L'ispezione è rootless e funziona anche al di fuori di una sessione MiniOS in esecuzione.
 
 Estrai un modulo in una nuova directory:
 
@@ -229,15 +229,23 @@ Estrai un modulo in una nuova directory:
 sb2dir 06-example.sb example-root
 ```
 
-L'estrazione ordinaria non richiede root e non modifica la sorgente. La directory di destinazione non deve esistere. I file speciali vengono rifiutati a meno che `--allow-special` sia richiesto con privilegi sufficienti.
+L'estrazione standard è rootless e non modifica la sorgente. La directory di destinazione non deve esistere. I file speciali vengono rifiutati a meno che `--allow-special` sia richiesto con privilegi sufficienti.
 
-Le directory prodotte dagli attuali `sb2dir` sono directory ordinarie. `rmsbdir`, `sb rm` e `sb rmdir` sono comandi di compatibilità ritirati che rifiutano sempre la rimozione; non smontano né eliminano ricorsivamente nulla. Controlla un percorso estratto e i suoi contenuti prima di rimuoverlo con i normali strumenti del filesystem.
+Per una directory che può essere reimpacchettata fedelmente, estrai con privilegi di amministratore e conserva proprietà e file speciali:
 
-### Gestione dei moduli attivi e di quelli per il prossimo avvio
+```bash
+sudo sb2dir --keep-ownership --allow-special 06-example.sb example-root
+```
 
-Le composizioni Attivo ora e Prossimo avvio sono indipendenti. Vedi [costruzione delle unioni e attivazione a runtime](/reference/boot-process/Module-Loading#union-construction) per il confine tra avvio e runtime e per capire perché le due liste possono differire.
+L'estrazione registra l'origine del modulo in `.minios-module-origin.json` all'interno della nuova directory. L'estrazione rootless indica che la proprietà non è stata mantenuta; una directory di questo tipo non può essere reinserita in `dir2sb`. Mantieni il record di origine con un'estrazione privilegiata fino al nuovo impacchettamento.
 
-Elenca i moduli che compongono effettivamente la root AUFS o OverlayFS corrente, dal livello più basso a quello più alto:
+Le directory prodotte dagli attuali `sb2dir` sono directory ordinarie. `rmsbdir`, `sb rm`, e `sb rmdir` sono comandi di compatibilità obsoleti che rifiutano sempre la rimozione; non smontano né eliminano ricorsivamente nulla. Controlla un percorso estratto e il suo contenuto prima di rimuoverlo con gli strumenti standard del filesystem.
+
+### Gestisci moduli attivi e al prossimo avvio
+
+Le composizioni Attive Ora e Prossimo Avvio sono indipendenti. Vedi [costruzione unione e attivazione runtime](/reference/boot-process/Module-Loading#union-construction) per il confine tra avvio e runtime e perché le due liste possono differire.
+
+Elenca i moduli che compongono effettivamente la root AUFS o OverlayFS corrente, dal livello di priorità più basso al più alto:
 
 ```bash
 sb list
@@ -251,7 +259,7 @@ sb next-boot
 sb next-boot --json
 ```
 
-Queste interrogazioni non richiedono privilegi root. Le regole canoniche [di livello candidato e di sostituzione](/reference/boot-process/Module-Loading#candidate-tiers) determinano quale sorgente fornisce ogni basename per il Prossimo avvio.
+Queste interrogazioni sono rootless. Le regole canoniche di [tier dei candidati e sostituzione](/reference/boot-process/Module-Loading#candidate-tiers) determinano quale sorgente fornisce ogni basename per il Prossimo Avvio.
 
 Per rendere disponibile un modulo utente al prossimo avvio:
 
@@ -259,31 +267,31 @@ Per rendere disponibile un modulo utente al prossimo avvio:
 sudo sb next-boot add 50-extra.sb
 ```
 
-MiniOS utilizza uno storage scrivibile durevole idoneo, prepara e valida la copia, e la pubblica in modo atomico senza sostituire un modulo esistente. Il nome file deve rispettare i filtri di avvio attuali. Rimuovi un modulo utente selezionato usando il suo basename esatto:
+MiniOS utilizza uno storage scrivibile e durevole adeguato, prepara e valida la copia, e la pubblica in modo atomico senza sostituire un modulo esistente. Il nome file deve rispettare i filtri di avvio attuali. Rimuovi un modulo utente selezionato tramite il suo basename esatto:
 
 ```bash
 sudo sb next-boot remove 50-extra.sb
 ```
 
-La rimozione viene rifiutata per i moduli base e per quelli su sorgenti di sola lettura o volatili.
+La rimozione viene rifiutata per i moduli di base e per quelli su sorgenti di sola lettura o volatili.
 
-L'attivazione a runtime è un'operazione separata e valida solo per la sessione corrente:
+L'attivazione runtime è un'operazione separata e valida solo per la sessione:
 
 ```bash
 sudo sb activate 50-extra.sb
 sudo sb deactivate 50-extra.sb
 ```
 
-Attivazione e disattivazione funzionano solo quando `/` è attualmente una unione AUFS. Non sono disponibili su OverlayFS e il solo supporto AUFS del kernel non è sufficiente. Nessun comando modifica il Prossimo avvio.
+Attivazione e disattivazione funzionano solo quando `/` è attualmente una unione AUFS. Non sono disponibili su OverlayFS, e il solo supporto kernel AUFS non è sufficiente. Nessuno dei due comandi modifica il Prossimo Avvio.
 
-Il dispatcher di conversione compatibilità richiede entrambi gli operandi:
+Il dispatcher del convertitore di compatibilità richiede entrambi gli operandi:
 
 ```bash
 sudo sb conv my-app-root 06-my-app.sb
 sudo sb conv 06-my-app.sb example-root
 ```
 
-L'uso diretto di `dir2sb` e `sb2dir` è preferibile perché la conversione standard può essere eseguita senza privilegi root.
+L'uso diretto di `dir2sb` e `sb2dir` è preferibile perché la conversione standard può essere eseguita senza privilegi di root.
 
 ### Documentazione correlata
 

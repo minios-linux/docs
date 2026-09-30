@@ -1,7 +1,7 @@
 ---
-updated: 2026-08-31
+updated: 2026-09-30
 program_commits:
-    minios-module-manager: e277da00c0b2f5fa5f41af140af118e361d2044c
+    minios-module-manager: 7875b73a485eda82b9dc27827842e9b90f115cf7
 ---
 
 # Gestion des modules
@@ -33,27 +33,29 @@ Les modifications du prochain démarrage ne sont possibles que si MiniOS détect
 
 ## Inspection d’un module
 
-Sélectionnez un module pour afficher sa source, sa taille compressée et son contenu système de fichiers. Si son fichier source est disponible, **Extraire dans un dossier** crée un nouveau répertoire contenant les fichiers du module.
+Sélectionnez un module pour afficher l’emplacement de son fichier source, sa taille compressée et le contenu du système de fichiers. Si le fichier source est disponible, **Extraire dans un dossier** crée un nouveau dossier contenant les fichiers du module.
 
-L’inspection et l’extraction simple ne nécessitent pas de privilèges administrateur. L’extraction ne remplace jamais une destination existante.
+L’inspection ne nécessite pas de droits administrateur. **Extraire dans un dossier** demande une authentification administrateur afin de conserver les propriétaires, les permissions et les fichiers spéciaux. L’extraction ne remplace jamais une destination existante et ne modifie pas le module source.
 
-Vous pouvez également ouvrir un fichier local `.sb` depuis le gestionnaire de fichiers. Ouvrir un fichier permet uniquement de l’inspecter ; cela ne l’active pas et ne l’ajoute pas au prochain démarrage.
+Vous pouvez également ouvrir un fichier local `.sb` depuis le gestionnaire de fichiers. L’ouverture d’un fichier permet uniquement de l’inspecter ; il n’est ni activé ni ajouté au prochain démarrage.
 
 ## Création d’un module
 
-L’espace de travail Créer utilise un flux **Configurer**, **Vérifier**, **Exécuter**, puis **Résultat**. Un module créé avec succès reste un fichier à l’emplacement de sortie. Il n’est pas activé et n’est pas ajouté automatiquement au prochain démarrage.
+L’espace de travail Créer utilise un flux **Configurer**, **Vérifier**, **Exécuter**, et **Résultat**. Un module créé avec succès reste un fichier à l’emplacement de sortie. Il n’est pas activé et n’est pas ajouté automatiquement au prochain démarrage.
 
-Méthodes disponibles :
+Méthodes disponibles :
 
-- **Paquets** installe les paquets du dépôt et les fichiers locaux sélectionnés `.deb`, ainsi que leurs dépendances, dans un environnement de build isolé MiniOS. L’installation des paquets nécessite une authentification administrateur.
-- **Script d’installation** exécute un script vérifié sans terminal interactif. Un dossier de préconfiguration optionnel peut fournir les fichiers initiaux. Le script s’exécute avec les droits administrateur mais n’est pas conservé dans le module généré.
+- **Paquets** installe les paquets du dépôt et les fichiers locaux sélectionnés `.deb`, y compris leurs dépendances, dans un environnement de construction isolé MiniOS. L’installation de paquets nécessite une authentification administrateur.
+- **Script d’installation** exécute un script vérifié sans terminal interactif. Un dossier d’amorçage optionnel peut fournir des fichiers initiaux. Le script s’exécute avec les droits administrateur mais n’est pas inclus dans le module généré.
 - **Chroot interactif** ouvre un shell root temporaire dans le terminal intégré. Tapez `exit` lorsque vous avez terminé, puis créez le module, rouvrez le shell ou annulez les modifications. Fermer ou annuler la session ne modifie pas le système en cours d’exécution.
-- **Dossier** empaquette le contenu d’un répertoire existant. Le répertoire source n’est pas inclus dans le module. La conversion classique d’un dossier ne nécessite pas les droits root, ne modifie pas la source et normalise la propriété dans le module à root.
-- **Modifications de la session en cours** capture les fichiers et suppressions éligibles de la couche session modifiable en cours. Elle utilise la politique standard MiniOS `savechanges` qui exclut les journaux, caches, données de démarrage et chemins temporaires d’exécution. La lecture de la couche modifiable complète nécessite une authentification administrateur.
+- **Dossier** empaquette le contenu d’un répertoire existant. Le répertoire source n’est pas imbriqué dans le module. Le flux graphique demande une authentification administrateur pour lire les fichiers protégés et préserver les attributs du système de fichiers ; la source n’est pas modifiée. Les dossiers extraits avec conservation de la propriété sont reconnus automatiquement et gardent leurs propriétaires. Pour un dossier extrait plus ancien sans enregistrement d’origine, sélectionnez **Conserver la propriété d’origine** si ses propriétaires doivent être préservés.
+- **Modifications de la session en cours** capture les fichiers et suppressions éligibles de la couche d’écriture de la session en cours. Elle applique la politique standard MiniOS `savechanges`, qui exclut les journaux, caches, données de démarrage et chemins temporaires d’exécution. Lire l’intégralité de la couche d’écriture nécessite une authentification administrateur.
 
 Choisissez un nouveau chemin de sortie pour chaque flux de travail. Les fichiers existants ne sont jamais écrasés. L’avancement et les diagnostics du backend restent visibles pendant l’opération, et la capture de la session en cours peut être annulée.
 
-La fonction Modifications de la session en cours est conçue pour une capture standard pratique, et non pour examiner chaque chemin inclus. Une couche modifiable active peut contenir des données personnelles ou confidentielles. Pour une capture explicite `exact`, `clean`, ou des politiques de confidentialité par chemin, utilisez le flux de travail en ligne de commande `savechanges` décrit dans [Capturer les modifications de la session en cours](/preparing-and-customizing/Managing-Modules#capture-current-session-changes).
+Pour les autres dossiers, le flux Dossier par défaut remplace les UID et GID utilisateurs ordinaires (1000–60000) par root hors de `/home` et `/opt`, conserve les identifiants système et rend les répertoires racines standards détenus par root. Une propriété perdue lors d’une extraction non privilégiée antérieure ne peut pas être restaurée par cette option.
+
+Modifications de la session en cours est destiné à une capture standard pratique, et non à la revue de chaque chemin inclus. Une couche d’écriture active peut contenir des données personnelles ou confidentielles. Pour une politique de confidentialité explicite sur `exact`, `clean`, ou des chemins sélectionnés, utilisez le flux en ligne de commande `savechanges` décrit dans [Capturer les modifications de la session en cours](/preparing-and-customizing/Managing-Modules#capture-current-session-changes).
 
 ## Glisser-déposer
 
@@ -80,25 +82,27 @@ Les modules MiniOS sont des images de système de fichiers SquashFS en lecture s
 
 Ce guide documente les workflows actuels en ligne de commande des outils MiniOS. Pour l’application graphique, consultez le [Gestionnaire de modules MiniOS](/preparing-and-customizing/Managing-Modules). Pour le processus complet de création d’images et l’architecture système, voir [Construire MiniOS](/development/Building-MiniOS). Les listes de paquets utilisées lors de la construction de MiniOS sont décrites dans la [documentation CondinAPT](/development/CondinAPT).
 
-### Sécurité et privilèges
+### Sécurité et niveaux de privilèges
 
-Toutes les opérations sur les modules ne nécessitent pas les droits root :
+Toutes les opérations sur les modules ne nécessitent pas root :
 
 | Opération | Privilège |
 |---|---|
-| Lister En cours d’exécution ou Prochain démarrage avec `sb` | Sans root |
+| Lister les modules actifs ou au prochain démarrage avec `sb` | Sans root |
 | Inspecter un module avec `sb inspect` | Sans root |
-| Conversion classique `dir2sb` et `sb2dir` | Sans root |
-| Préserver la propriété ou autoriser des fichiers spéciaux lors de la conversion | Root |
-| Construire avec `apt2sb`, `script2sb` ou `chroot2sb` | Root |
+| Commande en ligne classique `dir2sb` et `sb2dir` conversion | Sans root |
+| Conserver la propriété ou autoriser les fichiers spéciaux lors de la conversion | Root |
+| Construire avec `apt2sb`, `script2sb`, ou `chroot2sb` | Root |
 | Capturer la session avec `savechanges` | Root |
 | Activer, désactiver, ajouter au prochain démarrage ou retirer du prochain démarrage | Root |
 
-Les outils de création utilisent une union isolée et n’installent pas de paquets ni de modifications de script dans la racine active. La création n’active pas non plus le résultat ni ne le sélectionne pour le prochain démarrage.
+Les outils de construction utilisent une union isolée et n’installent pas les paquets ni les modifications de script dans le root en cours d’exécution. La création n’active pas non plus le résultat et ne le sélectionne pas pour le prochain démarrage.
 
-Les convertisseurs et générateurs actuels publient sans remplacement. Une cible déjà existante, y compris un lien symbolique, n’est jamais écrasée. Choisissez un nouveau chemin de sortie ou supprimez explicitement l’ancien résultat.
+Les flux graphiques Dossier et Extraire vers un dossier demandent une authentification administrateur pour gérer les fichiers protégés et préserver les attributs du système de fichiers.
 
-Utilisez la sortie `--help` de chaque commande comme référence de version installée. Les options de compression standard sont `zstd` (par défaut), `gzip`, `lzo` et `xz` ; `dir2sb` prend aussi en charge `lz4`.
+Les convertisseurs et outils de construction actuels utilisent une publication sans écrasement. Une cible existante, y compris un lien symbolique, n’est pas remplacée. Choisissez un nouveau chemin de sortie ou examinez et supprimez explicitement l’ancien résultat vous-même.
+
+Utilisez la sortie `--help` de chaque commande comme référence de version installée. Les options de compression standard du constructeur sont `zstd` (par défaut), `gzip`, `lzo`, et `xz` ; `dir2sb` prend également en charge `lz4`.
 
 ### Noms de modules et niveaux de filtre
 
@@ -162,14 +166,16 @@ Le cycle de vie fractionné `prepare`, `shell`, `finish` et `cancel` existe pour
 
 ### Créer un module à partir d’un répertoire
 
-`dir2sb` emballe le contenu d’un répertoire préparé dans un nouveau module. Les deux paramètres sont obligatoires :
+`dir2sb` empaquette le contenu d’un répertoire préparé dans un nouveau module. Les deux opérandes sont requis :
 
 ```bash
 dir2sb my-app-root 06-my-app.sb
 dir2sb --comp xz my-app-root 06-my-app-xz.sb
 ```
 
-La conversion standard ne nécessite pas les droits root. Elle laisse la source inchangée, normalise la propriété des fichiers à root dans le module, rejette les nœuds de périphérique, sockets et FIFOs, et n’écrase jamais la cible. Utilisez `--keep-ownership` ou `--allow-special` uniquement si ces comportements privilégiés sont nécessaires.
+La conversion standard ne nécessite pas root. Elle ne modifie pas la source, remplace les UID et GID utilisateurs ordinaires (1000–60000) par root hors de `/home` et `/opt`, conserve les identifiants système et rend les répertoires racines standards détenus par root. Les nœuds de périphérique, sockets et FIFOs sont refusés, et la cible n’est jamais écrasée. `--keep-ownership` conserve tous les propriétaires d’origine et `--allow-special` autorise les fichiers spéciaux ; les deux nécessitent root.
+
+`sb2dir` écrit `.minios-module-origin.json` dans le dossier extrait. Si l’extraction a conservé la propriété, `dir2sb` reconnaît cet enregistrement et préserve automatiquement les propriétaires et fichiers spéciaux lors du reconditionnement ; l’enregistrement lui-même n’est pas inclus dans le nouveau module. Un dossier extrait sans conservation de la propriété ne peut pas être reconditionné, car ses propriétaires d’origine ne sont plus connus. Ré-extrayez le module d’origine avec les options privilégiées.
 
 ### Capturer les modifications de la session en cours
 
@@ -214,24 +220,32 @@ La capture de session peut conserver les suppressions de fichiers prises en char
 
 ### Inspecter et extraire des modules
 
-Inspectez un module sans le monter ni l’extraire :
+Inspectez un module sans le monter ni l’extraire :
 
 ```bash
 sb inspect 06-example.sb
 sb inspect 06-example.sb --json
 ```
 
-L’inspection ne nécessite pas les droits root et fonctionne également en dehors d’une session MiniOS en cours.
+L’inspection ne nécessite pas de droits root et fonctionne également hors d’une session MiniOS en cours.
 
-Extrayez un module dans un nouveau répertoire :
+Extrayez un module dans un nouveau répertoire :
 
 ```bash
 sb2dir 06-example.sb example-root
 ```
 
-L’extraction standard ne nécessite pas les droits root et ne modifie pas la source. Le répertoire cible ne doit pas exister. Les fichiers spéciaux sont rejetés sauf si `--allow-special` est demandé avec les privilèges nécessaires.
+L’extraction standard ne nécessite pas root et ne modifie pas la source. Le dossier cible ne doit pas exister. Les fichiers spéciaux sont refusés sauf si `--allow-special` est demandé avec les privilèges nécessaires.
 
-Les répertoires produits par `sb2dir` sont des répertoires classiques. `rmsbdir`, `sb rm` et `sb rmdir` sont d’anciennes commandes de compatibilité qui refusent toujours la suppression ; elles ne démontent ni ne suppriment rien de façon récursive. Vérifiez un chemin extrait et son contenu avant de le supprimer avec les outils standards du système de fichiers.
+Pour un dossier pouvant être reconditionné fidèlement, extrayez avec les droits administrateur et conservez la propriété ainsi que les fichiers spéciaux :
+
+```bash
+sudo sb2dir --keep-ownership --allow-special 06-example.sb example-root
+```
+
+L’extraction enregistre l’origine du module dans `.minios-module-origin.json` dans le nouveau dossier. Une extraction sans conservation de la propriété indique que la propriété n’a pas été préservée ; un tel dossier ne peut pas être renvoyé à `dir2sb`. Conservez l’enregistrement d’origine lors d’une extraction privilégiée jusqu’au reconditionnement.
+
+Les dossiers produits par les outils actuels `sb2dir` sont des répertoires ordinaires. `rmsbdir`, `sb rm`, et `sb rmdir` sont d’anciennes commandes de compatibilité désormais obsolètes qui refusent toujours la suppression ; elles ne démontent ni ne suppriment rien de façon récursive. Vérifiez un chemin extrait et son contenu avant de le supprimer avec les outils standards du système de fichiers.
 
 ### Gérer les modules actifs et au prochain démarrage
 

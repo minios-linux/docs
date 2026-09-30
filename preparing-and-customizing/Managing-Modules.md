@@ -1,7 +1,7 @@
 ---
-updated: 2026-08-31
+updated: 2026-09-30
 program_commits:
-  minios-module-manager: e277da00c0b2f5fa5f41af140af118e361d2044c
+  minios-module-manager: 7875b73a485eda82b9dc27827842e9b90f115cf7
 ---
 # Managing modules
 
@@ -33,9 +33,9 @@ Next-boot changes are available only when MiniOS finds suitable durable, writabl
 
 ## Inspecting a module
 
-Select a module to see its source, compressed size, and filesystem contents. If its backing file is available, **Extract to Folder** creates a new directory containing the module files.
+Select a module to see its backing-file location, compressed size, and filesystem contents. If its backing file is available, **Extract to Folder** creates a new directory containing the module files.
 
-Inspection and ordinary extraction do not require administrator privileges. Extraction never replaces an existing destination.
+Inspection does not require administrator privileges. **Extract to Folder** asks for administrator authentication so it can retain owners, permissions, and special files. Extraction never replaces an existing destination or changes the source module.
 
 You can also open a local `.sb` file from the file manager. Opening a file only inspects it; it does not activate it or add it to Next Boot.
 
@@ -48,10 +48,12 @@ Available methods are:
 - **Packages** installs repository packages and selected local `.deb` files, including their dependencies, in an isolated MiniOS build environment. Package installation requires administrator authentication.
 - **Installation Script** runs a reviewed script without an interactive terminal. An optional seed folder can provide initial files. The script runs with administrator privileges but is not stored in the resulting module.
 - **Interactive Chroot** opens a temporary root shell in the embedded terminal. Type `exit` when finished, then create the module, reopen the shell, or discard the changes. Closing or discarding the session does not alter the running system.
-- **Folder** packages the contents of an existing directory. The source directory itself is not nested inside the module. Ordinary folder conversion is rootless, leaves the source unchanged, and normalizes ownership in the module to root.
+- **Folder** packages the contents of an existing directory. The source directory itself is not nested inside the module. The graphical workflow asks for administrator authentication to read protected files and preserve filesystem attributes; it leaves the source unchanged. Folders extracted with ownership preservation are recognized automatically and retain their owners. For an older extracted folder without an origin record, select **Preserve source ownership** if its owners must be retained.
 - **Current Session Changes** captures eligible files and deletions from the current writable session layer. It uses the standard MiniOS `savechanges` policy, which omits logs, caches, boot data, and temporary runtime paths. Reading the full writable layer requires administrator authentication.
 
 Choose a new output path for every workflow. Existing files are never overwritten. Progress and backend diagnostics remain visible while an operation runs, and current-session capture can be cancelled.
+
+For other folders, the default Folder workflow changes ordinary user and group IDs (1000–60000) to root outside `/home` and `/opt`, retains system IDs, and makes standard top-level directories root-owned. Ownership lost during an earlier unprivileged extraction cannot be recovered by this option.
 
 Current Session Changes is intended for convenient standard capture, not for reviewing every included path. A live writable layer can contain personal or confidential data. For explicit `exact`, `clean`, or path-selected privacy policies, use the command-line `savechanges` workflow described in [Capture current-session changes](/preparing-and-customizing/Managing-Modules#capture-current-session-changes).
 
@@ -89,13 +91,15 @@ Not every module operation requires root:
 |---|---|
 | List Running Now or Next Boot with `sb` | Rootless |
 | Inspect a module with `sb inspect` | Rootless |
-| Ordinary `dir2sb` and `sb2dir` conversion | Rootless |
+| Ordinary command-line `dir2sb` and `sb2dir` conversion | Rootless |
 | Preserve ownership or allow special files during conversion | Root |
 | Build with `apt2sb`, `script2sb`, or `chroot2sb` | Root |
 | Capture the session with `savechanges` | Root |
 | Activate, deactivate, add to Next Boot, or remove from Next Boot | Root |
 
 The builders use an isolated union and do not install packages or script changes into the running root. Creation also does not activate the result or select it for the next boot.
+
+The graphical Folder and Extract to Folder workflows request administrator authentication so they can handle protected files and preserve filesystem attributes.
 
 Current converters and builders use no-replace publication. A target that already exists, including a symbolic link, is not overwritten. Choose a new output path or explicitly review and remove the old output yourself.
 
@@ -170,7 +174,9 @@ dir2sb my-app-root 06-my-app.sb
 dir2sb --comp xz my-app-root 06-my-app-xz.sb
 ```
 
-Ordinary conversion is rootless. It leaves the source unchanged, normalizes ownership inside the module to root, rejects device nodes, sockets, and FIFOs, and never overwrites the target. Use `--keep-ownership` or `--allow-special` only when those privileged semantics are required.
+Ordinary conversion is rootless. It leaves the source unchanged, changes ordinary user and group IDs (1000–60000) to root outside `/home` and `/opt`, keeps system IDs, and makes standard top-level directories root-owned. It rejects device nodes, sockets, and FIFOs, and never overwrites the target. `--keep-ownership` retains all source owners and `--allow-special` permits special files; both require root.
+
+`sb2dir` writes `.minios-module-origin.json` in the extracted directory. If extraction preserved ownership, `dir2sb` recognizes this record and automatically preserves owners and special files when repackaging; the record itself is not included in the new module. A directory extracted without ownership preservation cannot be repackaged, because its original owners are no longer known. Extract the original module again with the privileged options instead.
 
 ### Capture current-session changes
 
@@ -231,6 +237,14 @@ sb2dir 06-example.sb example-root
 ```
 
 Ordinary extraction is rootless and does not modify the source. The target directory must not exist. Special files are rejected unless `--allow-special` is requested with sufficient privilege.
+
+For a directory that can be faithfully repackaged, extract with administrator privileges and retain ownership and special files:
+
+```bash
+sudo sb2dir --keep-ownership --allow-special 06-example.sb example-root
+```
+
+Extraction records the module's origin in `.minios-module-origin.json` inside the new directory. Rootless extraction records that ownership was not preserved; such a directory cannot be passed back to `dir2sb`. Keep the origin record with a privileged extraction until repackaging.
 
 Directories produced by current `sb2dir` are ordinary directories. `rmsbdir`, `sb rm`, and `sb rmdir` are retired compatibility commands that always refuse removal; they do not unmount or recursively delete anything. Review an extracted path and its contents before removing it with standard filesystem tools.
 

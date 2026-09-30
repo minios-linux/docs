@@ -1,7 +1,7 @@
 ---
-updated: 2026-08-31
+updated: 2026-09-30
 program_commits:
-    minios-module-manager: e277da00c0b2f5fa5f41af140af118e361d2044c
+    minios-module-manager: 7875b73a485eda82b9dc27827842e9b90f115cf7
 ---
 
 # Gerenciando módulos
@@ -33,11 +33,11 @@ Alterações para o próximo boot estão disponíveis apenas quando MiniOS encon
 
 ## Inspecionando um módulo
 
-Selecione um módulo para ver sua origem, tamanho compactado e conteúdo do sistema de arquivos. Se o arquivo de origem estiver disponível, **Extrair para Pasta** cria um novo diretório contendo os arquivos do módulo.
+Selecione um módulo para ver a localização do arquivo de origem, o tamanho compactado e o conteúdo do sistema de arquivos. Se o arquivo de origem estiver disponível, **Extrair para Pasta** cria um novo diretório contendo os arquivos do módulo.
 
-A inspeção e a extração comum não exigem privilégios de administrador. A extração nunca substitui um destino existente.
+A inspeção não requer privilégios de administrador. **Extrair para Pasta** solicita autenticação de administrador para manter proprietários, permissões e arquivos especiais. A extração nunca substitui um destino existente nem altera o módulo de origem.
 
-Você também pode abrir um arquivo local `.sb` pelo gerenciador de arquivos. Abrir um arquivo apenas inspeciona; não ativa nem adiciona ao Próximo Boot.
+Você também pode abrir um arquivo local `.sb` pelo gerenciador de arquivos. Abrir um arquivo apenas inspeciona; não ativa nem adiciona ao Próxima Inicialização.
 
 ## Criando um módulo
 
@@ -221,7 +221,7 @@ sb inspect 06-example.sb
 sb inspect 06-example.sb --json
 ```
 
-A inspeção não requer root e também funciona fora de uma sessão MiniOS em execução.
+A inspeção é rootless e também funciona fora de uma sessão MiniOS em execução.
 
 Extraia um módulo para um novo diretório:
 
@@ -229,15 +229,23 @@ Extraia um módulo para um novo diretório:
 sb2dir 06-example.sb example-root
 ```
 
-A extração comum não requer root e não modifica a origem. O diretório de destino não pode existir. Arquivos especiais são rejeitados, a menos que `--allow-special` seja solicitado com privilégios suficientes.
+A extração comum é rootless e não altera a origem. O diretório de destino não pode existir. Arquivos especiais são rejeitados, a menos que `--allow-special` seja solicitado com privilégio suficiente.
 
-Diretórios produzidos pelo atual `sb2dir` são diretórios comuns. `rmsbdir`, `sb rm` e `sb rmdir` são comandos de compatibilidade descontinuados que sempre recusam remoção; eles não desmontam nem excluem nada recursivamente. Revise um caminho extraído e seu conteúdo antes de removê-lo com ferramentas padrão do sistema de arquivos.
+Para um diretório que possa ser reempacotado fielmente, extraia com privilégios de administrador e mantenha a propriedade e arquivos especiais:
 
-### Gerenciar módulos em execução e de próximo boot
+```bash
+sudo sb2dir --keep-ownership --allow-special 06-example.sb example-root
+```
 
-Execução Atual e Próximo Boot são composições independentes. Veja [construção de união e ativação em tempo de execução](/reference/boot-process/Module-Loading#union-construction) para entender o limite entre boot e runtime e por que as duas listas podem ser diferentes.
+A extração registra a origem do módulo em `.minios-module-origin.json` dentro do novo diretório. A extração rootless registra que a propriedade não foi preservada; esse diretório não pode ser enviado de volta para `dir2sb`. Mantenha o registro de origem em uma extração privilegiada até o reempacotamento.
 
-Liste os módulos que realmente compõem o root AUFS ou OverlayFS atual, da menor para a maior prioridade:
+Diretórios produzidos pelo atual `sb2dir` são diretórios comuns. `rmsbdir` , `sb rm` e `sb rmdir` são comandos de compatibilidade descontinuados que sempre recusam remoção; eles não desmontam nem excluem nada recursivamente. Revise um caminho extraído e seu conteúdo antes de removê-lo com ferramentas padrão do sistema de arquivos.
+
+### Gerenciar módulos em execução e no próximo boot
+
+Execução Atual e Próximo Boot são composições independentes. Veja [construção de união e ativação em tempo de execução](/reference/boot-process/Module-Loading#union-construction) para entender o limite entre boot e execução e por que as duas listas podem ser diferentes.
+
+Liste os módulos que realmente compõem o root atual de AUFS ou OverlayFS, da menor para a maior prioridade:
 
 ```bash
 sb list
@@ -251,7 +259,7 @@ sb next-boot
 sb next-boot --json
 ```
 
-Essas consultas não exigem root. As regras canônicas de [camada de candidatos e substituição](/reference/boot-process/Module-Loading#candidate-tiers) determinam qual fonte fornece cada nome base do Próximo Boot.
+Essas consultas são rootless. As regras canônicas de [prioridade de candidatos e substituição](/reference/boot-process/Module-Loading#candidate-tiers) determinam qual origem fornece cada nome base do Próximo Boot.
 
 Para disponibilizar um módulo de usuário no próximo boot:
 
@@ -259,7 +267,7 @@ Para disponibilizar um módulo de usuário no próximo boot:
 sudo sb next-boot add 50-extra.sb
 ```
 
-MiniOS utiliza armazenamento gravável durável adequado, prepara e valida a cópia, e publica de forma atômica sem substituir um módulo existente. O nome do arquivo deve atender aos filtros de boot atuais. Remova um módulo de usuário selecionado pelo nome base exato:
+MiniOS utiliza armazenamento gravável e durável apropriado, prepara e valida a cópia, e a publica de forma atômica sem substituir um módulo existente. O nome do arquivo deve atender aos filtros de boot atuais. Remova um módulo de usuário selecionado pelo nome base exato:
 
 ```bash
 sudo sb next-boot remove 50-extra.sb
@@ -283,7 +291,7 @@ sudo sb conv my-app-root 06-my-app.sb
 sudo sb conv 06-my-app.sb example-root
 ```
 
-O uso direto de `dir2sb` e `sb2dir` é preferível, pois a conversão padrão pode ser feita sem privilégios de root.
+O uso direto de `dir2sb` e `sb2dir` é preferível, pois a conversão comum pode ser feita sem privilégios de root.
 
 ### Documentação relacionada
 

@@ -1,7 +1,7 @@
 ---
-updated: 2026-08-31
+updated: 2026-09-30
 program_commits:
-    minios-module-manager: e277da00c0b2f5fa5f41af140af118e361d2044c
+    minios-module-manager: 7875b73a485eda82b9dc27827842e9b90f115cf7
 ---
 
 # Gestión de módulos
@@ -31,29 +31,31 @@ La activación y desactivación en tiempo de ejecución solo están disponibles 
 
 Los cambios para el próximo arranque solo están disponibles cuando MiniOS encuentra almacenamiento de módulos duradero y escribible adecuado. Los módulos base y los módulos en almacenamiento de solo lectura o volátil no pueden eliminarse. Los filtros de arranque como `load`, `noload` y `bext` siguen determinando qué módulos se seleccionan.
 
-## Inspección de un módulo
+## Inspeccionando un módulo
 
-Selecciona un módulo para ver su origen, tamaño comprimido y contenido del sistema de archivos. Si el archivo de respaldo está disponible, **Extraer a carpeta** crea un nuevo directorio con los archivos del módulo.
+Selecciona un módulo para ver la ubicación de su archivo de respaldo, el tamaño comprimido y el contenido del sistema de archivos. Si el archivo de respaldo está disponible, **Extraer a carpeta** crea un nuevo directorio con los archivos del módulo.
 
-La inspección y la extracción ordinaria no requieren privilegios de administrador. La extracción nunca reemplaza un destino existente.
+La inspección no requiere privilegios de administrador. **Extraer a carpeta** solicita autenticación de administrador para conservar propietarios, permisos y archivos especiales. La extracción nunca reemplaza un destino existente ni modifica el módulo de origen.
 
-También puedes abrir un archivo local `.sb` desde el gestor de archivos. Abrir un archivo solo permite inspeccionarlo; no lo activa ni lo añade al Próximo arranque.
+También puedes abrir un archivo local `.sb` desde el gestor de archivos. Abrir un archivo solo lo inspecciona; no lo activa ni lo agrega a Next Boot.
 
-## Creación de un módulo
+## Crear un módulo
 
-El espacio de trabajo Crear utiliza un flujo de **Configurar**, **Revisar**, **Ejecutar**, y **Resultado**. Un módulo creado correctamente permanece como un archivo en la ubicación de salida. No se activa ni se agrega automáticamente a Next Boot.
+El espacio de trabajo Crear utiliza un flujo de **Configurar**, **Revisar**, **Ejecutar**, y **Resultado**. Un módulo creado exitosamente permanece como archivo en la ubicación de salida. No se activa ni se añade automáticamente a Próximo Inicio.
 
 Los métodos disponibles son:
 
-- **Paquetes** instala paquetes del repositorio y archivos locales seleccionados `.deb`, incluidas sus dependencias, en un entorno de compilación aislado MiniOS. La instalación de paquetes requiere autenticación de administrador.
-- **Script de instalación** ejecuta un script revisado sin terminal interactiva. Se puede proporcionar una carpeta semilla opcional con archivos iniciales. El script se ejecuta con privilegios de administrador, pero no se almacena en el módulo resultante.
-- **Chroot interactivo** abre una shell raíz temporal en el terminal integrado. Escriba `exit` al finalizar, luego cree el módulo, vuelva a abrir la shell o descarte los cambios. Cerrar o descartar la sesión no modifica el sistema en ejecución.
-- **Carpeta** empaqueta el contenido de un directorio existente. El directorio de origen no se incluye como subcarpeta dentro del módulo. La conversión de carpetas estándar no requiere root, deja intacto el origen y normaliza la propiedad en el módulo a root.
-- **Cambios de la sesión actual** captura archivos elegibles y eliminaciones de la capa de sesión actual editable. Utiliza la política estándar MiniOS `savechanges` que omite registros, cachés, datos de arranque y rutas temporales de ejecución. Leer toda la capa editable requiere autenticación de administrador.
+- **Paquetes** instala paquetes del repositorio y archivos locales seleccionados `.deb`, incluidos sus dependencias, en un entorno de compilación aislado MiniOS. La instalación de paquetes requiere autenticación de administrador.
+- **Script de instalación** ejecuta un script revisado sin terminal interactiva. Una carpeta semilla opcional puede aportar archivos iniciales. El script se ejecuta con privilegios de administrador pero no se almacena en el módulo resultante.
+- **Chroot interactivo** abre una shell raíz temporal en el terminal integrado. Escribe `exit` al finalizar, luego crea el módulo, vuelve a abrir la shell o descarta los cambios. Cerrar o descartar la sesión no afecta al sistema en ejecución.
+- **Carpeta** empaqueta el contenido de un directorio existente. El propio directorio de origen no se anida dentro del módulo. El flujo gráfico solicita autenticación de administrador para leer archivos protegidos y conservar atributos del sistema de archivos; el origen permanece sin cambios. Las carpetas extraídas con preservación de propiedad se reconocen automáticamente y mantienen sus propietarios. Para una carpeta extraída antigua sin registro de origen, selecciona **Conservar propiedad de origen** si es necesario mantener los propietarios.
+- **Cambios de la sesión actual** captura archivos elegibles y eliminaciones de la capa de sesión actual en modo escritura. Utiliza la política estándar MiniOS `savechanges`, que omite registros, cachés, datos de arranque y rutas temporales de ejecución. Leer toda la capa de escritura requiere autenticación de administrador.
 
-Elija una nueva ruta de salida para cada flujo de trabajo. Los archivos existentes nunca se sobrescriben. El progreso y los diagnósticos del backend permanecen visibles mientras se ejecuta una operación, y la captura de la sesión actual puede cancelarse.
+Elige una nueva ruta de salida para cada flujo de trabajo. Los archivos existentes nunca se sobrescriben. El progreso y los diagnósticos del backend permanecen visibles mientras se ejecuta una operación, y la captura de sesión actual puede cancelarse.
 
-Cambios de la sesión actual está pensado para una captura estándar y conveniente, no para revisar cada ruta incluida. Una capa editable en vivo puede contener datos personales o confidenciales. Para políticas de privacidad explícitas por `exact`, `clean`, o selección de rutas, utilice el flujo de trabajo por línea de comandos `savechanges`descrito en [Capturar cambios de la sesión actual](/preparing-and-customizing/Managing-Modules#capture-current-session-changes).
+Para otras carpetas, el flujo predeterminado de Carpeta cambia los IDs de usuario y grupo ordinarios (1000–60000) a root fuera de `/home` y `/opt`, mantiene los IDs de sistema y hace que los directorios estándar de nivel superior sean propiedad de root. La propiedad perdida durante una extracción anterior sin privilegios no puede recuperarse con esta opción.
+
+Cambios de la sesión actual está pensado para una captura estándar y cómoda, no para revisar cada ruta incluida. Una capa de escritura activa puede contener datos personales o confidenciales. Para políticas de privacidad explícitas `exact`, `clean`, o seleccionadas por ruta, usa el flujo de trabajo por línea de comandos `savechanges` descrito en [Capturar cambios de la sesión actual](/preparing-and-customizing/Managing-Modules#capture-current-session-changes).
 
 ## Arrastrar y soltar
 
@@ -80,25 +82,27 @@ Los módulos MiniOS son imágenes de sistema de archivos SquashFS de solo lectur
 
 Esta guía documenta los flujos de trabajo actuales por línea de comandos de MiniOS Tools. Para la aplicación gráfica, consulte el [Gestor de módulos de MiniOS](/preparing-and-customizing/Managing-Modules). Para el proceso completo de construcción de imágenes y arquitectura del sistema, consulte [Building MiniOS](/development/Building-MiniOS). Las listas de paquetes utilizadas durante la construcción de MiniOS se describen en la [documentación de CondinAPT](/development/CondinAPT).
 
-### Seguridad y límites de privilegios
+### Límites de seguridad y privilegios
 
 No todas las operaciones de módulos requieren root:
 
 | Operación | Privilegio |
 |---|---|
-| Listar En ejecución o Próximo arranque con `sb` | Sin root |
+| Listar en ejecución ahora o en Próximo Inicio con `sb` | Sin root |
 | Inspeccionar un módulo con `sb inspect` | Sin root |
-| Conversión ordinaria de `dir2sb` y `sb2dir` | Sin root |
+| Conversión por línea de comandos ordinaria `dir2sb` y `sb2dir` conversión | Sin root |
 | Conservar propiedad o permitir archivos especiales durante la conversión | Root |
-| Construir con `apt2sb`, `script2sb` o `chroot2sb` | Root |
+| Compilar con `apt2sb`, `script2sb`, o `chroot2sb` | Root |
 | Capturar la sesión con `savechanges` | Root |
-| Activar, desactivar, agregar a Próximo arranque o quitar de Próximo arranque | Root |
+| Activar, desactivar, añadir a Próximo Inicio o quitar de Próximo Inicio | Root |
 
-Los constructores utilizan una unión aislada y no instalan paquetes ni cambios de scripts en el root en ejecución. La creación tampoco activa el resultado ni lo selecciona para el próximo arranque.
+Los constructores usan una unión aislada y no instalan paquetes ni cambios de script en el root en ejecución. La creación tampoco activa el resultado ni lo selecciona para el próximo inicio.
 
-Los convertidores y constructores actuales utilizan publicación sin reemplazo. Un destino que ya existe, incluyendo enlaces simbólicos, no se sobrescribe. Elige una nueva ruta de salida o revisa y elimina explícitamente la salida anterior tú mismo.
+Los flujos gráficos de Carpeta y Extraer a carpeta solicitan autenticación de administrador para poder manejar archivos protegidos y conservar atributos del sistema de archivos.
 
-Utiliza la salida `--help` de cada comando como referencia de la versión instalada. Las opciones estándar de compresión del constructor son `zstd` (por defecto), `gzip`, `lzo` y `xz`; `dir2sb` también soporta `lz4`.
+Los conversores y constructores actuales usan publicación sin reemplazo. Un destino que ya existe, incluido un enlace simbólico, no se sobrescribe. Elige una nueva ruta de salida o revisa y elimina manualmente la salida anterior.
+
+Utiliza la salida de `--help` de cada comando como referencia de la versión instalada. Las opciones estándar de compresión del constructor son `zstd` (por defecto), `gzip`, `lzo`, y `xz`; `dir2sb` también admite `lz4`.
 
 ### Nombres de módulos y niveles de filtro
 
@@ -160,16 +164,18 @@ Los comandos introducidos en la shell no se reproducen al cargar el módulo; el 
 
 El ciclo de vida dividido de `prepare`, `shell`, `finish` y `cancel` existe para interfaces gráficas protegidas. Para uso normal en terminal, utiliza el comando interactivo único mostrado arriba.
 
-### Crear un módulo a partir de un directorio
+### Crear un módulo desde un directorio
 
-`dir2sb` empaqueta el contenido de un directorio preparado en un nuevo módulo. Ambos parámetros son obligatorios:
+`dir2sb` empaqueta el contenido de un directorio preparado en un nuevo módulo. Ambos operandos son obligatorios:
 
 ```bash
 dir2sb my-app-root 06-my-app.sb
 dir2sb --comp xz my-app-root 06-my-app-xz.sb
 ```
 
-La conversión normal no requiere root. Deja la fuente sin cambios, normaliza la propiedad dentro del módulo a root, rechaza nodos de dispositivo, sockets y FIFOs, y nunca sobrescribe el destino. Utiliza `--keep-ownership` o `--allow-special` solo cuando se requieran esos comportamientos privilegiados.
+La conversión ordinaria no requiere root. El origen permanece sin cambios, los IDs de usuario y grupo ordinarios (1000–60000) se cambian a root fuera de `/home` y `/opt`, se mantienen los IDs de sistema y los directorios estándar de nivel superior pasan a ser propiedad de root. Se rechazan nodos de dispositivo, sockets y FIFOs, y nunca se sobrescribe el destino. `--keep-ownership` conserva todos los propietarios de origen y `--allow-special` permite archivos especiales; ambas requieren root.
+
+`sb2dir` escribe `.minios-module-origin.json` en el directorio extraído. Si la extracción conservó la propiedad, `dir2sb` reconoce este registro y conserva automáticamente propietarios y archivos especiales al volver a empaquetar; el propio registro no se incluye en el nuevo módulo. Un directorio extraído sin preservación de propiedad no puede volver a empaquetarse, ya que sus propietarios originales ya no se conocen. Extrae el módulo original de nuevo usando las opciones con privilegios.
 
 ### Capturar cambios de la sesión actual
 
@@ -229,9 +235,17 @@ Extrae un módulo en un nuevo directorio:
 sb2dir 06-example.sb example-root
 ```
 
-La extracción normal no requiere root y no modifica la fuente. El directorio de destino no debe existir. Los archivos especiales se rechazan a menos que `--allow-special` se solicite con privilegios suficientes.
+La extracción ordinaria no requiere root y no modifica el origen. El directorio de destino no debe existir. Se rechazan archivos especiales a menos que `--allow-special` se solicite con privilegios suficientes.
 
-Los directorios producidos por `sb2dir` son directorios ordinarios. `rmsbdir`, `sb rm` y `sb rmdir` son comandos de compatibilidad retirados que siempre rechazan la eliminación; no desmontan ni eliminan nada de forma recursiva. Revisa una ruta extraída y su contenido antes de eliminarla con herramientas estándar del sistema de archivos.
+Para un directorio que pueda volver a empaquetarse fielmente, extrae con privilegios de administrador y conserva la propiedad y los archivos especiales:
+
+```bash
+sudo sb2dir --keep-ownership --allow-special 06-example.sb example-root
+```
+
+La extracción registra el origen del módulo en `.minios-module-origin.json` dentro del nuevo directorio. La extracción sin root registra que la propiedad no se conservó; dicho directorio no puede devolverse a `dir2sb`. Conserva el registro de origen con una extracción privilegiada hasta volver a empaquetar.
+
+Los directorios producidos por `sb2dir` actuales son directorios ordinarios. `rmsbdir`, `sb rm`, y `sb rmdir` son comandos de compatibilidad retirados que siempre rechazan eliminar; no desmontan ni eliminan nada de forma recursiva. Revisa una ruta extraída y su contenido antes de eliminarla con las herramientas estándar del sistema de archivos.
 
 ### Gestionar módulos en ejecución y para el próximo arranque
 

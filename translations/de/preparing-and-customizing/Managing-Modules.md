@@ -1,7 +1,7 @@
 ---
-updated: 2026-08-31
+updated: 2026-09-30
 program_commits:
-    minios-module-manager: e277da00c0b2f5fa5f41af140af118e361d2044c
+    minios-module-manager: 7875b73a485eda82b9dc27827842e9b90f115cf7
 ---
 
 # Module verwalten
@@ -31,13 +31,13 @@ Laufzeit-Aktivierung und -Deaktivierung sind nur verfügbar, wenn das Root-Datei
 
 Änderungen für den nächsten Start sind nur möglich, wenn MiniOS geeigneten dauerhaften, beschreibbaren Modulspeicher findet. Basismodule sowie Module auf schreibgeschützten oder flüchtigen Speichern können nicht entfernt werden. Startfilter wie `load`, `noload` und `bext` bestimmen weiterhin, welche Module ausgewählt werden.
 
-## Modul inspizieren
+## Modul untersuchen
 
-Wählen Sie ein Modul aus, um dessen Quelle, komprimierte Größe und Dateisystem-Inhalt anzuzeigen. Ist die zugrunde liegende Datei verfügbar, erstellt **In Ordner extrahieren** ein neues Verzeichnis mit den Moduldaten.
+Wählen Sie ein Modul aus, um dessen Speicherort, komprimierte Größe und Dateisystem-Inhalte anzuzeigen. Ist die zugehörige Datei verfügbar, können Sie sie **In Ordner extrahieren** verwenden, um ein neues Verzeichnis mit den Moduldateien zu erstellen.
 
-Für die Inspektion und das normale Extrahieren sind keine Administratorrechte erforderlich. Beim Extrahieren werden niemals vorhandene Ziele überschrieben.
+Für die Untersuchung sind keine Administratorrechte erforderlich. **In Ordner extrahieren** fordert jedoch eine Administrator-Authentifizierung an, um Eigentümer, Berechtigungen und spezielle Dateien beizubehalten. Beim Extrahieren werden niemals vorhandene Ziele überschrieben oder das Quellmodul verändert.
 
-Sie können auch eine lokale `.sb`-Datei aus dem Dateimanager öffnen. Das Öffnen einer Datei dient nur der Inspektion; sie wird dabei weder aktiviert noch zum nächsten Start hinzugefügt.
+Sie können auch eine lokale `.sb`-Datei aus dem Dateimanager öffnen. Das Öffnen einer Datei dient nur zur Untersuchung; sie wird dadurch weder aktiviert noch zum nächsten Start hinzugefügt.
 
 ## Ein Modul erstellen
 
@@ -214,14 +214,14 @@ Die Sitzungsaufnahme kann unterstützte Dateilöschungen und Verzeichnis-Opazit�
 
 ### Module inspizieren und extrahieren
 
-Ein Modul inspizieren, ohne es einzuhängen oder zu extrahieren:
+Ein Modul inspizieren, ohne es einzubinden oder zu extrahieren:
 
 ```bash
 sb inspect 06-example.sb
 sb inspect 06-example.sb --json
 ```
 
-Die Inspektion ist ohne Root-Rechte möglich und funktioniert auch außerhalb einer laufenden MiniOS-Sitzung.
+Die Inspektion erfolgt ohne Root-Rechte und funktioniert auch außerhalb einer laufenden MiniOS-Sitzung.
 
 Ein Modul in ein neues Verzeichnis extrahieren:
 
@@ -229,29 +229,37 @@ Ein Modul in ein neues Verzeichnis extrahieren:
 sb2dir 06-example.sb example-root
 ```
 
-Die Standardextraktion benötigt keine Root-Rechte und verändert die Quelle nicht. Das Zielverzeichnis darf nicht existieren. Spezielle Dateien werden abgelehnt, außer wenn `--allow-special` mit ausreichenden Rechten angefordert wird.
+Die normale Extraktion erfolgt ohne Root-Rechte und verändert die Quelle nicht. Das Zielverzeichnis darf nicht existieren. Spezielle Dateien werden abgelehnt, es sei denn,`--allow-special` dies wird mit ausreichenden Rechten angefordert.
 
-Von aktuellen `sb2dir` erzeugte Verzeichnisse sind normale Verzeichnisse. `rmsbdir`, `sb rm` und `sb rmdir` sind veraltete Kompatibilitätsbefehle, die das Entfernen grundsätzlich verweigern; sie hängen nichts aus und löschen nichts rekursiv. Prüfen Sie einen extrahierten Pfad und dessen Inhalt, bevor Sie ihn mit Standard-Dateisystemwerkzeugen entfernen.
+Um ein Verzeichnis originalgetreu wiederverpacken zu können, extrahieren Sie mit Administratorrechten und behalten Sie Besitzrechte sowie spezielle Dateien bei:
 
-### Laufende und Next-Boot-Module verwalten
+```bash
+sudo sb2dir --keep-ownership --allow-special 06-example.sb example-root
+```
 
-„Jetzt laufend“ und „Next Boot“ sind unabhängige Zusammenstellungen. Siehe [Union-Erstellung und Laufzeitaktivierung](/reference/boot-process/Module-Loading#union-construction) für die Grenze zwischen Boot und Laufzeit und warum sich die beiden Listen unterscheiden können.
+Bei der Extraktion wird die Herkunft des Moduls in`.minios-module-origin.json` im neuen Verzeichnis dokumentiert. Bei einer Extraktion ohne Root-Rechte wird vermerkt, dass Besitzrechte nicht erhalten wurden; ein solches Verzeichnis kann nicht zurückgegeben werden an`dir2sb`. Bewahren Sie den Herkunftsnachweis bei einer privilegierten Extraktion bis zum erneuten Verpacken auf.
 
-Listen Sie die Module auf, die das aktuelle AUFS- oder OverlayFS-Root tatsächlich zusammensetzen, von der niedrigsten bis zur höchsten Priorität:
+Von aktuellen`sb2dir` erzeugte Verzeichnisse sind normale Verzeichnisse.`rmsbdir`, `sb rm`, und `sb rmdir` sind veraltete Kompatibilitätsbefehle, die das Entfernen immer verweigern; sie lösen kein Aushängen oder rekursives Löschen aus. Prüfen Sie einen extrahierten Pfad und dessen Inhalte, bevor Sie ihn mit Standard-Dateisystemwerkzeugen entfernen.
+
+### Laufende und nächste Boot-Module verwalten
+
+Aktuelle Laufzeit und Nächster Boot sind unabhängige Zusammenstellungen. Siehe[Union-Erstellung und Aktivierung zur Laufzeit](/reference/boot-process/Module-Loading#union-construction) für die Trennung zwischen Boot- und Laufzeit sowie die Gründe, warum sich beide Listen unterscheiden können.
+
+Zeigt die tatsächlich für das aktuelle AUFS- oder OverlayFS-Root verwendeten Module, von niedrigster bis höchster Priorität:
 
 ```bash
 sb list
 sb list --json
 ```
 
-Listen Sie die Module auf, die durch die aktuellen Boot-Regeln ausgewählt wurden:
+Zeigt die Module, die nach den aktuellen Boot-Regeln ausgewählt wurden:
 
 ```bash
 sb next-boot
 sb next-boot --json
 ```
 
-Diese Abfragen funktionieren ohne Root-Rechte. Die kanonischen [Kandidatentier- und Ersetzungsregeln](/reference/boot-process/Module-Loading#candidate-tiers) bestimmen, welche Quelle für jeden Next-Boot-Basisnamen verwendet wird.
+Diese Abfragen benötigen keine Root-Rechte. Die offiziellen[Kandidatentier- und Ersetzungsregeln](/reference/boot-process/Module-Loading#candidate-tiers) bestimmen, welche Quelle für jeden Next Boot-Basename verwendet wird.
 
 So machen Sie ein Benutzermodul beim nächsten Boot verfügbar:
 
@@ -259,13 +267,13 @@ So machen Sie ein Benutzermodul beim nächsten Boot verfügbar:
 sudo sb next-boot add 50-extra.sb
 ```
 
-MiniOS verwendet geeigneten dauerhaften beschreibbaren Speicher, bereitet die Kopie vor, prüft sie und veröffentlicht sie atomar, ohne ein bestehendes Modul zu ersetzen. Der Dateiname muss die aktuellen Boot-Filter erfüllen. Entfernen Sie ein ausgewähltes Benutzermodul anhand seines exakten Basisnamens:
+MiniOS verwendet geeigneten, dauerhaften, beschreibbaren Speicher, bereitet die Kopie vor, prüft sie und veröffentlicht sie atomar, ohne ein bestehendes Modul zu ersetzen. Der Dateiname muss den aktuellen Boot-Filtern entsprechen. Entfernen Sie ein ausgewähltes Benutzermodul anhand seines exakten Basenamens:
 
 ```bash
 sudo sb next-boot remove 50-extra.sb
 ```
 
-Das Entfernen von Basismodulen sowie Modulen auf schreibgeschützten oder flüchtigen Quellen ist nicht möglich.
+Das Entfernen wird für Basismodule sowie für Module auf schreibgeschützten oder flüchtigen Quellen verweigert.
 
 Die Aktivierung zur Laufzeit ist ein separater, nur für die Sitzung gültiger Vorgang:
 
@@ -274,16 +282,16 @@ sudo sb activate 50-extra.sb
 sudo sb deactivate 50-extra.sb
 ```
 
-Aktivierung und Deaktivierung funktionieren nur, wenn `/` aktuell eine AUFS-Union ist. Sie stehen auf OverlayFS nicht zur Verfügung, und Kernel-AUFS-Unterstützung allein reicht nicht aus. Keine der beiden Befehle ändert Next Boot.
+Aktivierung und Deaktivierung funktionieren nur, wenn`/` aktuell eine AUFS-Union ist. Sie stehen auf OverlayFS nicht zur Verfügung, und allein Kernel-AUFS-Unterstützung reicht nicht aus. Keiner der Befehle ändert Next Boot.
 
-Der Dispatcher für Kompatibilitätskonvertierungen benötigt beide Operanden:
+Der Kompatibilitäts-Konverter-Dispatcher benötigt beide Operanden:
 
 ```bash
 sudo sb conv my-app-root 06-my-app.sb
 sudo sb conv 06-my-app.sb example-root
 ```
 
-Direkte `dir2sb` und `sb2dir`-Verwendung ist vorzuziehen, da die normale Konvertierung ohne Root-Rechte ausgeführt werden kann.
+Direkte`dir2sb` und `sb2dir`-Verwendung ist vorzuziehen, da die normale Konvertierung auch ohne Root-Rechte ausgeführt werden kann.
 
 ### Verwandte Dokumentation
 

@@ -1,7 +1,7 @@
 ---
-updated: 2026-08-31
+updated: 2026-09-30
 program_commits:
-    minios-module-manager: e277da00c0b2f5fa5f41af140af118e361d2044c
+    minios-module-manager: 7875b73a485eda82b9dc27827842e9b90f115cf7
 ---
 
 # Mengelola modul
@@ -33,27 +33,29 @@ Perubahan boot berikutnya hanya tersedia jika MiniOS menemukan penyimpanan modul
 
 ## Memeriksa modul
 
-Pilih sebuah modul untuk melihat sumbernya, ukuran terkompresi, dan isi filesystem-nya. Jika file pendukungnya tersedia, **Extract to Folder** akan membuat direktori baru yang berisi file modul tersebut.
+Pilih modul untuk melihat lokasi file pendukungnya, ukuran terkompresi, dan isi sistem berkasnya. Jika file pendukung tersedia, **Ekstrak ke Folder** akan membuat direktori baru yang berisi file modul.
 
-Pemeriksaan dan ekstraksi biasa tidak memerlukan hak administrator. Ekstraksi tidak pernah menimpa tujuan yang sudah ada.
+Pemeriksaan tidak memerlukan hak administrator.**Ekstrak ke Folder** akan meminta autentikasi administrator agar dapat mempertahankan kepemilikan, izin akses, dan file khusus. Proses ekstraksi tidak pernah mengganti tujuan yang sudah ada atau mengubah modul sumber.
 
-Anda juga dapat membuka file lokal `.sb` dari file manager. Membuka file hanya untuk memeriksa; tidak mengaktifkan atau menambahkannya ke Next Boot.
+Anda juga dapat membuka file `.sb` secara lokal dari pengelola file. Membuka file hanya untuk memeriksa; tidak mengaktifkannya atau menambahkannya ke Next Boot.
 
 ## Membuat modul
 
-Workspace Create menggunakan alur **Konfigurasi**, **Tinjau**, **Jalankan**, dan **Hasil**. Modul yang berhasil dibuat tetap berupa file di lokasi output. Modul tersebut tidak diaktifkan dan tidak otomatis ditambahkan ke Next Boot.
+Workspace Create menggunakan alur **Konfigurasi**, **Tinjau**, **Jalankan**, dan **Hasil**. Modul yang berhasil dibuat tetap berupa file di lokasi output. Modul ini tidak langsung diaktifkan dan tidak otomatis ditambahkan ke Next Boot.
 
 Metode yang tersedia:
 
-- **Paket** menginstal paket repository dan file lokal terpilih `.deb`, beserta dependensinya, di lingkungan build terisolasi MiniOS. Instalasi paket memerlukan autentikasi administrator.
-- **Skrip Instalasi** menjalankan skrip yang telah ditinjau tanpa terminal interaktif. Folder seed opsional dapat menyediakan file awal. Skrip dijalankan dengan hak administrator namun tidak disimpan di modul hasil.
-- **Chroot Interaktif** membuka root shell sementara di terminal tersemat. Ketik `exit` saat selesai, lalu buat modul, buka kembali shell, atau batalkan perubahan. Menutup atau membatalkan sesi tidak memengaruhi sistem yang sedang berjalan.
-- **Folder** mengemas isi direktori yang sudah ada. Direktori sumber tidak disarangkan di dalam modul. Konversi folder biasa tidak memerlukan root, sumber tetap tidak berubah, dan kepemilikan di modul dinormalisasi menjadi root.
-- **Perubahan Sesi Saat Ini** menangkap file dan penghapusan yang memenuhi syarat dari layer sesi tulis saat ini. Menggunakan kebijakan standar MiniOS `savechanges` yang mengabaikan log, cache, data boot, dan path runtime sementara. Membaca seluruh layer tulis membutuhkan autentikasi administrator.
+- **Paket** akan menginstal paket dari repository dan file lokal `.deb`, termasuk dependensinya, di lingkungan build terisolasi MiniOS. Instalasi paket memerlukan autentikasi administrator.
+- **Skrip Instalasi** menjalankan skrip yang telah ditinjau tanpa terminal interaktif. Folder seed opsional dapat digunakan untuk menyediakan file awal. Skrip dijalankan dengan hak administrator, namun tidak disimpan di modul yang dihasilkan.
+- **Chroot Interaktif** membuka shell root sementara di terminal tersemat. Ketik `exit` saat selesai, lalu buat modul, buka kembali shell, atau batalkan perubahan. Menutup atau membatalkan sesi tidak akan mengubah sistem yang sedang berjalan.
+- **Folder** mengemas isi direktori yang sudah ada. Direktori sumber tidak akan disarangkan di dalam modul. Alur grafis akan meminta autentikasi administrator untuk membaca file yang dilindungi dan mempertahankan atribut sistem berkas; sumber tidak diubah. Folder yang diekstrak dengan pelestarian kepemilikan akan dikenali secara otomatis dan tetap mempertahankan pemiliknya. Untuk folder hasil ekstraksi lama tanpa catatan asal, pilih **Pertahankan kepemilikan sumber** jika pemiliknya harus dipertahankan.
+- **Perubahan Sesi Saat Ini** menangkap file dan penghapusan yang memenuhi syarat dari layer sesi tulis saat ini. Menggunakan kebijakan standar MiniOS `savechanges`, yang mengabaikan log, cache, data boot, dan path runtime sementara. Membaca seluruh layer tulis memerlukan autentikasi administrator.
 
-Pilih path output baru untuk setiap workflow. File yang sudah ada tidak pernah ditimpa. Progres dan diagnostik backend tetap terlihat selama operasi berjalan, dan penangkapan sesi saat ini dapat dibatalkan.
+Pilih path output baru untuk setiap alur kerja. File yang sudah ada tidak pernah ditimpa. Progres dan diagnostik backend tetap terlihat selama operasi berjalan, dan penangkapan sesi saat ini dapat dibatalkan.
 
-Perubahan Sesi Saat Ini ditujukan untuk penangkapan standar yang praktis, bukan untuk meninjau setiap path yang disertakan. Layer tulis aktif dapat berisi data pribadi atau rahasia. Untuk kebijakan privasi yang eksplisit berdasarkan `exact`, `clean`, atau pemilihan path, gunakan workflow command-line `savechanges` yang dijelaskan di [Tangkap perubahan sesi saat ini](/preparing-and-customizing/Managing-Modules#capture-current-session-changes).
+Untuk folder lain, alur kerja Folder default akan mengubah ID user dan grup biasa (1000–60000) menjadi root di luar `/home` dan `/opt`, mempertahankan ID sistem, dan membuat direktori tingkat atas standar dimiliki root. Kepemilikan yang hilang akibat ekstraksi tanpa hak administrator sebelumnya tidak dapat dipulihkan dengan opsi ini.
+
+Perubahan Sesi Saat Ini ditujukan untuk penangkapan standar yang praktis, bukan untuk meninjau setiap path yang disertakan. Layer tulis aktif dapat berisi data pribadi atau rahasia. Untuk kebijakan privasi `exact`, `clean`, atau berdasarkan path tertentu, gunakan alur kerja command-line `savechanges` yang dijelaskan di [Tangkap perubahan sesi saat ini](/preparing-and-customizing/Managing-Modules#capture-current-session-changes).
 
 ## Drag and drop
 
@@ -80,25 +82,27 @@ MiniOS modul adalah citra filesystem SquashFS yang hanya-baca, biasanya dinamai 
 
 Panduan ini mendokumentasikan workflow baris perintah MiniOS Tools yang berlaku saat ini. Untuk aplikasi grafis, lihat [Manajer Modul MiniOS](/preparing-and-customizing/Managing-Modules). Untuk proses build image lengkap dan arsitektur sistem, lihat [Membangun MiniOS](/development/Building-MiniOS). Daftar paket yang digunakan saat membangun MiniOS dijelaskan dalam [dokumentasi CondinAPT](/development/CondinAPT).
 
-### Batasan Keamanan dan Hak Akses
+### Batasan keamanan dan hak istimewa
 
 Tidak semua operasi modul memerlukan root:
 
-| Operasi | Hak Akses |
+| Operasi | Hak Istimewa |
 |---|---|
-| List Running Now atau Next Boot dengan `sb` | Tanpa root |
-| Memeriksa modul dengan `sb inspect` | Tanpa root |
-| Konversi `dir2sb` dan `sb2dir` biasa | Tanpa root |
-| Mempertahankan kepemilikan atau mengizinkan file khusus saat konversi | Root |
+| Daftar Running Now atau Next Boot dengan `sb` | Tanpa root |
+| Periksa modul dengan `sb inspect` | Tanpa root |
+| Perintah command-line biasa `dir2sb` dan `sb2dir` konversi | Tanpa root |
+| Pertahankan kepemilikan atau izinkan file khusus saat konversi | Root |
 | Build dengan `apt2sb`, `script2sb`, atau `chroot2sb` | Root |
-| Capture sesi dengan `savechanges` | Root |
-| Aktivasi, deaktivasi, tambah ke Next Boot, atau hapus dari Next Boot | Root |
+| Tangkap sesi dengan `savechanges` | Root |
+| Aktifkan, nonaktifkan, tambahkan ke Next Boot, atau hapus dari Next Boot | Root |
 
-Builder menggunakan union terisolasi dan tidak menginstal paket atau perubahan skrip ke root yang sedang berjalan. Proses pembuatan juga tidak mengaktifkan hasil atau memilihnya untuk boot berikutnya.
+Builder menggunakan union terisolasi dan tidak menginstal paket atau perubahan skrip ke root yang sedang berjalan. Proses pembuatan juga tidak mengaktifkan hasilnya atau memilihnya untuk boot berikutnya.
 
-Konverter dan builder saat ini menggunakan publikasi tanpa replace. Target yang sudah ada, termasuk symbolic link, tidak akan ditimpa. Pilih path output baru atau secara eksplisit tinjau dan hapus output lama sendiri.
+Alur Folder dan Ekstrak ke Folder grafis meminta autentikasi administrator agar dapat menangani file yang dilindungi dan mempertahankan atribut sistem berkas.
 
-Gunakan output `--help` dari setiap perintah sebagai referensi versi terpasang. Pilihan kompresi builder standar adalah `zstd` (default), `gzip`, `lzo`, dan `xz`; `dir2sb` juga mendukung `lz4`.
+Konverter dan builder saat ini menggunakan publikasi tanpa menimpa. Target yang sudah ada, termasuk symbolic link, tidak akan ditimpa. Pilih path output baru atau tinjau dan hapus output lama secara manual.
+
+Gunakan output `--help` dari setiap perintah sebagai referensi versi terinstal. Pilihan kompresi builder standar adalah `zstd` (default), `gzip`, `lzo`, dan `xz`; `dir2sb` juga mendukung `lz4`.
 
 ### Nama Modul dan Level Filter
 
@@ -162,14 +166,16 @@ Siklus hidup terpisah `prepare`, `shell`, `finish`, dan `cancel` tersedia untuk 
 
 ### Buat modul dari direktori
 
-`dir2sb` mengemas isi direktori yang sudah disiapkan ke dalam modul baru. Kedua operand wajib diisi:
+`dir2sb` akan mengemas isi direktori yang sudah disiapkan ke dalam modul baru. Kedua operand diperlukan:
 
 ```bash
 dir2sb my-app-root 06-my-app.sb
 dir2sb --comp xz my-app-root 06-my-app-xz.sb
 ```
 
-Konversi biasa tidak memerlukan root. Sumber tidak diubah, kepemilikan di dalam modul dinormalisasi menjadi root, node perangkat, socket, dan FIFO ditolak, serta target tidak pernah ditimpa. Gunakan `--keep-ownership` atau `--allow-special` hanya jika memang membutuhkan hak istimewa tersebut.
+Konversi biasa tidak memerlukan root. Sumber tidak diubah, ID user dan grup biasa (1000–60000) diubah menjadi root di luar `/home` dan `/opt`, ID sistem tetap, dan direktori tingkat atas standar menjadi milik root. Node perangkat, socket, dan FIFO ditolak, serta target tidak pernah ditimpa. `--keep-ownership` akan mempertahankan semua pemilik sumber dan `--allow-special` mengizinkan file khusus; keduanya memerlukan root.
+
+`sb2dir` menulis `.minios-module-origin.json` di direktori hasil ekstraksi. Jika ekstraksi mempertahankan kepemilikan, `dir2sb` akan mengenali catatan ini dan secara otomatis mempertahankan pemilik serta file khusus saat dikemas ulang; catatan tersebut tidak disertakan dalam modul baru. Direktori yang diekstrak tanpa pelestarian kepemilikan tidak dapat dikemas ulang karena pemilik aslinya tidak lagi diketahui. Ekstrak ulang modul asli dengan opsi hak administrator.
 
 ### Tangkap perubahan sesi saat ini
 
@@ -212,16 +218,16 @@ Path dinormalisasi, tidak kosong, dan relatif terhadap root perubahan. Hasil inv
 
 Penangkapan sesi dapat mempertahankan penghapusan file yang didukung dan opasitas direktori untuk backend AUFS atau OverlayFS yang aktif. Tidak termasuk mount runtime, filesystem bersarang, pencatatan union, dan output itu sendiri. Target yang sudah ada tidak pernah diganti.
 
-### Inspeksi dan ekstrak modul
+### Periksa dan ekstrak modul
 
-Inspeksi modul tanpa perlu mount atau ekstraksi:
+Periksa modul tanpa melakukan mount atau ekstraksi:
 
 ```bash
 sb inspect 06-example.sb
 sb inspect 06-example.sb --json
 ```
 
-Inspeksi dapat dilakukan tanpa root dan juga dapat dijalankan di luar sesi MiniOS yang sedang berjalan.
+Pemeriksaan tidak memerlukan root dan juga dapat dijalankan di luar sesi MiniOS yang sedang berjalan.
 
 Ekstrak modul ke direktori baru:
 
@@ -229,9 +235,17 @@ Ekstrak modul ke direktori baru:
 sb2dir 06-example.sb example-root
 ```
 
-Ekstraksi biasa tidak memerlukan root dan tidak mengubah sumber. Direktori target tidak boleh sudah ada. File khusus akan ditolak kecuali `--allow-special` diminta dengan hak istimewa yang memadai.
+Ekstraksi biasa tidak memerlukan root dan tidak mengubah sumber. Direktori tujuan tidak boleh sudah ada. File khusus akan ditolak kecuali `--allow-special` diminta dengan hak istimewa yang cukup.
 
-Direktori yang dihasilkan oleh `sb2dir` saat ini adalah direktori biasa. `rmsbdir`, `sb rm`, dan `sb rmdir` adalah perintah kompatibilitas lama yang selalu menolak penghapusan; perintah ini tidak melakukan unmount atau menghapus secara rekursif. Tinjau path hasil ekstraksi dan isinya sebelum menghapusnya menggunakan alat filesystem standar.
+Untuk direktori yang ingin dikemas ulang secara utuh, lakukan ekstraksi dengan hak administrator dan pertahankan kepemilikan serta file khusus:
+
+```bash
+sudo sb2dir --keep-ownership --allow-special 06-example.sb example-root
+```
+
+Ekstraksi akan mencatat asal modul di `.minios-module-origin.json` di dalam direktori baru. Ekstraksi tanpa root akan mencatat bahwa kepemilikan tidak dipertahankan; direktori seperti ini tidak dapat dikembalikan ke `dir2sb`. Simpan catatan asal dengan ekstraksi berhak administrator hingga proses kemas ulang.
+
+Direktori yang dihasilkan oleh `sb2dir` saat ini adalah direktori biasa. `rmsbdir`, `sb rm`, dan `sb rmdir` adalah perintah kompatibilitas lama yang selalu menolak penghapusan; perintah ini tidak melakukan unmount atau menghapus secara rekursif. Tinjau path hasil ekstraksi dan isinya sebelum menghapusnya dengan alat sistem berkas standar.
 
 ### Kelola modul yang berjalan dan modul next-boot
 

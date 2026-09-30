@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-31
+updated: 2026-09-30
 ---
 # MiniOS applications
 
@@ -52,7 +52,7 @@ Most graphical tools have a public command-line counterpart or backend. These co
 | Build a module from repository packages or local `.deb` files | **`apt2sb`** | Requires root and a supported MiniOS live session. Packages are installed into an isolated build environment, not the running root. | [Create a module from packages](/preparing-and-customizing/Managing-Modules#create-a-module-from-packages); `man apt2sb` |
 | Build a module by running an installation script | **`script2sb`** | Requires root and a supported MiniOS live session. The script runs non-interactively in an isolated build environment. | [Create a module from a script](/preparing-and-customizing/Managing-Modules#create-a-module-from-a-script); `man script2sb` |
 | Build a module interactively in a prepared environment | **`chroot2sb`** | Requires root and a supported MiniOS live session. Use it when installation needs prompts or manual changes. | [Create a module interactively](/preparing-and-customizing/Managing-Modules#create-a-module-interactively); `man chroot2sb` |
-| Convert between a directory tree and an `.sb` module | **`dir2sb`**, **`sb2dir`** | Ordinary conversion is rootless and can be used outside a running live session when the required tools and input files are available. | [Create](/preparing-and-customizing/Managing-Modules#create-a-module-from-a-directory) or [extract](/preparing-and-customizing/Managing-Modules#inspect-and-extract-modules) a module; `man dir2sb`, `man sb2dir` |
+| Convert between a directory tree and an `.sb` module | **`dir2sb`**, **`sb2dir`** | Ordinary conversion is rootless and can run outside a live session. Faithful extraction and repackaging with original owners and special files require root; graphical workflows request administrator authentication. | [Create](/preparing-and-customizing/Managing-Modules#create-a-module-from-a-directory) or [extract](/preparing-and-customizing/Managing-Modules#inspect-and-extract-modules) a module; `man dir2sb`, `man sb2dir` |
 | Capture eligible changes from the writable session layer into a module | **`savechanges`** | Requires root and a running MiniOS live session with a supported writable-layer backend. | [Capture current-session changes](/preparing-and-customizing/Managing-Modules#capture-current-session-changes); `man savechanges` |
 
 ### Storage workflows
