@@ -1,7 +1,7 @@
 ---
-updated: 2026-08-31
+updated: 2026-10-06
 program_commits:
-  minios-installer: 1b4c3df8b7aad7cec67b30263a6bb3929d98a77c
+  minios-installer: ecabe245a5eaff606ce06f034af334b399f4c3b3
 ---
 # MiniOS Installer
 
@@ -47,7 +47,7 @@ The graphical installer offers these placement choices when the target is eligib
 
 Automatic boot layouts are BIOS/MBR, UEFI/MBR, and UEFI/GPT. UEFI works with GPT or primary MBR layouts. BIOS is supported on primary MBR, not GPT. Extended or logical MBR preserve layouts are unsupported.
 
-Manual mode can create, delete, format, and reuse partitions; shrink a supported filesystem from its end; assign mount points, an EFI system partition, and swap; and undo or reset staged changes. It does not support LVM, RAID, native LUKS roots, mapped or nested storage, bcache, ZFS, or Btrfs subvolume editing. LUKS session persistence does not encrypt a native root filesystem.
+Manual mode can create, delete, format, and reuse partitions; shrink a supported filesystem from its end; assign mount points, an EFI system partition, and swap; and undo or reset staged changes. It does not support LVM, RAID, native LUKS roots, mapped or nested storage, bcache, ZFS, or Btrfs subvolume editing. LUKS2 encryption for a live persistence session does not encrypt a native root filesystem.
 
 ## Filesystems
 
@@ -69,16 +69,21 @@ Network configuration covers the hostname and wired DHCP or static IPv4. The ins
 
 ## Live session persistence
 
-Persistence applies only to live installations:
+Persistence applies only to live installations. When `minios-session` is available, MiniOS Installer can create and activate a real numbered session directly on the target before installation finishes. **Set up automatically on first boot** skips this step; MiniOS can then create session storage later through its normal boot-time persistence logic.
 
-- `native` persistence mode stores live-session changes directly on a POSIX-compatible target filesystem. Despite the name, this is a **live persistence backend** and is unrelated to native installation. It is not offered on FAT32 or NTFS.
-- DynFileFS uses an expandable container.
-- Raw uses a fixed-size image.
-- LUKS uses an encrypted image created by the initrd on first boot. The passphrase is requested at boot and is never received or stored by the installer.
+The installer offers these storage backends when the running system and target support them:
 
-Container modes default to 4000 MiB. Raw and LUKS containers cannot exceed 4000 MiB on FAT32; DynFileFS is not subject to that single-file limit. LUKS is offered only when both the running initrd and each copied source initrd advertise the required crypto support.
+- `native` stores live-session changes directly in the session directory on a POSIX-compatible target filesystem. Despite the name, this is a **live persistence backend** and is unrelated to native installation. It is not offered on FAT32 or NTFS.
+- DynFileFS creates expandable file-backed ext4 storage. The selected size is the logical maximum rather than space reserved in advance. Its default size is 4000 MiB.
+- DynBlk creates an ext4 filesystem on a thin block device provided by the DynBlk kernel driver. Session data is backed by segmented `volumeNNN.db` files that are allocated as needed, so the selected size is a logical maximum rather than preallocated disk usage. The installer defaults new DynBlk sessions to 16384 MiB. For unencrypted DynBlk sessions, the installer can select a compression codec supported by both the running system and the initrd copied to the target.
+- VMDK uses the DynBlk driver to create standard split sparse VMDK storage (`volume.vmdk` and `volume-sNNN.vmdk`). It has the same thin-allocation model and 16384 MiB default as DynBlk, but backend compression is unavailable.
+- Raw creates a fixed-size ext4 image and reserves the selected capacity immediately. Its default size is 4000 MiB.
 
-The resulting boot options use `perchmode` and `perchsize`. See [Initrd persistence](/reference/boot-process/Persistence-Internals) and [Boot parameters](/reference/Boot-Parameters) for their runtime meaning and activation requirements.
+LUKS2 is a separate encryption layer that can wrap Raw, DynFileFS, DynBlk, or VMDK session storage. The installer collects the confirmed passphrase only for session creation, sends it to `minios-session` through standard input, and does not place it in command-line arguments, logs, or persistent configuration. The passphrase is then required when the encrypted session is unlocked at boot. LUKS2 is offered only when the running environment and the copied target initrd advertise compatible support. DynBlk compression is disabled when LUKS2 is selected.
+
+DynBlk and VMDK session storage are unavailable while UEFI Secure Boot is enabled because the external DynBlk kernel module used by these backends is not signed by MiniOS. Raw containers are limited to 4000 MiB on FAT32; DynFileFS, DynBlk, and split VMDK storage do not depend on one file exceeding FAT32's 4 GiB limit, although their own backend and free-space limits still apply.
+
+Because the installer creates and activates the selected session on the target, it does not rely on `perchmode` and `perchsize` to create that storage on first boot. Those boot parameters still describe initrd-driven persistence creation and selection outside the installer's pre-created-session path. See [Session management](/using-minios/Sessions-and-Persistence), [Initrd persistence](/reference/boot-process/Persistence-Internals), and [Boot parameters](/reference/Boot-Parameters).
 
 ## Command-line deployment
 

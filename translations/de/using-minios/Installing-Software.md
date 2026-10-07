@@ -1,16 +1,16 @@
 ---
-updated: 2026-08-31
+updated: 2026-10-06
 program_commits:
-    minios-store: 2226f08d65dffd251ae016664239164a3b237fc0
+    minios-store: eec5785dd7eb547961c2799f1907496a33be2e8c
 ---
 
 # Software installieren
 
-MiniOS-App-Store bietet einen Katalog von Anwendungsrezepten unter [store.minios.dev](https://store.minios.dev) an. In der MiniOS Live-Umgebung können diese Rezepte direkt in das laufende System installiert oder verwendet werden, um ein oder mehrere SquashFS (`.sb`) Module zu bauen.
+Der MiniOS-App-Store bietet einen Katalog von Anwendungs-Rezepten unter [store.minios.dev](https://store.minios.dev). In der MiniOS Live-Umgebung können diese Rezepte direkt im laufenden System installiert oder verwendet werden, um ein oder mehrere SquashFS (`.sb`)-Module zu erstellen.
 
-Diese Seite beschreibt den MiniOS Live-Software-Workflow. Eine native Installation behält die ausgewählte Desktop- und Standardanwendungssoftware bei, entfernt jedoch die für den Live-Betrieb vorgesehene MiniOS-spezifische Software. Auf dem installierten System wird stattdessen der normale Debian-Paketmanagement-Workflow verwendet.
+Diese Seite beschreibt den MiniOS Live-Software-Workflow. Eine native Installation behält die gewählte Desktop-Umgebung und die normalen Anwendungen bei, entfernt jedoch die für den Live-Betrieb bestimmte MiniOS-spezifische Software. Verwenden Sie stattdessen auf dem installierten System den üblichen Debian-Paketverwaltungs-Workflow.
 
-Das Durchsuchen des Katalogs erfordert keinen lokalen Server. Für die Installation ist jedoch einer notwendig: Die Weboberfläche verbindet sich entweder mit dem lokalen MiniOS-App-Store-Daemon oder öffnet den installierten `minios-store://` URI-Handler.
+Das Durchsuchen des Katalogs erfordert keinen lokalen Server. Für die Installation ist dies jedoch notwendig: Die Weboberfläche verbindet sich entweder mit dem lokalen MiniOS-App-Store-Daemon oder öffnet den installierten `minios-store://` URI-Handler.
 
 ## Vor der Installation
 
@@ -19,51 +19,55 @@ Das Durchsuchen des Katalogs erfordert keinen lokalen Server. Für die Installat
 - Die Paketnamen und die Installationsmethode.
 - Das Installationsskript, sofern eines angezeigt wird.
 - Die Homepage der Anwendung und Informationen zum Entwickler.
+- Screenshots und Anwendungs-Grafiken, sofern vorhanden. Diese dienen nur der Präsentation und sind kein Beweis für die Vertrauenswürdigkeit eines Rezepts.
 - Ob das Rezept ein separates Debian-Paket herunterlädt.
+- Jede zusätzliche Softwarelizenz, die das Rezept anzeigt. Rezepte, die eine Zustimmung erfordern, können erst installiert werden, nachdem Sie diese Lizenz ausdrücklich akzeptiert haben.
 
-Rezepte können APT-Pakete installieren, Debian-Pakete herunterladen oder Shell-Skripte ausführen. Installationsvorgänge laufen mit Root-Rechten. Behandeln Sie ein Rezept und jeden Download oder jedes Repository, das es verwendet, als privilegierten Code.
+Rezepte können APT-Pakete installieren, Debian-Pakete herunterladen oder Shell-Skripte ausführen. Installationsvorgänge werden mit Root-Rechten ausgeführt. Behandeln Sie ein Rezept sowie jeden Download oder jedes verwendete Repository als privilegierten Code.
 
-## Anwendung installieren
+## Eine Anwendung installieren
 
-1. Öffnen Sie den MiniOS-App-Store über das Anwendungsmenü. Der Starter prüft `https://store.minios.dev` und öffnet ihn im Standardbrowser.
-2. Suchen Sie nach Anwendungen oder stöbern Sie nach Kategorie, öffnen Sie die Anwendungsdetails und prüfen Sie die Pakete oder das Skript.
+1. Öffnen Sie den MiniOS-App-Store über das Anwendungsmenü. Der Launcher prüft `https://store.minios.dev` und öffnet ihn im Standardbrowser.
+2. Suchen oder stöbern Sie nach Kategorie, öffnen Sie die Anwendungsdetails und prüfen Sie die Pakete oder das Skript.
 3. Fügen Sie eine oder mehrere Anwendungen dem Warenkorb hinzu.
-4. Wählen Sie in einer Live-MiniOS-Sitzung `Module` oder `System` aus.
-5. Für mehrere Anwendungen im Modulmodus wählen Sie ein kombiniertes Modul oder einzelne Module. Ein kombiniertes Modul kann auch einen eigenen Namen erhalten.
-6. Wählen Sie `Install` und verfolgen Sie den Fortschritt sowie die Befehlsausgabe. Die Seite nutzt den lokalen Daemon, wenn dessen Status `Connected` ist; andernfalls wird der URI-Handler versucht und es kann eine PolicyKit-Authentifizierungsabfrage erscheinen.
+4. Wählen Sie in einer Live-MiniOS-Sitzung `Module` oder `System`.
+5. Im Modulmodus wählen Sie bei Bedarf die Build-Ebene aus. **Rezept-Standard** behält die konfigurierte Ebene jedes Rezepts bei; **Auto** verwendet alle aktuell geladenen Module als Build-Basis und erzeugt einen unnummerierten Modulnamen; eine numerische Ebene von `01` bis `09` nutzt nur die bis zu dieser Ebene geladenen Module. Bevorzugen Sie Rezept-Standard, es sei denn, Sie möchten gezielt Abhängigkeiten zu höheren optionalen Schichten vermeiden.
+6. Bei mehreren Anwendungen im Modulmodus wählen Sie ein gemeinsames Modul oder separate Module. Ein gemeinsames Modul kann auch einen eigenen Namen erhalten.
+7. Akzeptieren Sie alle Rezeptlizenzen, die ausdrücklich eine Zustimmung erfordern.
+8. Wählen Sie `Install` und verfolgen Sie den Fortschritt sowie die Befehlsausgabe. Die Seite verwendet den lokalen Daemon, wenn dessen Status `Connected` ist; andernfalls wird der URI-Handler versucht und es kann eine PolicyKit-Authentifizierungsabfrage erscheinen.
 
-Es kann immer nur ein Daemon-Installationsvorgang gleichzeitig laufen. Das Schließen des Fortschrittsdialogs stoppt eine laufende Installation nicht unbedingt; öffnen Sie den Installationsindikator erneut, um sie anzuzeigen oder explizit abzubrechen.
+Es kann immer nur ein Daemon-Installationsvorgang gleichzeitig laufen. Das Schließen des Fortschrittsdialogs beendet eine laufende Daemon-Installation nicht zwangsläufig; öffnen Sie die Installationsanzeige erneut, um sie einzusehen oder explizit abzubrechen.
 
-## Modul- und Systemmodi
+## Modul- und Systemmodus
 
 ### Modulmodus
 
-Im Modulmodus wird `apt2sb` oder `script2sb` in einer isolierten Modul-Bauumgebung ausgeführt. Die daraus resultierenden `.sb`-Dateien werden an den ersten beschreibbaren Speicherort unten geschrieben:
+Im Modulmodus werden `apt2sb` oder `script2sb` in einer isolierten Modulbau-Umgebung ausgeführt. Die erzeugten `.sb`-Dateien werden im ersten beschreibbaren Verzeichnis unterhalb gespeichert:
 
 1. `/run/initramfs/memory/data/minios/modules`
 2. `/var/lib/minios-store/modules`
 
-Der erste Pfad ist das Modulverzeichnis auf dem aktuellen MiniOS-Bootmedium. Ein dort erstelltes Modul wird in der aktuellen Sitzung nicht durch den MiniOS-App-Store aktiviert. Lassen Sie das Modul in diesem Verzeichnis und starten Sie das System neu, um es beim nächsten Booten zu laden. Das Ergebnis bleibt nur verfügbar, wenn das zugrundeliegende Bootmedium beschreibbar ist und die Datei erhalten bleibt.
+Der erste Pfad ist das Modulverzeichnis auf dem aktuellen MiniOS-Bootspeicher. Ein dort erstelltes Modul wird in der aktuellen Sitzung nicht durch den MiniOS-App-Store aktiviert. Lassen Sie das Modul in diesem Verzeichnis und starten Sie das System neu, um es beim nächsten Boot zu laden. Das Ergebnis bleibt nur verfügbar, wenn der zugrunde liegende Bootspeicher beschreibbar ist und die Datei erhalten bleibt.
 
-Der zweite Pfad ist ein Fallback, der verwendet wird, wenn das normale Modulverzeichnis nicht beschreibbar ist. Ein Modul im Fallback-Verzeichnis ist nicht automatisch Teil des nächsten Live-Starts. Verwenden Sie `Open folder` und kopieren Sie dann das fertige Modul vor dem Neustart in das `minios/modules`-Verzeichnis auf einem beschreibbaren MiniOS-Bootmedium.
+Der zweite Pfad ist ein Fallback, wenn das normale Modulverzeichnis nicht beschreibbar ist. Ein Modul im Fallback-Verzeichnis wird beim nächsten Live-Boot nicht automatisch geladen. Verwenden Sie `Open folder`, und kopieren Sie das fertige Modul anschließend in das `minios/modules`-Verzeichnis auf einem beschreibbaren MiniOS-Bootmedium, bevor Sie neu starten.
 
-Ein kombiniertes Modul enthält alle ausgewählten Rezepte. Bei getrennter Paketierung kann ein Fehler ein Rezept betreffen, während zuvor fertiggestellte Module im Zielverzeichnis verbleiben.
+Ein gemeinsames Modul enthält alle ausgewählten Rezepte. Bei getrennter Paketierung kann ein Fehler ein Rezept betreffen, während Module, die vorher im Batch fertiggestellt wurden, im Zielverzeichnis verbleiben.
 
 ### Systemmodus
 
-Im Systemmodus werden APT oder ein Rezeptskript direkt auf das laufende Root-Dateisystem angewendet. Änderungen wirken sich sofort auf das aktuelle Live-System aus, anstatt ein Modul zu erzeugen. Ob diese Änderungen einen Neustart überstehen, hängt von der Persistenzkonfiguration der Sitzung ab.
+Im Systemmodus wird APT oder ein Rezeptskript direkt auf das laufende Root-Dateisystem angewendet. Änderungen wirken sich sofort auf das aktuelle Live-System aus, anstatt ein Modul zu erzeugen. Ob diese Änderungen einen Neustart überstehen, hängt von der Persistenzkonfiguration der Sitzung ab.
 
-Der Systemmodus ist nicht transaktional. Ein fehlgeschlagener oder abgebrochener Vorgang kann dazu führen, dass Pakete, der Repository-Zustand oder durch frühere Befehle geänderte Dateien in einem inkonsistenten Zustand verbleiben.
+Der Systemmodus ist nicht transaktional. Ein fehlgeschlagener oder abgebrochener Vorgang kann Pakete, den Repository-Zustand oder durch frühere Befehle veränderte Dateien in einem veränderten Zustand hinterlassen.
 
 ## Lokaler Dienst und Vertrauensgrenze
 
-Der `minios-store`-Dienst läuft als root, da für den Modulbau und die direkte Paketinstallation Mount-, Overlay-, Chroot-, APT- und dpkg-Operationen erforderlich sind. Standardmäßig lauscht er nur auf `ws://127.0.0.1:8765`. Die gehostete Weboberfläche sendet vollständige Rezeptdaten, einschließlich Skripten und Download-URLs, an diesen lokalen Dienst.
+Der `minios-store`-Dienst läuft als root, da für den Modulbau und die direkte Paketinstallation mount-, Overlay-, chroot-, APT- und dpkg-Operationen erforderlich sind. Standardmäßig lauscht er nur auf `ws://127.0.0.1:8765`. Die gehostete Weboberfläche sendet vollständige Rezeptdaten, einschließlich Skripte und Download-URLs, an diesen lokalen Dienst.
 
-Der Daemon prüft die Struktur der Anfrage und die unterstützte Installationsmethode, authentifiziert oder signiert die Rezeptdaten jedoch nicht unabhängig. Eine Seite, die den lokalen WebSocket-Endpunkt erreicht, kann privilegierte Installationsaufträge anfordern. Daher gilt:
+Der Daemon prüft die Form der Anfrage und die unterstützte Installationsmethode, authentifiziert oder signiert die Rezeptdaten jedoch nicht eigenständig. Eine Seite, die den lokalen WebSocket-Endpunkt erreicht, kann privilegierte Installationsaufträge anfordern. Daher gilt:
 
-- Lassen Sie den Daemon auf `127.0.0.1` gebunden. Öffnen Sie Port `8765` nicht im LAN oder Internet.
-- Setzen Sie `MINIOS_STORE_HOST` nicht auf eine Nicht-Loopback-Adresse, es sei denn, eine zusätzliche, geprüfte Sicherheitsgrenze ist vorhanden.
-- Greifen Sie auf den MiniOS-App-Store nur über die offizielle HTTPS-Website zu und prüfen Sie Rezepte vor der Installation.
+- Belassen Sie den Daemon gebunden an `127.0.0.1`. Öffnen Sie den Port `8765` nicht ins LAN oder Internet.
+- Setzen Sie `MINIOS_STORE_HOST` nicht auf eine Nicht-Loopback-Adresse, außer es besteht eine zusätzliche, geprüfte Sicherheitsgrenze.
+- Greifen Sie auf den MiniOS-App-Store ausschließlich über die offizielle HTTPS-Website zu und prüfen Sie Rezepte vor der Installation.
 - Stoppen oder deaktivieren Sie den Dienst, wenn keine browserbasierte Installation benötigt wird.
 
 Verwalten Sie den systemd-Dienst mit:
@@ -76,51 +80,51 @@ sudo systemctl enable minios-store
 sudo systemctl disable minios-store
 ```
 
-Der URI-Handler ist ein separater Pfad. Er startet den GTK-Installer über PolicyKit und benötigt den WebSocket-Daemon nicht. Aktuelle URI-Einträge werden als APT-Paketnamen mit gewünschtem Modul-Level und Komprimierung interpretiert. Die Installation startet nach der Autorisierung, daher prüfen Sie die Browser-Anfrage, bevor Sie die Authentifizierungsabfrage akzeptieren.
+Der URI-Handler ist ein separater Pfad. Er startet den GTK-Installer über PolicyKit und benötigt den WebSocket-Daemon nicht. Aktuelle Store-Links enthalten eine vollständig codierte Rezeptnutzlast, sodass APT-, Skript- und heruntergeladene DEB-Rezepte denselben Fallback-Pfad nutzen können; explizite Lizenzannahmen werden separat übermittelt und vom lokalen Installer erneut geprüft. Die ältere `recipes=id:level:compression`-Form bleibt als Kompatibilitätsfallback erhalten und wird als APT-Rezept interpretiert. Der Installer startet nach der Autorisierung, daher sollten Sie die Browser-Anfrage prüfen, bevor Sie die Authentifizierungsabfrage akzeptieren.
 
 ## Abbruch
 
-Wählen Sie `Cancel` im Web-Fortschrittsdialog oder `Cancel installation` im GTK-Installer. Der Abbruch markiert den Batch als abgebrochen und beendet den aktuell verfolgten Kindprozess. Weitere Rezepte werden nicht gestartet.
+Wählen Sie `Cancel` im Web-Fortschrittsdialog oder `Cancel installation` im GTK-Installer. Ein Abbruch markiert den Batch als abgebrochen und beendet den aktuell verfolgten Kindprozess. Weitere Rezepte werden nicht gestartet.
 
-Ein Abbruch ist kein Rollback. Bereits abgeschlossene Pakete oder Module bleiben erhalten, und ein während APT, dpkg, Skript, Download oder Modulbau unterbrochener Befehl kann einen unvollständigen Zustand oder eine unvollständige Ausgabedatei hinterlassen. Nach dem Abbruch:
+Ein Abbruch ist kein Rollback. Bereits abgeschlossene Pakete oder Module bleiben erhalten, und ein während APT, dpkg, Skript, Download oder Modulbau unterbrochener Befehl kann einen unvollständigen Zustand oder eine unvollständige Ausgabedatei hinterlassen. Nach dem Abbruch gilt:
 
 1. Lesen Sie das abschließende Installationsprotokoll.
-2. Prüfen Sie das Zielmodulverzeichnis auf unerwartete oder leere Dateien.
+2. Überprüfen Sie das Zielmodulverzeichnis auf unerwartete oder leere Dateien.
 3. Führen Sie im Systemmodus `sudo dpkg --audit` aus und reparieren Sie ggf. die Paketkonfiguration.
-4. Entfernen Sie nur Artefakte, die Sie eindeutig der abgebrochenen Aktion zuordnen können.
+4. Entfernen Sie nur Artefakte, die eindeutig zur abgebrochenen Aktion gehören.
 
 ## Fehlerbehebung
 
 ### MiniOS-App-Store ist offline
 
-Überprüfen Sie den Netzwerkzugriff auf `https://store.minios.dev`. Ein `Offline`-Status bedeutet ebenfalls, dass der Browser nicht mit dem lokalen WebSocket-Daemon verbunden ist; die Installation kann dennoch über den URI-Handler erfolgen, wenn `minios-store-gui` installiert ist.
+Prüfen Sie den Netzwerkzugriff auf `https://store.minios.dev`. Ein `Offline`-Status bedeutet außerdem, dass der Browser nicht mit dem lokalen WebSocket-Daemon verbunden ist; die Installation kann aber weiterhin über den URI-Handler erfolgen, wenn `minios-store-gui` installiert ist.
 
 ### Der Browser kann keine Verbindung zum Daemon herstellen
 
-Überprüfen Sie den Dienst und dessen Protokolle:
+Prüfen Sie den Dienst und seine Protokolle:
 
 ```bash
 sudo systemctl status minios-store
 sudo journalctl -u minios-store
 ```
 
-Der normale Endpunkt ist `ws://127.0.0.1:8765`. Ein Portkonflikt, gestoppter Dienst, fehlendes `python3-websockets` oder Browsereinschränkungen können die Verbindung verhindern. Ein Neustart des Browsers behebt keinen gestoppten Daemon.
+Der Standardendpunkt ist `ws://127.0.0.1:8765`. Ein Portkonflikt, gestoppter Dienst, fehlendes `python3-websockets` oder Browsereinschränkungen können die Verbindung verhindern. Ein Neustart des Browsers behebt keinen gestoppten Daemon.
 
-### Authentifizierung schlägt fehl oder keine Abfrage erscheint
+### Authentifizierung schlägt fehl oder es erscheint keine Abfrage
 
-Der URI-Installer benötigt PolicyKit, `pkexec` und einen aktiven Desktop-Authentifizierungsagenten. Starten Sie den Installer aus einer aktiven grafischen Sitzung und prüfen Sie, ob `minios-store-gui` installiert ist. Umgehen Sie die Abfrage nicht, indem Sie den Root-Daemon im Netzwerk freigeben.
+Der URI-Installer benötigt PolicyKit, `pkexec`, sowie einen aktiven Desktop-Authentifizierungsagenten. Starten Sie den Installer aus einer aktiven grafischen Sitzung und prüfen Sie, ob `minios-store-gui` installiert ist. Umgehen Sie die Abfrage nicht, indem Sie den Root-Daemon im Netzwerk freigeben.
 
 ### Modulbau schlägt fehl
 
-Erweitern Sie das Installationsprotokoll und verwenden Sie die letzte Befehlsfehlermeldung, nicht nur die Zusammenfassung. Häufige Ursachen sind nicht verfügbare Pakete, Repository- oder DNS-Fehler, zu wenig freier Speicherplatz, ein nicht unterstütztes Komprimierungswerkzeug und ein schreibgeschütztes Modulverzeichnis. Der Daemon meldet, wenn er auf `/var/lib/minios-store/modules` umgeschaltet hat.
+Erweitern Sie das Installationsprotokoll und nutzen Sie die letzte Befehlsfehlermeldung, nicht nur die Zusammenfassung. Häufige Ursachen sind nicht verfügbare Pakete, Repository- oder DNS-Fehler, zu wenig freier Speicherplatz, ein nicht unterstütztes Kompressionstool und ein schreibgeschütztes Modulverzeichnis. Der Daemon meldet, wenn er auf `/var/lib/minios-store/modules` umschaltet.
 
 ### Die Anwendung fehlt nach der Installation
 
-Für den Modulmodus starten Sie neu, nachdem Sie bestätigt haben, dass sich die Datei `.sb` im `minios/modules`-Verzeichnis des Bootmediums befindet. Eine Datei im Fallback-Verzeichnis wird nicht automatisch geladen. Im Systemmodus bei einer Live-Sitzung prüfen Sie, ob die Sitzung persistent ist, falls die Anwendung nach dem Neustart verschwunden ist.
+Starten Sie im Modulmodus neu, nachdem Sie bestätigt haben, dass die `.sb`-Datei im `minios/modules`-Verzeichnis des Bootmediums liegt. Eine Datei im Fallback-Verzeichnis wird nicht automatisch geladen. Im Systemmodus einer Live-Sitzung prüfen Sie, ob die Sitzung persistent ist, falls die Anwendung nach dem Neustart verschwunden ist.
 
-### Ein abgebrochener System-Installationsvorgang hat dpkg nicht abgeschlossen
+### Eine abgebrochene Systeminstallation hat dpkg nicht abgeschlossen
 
-Überprüfen Sie den Paketstatus, bevor Sie es erneut versuchen:
+Prüfen Sie den Paketstatus, bevor Sie es erneut versuchen:
 
 ```bash
 sudo dpkg --audit
@@ -128,9 +132,9 @@ sudo dpkg --configure -a
 sudo apt-get -f install
 ```
 
-Prüfen Sie die vorgeschlagenen APT-Änderungen, bevor Sie eine weitere Reparaturoperation bestätigen.
+Überprüfen Sie die vorgeschlagenen APT-Änderungen, bevor Sie eine weitere Reparaturoperation bestätigen.
 
-## Zugehörige Dokumentation
+## Verwandte Dokumentation
 
 - [Module erstellen](/preparing-and-customizing/Managing-Modules#creating-modules)
 - [ISO neu erstellen](/preparing-and-customizing/Creating-Custom-MiniOS-Images)

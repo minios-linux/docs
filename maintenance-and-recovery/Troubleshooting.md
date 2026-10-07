@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-26
+updated: 2026-10-06
 ---
 # Troubleshooting
 
@@ -109,7 +109,7 @@ sudo minios-session info
 
 Check the selected boot mode, available writable space, filesystem compatibility, and session compatibility. The detailed selection rules are in [Sessions and persistence](/using-minios/Sessions-and-Persistence) and [Persistence internals](/reference/boot-process/Persistence-Internals).
 
-If an important non-running `native`, `dynfilefs`, `dynblk`, `raw`, or `luks` session is still readable, export it **before** experimenting with the storage:
+If an important non-running `native`, `dynfilefs`, `dynblk`, `vmdk`, or `raw` session is still readable, including an encrypted form that can be unlocked, export it **before** experimenting with the storage:
 
 ```bash
 sudo minios-session export <id> /path/to/session.tar.zst
@@ -180,12 +180,14 @@ indicates native block support and does not promise VMDK session boot support.
 Do not change an existing session's mode by hand: use an explicit copy or
 conversion to the other format.
 
-### Freeing space in DynBlk or VMDK sessions
+### Freeing space in DynFileFS, DynBlk, or VMDK sessions
 
 Use Session Manager's context menu **Free Space...**, or
 `minios-session reclaim ID --json`. For plaintext sessions this trims the
-internal ext4 and then reclaims storage without moving live data. On exFAT,
-interior gaps may remain allocated; `--compact` is a separate manual choice
-which relocates live data and writes more to the flash device. Nothing enables
+actual inner ext4 and then asks the owning backend to reclaim storage without
+moving live data. DynFileFS requires version 4.6.0 or later for this operation.
+On filesystems such as exFAT, interior gaps may remain allocated to the host file
+but reusable by the container; `--compact` is a separate manual choice that can
+relocate live data and writes more to the flash device. Nothing enables
 compaction or LUKS discard automatically. An encrypted session can reclaim only
-space already known to the underlying driver through this command.
+space already known to the underlying backend through this command.

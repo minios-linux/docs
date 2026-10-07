@@ -1,7 +1,7 @@
 ---
-updated: 2026-09-26
+updated: 2026-10-06
 program_commits:
-  minios-configurator: d2e9837de73c3c95ac3717168969a882ec97f04c
+  minios-configurator: 4d82e44c6ee6f04909e9dd3ef8e31389d3ac8817
 ---
 # Preconfiguring MiniOS
 
@@ -49,6 +49,8 @@ Every control states when it is used. Saving never applies a setting to the curr
 ### Applied after reboot
 
 Hostname, locale, timezone, keyboard, boot target, service selection, module mode, user-directory media handling, debug settings, log export, and the three Advanced storage settings are read on a later boot. Reboot after saving to apply them.
+
+In **Advanced**, **Module mode** accepts `simple` or `merged`. When `LIVE_MODULE_MODE` is absent from the selected configuration, current MiniOS Configurator presents `merged` as the effective default. In merged mode, live-config refreshes users, caches, and package state so configuration from the module stack is integrated into the running live system.
 
 In **Advanced**, **System log storage**, **APT download cache**, and **Browser cache** each offer `persistent` (default) or `volatile`. Their `volatile` choices apply only to a healthy, durable `perch` session. Logs from `minios-boot` and `live-config` stay persistent even when ordinary logs are temporary. APT package state and browser profiles stay persistent; only the selected logs and caches move to bounded RAM. Browser setup runs after the live user is created. Configurator warns if the running initrd lacks the `perch-storage-v1` marker needed for these settings. See [Performance](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch) before choosing RAM sizes for a low-memory machine.
 

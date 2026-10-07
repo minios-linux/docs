@@ -1,8 +1,8 @@
 ---
-updated: 2026-08-26
+updated: 2026-10-06
 program_commits:
-  minios-image-builder: 48f882998f2f8f3cd9fdd0367697f999fa3b402c
-  minios-tools: 7cdd0e10c0f610ebc581efa82105b747437a6125
+  minios-image-builder: bf84d50bfe9461f4e9300033c5855ec8fa387552
+  minios-tools: be508248395979c27cb8036a7d8cc69bdfc82c42
 ---
 # Creating custom MiniOS images
 
@@ -47,7 +47,9 @@ Choose a source and wait for inventory to finish. Review its identity, architect
 
 ### Select content
 
-Choose the source modules to include and add any external `.sb` modules. Required core and kernel modules are locked. Modules active in the current session but absent from the selected source are shown separately and are not included automatically.
+Choose the source modules to include and add any external `.sb` modules. Required core and kernel modules are locked. Ordinary external modules active in the current session but absent from the selected source are shown separately and remain opt-in.
+
+An external module that is actively replacing a source module at that module's original system path is treated differently: current Image Builder resolves the backing file by device and inode, keeps the original system role, and includes that replacement as the effective source module instead of presenting it as an unrelated optional duplicate. This also covers relocated initramfs backing paths. Other external modules still require explicit selection.
 
 Additional modules must be readable regular files with valid SquashFS data. Duplicate or case-folded basenames and target collisions are rejected because the runtime resolves layers by basename.
 
@@ -103,7 +105,8 @@ Supported settings are constrained and validated by the backend:
 - **Security and access:** allowlisted sudo, PolicyKit, SSH, XRDP, X11, lock-screen, and issue-hint modes.
 - **User data:** validated root-relative user directories with either link or bind behavior, not both.
 - **Boot behavior:** a timeout from 0 to 300 seconds, the source menu or a constructed menu, and a selected default entry.
-- **Boot entries:** resume, new, choose, fresh, and copy-to-RAM templates can be hidden, reordered, duplicated, and configured through typed persistence, module, startup, localization, zRAM, and diagnostic controls.
+- **Boot entries:** resume, new, choose, fresh, and copy-to-RAM templates can be hidden, reordered, duplicated, and configured through typed persistence, module, startup, localization, zRAM, and diagnostic controls. Current new-session templates use `perchdir=setup` so the persistence backend can be selected at startup; when an older source already uses `perchdir=new`, that legacy selector is preserved rather than silently rewritten.
+- **RAM behavior:** system copying (`toram`) and persistence-session copying (`perchtoram`) are independent controls. `perchtoram=off` keeps persistence on storage, `trim` copies the selected supported session, and `full` requests a full supported-session copy. When persistence is enabled, current menus use `trim` with a RAM system boot and `off` otherwise unless you choose another value. Native directory sessions are not copied by `perchtoram`.
 - **Expert boot settings:** validated global and per-entry kernel arguments for options not represented by typed controls.
 - **Appearance:** a validated PNG boot background.
 - **Project filesystem layer:** one real directory interpreted relative to image root and packaged as a root-owned SquashFS overlay module.
@@ -257,7 +260,7 @@ minios-image-compose \
   --name ./custom-boot.iso
 ```
 
-`--default-boot` accepts `resume`, `new`, `choose`, `fresh`, or `toram`.
+`--default-boot` accepts `resume`, `new`, `choose`, `fresh`, or `toram`. The semantic `new` template maps to `perchdir=setup` in current MiniOS menus, while legacy `perchdir=new` source entries remain recognizable. The graphical boot-menu constructor also preserves `perchtoram=off|trim|full` independently from the system `toram` setting.
 `--menu` accepts `multilang` or a supported locale such as `en_US`, `ru_RU`, or `de_DE`. Kernel arguments are validated and appended without shell evaluation. Unsupported or ambiguous boot-menu layouts are rejected rather than modified by guesswork.
 
 ### Add artwork or a filesystem overlay

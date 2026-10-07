@@ -1,374 +1,172 @@
 ---
-updated: 2026-08-31
+updated: 2026-10-06
 program_commits:
-    minios-kernel-manager: a5bd09e2d1b2cbb6e44a690bf12047c93bf1a87b
+    minios-kernel-manager: 77ec4226a5abf53fe85e34d6dcf3e09af76f0dad
 ---
 
 # Mengelola kernel
 
-## Mengapa Mengganti Kernel?
+Manajer Kernel MiniOS mengemas, memeriksa, mengaktifkan, dan menghapus bundel kernel untuk sistem live modular MiniOS. Kernel MiniOS adalah satu set terkoordinasi: image kernel, initramfs, dan `01-kernel-<version>.sb` modul yang sesuai harus tetap bersama.
 
-MiniOS dilengkapi kernel bawaan, namun ada beberapa alasan mengapa Anda mungkin ingin menggantinya:
+Alur kerja ini hanya berlaku untuk arsitektur live. Instalasi native menggunakan paket kernel Debian atau Ubuntu biasa, alat initramfs standar, dan bootloader yang telah terpasang.
 
-### **Varian Kernel Debian yang Berbeda**
+## Fungsi Kernel Manager
 
-Debian menyediakan beberapa varian kernel yang dioptimalkan untuk berbagai kebutuhan:
+Antarmuka grafis **Manajer Kernel MiniOS** dan `minios-kernel` CLI menggunakan backend yang sama. Keduanya dapat:
 
-- **`linux-image-6.12.38+deb13-amd64`** - Kernel standar untuk sistem 64-bit (default di MiniOS)
-- **`linux-image-6.12.38+deb13-rt-amd64`** - Kernel real-time untuk aplikasi yang membutuhkan respons waktu nyata
-- **`linux-image-6.12.38+deb13-cloud-amd64`** - Dioptimalkan untuk lingkungan cloud dan virtualisasi
+- menampilkan daftar kernel yang dikemas dan membedakan versi yang sedang berjalan, aktif, dan tidak aktif;
+- mengemas kernel versi nyata dari repository APT yang telah dikonfigurasi;
+- mengemas satu set file kernel lokal yang konsisten `.deb`;
+- secara opsional menambahkan driver terpilih dari katalog DKMS MiniOS yang telah dikurasi saat mengemas kernel dari repository;
+- membangun initramfs MiniOS dan modul kernel SquashFS yang sesuai;
+- menyimpan bundel yang sudah selesai di repository kernel MiniOS;
+- mengaktifkan bundel lengkap untuk boot berikutnya dan memperbarui konfigurasi bootloader yang didukung;
+- menghapus kernel yang dikemas dan tidak aktif.
 
-> **Catatan:** Nomor versi (seperti `6.12.38+deb13`) akan berubah saat ada pembaruan. Untuk melihat kernel yang tersedia saat ini:
-> ```bash
-> apt search linux-image-.*-amd64
-> apt search linux-image-.*-rt-amd64
-> apt search linux-image-.*-cloud-amd64
-> ```
+Kernel Manager tidak melakukan kompilasi source tree kernel secara acak. Jika Anda perlu mengubah input build kernel MiniOS itu sendiri, gunakan alur kerja build source MiniOS sebagai gantinya.
 
-### **Kasus Penggunaan Khusus**
+## Mulai manajer grafis
 
-- **Komputasi real-time** - Kernel RT untuk produksi audio, kontrol industri
-- **Gaming dan latensi rendah** - Kernel khusus dengan optimasi untuk gaming
-- **Penguatan keamanan** - Kernel dengan patch keamanan tambahan (grsecurity, dll.)
-- **Kompatibilitas perangkat keras** - Kernel terbaru untuk dukungan perangkat keras terkini
-- **Tuning performa** - Kernel hasil kompilasi khusus dengan optimasi tertentu
-
-### **Fitur Kernel Kustom**
-
-- **Patch khusus** - Terapkan patch tertentu untuk perangkat keras atau kebutuhan Anda
-- **Modul kernel** - Tambahkan dukungan untuk perangkat keras atau filesystem khusus
-- **Optimasi kompilasi** - Bangun kernel dengan flag optimasi berbeda
-- **Optimasi ukuran** - Hapus driver yang tidak diperlukan untuk memperkecil ukuran kernel
-
-### **Skenario Umum**
-
-- **Workstation produksi audio** - Gunakan kernel RT untuk latensi audio minimal
-- **Sistem gaming** - Terapkan patch dan optimasi khusus gaming
-- **Lingkungan server** - Gunakan kernel yang dioptimalkan untuk cloud demi virtualisasi lebih baik
-- **Perangkat keras lawas** - Gunakan kernel lama untuk kompatibilitas dengan sistem vintage
-- **Sistem pengembangan** - Uji aplikasi pada berbagai versi kernel
-
----
-
-## Ikhtisar Manajer Kernel MiniOS
-
-MiniOS menyediakan dua alat untuk manajemen kernel:
-
-1. **Manajer Kernel MiniOS (GUI):** Aplikasi grafis yang ramah pengguna untuk melakukan pengemasan, instalasi, dan pengelolaan kernel
-2. **minios-kernel (CLI):** Alat baris perintah untuk pengguna tingkat lanjut dan otomasi
-
-Kedua alat ini secara otomatis menangani:
-- **Pengemasan kernel** ke dalam format SquashFS
-- **Pembuatan initramfs** dengan driver dan skrip boot yang sesuai
-- **Instalasi** ke repositori kernel MiniOS
-- **Pembaruan konfigurasi bootloader**
-- **Aktivasi kernel** dan pergantian kernel
-
-Halaman ini membahas sistem live modular MiniOS. Manajer Kernel MiniOS dan `minios-kernel` tersedia untuk arsitektur live tersebut beserta modul kernel terkoordinasi, `vmlinuz`, dan set initramfs-nya. Setelah konversi native, sistem akan menggunakan alur kerja kernel Debian konvensional; alat kernel live MiniOS akan dihapus karena model kernel modular tidak lagi berlaku, sehingga gunakan paket kernel Debian, alat initramfs, dan bootloader yang telah terpasang. Lihat [Tentang MiniOS](/getting-started/About-MiniOS) dan [Mode Boot](/using-minios/Boot-Modes). Untuk perilaku kernel terkoordinasi pada initrd live secara detail, lihat [Pemrosesan modul initrd](/reference/boot-process/Module-Loading).
-
-### **Hal-hal Penting yang Perlu Diperhatikan:**
-
-- **Hak Administrator:** Kedua alat membutuhkan hak administrator dan akan meminta autentikasi melalui PolicyKit
-- **Kompatibilitas Kernel:** Pastikan kernel kompatibel dengan MiniOS. Disarankan menggunakan kernel dari repositori
-- **Direktori MiniOS:** Alat akan otomatis mendeteksi direktori MiniOS (`/minios/`) dan memeriksa izin tulis
-- **Pembaruan Otomatis:** Konfigurasi bootloader akan diperbarui secara otomatis saat kernel diaktifkan
-
----
-
-## Metode 1: Menggunakan Manajer Kernel MiniOS (GUI)
-
-Manajer kernel grafis menyediakan antarmuka yang intuitif untuk semua operasi kernel.
-
-### **Langkah-langkah:**
-
-#### 1. **Jalankan Aplikasi**
+Jalankan dari menu aplikasi MiniOS atau gunakan perintah berikut:
 
 ```bash
 minios-kernel-manager
 ```
 
-Atau cari "Manajer Kernel MiniOS" di menu aplikasi Anda.
+Aplikasi ini memisahkan pengelolaan kernel yang terpasang dari proses pengemasan. Kernel repository dapat dicari berdasarkan nama paket atau versi kernel yang ditampilkan. Kontrol paket tidak tersedia jika root MiniOS yang terdeteksi tidak dapat ditulis.
 
-#### 2. **Kemasi Kernel Baru**
+Operasi backend yang membutuhkan hak istimewa menggunakan PolicyKit. `minios-kernel` CLI mandiri memerlukan akses root untuk setiap perintah kecuali bantuan.
 
-**Menggunakan Tab Package Kernel:**
+## Mengemas kernel dari repository
 
-1. **Pilih Sumber Kernel:**
-   - **Paket Manual:** Telusuri dan pilih paket kernel `.deb` lokal
-   - **Repositori:** Pilih dari kernel yang tersedia di repositori Debian/Ubuntu
+Pilih **Repository** di tampilan pengemasan dan pilih paket kernel versi nyata, misalnya:
 
-2. **Atur Kompresi:**
-   - Pilih kompresi SquashFS: `zstd` (disarankan), `lz4`, `lzo`, `xz`, atau `gzip`
+```text
+linux-image-6.12.107+deb13-amd64
+```
 
-3. **Kemasi Kernel:**
-   - Klik tombol "Package Kernel"
-   - Pantau progres pada log pengemasan
-   - File akan otomatis diinstal ke repositori MiniOS
+Metapackage pelacak seperti `linux-image-amd64` tidak diterima sebagai sumber paket. Mode repository menggunakan sumber APT, konfigurasi kepercayaan, dan daftar paket yang telah dikonfigurasi pada sistem yang sedang berjalan. Ketergantungan split-kernel versi yang sesuai akan diselesaikan secara otomatis jika distribusi menggunakannya.
 
-#### 3. **Kelola Kernel yang Terpasang**
+GUI tidak menjalankan `apt update` hanya karena daftar paket sudah lama. Segarkan secara manual jika diperlukan, atau gunakan `--force-update` melalui CLI.
 
-**Menggunakan Tab Manage Kernels:**
+### Tambah driver DKMS terkurasi
 
-1. **Lihat Kernel yang Tersedia:**
-   - Lihat semua kernel yang sudah dikemas beserta statusnya:
-     - **ACTIVE:** Kernel yang dikonfigurasi saat ini
-     - **RUNNING:** Kernel yang sedang dijalankan
-     - **AVAILABLE:** Tersedia untuk diaktifkan
+Pengemasan dari repository dapat menambahkan driver terpilih dari katalog DKMS MiniOS `01-kernel`. GUI akan menampilkan pilihan yang kompatibel untuk kernel yang dipilih; CLI menerima opsi `--dkms-driver` yang dapat diulang:
 
-2. **Aktifkan Kernel:**
-   - Klik kanan pada kernel lalu pilih "Activate Kernel"
-   - Konfirmasi dialog aktivasi
-   - Konfigurasi bootloader akan diperbarui secara otomatis
+```bash
+sudo minios-kernel package \
+  --repo linux-image-6.12.107+deb13-amd64 \
+  --dkms-driver rtl8821au \
+  -o /tmp/kernel-output
+```
 
-3. **Hapus Kernel:**
-   - Klik kanan pada kernel yang tidak aktif lalu pilih "Delete Kernel"
-   - Konfirmasi penghapusan (tidak dapat dibatalkan)
+Driver yang dipilih akan dibangun di overlay/chroot terisolasi dengan header yang sesuai. Backend akan memverifikasi bahwa modul yang dihasilkan cocok dengan kernel target sebelum memasukkannya, dan mencatat asal-usul driver di dalam bundel di bawah `/usr/share/minios/kernel-dkms/`.
 
----
+Fitur ini merupakan kompatibilitas terkurasi, bukan frontend DKMS umum. Paket kernel lokal manual tidak menyediakan pemilihan driver karena header repository yang cocok tidak dapat dideteksi secara andal.
 
-## Metode 2: Menggunakan minios-kernel (CLI)
+## Mengemas paket kernel lokal
 
-Alat baris perintah ini menyediakan kemampuan manajemen kernel yang dapat diotomasi melalui skrip.
+Untuk kernel lokal, sediakan semua file `.deb` yang diperlukan dari build kernel yang sama:
 
-### **Hak Akses Administrator Diperlukan:**
+```bash
+sudo minios-kernel package \
+  --deb linux-image.deb linux-modules.deb \
+  -o /tmp/kernel-output
+```
 
-Alat CLI memerlukan hak akses root dan akan memeriksanya secara otomatis. Jalankan perintah dengan `sudo` atau melalui `pkexec`:
+Debian dan Ubuntu dapat membagi satu kernel ke beberapa paket. Backend akan memeriksa bahwa image, modul, base, dan paket modules-extra opsional yang disediakan membentuk satu versi yang konsisten, bukan menggabungkan revisi yang tidak berhubungan secara diam-diam.
+
+## Output pengemasan dan kompresi
+
+Proses pengemasan menghasilkan image kernel, initramfs, dan modul kernel SquashFS. Metadata paket terpilih disimpan di dalam modul pada `/usr/share/minios/kernel-dpkg/`.
+
+Metode kompresi bawaan adalah SquashFS `zstd`. Metode lain hanya tersedia jika alat yang dibutuhkan ada; saat ini didukung `lz4`, `lzo`, `gzip`, `lzma`, `xz`, dan `bzip2`.
+
+Jika root MiniOS dapat ditulis dan output yang diminta berada di lokasi lain, bundel yang sudah selesai akan dipindahkan secara atomik ke:
+
+```text
+<MiniOS-root>/kernels/<version>/
+```
+
+Unduhan dari repository hanya digunakan sementara sebagai input build dan akan dihapus setelah proses pengemasan selesai atau gagal. `.deb`Input lokal tetap menjadi tanggung jawab pemanggil.
+
+## Kompatibilitas persistensi terenkripsi
+
+Jika initramfs MiniOS yang sedang berjalan mengiklankan persistensi LUKS berlapis, kernel pengganti harus mempertahankan jalur boot dm-crypt. Initramfs yang dihasilkan akan diperiksa untuk dukungan cryptsetup yang diperlukan, modul dm-crypt, dan penanda kemampuan crypto MiniOS.
+
+Proses pengemasan akan gagal daripada menghasilkan bundel kernel yang membuat sesi persistensi terenkripsi tidak dapat boot.
+
+## Aktivasi dan penghapusan kernel
+
+Tampilan manajemen membedakan:
+
+- **RUNNING** — kernel yang sedang berjalan pada boot saat ini;
+- **ACTIVE** — bundel lengkap yang dipilih untuk boot berikutnya;
+- **AVAILABLE** — bundel lain yang telah dikemas di repository MiniOS.
+
+Aktivasi memerlukan entri repository yang lengkap. Proses ini akan menyiapkan image kernel, initramfs, modul SquashFS aktif, penanda versi aktif, dan perubahan bootloader sebagai satu operasi terkoordinasi. Konfigurasi GRUB diperlukan; konfigurasi SYSLINUX native akan diperbarui jika ada. Jika aktivasi gagal, file boot yang sudah disiapkan akan dikembalikan seperti semula.
+
+Aktivasi hanya mengubah boot berikutnya; tidak me-reboot sistem saat ini. Pastikan setidaknya ada satu bundel lengkap yang sudah terbukti berhasil sebelum mengganti kernel.
+
+Hapus hanya kernel yang telah dikemas dan tidak aktif jika memang sudah tidak diperlukan. Jangan mencampur image kernel, initramfs, atau `01-kernel-*.sb` dari bundel yang berbeda secara manual.
+
+## Referensi baris perintah
+
+Perintah yang umum digunakan antara lain:
 
 ```bash
 sudo minios-kernel list
-# or
-pkexec minios-kernel activate 6.12.38+deb13-amd64
-```
-
-### **Perintah Dasar:**
-
-#### 1. **Daftar Kernel yang Tersedia**
-
-```bash
-sudo minios-kernel list
-```
-
-Menampilkan semua kernel yang terpaket beserta statusnya.
-
-#### 2. **Paketkan Kernel**
-
-**Dari Repository:**
-```bash
-sudo minios-kernel package --repo linux-image-6.12.38+deb13-amd64 -o /tmp/kernel-output
-```
-
-**Dari Berkas .deb Lokal:**
-```bash
-sudo minios-kernel package --deb /path/to/kernel.deb -o /tmp/kernel-output
-```
-
-**Dengan Kompresi Kustom:**
-```bash
-sudo minios-kernel package --repo linux-image-6.12.38+deb13-rt-amd64 --sqfs-comp lz4 -o /tmp/kernel-output
-```
-
-#### 3. **Aktifkan Kernel**
-
-```bash
-sudo minios-kernel activate 6.12.38+deb13-amd64
-```
-
-#### 4. **Hapus Kernel**
-
-```bash
-sudo minios-kernel delete 6.12.38+deb13-amd64
-```
-
-#### 5. **Periksa Status**
-
-```bash
+sudo minios-kernel info
+sudo minios-kernel info <version>
 sudo minios-kernel status
+sudo minios-kernel activate <version>
+sudo minios-kernel delete <version>
 ```
-
-Menampilkan status direktori MiniOS dan informasi kernel yang sedang digunakan.
-
-#### 6. **Tampilkan Informasi Kernel**
+Mengemas dari repository atau file lokal:
 
 ```bash
-sudo minios-kernel info                           # Information about current active kernel
-sudo minios-kernel info 6.12.38+deb13-amd64     # Information about specific kernel
+sudo minios-kernel package --repo <versioned-package> -o /tmp/kernel-output
+sudo minios-kernel package --repo <versioned-package> --force-update -o /tmp/kernel-output
+sudo minios-kernel package --deb /path/to/kernel-image.deb /path/to/kernel-modules.deb -o /tmp/kernel-output
+sudo minios-kernel package --repo <versioned-package> --sqfs-comp lz4 -o /tmp/kernel-output
 ```
 
-Menampilkan informasi detail tentang kernel tertentu, termasuk status dan ketersediaannya.
-
-### **Opsi CLI Lanjutan:**
-
-#### **Keluaran JSON (untuk scripting):**
+Tambahkan `--json` untuk output terstruktur. Gunakan bantuan dan manual yang terpasang untuk opsi yang tersedia pada versi yang sedang berjalan:
 
 ```bash
-sudo minios-kernel --json list
-sudo minios-kernel --json status
-sudo minios-kernel --json info
-sudo minios-kernel --json package --repo linux-image-6.12.38+deb13-amd64 -o /tmp/output
-sudo minios-kernel --json activate 6.12.38+deb13-amd64
-sudo minios-kernel --json delete 6.12.38+deb13-amd64
+minios-kernel --help
+sudo minios-kernel package --help
+man minios-kernel
 ```
 
-#### **Opsi Paket Lanjutan:**
+## Tata letak penyimpanan
 
-```bash
-# Use custom temporary directory (requires at least 1024MB free space)
-sudo minios-kernel package --repo linux-image-6.12.38+deb13-rt-amd64 -o /tmp/output --temp-dir /custom/temp
+Kernel Manager mendeteksi root konten MiniOS secara otomatis, bukan mengasumsikan nama block-device tertentu. Path yang dikelola bersifat relatif terhadap root tersebut:
 
-# Force package lists update if outdated
-sudo minios-kernel package --repo linux-image-6.12.38+deb13-rt-amd64 -o /tmp/output --force-update
-```
-
-#### **Bantuan dan Penggunaan:**
-
-```bash
-minios-kernel --help                    # General help (doesn't require root)
-sudo minios-kernel package --help       # Package command help
-sudo minios-kernel list --help          # List command help
-sudo minios-kernel activate --help      # Activate command help
-sudo minios-kernel info --help          # Info command help
-sudo minios-kernel status --help        # Status command help
-sudo minios-kernel delete --help        # Delete command help
-```
-
----
-
-## Pemecahan Masalah
-
-### Masalah Umum dan Solusinya:
-
-#### **Direktori MiniOS Tidak Ditemukan**
-
-- **Penyebab:** Alat tidak dapat menemukan direktori MiniOS
-- **Solusi:** Pastikan Anda menjalankan dari sistem MiniOS atau USB drive sudah ter-mount dengan benar
-- **Cek:** Jalankan `sudo minios-kernel status` untuk memverifikasi deteksi direktori
-
-#### **Permission Denied**
-
-- **Penyebab:** Direktori MiniOS hanya-baca atau izin tidak mencukupi
-- **Solusi:** Pastikan Anda memiliki hak administrator dan filesystem dapat ditulis
-- **Cek:** Periksa status direktori MiniOS di GUI atau CLI
-
-#### **Instalasi Paket Gagal**
-
-- **Penyebab:** Paket rusak, masalah jaringan, atau masalah dependensi
-- **Solusi:**
-  - Verifikasi integritas file paket
-  - Periksa koneksi jaringan untuk paket dari repositori
-  - Perbarui daftar paket: `sudo apt update`
-
-#### **Kernel panic setelah aktivasi**
-
-- **Penyebab:** Kernel tidak kompatibel atau driver hilang
-- **Tindakan:** Boot ke sistem MiniOS yang sudah terbukti stabil, amankan data penting, dan pulihkan satu set kernel lengkap yang sudah terbukti stabil jika tersedia. Jika tidak, lakukan instalasi ulang pada instalasi MiniOS yang terdampak. Jangan mencoba memperbaiki sistem dengan mencampur file kernel, initramfs, atau `01-kernel-*.sb` secara individual. Lihat [Troubleshooting](/maintenance-and-recovery/Troubleshooting).
-
-#### **Sistem Boot ke Kernel Lama**
-
-- **Penyebab:** Konfigurasi bootloader tidak diperbarui dengan benar
-- **Solusi:**
-  - Jalankan ulang aktivasi kernel: `sudo minios-kernel activate <version>`
-  - Pastikan kernel sudah dikemas dan diinstal dengan benar
-
-#### **Perangkat Keras Tidak Berfungsi Setelah Ganti Kernel**
-
-- **Penyebab:** Driver tidak tersedia di kernel baru
-- **Solusi:**
-  - Pastikan file modul kernel SquashFS sudah terpasang
-  - Periksa apakah kernel baru mendukung perangkat keras Anda
-  - Pertimbangkan menggunakan varian kernel lain
-
-#### **Pemulihan setelah perubahan kernel gagal**
-
-Jangan menyalin image kernel, initramfs, atau modul `01-kernel-*.sb` secara individual dari image lain. Kernel MiniOS yang dapat di-boot memerlukan satu set yang terkoordinasi. Jika satu set lengkap yang sudah terbukti stabil tidak tersedia melalui workflow manajemen kernel, lakukan instalasi ulang pada instalasi MiniOS yang terdampak daripada merakit komponen boot secara manual. Amankan data penting terlebih dahulu; lihat [Troubleshooting](/maintenance-and-recovery/Troubleshooting).
-
-### **Perintah Diagnostik:**
-
-**Periksa Status Sistem Saat Ini:**
-```bash
-sudo minios-kernel status
-sudo minios-kernel info     # Current active kernel info
-uname -r                    # Current running kernel
-cat /proc/version           # Kernel version details
-lsmod                       # Loaded kernel modules
-```
-
-**Verifikasi Berkas Kernel:**
-```bash
-ls -la /minios/kernels/     # List packaged kernels
-ls -la /minios/boot/        # List boot files
-```
-
-**Periksa Konfigurasi Bootloader:**
-```bash
-grep -r "vmlinuz" /minios/boot/  # Find kernel references in boot configs
-```
-
----
-
-## Ikhtisar Struktur Berkas
-
-Manajer Kernel MiniOS secara otomatis mengelola berkas-berkas berikut:
-
-### **Struktur Repository Kernel:**
-
-```
-/minios/
-├── 01-kernel-<version>.sb         # Active kernel module
-├── kernels/                       # Repository of inactive/alternative kernels
-│   └── <version>/
-│       ├── 01-kernel-<version>.sb # SquashFS kernel module
-│       ├── vmlinuz-<version>      # Kernel image
-│       └── initrfs-<version>.img  # Initial RAM filesystem
+```text
+<MiniOS-root>/
+├── 01-kernel-<version>.sb
 ├── boot/
-│   ├── vmlinuz-<version>          # Active kernel binary
-│   ├── initrfs-<version>.img      # Active initial RAM filesystem
-│   ├── syslinux/
-│   │   └── syslinux.cfg           # SYSLINUX bootloader config
-│   └── grub/
-│       └── grub.cfg               # GRUB bootloader config
+│   ├── vmlinuz-<version>
+│   ├── initrfs-<version>.img
+│   └── active-kernel
+└── kernels/
+    └── <version>/
+        ├── 01-kernel-<version>.sb
+        ├── vmlinuz-<version>
+        └── initrfs-<version>.img
 ```
+Path modul runtime utama adalah `/lib/modules/<version>`. Pada sistem usrmerged, path tersebut mengarah ke `/usr/lib/modules/<version>`; pada tata letak lama, file dapat disimpan secara fisik di bawah `/lib`. Pengemasan akan menolak pohon modul versi sama yang sudah ada daripada mencampur dengan revisi paket berbeda.
 
-**Catatan:** Modul standar `01-kernel-<version>.sb` yang disertakan di MiniOS berisi driver tambahan di luar yang tersedia pada paket kernel repository asli. Driver tambahan ini memberikan kompatibilitas perangkat keras yang lebih baik untuk adaptor nirkabel dan perangkat penyimpanan.
+## Pemulihan setelah kernel bermasalah
 
-### **Indikator Status:**
+Jika kernel yang baru diaktifkan gagal, boot set kernel lengkap MiniOS yang sudah terbukti jika masih tersedia. Jangan memperbaiki instalasi dengan menyalin file kernel, initramfs, atau SquashFS secara individual dari image lain: file-file tersebut merupakan satu bundel terkoordinasi.
 
-- **ACTIVE:** Kernel yang dikonfigurasi di bootloader (akan dijalankan pada restart berikutnya)
-- **RUNNING:** Kernel yang sedang berjalan saat ini
-- **AVAILABLE:** Sudah dikemas dan siap diaktifkan
+Jika tidak ada bundel lengkap yang terbukti tersisa, boot media rescue tepercaya, amankan data penting, lalu instal ulang atau pulihkan instalasi MiniOS yang terdampak. Lihat [Pemecahan masalah](/maintenance-and-recovery/Troubleshooting) dan [Mencadangkan MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS).
 
-### **Operasi Otomatis:**
+## Dokumentasi terkait
 
-- Pengemasan dan kompresi kernel
-- Pembuatan initramfs dengan driver yang sesuai
-- Instalasi ke repository MiniOS
-- Pembaruan konfigurasi bootloader
-- Manajemen symlink untuk kernel aktif
-- Pembersihan berkas sementara
-
----
-
-## Praktik Terbaik
-
-### **Pemilihan Kernel:**
-
-- Gunakan kernel dari repository resmi Debian/Ubuntu jika memungkinkan
-- Uji kernel baru di lingkungan non-produksi terlebih dahulu
-- Simpan setidaknya satu kernel yang sudah terbukti berfungsi untuk pemulihan
-
-### **Sebelum Instalasi:**
-
-- Pastikan direktori MiniOS dapat ditulis
-- Pastikan ruang disk mencukupi (ukuran kernel bisa 100-500MB)
-- Perbarui daftar paket untuk kernel repository
-
-### **Setelah Instalasi:**
-
-- Uji kernel baru secara menyeluruh
-- Pastikan semua perangkat keras berfungsi dengan baik
-- Simpan kernel sebelumnya sebagai cadangan sampai kernel baru terbukti stabil
-
-### **Perencanaan Pemulihan:**
-
-- Selalu simpan satu set kernel triplet yang sudah terbukti berfungsi
-- Ketahui cara boot dari media penyelamatan jika diperlukan
-- Dokumentasikan kernel mana saja yang cocok dengan konfigurasi perangkat keras Anda
+- [Arsitektur sistem MiniOS](/reference/System-Architecture)
+- [Pemanggilan modul initrd](/reference/boot-process/Module-Loading)
+- [Membangun MiniOS](/development/Building-MiniOS)
+- [Pemecahan masalah](/maintenance-and-recovery/Troubleshooting)

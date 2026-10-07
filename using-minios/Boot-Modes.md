@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-26
+updated: 2026-10-06
 ---
 # Boot modes
 
@@ -17,7 +17,7 @@ The normal default entry is **Start MiniOS**. It uses automatic persistence sele
 | **Start a new session** | You want a separate new workspace | Only if the new session is created and activated successfully | Yes |
 | **Choose a saved session** | You want to select one of several existing workspaces | Only if the selected session activates successfully | Yes |
 | **Start without saving** | You want a clean temporary boot without persistence | No | Yes |
-| **Run from RAM** | You want to copy MiniOS into RAM for this boot | No; treat the RAM copy as temporary | Until MiniOS has successfully detached the source |
+| **Run from RAM** | You want to copy MiniOS system data into RAM for this boot | RAM-backed changes are temporary unless a supported persistence session is explicitly saved back or saved as new | Until MiniOS has successfully detached the source and any storage you still need |
 
 For a normal first boot, leave **Start MiniOS** selected. Use **Start without saving** when you specifically need a clean temporary hardware test or recovery session that must not open or create persistence.
 
@@ -37,13 +37,13 @@ For a working persistent session, MiniOS Configurator can keep selected ordinary
 
 ## Start a new session
 
-MiniOS creates an additional numbered persistent session and leaves the existing sessions unchanged. Use this to keep separate workspaces or to test a new configuration without replacing your current working session.
+MiniOS opens the persistence setup menu, lets you choose a supported storage backend and applicable encryption or DynBlk compression options, then creates an additional numbered persistent session while leaving existing sessions unchanged. This is the current `perchdir=setup` behavior. Use it to keep separate workspaces or to test a new configuration without replacing your current working session.
 
-Creation requires writable compatible storage and enough free space. A new session is not a backup of an existing one.
+Creation requires writable compatible storage and enough free space. The available backend choices depend on the filesystem, Secure Boot state, installed drivers/tools, and initrd capabilities. A new session is not a backup of an existing one.
 
 ## Choose a saved session
 
-MiniOS displays available saved sessions and lets you select one. Use this when one device contains several workspaces. To create the first session on empty storage, choose **Start a new session** instead.
+MiniOS displays available saved sessions and lets you select one. Use this when one device contains several workspaces. If the selected persistence store is empty, the `ask` path automatically enters persistence setup so you can create the first session.
 
 A session can be incompatible when it comes from another MiniOS release or edition. A different `union=` setting can also make a session incompatible.
 Interactive selection does not make an incompatible session safe.
@@ -62,11 +62,13 @@ Starting without saving does not mean that the boot medium can be removed. The r
 
 ## Run from RAM
 
-This mode copies MiniOS data into RAM to reduce reads from the source. It needs enough memory for the copied system and the running workload.
+This mode copies MiniOS system data into RAM to reduce reads from the source. It needs enough memory for the copied system and the running workload.
 
-Treat a RAM-loaded session as temporary. Combining `toram` with persistence copies the selected session data into RAM; later changes are not copied back to the original persistence store.
+System copying and persistence copying are now separate. With a persistence request, `toram` defaults `perchtoram` to `trim`, so the selected supported Raw, DynFileFS, DynBlk, VMDK, or SquashFS session is copied into RAM while unrelated saved sessions stay on the original store. Use `perchtoram=off` when you want the system in RAM but the active persistence session to keep writing directly to storage, or `perchtoram=full` when all supported stored sessions should be copied. Native directory sessions are not copied by `perchtoram`.
 
-Do not remove the boot device merely because **Run from RAM** was selected. It is safe only after MiniOS has successfully detached the source filesystem, ISO loop, and any Ventoy mappings. If that operation fails, the source remains in use.
+A RAM-backed persistence session is non-durable while it is running. Current MiniOS Session Manager can explicitly write supported RAM-backed changes back to the original store with **Save Now**, or save them as a new numbered session, provided the original store is present, writable, and still matches the identity recorded at boot. Until such a save succeeds, unsaved RAM changes are lost at shutdown. SquashFS automatic save policies use the same session backend when the original store is available.
+
+Do not remove the boot device merely because **Run from RAM** was selected. It is safe only after MiniOS has successfully detached the source filesystem, ISO loop, Ventoy mappings, and any persistence dependency you still need. If detachment fails, the source remains in use.
 
 ## Native installation
 

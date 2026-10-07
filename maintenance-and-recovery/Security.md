@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-26
+updated: 2026-10-06
 ---
 # Security
 
@@ -58,13 +58,13 @@ Boot parameters can override configuration-file values. Inspect unexpected servi
 
 ## Encrypt persistent data
 
-Unencrypted native, DynFileFS, DynBlk, raw, and SquashFS persistence can be read by someone who obtains the device. MiniOS can layer LUKS2 over Raw, DynFileFS, or DynBlk. For boot-time creation select it with `perchencrypt=luks`; existing sessions obtain their encryption state from session metadata rather than from a later command-line override.
+Unencrypted native, DynFileFS, DynBlk, VMDK, raw, and SquashFS persistence can be read by someone who obtains the device. MiniOS can layer LUKS2 over Raw, DynFileFS, DynBlk, or VMDK. LUKS2 remains an encryption layer, not a separate session mode. For boot-time creation select it with `perchencrypt=luks`; existing sessions obtain their encryption state from session metadata rather than from a later command-line override.
 
-The encryption boundary differs by backend. Raw encrypts the logical block image inside `changes.img`; DynFileFS encrypts the exposed `virtual.dat`; DynBlk encrypts the `/dev/dynblkN` block device directly. Session metadata, boot files, DynFileFS/DynBlk backend metadata outside the encrypted block image, and unrelated files on the medium remain visible. DynBlk backend compression is disabled when LUKS2 is selected.
+The encryption boundary differs by backend. Raw encrypts the logical block image inside `changes.img`; DynFileFS encrypts the exposed `virtual.dat`; DynBlk and VMDK encrypt the block device exposed by the DynBlk driver. Session metadata, boot files, backend metadata and VMDK descriptors outside the encrypted block device, and unrelated files on the medium remain visible. DynBlk backend compression is disabled when LUKS2 is selected; VMDK does not provide backend compression.
 
 The initrd creates the encrypted filesystem on first use and asks for its passphrase; the installer does not receive or store that passphrase. At boot, three rejected unlock attempts stop the boot path rather than falling back to plaintext, another backend, or an in-memory replacement under the same persistence request.
 
-LUKS persistence protects the filesystem contents while the mapper is closed. It does not protect data after unlock, the unencrypted boot files, copied files outside the encrypted backend, or a native root filesystem. LUKS session persistence is not native root encryption. Logical exports contain decrypted session files, so protect backup archives separately. Use a strong passphrase and keep a tested backup.
+The MiniOS LUKS2 persistence layer protects filesystem contents while the mapper is closed. It does not protect data after unlock, the unencrypted boot files, copied files outside the encrypted backend, or a native root filesystem. Layered persistence encryption is not native root encryption. Logical exports contain decrypted session files, so protect backup archives separately. Use a strong passphrase and keep a tested backup.
 
 Temporary cache or journal storage is a write-reduction choice, not encryption. Even with `LIVE_LOG_STORAGE=volatile`, MiniOS keeps `minios-boot` and `live-config` diagnostics on the durable session store. For SquashFS these files are outside `changes.sb`, under the session's `boot-logs/` directory. An unencrypted backing device exposes them along with its other files. `LIVE_CONFIG_DEBUG=true` additionally enables detailed traces and copies of user-account merge inputs; keep debug disabled in ordinary use and review those logs before sharing them. See [Performance](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch).
 

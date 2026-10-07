@@ -1,7 +1,8 @@
 ---
-updated: 2026-09-30
+updated: 2026-10-06
 program_commits:
-  minios-module-manager: 7875b73a485eda82b9dc27827842e9b90f115cf7
+  minios-module-manager: fbe617f2955ddbef97f9ee3e5856b7d58439a565
+  minios-tools: be508248395979c27cb8036a7d8cc69bdfc82c42
 ---
 # Managing modules
 
@@ -37,7 +38,7 @@ Select a module to see its backing-file location, compressed size, and filesyste
 
 Inspection does not require administrator privileges. **Extract to Folder** asks for administrator authentication so it can retain owners, permissions, and special files. Extraction never replaces an existing destination or changes the source module.
 
-You can also open a local `.sb` file from the file manager. Opening a file only inspects it; it does not activate it or add it to Next Boot.
+You can also open a local `.sb` file from the file manager. Opening a file only inspects it; it does not activate it or add it to Next Boot. On Xfce systems with the MiniOS Thunar integration installed, the file-manager actions use the same module backend for explicit activation and deactivation; they do not bypass the Running Now versus Next Boot distinction.
 
 ## Creating a module
 
@@ -103,7 +104,7 @@ The graphical Folder and Extract to Folder workflows request administrator authe
 
 Current converters and builders use no-replace publication. A target that already exists, including a symbolic link, is not overwritten. Choose a new output path or explicitly review and remove the old output yourself.
 
-Use each command's `--help` output as the installed-version reference. The standard builder compression choices are `zstd` (the default), `gzip`, `lzo`, and `xz`; `dir2sb` also supports `lz4`.
+Use each command's `--help` output as the installed-version reference. Current `apt2sb`, `script2sb`, `chroot2sb`, `dir2sb`, and `savechanges` workflows accept `zstd` (the default), `gzip`, `lzo`, `lz4`, and `xz`. The selected compressor must be available in the running system.
 
 ### Module names and filter levels
 

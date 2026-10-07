@@ -1,8 +1,8 @@
 ---
-updated: 2026-09-26
+updated: 2026-10-06
 program_commits:
-  minios-session-manager: 69436959d893a9870aca23e91b346d06b49eb98d
-  minios-tools: 7cdd0e10c0f610ebc581efa82105b747437a6125
+  minios-session-manager: 3ec8b706ff661eb7f8f3fa5306a14f7fd7bc5cd3
+  minios-tools: be508248395979c27cb8036a7d8cc69bdfc82c42
 ---
 # Sessions and persistence
 
@@ -52,8 +52,9 @@ Any recognized persistence parameter enables persistence handling. MiniOS boot m
 |-----------|---------|
 | `perch` | Use the legacy best-effort resume path. It tries the metadata default but does not create a replacement when none is usable. |
 | `perchdir=resume` | Resume the metadata default and, when it is absent or incompatible, allow the initrd to create a new compatible replacement. This is the current boot-menu resume behavior. |
-| `perchdir=new` | Allocate a new numbered session. |
-| `perchdir=ask` | Select an existing session or create one during boot. |
+| `perchdir=setup` | Open the interactive persistence-backend chooser, then allocate a new numbered session. This is the current **Start a new session** behavior. |
+| `perchdir=new` | Allocate a new numbered session directly from the requested/default backend, encryption, compression, and size settings without opening the backend chooser. |
+| `perchdir=ask` | Select an existing session; if the store is empty, automatically enter the same setup flow used by `perchdir=setup`. |
 | `perchdir=<id>` | Select that numbered session directly. |
 | `perchdir=<device/path>` | Use a persistence location on a device, including `/dev/...` and `label:...` forms handled by the initrd. |
 | `perchmode=<mode>` | Set `native`, `dynfilefs`, `dynblk`, `vmdk`, `raw`, or `squashfs`. |
@@ -117,6 +118,8 @@ Create sessions:
 sudo minios-session create
 sudo minios-session create native
 sudo minios-session create dynfilefs
+sudo minios-session create dynblk 16GB
+sudo minios-session create vmdk 16GB
 sudo minios-session create raw 4GB
 sudo minios-session create raw 4GB --encryption luks
 sudo minios-session create squashfs --policy shutdown
@@ -125,10 +128,18 @@ sudo minios-session create squashfs --policy manual --autosave 60
 
 `create` without a mode selects native. SquashFS creation captures the current live changes and has no fixed size. Its shutdown policy defaults to `shutdown`; periodic saving defaults to off.
 
-Save and configure a SquashFS session:
+Save a running SquashFS session, or a supported persistence session that the current boot copied into RAM:
 
 ```bash
-sudo minios-session save <running-squashfs-id>
+sudo minios-session save <running-session-id>
+sudo minios-session save <running-ram-session-id> --as-new
+```
+
+For SquashFS, `save` rebuilds the current snapshot. For a RAM-backed Raw, DynFileFS, DynBlk, VMDK, or SquashFS session, it writes the RAM copy back to the original persistence store. `--as-new` preserves the original stored session and publishes the RAM state under a new session number instead. The original medium must still be present, writable, and match the filesystem identity recorded at boot.
+
+Configure automatic SquashFS saving separately:
+
+```bash
 sudo minios-session settings <squashfs-id> --shutdown on
 sudo minios-session settings <squashfs-id> --shutdown off --autosave 0
 sudo minios-session settings <squashfs-id> --shutdown on --autosave 60
@@ -147,7 +158,7 @@ sudo minios-session import /path/to/session.tar.zst --force-mode dynblk
 sudo minios-session import /path/to/session.tar.zst --force-mode raw --force-encryption luks
 ```
 
-Only `.tar.zst` imports are accepted. Paths and archive members are validated, and extraction is bounded. `--auto-convert` chooses a compatible mode for the current filesystem. `--force-mode <mode>` explicitly selects an available mode. Export, copy, and conversion are not supported for SquashFS sessions; save the snapshot and copy the complete inactive session directory instead.
+Only `.tar.zst` imports are accepted. Paths and archive members are validated, and extraction is bounded. `--auto-convert` chooses a compatible mode for the current filesystem. `--force-mode <mode>` explicitly selects an available mode. Export, generic copy/clone, and conversion are not supported for SquashFS sessions; use its save workflow and follow [Backing up MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS) instead of reconstructing or copying live session internals by hand.
 
 Copy or convert a session:
 
@@ -181,6 +192,14 @@ sudo minios-session --json list
 sudo minios-session --sessions-dir /mnt/store/minios/changes list
 ```
 
+## RAM-backed session write-back
+
+When initrd copies a supported persistence session into RAM with `perchtoram`, the running session no longer writes directly to its original backend. MiniOS records the original store by filesystem UUID and session number rather than relying on a `/dev/sdX` name. Session Manager keeps that RAM session visible even if the original device is temporarily detached.
+
+If the original store is present, writable, and unchanged, **Save Now** writes the RAM state back to the original session. **Save to Storage as New Session** keeps the stored source untouched and publishes the RAM state as a new numbered session. The CLI equivalents are `minios-session save <id>` and `minios-session save <id> --as-new`. Saving reports copy progress and can be cancelled before the publication phase; publication itself is completed atomically once it starts.
+
+If the original medium is missing, read-only, no longer matches the boot-time identity, or the original session changed independently, write-back is refused rather than targeting another device by name. Reattach the original medium and retry, or use save-as-new when the original session has diverged. Native directory sessions are not copied by the current `perchtoram` implementation, so this write-back path applies to Raw, DynFileFS, DynBlk, VMDK, and SquashFS sessions.
+
 ## SquashFS save behavior
 
 A SquashFS session is unpacked into RAM for the running writable layer. Saving rebuilds and validates an exact snapshot, then atomically replaces `changes.sb`.
@@ -203,12 +222,33 @@ This exception applies only to a valid current-boot SquashFS handoff. Other runn
 
 ## Encryption
 
-LUKS2 is an optional layer over Raw `changes.img`, DynFileFS `virtual.dat`, or the direct DynBlk device. It is available only when `/run/initramfs/etc/minios-initramfs-crypt` contains `luks-layer-v1` and the selected backend's tools and capabilities are available.
+LUKS2 is an optional encryption layer over Raw, DynFileFS, DynBlk, or VMDK session storage; it is not a separate session mode. It is available only when `/run/initramfs/etc/minios-initramfs-crypt` contains `luks-layer-v1` and the selected backend's tools and capabilities are available. DynBlk backend compression is disabled when LUKS2 is selected.
 
-Interactive LUKS creation asks for the passphrase twice. Operations that read or create LUKS data can read it from standard input with `--password-stdin`.
-Passphrases are not placed in command arguments or session metadata. At boot, the initrd asks for the passphrase on the console. Three rejected attempts stop boot fatally; MiniOS does not continue with plaintext, RAM, another backend, or a replacement session under the same request.
+Interactive LUKS creation asks for the passphrase twice. Operations that read or create LUKS data can read it from standard input with `--password-stdin`. Passphrases are not placed in command arguments or session metadata. At boot, the initrd asks for the passphrase on the console. Three rejected attempts stop boot fatally; MiniOS does not continue with plaintext, RAM, another backend, or a replacement session under the same request.
+
+For an inactive, detached encrypted Raw, DynFileFS, DynBlk, or VMDK session, Session Manager offers **Change Passphrase...**. The CLI equivalent is:
+
+```bash
+sudo minios-session change-passphrase <id>
+```
+
+It asks for the current passphrase, the new passphrase, and confirmation. With `--password-stdin`, supply those three lines in that order. The selected keyslot is replaced without reformatting or re-encrypting all files. Active, running, or mounted sessions must be detached first; additional LUKS keyslots managed outside Session Manager are not changed.
 
 Encrypted exports contain decrypted logical session files, not the encrypted backend. Importing, copying, or converting into LUKS creates a new encrypted backend with new identities.
+
+## Mounting an inactive session
+
+Session Manager can mount an inactive, non-running Raw, DynFileFS, DynBlk, or VMDK session read-write without making it the boot default. Right-click the session and choose **Mount Session**; encrypted sessions ask for their LUKS passphrase. Multiple different session IDs can be mounted at the same time. **Open Mounted Folder** opens the attached filesystem, while **Open Session Folder** opens the numbered directory containing its backing files.
+
+Closing Session Manager does not tear down a GUI-managed mount. Reopen the application to see it and choose **Unmount Session**. If unmounting is busy, MiniOS leaves the backing daemon, loop device, or DynBlk device connected instead of disconnecting storage underneath a live filesystem.
+
+The standalone CLI keeps the mount alive until its standard input closes or it receives Ctrl+C:
+
+```bash
+sudo minios-session mount <id>
+```
+
+The command refuses the active or running session and never formats an existing filesystem because mounting failed.
 
 ## Backups and failed sessions
 
@@ -229,23 +269,21 @@ sudo minios-session info
 
 At boot, container filesystems are checked before writable activation. Serious filesystem-check failures preserve the container for recovery instead of mounting it writable. SquashFS detects an unclean previous state and restores the last successfully saved snapshot. Delete sessions only through MiniOS Session Manager or `minios-session delete`; do not remove session directories manually.
 
-## Returning unused DynBlk and VMDK storage
+## Returning unused DynFileFS, DynBlk, and VMDK storage
 
-In Session Manager, right-click a DynBlk or VMDK session and choose **Free Space...**.
-The dialog works for both the running session and an inactive session. For a
-plaintext session it trims the internal ext4 before asking the driver to reclaim
-space. An inactive session is attached temporarily and then disconnected; the
-running session's device remains connected.
+In Session Manager, right-click a DynFileFS, DynBlk, or VMDK session and choose **Free Space...**. The dialog works for a running or inactive supported session and also reuses a session that is already mounted through Session Manager. For a plaintext session, MiniOS runs FITRIM on the actual inner ext4 filesystem and then asks the owning backend to return known-free backing space. Detached sessions are attached temporarily and are released only after their filesystem has been unmounted cleanly.
+
+DynFileFS reclamation requires DynFileFS 4.6.0 or later. If the package was upgraded while an older DynFileFS daemon remains active, reboot into the updated backend before reclaiming that running session.
 
 ```sh
-minios-session reclaim 3 --json
+sudo minios-session reclaim 3 --json
 # Explicitly permit live-data relocation (additional flash writes):
-minios-session reclaim 3 --compact --json
+sudo minios-session reclaim 3 --compact --json
 ```
 
 The compaction checkbox is **off by default**, including on exFAT. There is no
 automatic compaction fallback. Encrypted sessions reclaim only space already
-known to the driver; this operation does not enable discard through LUKS or
+known to the backend; this operation does not enable discard through LUKS or
 reveal its allocation pattern. Device errors and failed trim stop the operation.
 
 ### Low-level driver commands

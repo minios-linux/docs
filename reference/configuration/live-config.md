@@ -1,7 +1,7 @@
 ---
-updated: 2026-09-26
+updated: 2026-10-06
 program_commits:
-  minios-live-config: 069fa46ba4601f41966e479f63d90b2888e4df50
+  minios-live-config: cf3ae490e5df92581483ec6345a5f56bdaa812d8
 ---
 # live-config
 
@@ -203,7 +203,7 @@ The configuration files for the live system itself are best put into an own debi
 - **user-groups**: adds the live user to supplementary groups declared by installed modules. Existing groups listed in `/usr/share/live/config/user-default-groups.d/*.groups` are applied after user creation and on later live-config runs.
 - **root-setup**: sets or updates the root password and configures the root user environment.
 - **sudo**: grants sudo privileges to the live user.
-- **user-ssh-keys**: synchronizes user-specific `authorized_keys.<username>` files between the live medium and individual user home directories. Supports multiple users simultaneously (e.g., `authorized_keys.root`, `authorized_keys.live`, `authorized_keys.admin`).
+- **user-ssh-keys**: synchronizes user-specific `authorized_keys.<username>` files between the live medium and individual user home directories. Supports multiple users simultaneously (e.g., `authorized_keys.root`, `authorized_keys.live`, `authorized_keys.admin`) and recognizes bare `toram`, `toram=trim`, and `toram=full` as RAM-boot forms when deciding whether the live medium can be updated safely.
 - **user-media**: links or bind-mounts validated user directories on the existing writable MiniOS data medium, with safe migration and copy-back when disabled.
 - **locales**: configures locales.
 - **tzdata**: configures /etc/timezone.

@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-13
+updated: 2026-10-06
 ---
 # Backing up MiniOS
 
@@ -19,7 +19,7 @@ Files stored outside the session layer, for example in a separate user-data loca
 
 ## Export persistent sessions
 
-MiniOS Session Manager can export a **non-running** `native`, `dynfilefs`, `dynblk`, `raw`, or `luks` session to a verified `.tar.zst` archive. First identify the session:
+MiniOS Session Manager can export a **non-running** `native`, `dynfilefs`, `dynblk`, `vmdk`, or `raw` session, including supported LUKS2-encrypted forms, to a verified `.tar.zst` archive. First identify the session:
 
 ```bash
 minios-session list
@@ -34,7 +34,7 @@ sudo minios-session export <id> /path/to/session.tar.zst
 
 The export is a logical copy of the session contents, not a byte-for-byte copy of its storage container. Store it on another device.
 
-For a LUKS session, the archive contains the decrypted logical files. Protect the archive separately if the data must remain encrypted.
+For a session whose Raw, DynFileFS, DynBlk, or VMDK backend is wrapped in LUKS2, the archive contains the decrypted logical files. Protect the archive separately if the data must remain encrypted.
 
 ### SquashFS sessions
 

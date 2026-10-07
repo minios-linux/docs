@@ -1,95 +1,95 @@
 ---
-updated: 2026-09-26
+updated: 2026-10-06
 ---
 
 # Sicherheit
 
-MiniOS-Sicherheitskontrollen sind auf das Live-System ausgerichtet: temporäre Sitzungen, persistente Sitzungen, Wechseldatenträger und die Konfiguration beim Systemstart. Das MiniOS-Installationsprogramm kann auch eine native Konvertierung durchführen. Das resultierende System behält die gewählte Desktop-Umgebung und die MiniOS-visuelle Identität bei, aber die live-spezifische MiniOS-Software wird entfernt, sodass Sie das System mit den normalen Debian-Werkzeugen absichern und warten können, anstatt es wie einen weiteren Live-Modus zu behandeln.
-Schützen Sie die laufende Sitzung, persistente Daten, das Boot-Medium und alle Konfigurationen, die beim Start angewendet werden.
+MiniOS-Sicherheitskontrollen sind auf das Live-System ausgerichtet: temporäre Sitzungen, persistente Sitzungen, Wechseldatenträger und Konfigurationen beim Systemstart. Das MiniOS-Installationsprogramm kann auch eine native Konvertierung durchführen. Das resultierende System behält die gewählte Desktop-Umgebung und die MiniOS-visuelle Identität bei, aber die live-spezifische MiniOS-Software wird entfernt. So können Sie das System mit den üblichen Debian-Werkzeugen absichern und warten, anstatt es wie einen weiteren Live-Modus zu behandeln.
+Schützen Sie die laufende Sitzung, persistente Daten, das Boot-Medium sowie alle Konfigurationen, die beim Systemstart angewendet werden.
 
 ## Mit vertrauenswürdigen Medien beginnen
 
-Laden Sie MiniOS aus einer offiziellen Quelle herunter und überprüfen Sie die ISO, bevor Sie sie schreiben.
-Folgen Sie [Downloads verifizieren](/installing-minios/Verifying-Downloads) und vergleichen Sie das Ergebnis, bevor Sie starten oder installieren. Die Verifizierung erkennt beschädigte oder manipulierte Downloads, beweist jedoch nicht, dass ein bereits verändertes USB-Gerät sicher ist.
+Laden Sie MiniOS aus einer offiziellen Quelle herunter und überprüfen Sie das ISO, bevor Sie es schreiben.
+Folgen Sie [Downloads verifizieren](/installing-minios/Verifying-Downloads) und vergleichen Sie das Ergebnis, bevor Sie booten oder installieren. Die Überprüfung erkennt beschädigte oder ausgetauschte Downloads, beweist jedoch nicht, dass ein bereits verändertes USB-Gerät sicher ist.
 
-Behalten Sie das USB-Gerät unter physischer Kontrolle. Firmware-Passwörter und eine eingeschränkte Bootreihenfolge können das unbeabsichtigte Starten durch Unbefugte erschweren, verschlüsseln jedoch keine Dateien auf dem Gerät. Secure Boot kann zusätzlichen Schutz der Boot-Kette bieten, sofern Images und Hardware dies unterstützen; prüfen Sie das tatsächliche Release und das Verhalten der Firmware, anstatt von einer Unterstützung auszugehen.
+Behalten Sie das USB-Gerät unter physischer Kontrolle. Firmware-Passwörter und eine eingeschränkte Boot-Reihenfolge können unbefugtes Booten erschweren, verschlüsseln aber keine Dateien auf dem Gerät. Secure Boot kann zusätzlichen Schutz der Boot-Kette bieten, sofern Image und Hardware dies unterstützen; prüfen Sie das tatsächliche Release und das Verhalten der Firmware, anstatt Unterstützung vorauszusetzen.
 
 ## Standard-Anmeldedaten ersetzen
 
-Ein nicht angepasstes MiniOS Live-Image verwendet die veröffentlichten Zugangsdaten `live` / `evil` und `root` / `toor`, mit automatischer Anmeldung und passwortlosem administrativen Zugriff in der benutzerfreundlichen Konfiguration. Jeder, der auf das System zugreifen kann, könnte diese Zugangsdaten verwenden, insbesondere wenn SSH aktiv ist.
+Ein nicht angepasstes MiniOS-Live-Image verwendet die veröffentlichten Anmeldedaten `live` / `evil` und `root` / `toor`, mit automatischer Anmeldung und passwortlosem administrativem Zugriff in der auf Komfort ausgelegten Konfiguration. Jeder, der Zugriff auf das System hat, kann diese Anmeldedaten nutzen – insbesondere, wenn SSH aktiviert ist.
 
 Vor dem Verbinden mit einem nicht vertrauenswürdigen Netzwerk:
 
-1. Legen Sie eindeutige Benutzer- und Root-Passwörter im MiniOS-Konfigurator fest.
-2. Wählen Sie ein passendes Sicherheitsprofil und überprüfen Sie jede ausgefüllte Einstellung.
+1. Legen Sie im MiniOS-Konfigurator eindeutige Benutzer- und Root-Passwörter fest.
+2. Wählen Sie ein passendes Sicherheitsprofil und überprüfen Sie jede gesetzte Kontrolle.
 3. Deaktivieren Sie SSH und XRDP, sofern kein Fernzugriff benötigt wird.
-4. Starten Sie nach Änderungen an Einmal-Konten oder Sicherheitseinstellungen eine neue Sitzung und prüfen Sie anschließend das Login- und Berechtigungsverhalten.
+4. Starten Sie nach Änderungen an Einmal-Konten oder Sicherheitseinstellungen in eine neue Sitzung und prüfen Sie das resultierende Anmelde- und Berechtigungsverhalten.
 
-Der Konfigurator speichert verschlüsselte Passwort-Hashes statt Klartext-Passwörtern. Wenn ein bereits angelegtes persistentes Konto geändert wird, verwenden Sie `passwd` für den aktuellen Benutzer und `sudo passwd root` für root. Nach der nativen Umstellung nutzen Sie die normalen Debian-Werkzeuge zur Kontoverwaltung.
+Der Konfigurator speichert verschlüsselte Passwort-Hashes und keine Klartext-Passwörter. Wenn Sie ein bereits erstelltes persistentes Konto ändern, verwenden Sie `passwd` für den aktuellen Benutzer und `sudo passwd root` für Root. Nach einer nativen Konvertierung verwenden Sie die üblichen Debian-Werkzeuge zur Kontoverwaltung.
 
-## Sicherheitskontrollen des Konfigurators verwenden
+## Sicherheitskontrollen im Konfigurator nutzen
 
-MiniOS-Konfigurator bietet drei Profile. Ein Profil füllt konkrete Einstellungen aus; der Profilname selbst wird nicht als Laufzeit-Konfigurationsschlüssel gespeichert, und jede Einstellung bleibt unabhängig bearbeitbar.
+Der MiniOS-Konfigurator bietet drei Profile. Ein Profil füllt konkrete Einstellungen aus; der Profilname selbst wird nicht als Laufzeit-Konfigurationsschlüssel gespeichert, und jede Einstellung bleibt unabhängig editierbar.
 
 | Profil | Hauptverhalten |
 | --- | --- |
-| `convenient` | Autologin-kompatibel, passwortloses sudo und PolicyKit, Root- und Passwort-SSH erlaubt, entspannte XRDP/X11/Anmeldungssperre, Passworthinweise werden angezeigt. |
-| `balanced` | Kein Autologin, sudo und PolicyKit erfordern Passwort, SSH-Root-Login verweigert, aber Passwort-SSH erlaubt, gehärtete XRDP/X11/Anmeldungssperre. |
-| `strict` | Kein Autologin, sudo und PolicyKit erfordern Passwort, SSH-Root- und Passwort-Login verweigert, XRDP deaktiviert, gehärtete X11/Anmeldungssperre, Passworthinweise werden ausgeblendet. |
+| `convenient` | Autologin-kompatibel, passwortloses sudo und PolicyKit, Root- und Passwort-SSH erlaubt, gelockerte XRDP/X11/Lockscreen-Einstellungen, Passwort-Hinweise werden angezeigt. |
+| `balanced` | Kein Autologin, Passwort für sudo und PolicyKit erforderlich, SSH-Root-Login verweigert, aber Passwort-SSH erlaubt, gehärteter XRDP/X11/Lockscreen. |
+| `strict` | Kein Autologin, Passwort für sudo und PolicyKit erforderlich, SSH-Root- und Passwort-Login verweigert, XRDP deaktiviert, gehärteter X11/Lockscreen, Passwort-Hinweise ausgeblendet. |
 
-Die Standardwerte des Installers unterscheiden sich je nach Bereitstellungsmodus: Live-Installationen bevorzugen `convenient`, während die native Konvertierung von `balanced` ausgeht. Die native Einstellung wird während der Konvertierung angewendet; nach der Installation nutzen Sie die normale Debian-Sicherheitskonfiguration. Dies sind Standardwerte, keine Empfehlungen für jedes Bedrohungsmodell.
+Die Standardwerte des Installers unterscheiden sich je nach Bereitstellungsmodus: Live-Installationen bevorzugen `convenient`, während die native Konvertierung mit `balanced` beginnt. Die native Einstellung wird während der Konvertierung angewendet; nach der Installation nutzen Sie die normale Debian-Sicherheitskonfiguration. Dies sind Standardwerte, keine Empfehlungen für jedes Bedrohungsmodell.
 
-Die gleichen Einstellungen sind als dokumentierte Konfigurationsschlüssel verfügbar, darunter `LIVE_SUDO_MODE`, `LIVE_POLKIT_MODE`, `LIVE_SSH_PERMIT_ROOT_LOGIN`, `LIVE_SSH_PASSWORD_AUTHENTICATION`, `LIVE_XRDP_MODE`, `LIVE_X11_MODE`, `LIVE_ISSUE_PASSWORD_HINTS` und `LIVE_LOCKSCREEN_MODE`. Verwenden Sie bevorzugt diese Schlüssel oder den Konfigurator anstelle der Bearbeitung generierter sudoers-, PolicyKit-, Display-Manager- oder SSH-Dateien. Siehe [Konfigurationsdatei](/reference/configuration/config.conf).
-Informationen zum Speichern und zur Anwendbarkeit der Einstellungen finden Sie unter [MiniOS-Konfigurator](/preparing-and-customizing/Preconfiguring-MiniOS).
+Die gleichen Einstellungen sind als dokumentierte Konfigurationsschlüssel verfügbar, darunter `LIVE_SUDO_MODE`, `LIVE_POLKIT_MODE`, `LIVE_SSH_PERMIT_ROOT_LOGIN`, `LIVE_SSH_PASSWORD_AUTHENTICATION`, `LIVE_XRDP_MODE`, `LIVE_X11_MODE`, `LIVE_ISSUE_PASSWORD_HINTS`, und `LIVE_LOCKSCREEN_MODE`. Verwenden Sie bevorzugt diese Schlüssel oder den Konfigurator, anstatt generierte sudoers-, PolicyKit-, Display-Manager- oder SSH-Dateien direkt zu bearbeiten. Siehe [Konfigurationsdatei](/reference/configuration/config.conf).
+Informationen zum Speicherverhalten und zur Gültigkeit von Einstellungen finden Sie unter [MiniOS-Konfigurator](/preparing-and-customizing/Preconfiguring-MiniOS).
 
-Kontenerstellung, Passwörter, `LIVE_CONFIG_NOROOT`, und die Sicherheitslage sind einmalige Einstellungen, die beim Erstellen einer neuen Sitzung verwendet werden. Der Konfigurator zeigt die Anwendbarkeit für jede Kontrolle an. Neu konfigurierbare Einstellungen wie Dienste werden nach dem Neustart angewendet.
+Kontoerstellung, Passwörter, `LIVE_CONFIG_NOROOT`, sowie die Sicherheitslage sind Einmal-Einstellungen, die bei der Erstellung einer neuen Sitzung verwendet werden. Der Konfigurator zeigt für jede Kontrolle die Gültigkeit an. Änderbare Einstellungen wie Dienste werden nach einem Neustart angewendet.
 
-## Sicherer Fernzugriff
+## Sicheren Fernzugriff einrichten
 
-SSH kann in einem MiniOS-Image für Wiederherstellungszwecke aktiviert werden. In einem Netzwerk, in dem anderen Nutzern nicht vertraut wird, sollten Sie davon ausgehen, dass die veröffentlichten Standard-Zugangsdaten bekannt sind, bis Sie das Gegenteil bestätigt haben.
+SSH kann in einem MiniOS-Image für Wiederherstellungszwecke aktiviert sein. In einem Netzwerk, in dem andere Benutzer nicht vertrauenswürdig sind, gehen Sie davon aus, dass die veröffentlichten Standard-Anmeldedaten bekannt sind, bis Sie das Gegenteil bestätigt haben.
 
-- Falls SSH nicht benötigt wird, fügen Sie `ssh` zu `DISABLE_SERVICES` im Konfigurator hinzu und entfernen Sie es aus `ENABLE_SERVICES` falls vorhanden.
-- Falls SSH erforderlich ist, deaktivieren Sie den Root-Login mit `LIVE_SSH_PERMIT_ROOT_LOGIN=false`.
-- Bevorzugen Sie die Schlüssel-Authentifizierung. Überprüfen Sie die Anmeldung per Schlüssel in einer separaten Verbindung, bevor Sie `LIVE_SSH_PASSWORD_AUTHENTICATION=false` setzen.
-- Beschränken Sie eingehende Verbindungen mit der Netzwerk-Firewall oder dem Router und setzen Sie ein portables Wiederherstellungssystem niemals direkt dem Internet aus.
-- Prüfen Sie XRDP separat. Das strikte Profil deaktiviert XRDP, das ausgewogene Profil härtet es ab, deaktiviert den Dienst jedoch nicht zwingend.
+- Wenn SSH nicht benötigt wird, fügen Sie `ssh` zum `DISABLE_SERVICES` im Konfigurator hinzu und entfernen Sie es aus `ENABLE_SERVICES` falls vorhanden.
+- Wenn SSH erforderlich ist, verweigern Sie Root-Login mit `LIVE_SSH_PERMIT_ROOT_LOGIN=false`.
+- Bevorzugen Sie die Authentifizierung per Schlüssel. Bestätigen Sie die Schlüssel-Anmeldung in einer separaten Verbindung, bevor Sie `LIVE_SSH_PASSWORD_AUTHENTICATION=false` setzen.
+- Beschränken Sie eingehende Zugriffe mit der Netzwerk-Firewall oder dem Router und setzen Sie ein portables Wiederherstellungssystem niemals direkt dem Internet aus.
+- Überprüfen Sie XRDP separat. Das strikte Profil deaktiviert XRDP; das ausgewogene Profil härtet es, deaktiviert den Dienst jedoch nicht zwingend.
 
-Startparameter können die Werte in Konfigurationsdateien überschreiben. Überprüfen Sie unerwartetes Dienstverhalten anhand von [Startparameter](/reference/Boot-Parameters).
+Boot-Parameter können Konfigurationsdatei-Werte überschreiben. Prüfen Sie unerwartetes Dienstverhalten anhand von [Boot-Parameter](/reference/Boot-Parameters).
 
 ## Persistente Daten verschlüsseln
 
-Unverschlüsselte native, DynFileFS, DynBlk, Raw- und SquashFS-Persistenz können von Personen gelesen werden, die Zugriff auf das Gerät erhalten. MiniOS kann LUKS2 über Raw, DynFileFS oder DynBlk schichten. Für die Erstellung beim Systemstart wählen Sie diese Option mit`perchencrypt=luks`; bestehende Sitzungen übernehmen ihren Verschlüsselungsstatus aus den Sitzungsmetadaten und nicht aus einem späteren Kommandozeilen-Override.
+Unverschlüsselte native, DynFileFS, DynBlk, VMDK-, Raw- und SquashFS-Persistenz können von jedem gelesen werden, der Zugriff auf das Gerät erhält. MiniOS kann LUKS2 über Raw, DynFileFS, DynBlk oder VMDK schichten. LUKS2 bleibt eine Verschlüsselungsschicht, kein separater Sitzungsmodus. Für die Erstellung beim Booten wählen Sie dies mit `perchencrypt=luks`; bestehende Sitzungen übernehmen ihren Verschlüsselungsstatus aus den Sitzungsmetadaten und nicht aus einem späteren Kommandozeilen-Override.
 
-Die Verschlüsselungsgrenze unterscheidet sich je nach Backend. Raw verschlüsselt das logische Block-Image innerhalb von`changes.img`; DynFileFS verschlüsselt die freigelegte`virtual.dat`; DynBlk verschlüsselt das`/dev/dynblkN`Block-Device direkt. Sitzungsmetadaten, Boot-Dateien, DynFileFS/DynBlk-Backend-Metadaten außerhalb des verschlüsselten Block-Images sowie nicht zusammenhängende Dateien auf dem Medium bleiben sichtbar. DynBlk-Backend-Komprimierung ist deaktiviert, wenn LUKS2 ausgewählt ist.
+Die Verschlüsselungsgrenze unterscheidet sich je nach Backend. Raw verschlüsselt das logische Block-Image innerhalb von `changes.img`; DynFileFS verschlüsselt das sichtbare `virtual.dat`; DynBlk und VMDK verschlüsseln das vom DynBlk-Treiber bereitgestellte Blockgerät. Sitzungsmetadaten, Boot-Dateien, Backend-Metadaten und VMDK-Deskriptoren außerhalb des verschlüsselten Blockgeräts sowie nicht zugehörige Dateien auf dem Medium bleiben sichtbar. Die DynBlk-Backend-Komprimierung ist deaktiviert, wenn LUKS2 gewählt wird; VMDK bietet keine Backend-Komprimierung.
 
-Das initrd erstellt das verschlüsselte Dateisystem beim ersten Gebrauch und fragt nach der Passphrase; der Installer erhält oder speichert diese Passphrase nicht. Beim Booten führen drei fehlgeschlagene Entsperrversuche dazu, dass der Bootvorgang abgebrochen wird, anstatt auf Klartext, ein anderes Backend oder einen In-Memory-Ersatz mit derselben Persistenzanforderung zurückzufallen.
+Das initrd erstellt das verschlüsselte Dateisystem bei der ersten Verwendung und fordert die Passphrase an; das Installationsprogramm erhält oder speichert diese Passphrase nicht. Beim Booten führen drei abgelehnte Entsperrversuche dazu, dass der Bootvorgang gestoppt wird, anstatt auf Klartext, ein anderes Backend oder einen In-Memory-Ersatz mit derselben Persistenzanforderung zurückzufallen.
 
-LUKS-Persistenz schützt die Dateisysteminhalte, solange der Mapper geschlossen ist. Sie schützt keine Daten nach dem Entsperren, keine unverschlüsselten Boot-Dateien, keine kopierten Dateien außerhalb des verschlüsselten Backends oder ein natives Root-Dateisystem. LUKS-Sitzungspersistenz ist keine native Root-Verschlüsselung. Logische Exporte enthalten entschlüsselte Sitzungsdateien; sichern Sie Backup-Archive daher separat. Verwenden Sie eine starke Passphrase und bewahren Sie ein getestetes Backup auf.
+Die MiniOS-LUKS2-Persistenzschicht schützt die Dateisysteminhalte, solange der Mapper geschlossen ist. Sie schützt keine Daten nach dem Entsperren, keine unverschlüsselten Boot-Dateien, keine außerhalb des verschlüsselten Backends kopierten Dateien und kein natives Root-Dateisystem. Verschlüsselte Persistenz ist keine native Root-Verschlüsselung. Logische Exporte enthalten entschlüsselte Sitzungsdateien – sichern Sie Backup-Archive daher separat. Verwenden Sie eine starke Passphrase und halten Sie ein getestetes Backup bereit.
 
-Temporärer Cache oder Journal-Speicher ist eine Maßnahme zur Reduzierung von Schreibvorgängen, keine Verschlüsselung. Selbst mit`LIVE_LOG_STORAGE=volatile`, behält MiniOS`minios-boot`und`live-config`Diagnosedaten auf dem dauerhaften Sitzungspeicher. Bei SquashFS liegen diese Dateien außerhalb von`changes.sb`, im Verzeichnis der Sitzung`boot-logs/`. Ein unverschlüsseltes Backing-Device gibt sie zusammen mit anderen Dateien frei.`LIVE_CONFIG_DEBUG=true`aktiviert zusätzlich detaillierte Traces und Kopien von Benutzerkonten-Merge-Eingaben; lassen Sie Debug im Normalbetrieb deaktiviert und prüfen Sie diese Protokolle vor dem Teilen. Siehe[Leistung](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch).
+Temporärer Cache oder Journal-Speicher dient der Schreibreduktion, nicht der Verschlüsselung. Auch mit `LIVE_LOG_STORAGE=volatile`, speichert MiniOS weiterhin `minios-boot` und `live-config`-Diagnosedaten im dauerhaften Sitzungsbereich. Bei SquashFS liegen diese Dateien außerhalb von `changes.sb`, im Verzeichnis `boot-logs/` der Sitzung. Ein unverschlüsseltes Basisgerät legt sie zusammen mit anderen Dateien offen. `LIVE_CONFIG_DEBUG=true` aktiviert zusätzlich detaillierte Protokolle und Kopien der Benutzerkonten-Zusammenführungen; lassen Sie Debug im Normalbetrieb deaktiviert und prüfen Sie diese Protokolle vor dem Teilen. Siehe [Leistung](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch).
 
-Siehe[MiniOS-Installationsprogramm](/installing-minios/MiniOS-Installer)und[Sitzungsverwaltung](/using-minios/Sessions-and-Persistence).
+Siehe [MiniOS-Installationsprogramm](/installing-minios/MiniOS-Installer) und [Sitzungsverwaltung](/using-minios/Sessions-and-Persistence).
 
 ## Updates gezielt anwenden
 
-Aktualisieren Sie die Paket-Metadaten und installieren Sie Debian-Sicherheitsupdates in persistenten Live-Sitzungen mit dem normalen APT-Workflow, sofern dies sinnvoll ist. Änderungen durch APT in einer neuen Live-Sitzung gehen nach einem Neustart verloren. Die Basis-Module SquashFS sind schreibgeschützt, daher ist das Ersetzen der ISO oder Module durch eine neuere, vertrauenswürdige MiniOS-Version oft der sauberste Weg, um das Basissystem zu aktualisieren. Nach der nativen Umwandlung erfolgt die Wartung der Paketsicherheit einfach über den gewohnten Debian-APT-Workflow für das installierte System.
+Aktualisieren Sie Paketmetadaten und installieren Sie Debian-Sicherheitsupdates in persistenten Live-Sitzungen mit dem üblichen APT-Workflow, sofern dies angebracht ist. Änderungen durch APT in einer frischen Live-Sitzung gehen beim Neustart verloren. Basis-SquashFS-Module sind schreibgeschützt; daher ist das Ersetzen des ISO oder der Module durch eine neuere, vertrauenswürdige MiniOS-Version oft der sauberste Weg, das Basissystem zu aktualisieren. Nach einer nativen Konvertierung erfolgt die Sicherheitswartung der Pakete wie gewohnt über den Debian-APT-Workflow für das installierte System.
 
-Siehe [Software-Updates](/maintenance-and-recovery/Updating-MiniOS) für die jeweiligen Workflows von APT, Modulen, Images und Kernel.
+Siehe [Softwareaktualisierungen](/maintenance-and-recovery/Updating-MiniOS) für die jeweiligen Workflows von APT, Modulen, Images und Kernel.
 
 Vor einem größeren Update:
 
 - Sichern Sie wichtige Dateien und persistente Sitzungen.
 - Stellen Sie sicher, dass ausreichend freier Speicherplatz vorhanden ist.
-- Vermeiden Sie Unterbrechungen beim Schreiben oder ein Ausschalten des Geräts.
-- Starten Sie das System neu und überprüfen Sie die Aktualisierung, bevor Sie das vorherige, funktionierende Medium oder die Sitzung entfernen.
+- Vermeiden Sie Unterbrechungen beim Schreiben oder das Ausschalten des Geräts.
+- Starten Sie neu und prüfen Sie das aktualisierte System, bevor Sie das vorherige, als funktionsfähig bekannte Medium oder die Sitzung verwerfen.
 
-## Behandeln Sie Hooks und Preseeding als Codeausführung
+## Hooks und Preseeding als Codeausführung behandeln
 
-Die `hooks` Boot-Option und live-config Hooks können Dateien vom Root-Dateisystem, vom Boot-Medium oder von einer URL ausführen. Remote-Hooks, modifizierte Medien-Hooks und nicht geprüfte Preseeds können mit Systemrechten laufen. Verwenden Sie nur geprüfte Dateien aus vertrauenswürdigen Quellen, bevorzugen Sie authentifizierte Verteilung und vermeiden Sie Remote-Hooks in unsicheren Netzwerken. Siehe [live-config](/reference/configuration/live-config) für die Ausführungsreihenfolge und unterstützte Speicherorte.
+Die `hooks`-Boot-Option und live-config-Hooks können Dateien vom Root-Dateisystem, vom Boot-Medium oder von einer URL ausführen. Remote-Hooks, modifizierte Medien-Hooks und nicht geprüfte Preseeds können mit Systemrechten ausgeführt werden. Verwenden Sie nur geprüfte Dateien aus vertrauenswürdigen Quellen, bevorzugen Sie authentifizierte Distributionen und vermeiden Sie Remote-Hooks in unsicheren Netzwerken. Siehe [live-config](/reference/configuration/live-config) für die Ausführungsreihenfolge und unterstützte Speicherorte.
 
-## Medien sicher sichern und außer Betrieb nehmen
+## Medien sicher sichern und ausmustern
 
 Persistenz ist kein Backup. Bewahren Sie eine separate Kopie der Benutzerdaten auf und exportieren oder kopieren Sie Sitzungen, solange sie intakt sind. Testen Sie die Wiederherstellung auf unterschiedlichen Medien.
-Fahren Sie das System sauber herunter, bevor Sie beschreibbaren Speicher entfernen, und halten Sie ausreichend freien Speicherplatz für Sitzungsmetadaten und den Betrieb des Dateisystems vor.
+Fahren Sie das System sauber herunter, bevor Sie beschreibbare Speichermedien entfernen, und halten Sie freien Speicherplatz für Sitzungsmetadaten und Dateisystembetrieb vor.
 
-Löschen Sie ein Gerät vor der Entsorgung sicher, entsprechend der Speichertechnologie und der Sensibilität der Daten. Allein das Löschen von Dateien oder das Neuformatieren reicht möglicherweise nicht aus, um alte Daten unwiederbringlich zu entfernen.
+Löschen Sie ein Gerät vor der Entsorgung sicher, entsprechend der Speichertechnologie und der Sensibilität der Daten. Das Löschen von Dateien oder einfaches Neuformatieren reicht möglicherweise nicht aus, um alte Daten unwiederbringlich zu entfernen.

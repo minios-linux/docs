@@ -1,144 +1,144 @@
 ---
-updated: 2026-09-26
+updated: 2026-10-06
 program_commits:
-    minios-live-config: 069fa46ba4601f41966e479f63d90b2888e4df50
+    minios-live-config: cf3ae490e5df92581483ec6345a5f56bdaa812d8
 ---
 
 # live-config
 
-**live-config** - компоненты системной конфигурации
+**live-config** – компоненты конфигурации системы
 
 **live-config** содержит компоненты, которые настраивают live-систему во время загрузки (на позднем этапе userspace).
 
-Политика кэширования и логирования persistent-session определяется ранее с помощью `minios-boot`, после подготовки live root и его конфигурации, но до запуска основных сервисов. `browser-cache` Компонент live-config применяет монтирования для каждого пользователя после его создания. Для этих политик требуется рабочая устойчивая `perch` сессия и актуальный initrd с поддержкой `perch-storage-v1`; подробнее см. раздел [Производительность](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch) для описания эффектов и ограничений.
+Политика кэширования и журналирования persistent-session определяется ранее с помощью `minios-boot`, после подготовки live root и его конфигурации, но до запуска обычных сервисов. Компонент `browser-cache` live-config применяет пользовательские точки монтирования после создания пользователя. Для этих политик требуется рабочая устойчивая `perch` сессия и актуальный initrd, объявляющий `perch-storage-v1`; см. раздел [Производительность](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch) для подробностей о влиянии и ограничениях.
 
-Загрузка по сети в initramfs (`ip=`, PXE, `from=http://…`) — это отдельный слой LiveKit и **не** управляется live-config. Подробнее см. [Загрузка по сети](/reference/boot-process/Network-Boot).
+Загрузка по сети в initramfs (`ip=`, PXE, `from=http://…`) реализована отдельным слоем LiveKit и **не** управляется live-config. Подробнее см. [Загрузка по сети](/reference/boot-process/Network-Boot).
 
-**live-config** можно настроить через параметры загрузки или файлы конфигурации, подготовленные initramfs во время выполнения. Фактическая командная строка ядра добавляется после значений из файлов, поэтому более поздние параметры загрузки имеют приоритет. `LIVE_CONFIG_CMDLINE` Компоненты, которые записывают состояние в `/var/lib/live/config` обычно запускаются только один раз; синхронизирующие и stateless-компоненты могут выполняться при каждом запуске.
+**live-config** можно настраивать с помощью параметров загрузки или файлов конфигурации, подготовленных initramfs. Фактическая командная строка ядра добавляется после значений, предоставленных файлами, поэтому более поздние параметры загрузки имеют приоритет.`LIVE_CONFIG_CMDLINE` Компоненты, записывающие состояние в `/var/lib/live/config` обычно запускаются только один раз; синхронизирующие и stateless-компоненты могут запускаться при каждом вызове.
 
-Если *live-build*(7) используется для сборки live-системы, параметры live-config по умолчанию можно задать через опцию `--bootappend-live` , подробнее см. *lb_config*(1) — руководство.
+Если *live-build*(7) используется для сборки live-системы, параметры live-config по умолчанию можно задать через опцию `--bootappend-live` , см. *lb_config*(1) в руководстве.
 
 ## Параметры загрузки (компоненты)
 
-**live-config** активируется только если `boot=live` используется как параметр загрузки. По умолчанию запускаются все компоненты. Параметр `live-config.components` позволяет ограничить список запускаемых компонентов, а `live-config.nocomponents` — исключить отдельные компоненты. Если оба параметра используются или любой из них указан несколько раз, приоритет имеет последнее вхождение.
+**live-config** активируется только если `boot=live` используется как параметр загрузки. По умолчанию запускаются все компоненты. Параметр `live-config.components` позволяет ограничить список запускаемых компонентов, а `live-config.nocomponents` может исключить отдельные компоненты. Если оба параметра указаны или любой из них задан несколько раз, приоритет имеет последнее вхождение.
 
-- **live-config.components | components**: Запускаются все компоненты. Это поведение по умолчанию для live-образов.
-- **live-config.components=COMPONENT1,COMPONENT2,...COMPONENTn | components=COMPONENT1,COMPONENT2,...COMPONENTn**: Запускаются только указанные компоненты. Компоненты выполняются в порядке, определённом их именами файлов в `/usr/lib/live/config`, независимо от их порядка в списке.
+- **live-config.components | components**: Запускаются все компоненты. Это поведение используется по умолчанию в live-образах.
+- **live-config.components=COMPONENT1,COMPONENT2,...COMPONENTn | components=COMPONENT1,COMPONENT2,...COMPONENTn**: Запускаются только указанные компоненты. Компоненты выполняются в порядке, определённом их именами файлов в `/usr/lib/live/config`, независимо от порядка в этом списке.
 - **live-config.nocomponents | nocomponents**: Не запускается ни один компонент.
 - **live-config.nocomponents=COMPONENT1,COMPONENT2,...COMPONENTn | nocomponents=COMPONENT1,COMPONENT2,...COMPONENTn**: Запускаются все компоненты, кроме указанных.
 
 ## Параметры загрузки (опции)
 
-Некоторые отдельные компоненты могут изменять своё поведение в зависимости от параметра загрузки.
+Некоторые отдельные компоненты могут менять своё поведение в зависимости от параметров загрузки.
 
-- **live-config.debconf-preseed=filesystem|medium|URL1|URL2|...|URLn | debconf-preseed=medium|filesystem|URL1|URL2|...|URLn**: Загружает и применяет один или несколько файлов debconf preseed. URL-адреса обрабатываются с помощью `wget` и могут использовать HTTP, FTP или `file://`. Ключевое слово `filesystem` разворачивает файлы в `/usr/lib/live/config-preseed/`; `medium` разворачивает файлы в `minios/config-preseed/` на обнаруженном live-носителе. Явные локальные файлы могут использовать пути вида `file:///run/initramfs/memory/data/minios/config-preseed/FILE` или `file:///PATH` в корне live-системы. Записи, разделённые вертикальной чертой, обрабатываются в указанном порядке; файлы, развёрнутые по ключевому слову, используют порядок оболочки (shell glob).
-- **live-config.hostname=HOSTNAME | hostname=HOSTNAME**: Позволяет задать имя хоста системы. По умолчанию используется `minios`.
-- **live-config.network-method=dhcp|static|off | network-method=dhcp|static|off**: Определяет политику проводной сети. Если не задано или `dhcp` — используется значение по умолчанию для образа. `static` записывает конфигурацию для выбранного backend; `off` отключает автоматическую настройку IPv4 для выбранного интерфейса.
-- **live-config.network-interface=INTERFACE | network-interface=INTERFACE**: Определяет проводной интерфейс. Если не указан для `static` или `off`, автоматически выбирается единственный проводной не-loopback интерфейс; если кандидатов ноль или несколько, требуется явное указание.
+- **live-config.debconf-preseed=filesystem|medium|URL1|URL2|...|URLn | debconf-preseed=medium|filesystem|URL1|URL2|...|URLn**: Загружает и применяет один или несколько файлов preseed для debconf. URL-адреса обрабатываются через `wget` и могут использовать HTTP, FTP или `file://`. Ключевое слово `filesystem` раскрывает файлы в `/usr/lib/live/config-preseed/`; `medium` раскрывает файлы в `minios/config-preseed/` на обнаруженном live-носителе. Явные локальные файлы можно указывать путями вроде `file:///run/initramfs/memory/data/minios/config-preseed/FILE` или `file:///PATH` в корне live-системы. Записи, разделённые вертикальной чертой, обрабатываются в указанном порядке; файлы, раскрытые по ключевому слову, сортируются по glob-порядку оболочки.
+- **live-config.hostname=HOSTNAME | hostname=HOSTNAME**: Позволяет задать имя хоста системы. По умолчанию `minios`.
+- **live-config.network-method=dhcp|static|off | network-method=dhcp|static|off**: Определяет политику для проводной сети. Неустановленный параметр и `dhcp` оставляют значение по умолчанию без изменений. `static` записывает конфигурацию для выбранного backend; `off` отключает автоматическую настройку IPv4 для выбранного интерфейса.
+- **live-config.network-interface=INTERFACE | network-interface=INTERFACE**: Выбирает проводной интерфейс. Если не указан для `static` или `off`, автоматически выбирается единственный проводной интерфейс, не являющийся loopback; если кандидатов ноль или несколько, требуется явное указание.
 - **live-config.network-address=IPV4 | network-address=IPV4**: Задаёт статический IPv4-адрес.
-- **live-config.network-prefix=PREFIX | network-prefix=PREFIX**: Устанавливает длину префикса IPv4 от 0 до 32. По умолчанию для статической настройки используется `24`.
-- **live-config.network-gateway=IPV4 | network-gateway=IPV4**: Устанавливает необязательный шлюз IPv4.
-- **live-config.network-dns=ADDRESS1,ADDRESS2 | network-dns=ADDRESS1,ADDRESS2**: Указывает необязательные адреса DNS-серверов через запятую.
-- **live-config.network-backend=auto|nm|ifupdown | network-backend=auto|nm|ifupdown**: Выбирает backend сети. `auto` предпочитает NetworkManager и при необходимости использует ifupdown. Принудительный выбор `ifupdown` делает интерфейс неуправляемым для NetworkManager, если установлены оба стека.
-- **live-config.username=USERNAME | username=USERNAME**: Позволяет задать имя пользователя, которое будет создано для автологина. По умолчанию используется `live`.
-- **live-config.user-default-groups=GROUP1,GROUP2,...GROUPn | user-default-groups=GROUP1,GROUP2,...GROUPn**: Устанавливает дополнительные группы для пользователя, созданного для автологина. Названия групп могут быть разделены запятыми или пробелами. По умолчанию используется MiniOS`dialout cdrom floppy audio video plugdev users fuse plugdev netdev powerdev scanner bluetooth weston-launch kvm libvirt libvirt-qemu vboxusers lpadmin dip sambashare docker wireshark`.
-- **live-config.user-fullname="USER FULLNAME" | user-fullname="USER FULLNAME"**: Позволяет задать полное имя пользователя, созданного для автологина. По умолчанию используется MiniOS`MiniOS Live User`.
+- **live-config.network-prefix=PREFIX | network-prefix=PREFIX**: Задаёт длину IPv4-префикса от 0 до 32. Значение по умолчанию для статической настройки — `24`.
+- **live-config.network-gateway=IPV4 | network-gateway=IPV4**: Задаёт необязательный IPv4-шлюз.
+- **live-config.network-dns=ADDRESS1,ADDRESS2 | network-dns=ADDRESS1,ADDRESS2**: Указывает дополнительные адреса DNS-серверов через запятую.
+- **live-config.network-backend=auto|nm|ifupdown | network-backend=auto|nm|ifupdown**: Определяет backend для сети. `auto` предпочитает NetworkManager и переключается на ifupdown при необходимости. Принудительный `ifupdown` помечает интерфейс как неуправляемый NetworkManager, если установлены оба стека.
+- **live-config.username=USERNAME | username=USERNAME**: Позволяет задать имя пользователя, который будет создан для автологина. По умолчанию `live`.
+- **live-config.user-default-groups=GROUP1,GROUP2,...GROUPn | user-default-groups=GROUP1,GROUP2,...GROUPn**: Устанавливает дополнительные группы для пользователя, созданного для автологина. Названия групп могут быть разделены запятыми или пробелами. Значение по умолчанию MiniOS — `dialout cdrom floppy audio video plugdev users fuse plugdev netdev powerdev scanner bluetooth weston-launch kvm libvirt libvirt-qemu vboxusers lpadmin dip sambashare docker wireshark`.
+- **live-config.user-fullname="USER FULLNAME" | user-fullname="USER FULLNAME"**: Позволяет задать полное имя пользователя, созданного для автологина. Значение по умолчанию MiniOS — `MiniOS Live User`.
 - **live-config.root-password=PASSWORD | root-password=PASSWORD**: Позволяет установить пароль root в открытом виде.
 - **live-config.root-password-crypted=PASSWORD | root-password-crypted=PASSWORD**: Позволяет установить пароль root в зашифрованном виде.
 - **live-config.user-password=PASSWORD | user-password=PASSWORD**: Позволяет установить пароль пользователя в открытом виде.
 - **live-config.user-password-crypted=PASSWORD | user-password-crypted=PASSWORD**: Позволяет установить пароль пользователя в зашифрованном виде.
-- **live-config.locales=LOCALE1,LOCALE2,...LOCALEn | locales=LOCALE1,LOCALE2,...LOCALEn**: Позволяет задать локаль системы, например `de_CH.UTF-8`. По умолчанию используется `en_US.UTF-8`. Если выбранная локаль ещё не доступна в системе, она будет автоматически сгенерирована на лету.
-- **live-config.timezone=TIMEZONE | timezone=TIMEZONE**: Позволяет задать часовой пояс системы, например `Europe/Zurich`. По умолчанию используется `UTC`.
+- **live-config.locales=LOCALE1,LOCALE2,...LOCALEn | locales=LOCALE1,LOCALE2,...LOCALEn**: Позволяет задать локаль системы, например `de_CH.UTF-8`. По умолчанию `en_US.UTF-8`. Если выбранная локаль отсутствует в системе, она будет автоматически сгенерирована.
+- **live-config.timezone=TIMEZONE | timezone=TIMEZONE**: Позволяет задать часовой пояс системы, например `Europe/Zurich`. По умолчанию `UTC`.
 - **live-config.keyboard-model=KEYBOARD_MODEL | keyboard-model=KEYBOARD_MODEL**: Позволяет изменить модель клавиатуры. Значение по умолчанию не задано.
-- **live-config.keyboard-layouts=KEYBOARD_LAYOUT1,KEYBOARD_LAYOUT2,...KEYBOARD_LAYOUTn | keyboard-layouts=KEYBOARD_LAYOUT1,KEYBOARD_LAYOUT2,...KEYBOARD_LAYOUTn**: Позволяет изменить раскладки клавиатуры. Если указано несколько раскладок, инструменты рабочего окружения позволят переключаться между ними в X11. Значение по умолчанию не задано.
-- **live-config.keyboard-variants=KEYBOARD_VARIANT1,KEYBOARD_VARIANT2,...KEYBOARD_VARIANTn | keyboard-variants=KEYBOARD_VARIANT1,KEYBOARD_VARIANT2,...KEYBOARD_VARIANTn**: Позволяет изменить варианты раскладок клавиатуры. Если указано несколько вариантов, их количество должно совпадать с количеством раскладок, так как они будут сопоставляться по порядку. Допускаются пустые значения. Инструменты рабочего окружения позволят переключаться между каждой парой раскладки и варианта в X11. Значение по умолчанию не задано.
+- **live-config.keyboard-layouts=KEYBOARD_LAYOUT1,KEYBOARD_LAYOUT2,...KEYBOARD_LAYOUTn | keyboard-layouts=KEYBOARD_LAYOUT1,KEYBOARD_LAYOUT2,...KEYBOARD_LAYOUTn**: Позволяет изменить раскладки клавиатуры. Если указано несколько, инструменты рабочего окружения позволят переключаться между ними в X11. Значение по умолчанию не задано.
+- **live-config.keyboard-variants=KEYBOARD_VARIANT1,KEYBOARD_VARIANT2,...KEYBOARD_VARIANTn | keyboard-variants=KEYBOARD_VARIANT1,KEYBOARD_VARIANT2,...KEYBOARD_VARIANTn**: Позволяет изменить варианты раскладки клавиатуры. Если указано несколько, их количество должно совпадать с количеством раскладок — пары будут сопоставлены по порядку. Допустимы пустые значения. В среде X11 можно переключаться между каждой парой раскладка/вариант. Значение по умолчанию не задано.
 - **live-config.keyboard-options=KEYBOARD_OPTIONS | keyboard-options=KEYBOARD_OPTIONS**: Позволяет изменить параметры клавиатуры. Значение по умолчанию не задано.
-- **live-config.sysv-rc=SERVICE1,SERVICE2,...SERVICEn | sysv-rc=SERVICE1,SERVICE2,...SERVICEn**: Позволяет отключить службы sysv с помощью update-rc.d.
-- **live-config.utc=yes|no | utc=yes|no**: Позволяет указать, считает ли система, что аппаратные часы установлены по UTC. По умолчанию используется `yes`.
+- **live-config.sysv-rc=SERVICE1,SERVICE2,...SERVICEn | sysv-rc=SERVICE1,SERVICE2,...SERVICEn**: Позволяет отключить службы sysv через update-rc.d.
+- **live-config.utc=yes|no | utc=yes|no**: Позволяет указать, считает ли система, что аппаратные часы установлены в UTC. По умолчанию `yes`.
 - **live-config.xorg-xsession-manager=X_SESSION_MANAGER | x-session-manager=X_SESSION_MANAGER**: Позволяет задать x-session-manager через update-alternatives.
-- **live-config.xorg-driver=XORG_DRIVER | xorg-driver=XORG_DRIVER**: Позволяет указать драйвер xorg вместо его автоматического определения. Если в `/usr/share/live/config/xserver-xorg/*DRIVER*.ids` в live-системе указан PCI ID, то для этих устройств будет применён *DRIVER*. Если одновременно указан параметр загрузки и переопределение, приоритет имеет параметр загрузки.
-- **live-config.xorg-resolution=XORG_RESOLUTION | xorg-resolution=XORG_RESOLUTION**: Позволяет задать разрешение xorg вместо его автоматического определения, например 1024x768.
-- **live-config.wlan-driver=WLAN_DRIVER | wlan-driver=WLAN_DRIVER**: Позволяет указать драйвер WLAN вместо его автоматического определения. Если в `/usr/share/live/config/broadcom-sta/*DRIVER*.ids` в live-системе указан PCI ID, то *DRIVER* будет применяться для этих устройств принудительно. Если задан и параметр загрузки, и переопределение, приоритет имеет параметр загрузки.
-- **live-config.module-mode=simple|merged | module-mode=simple|merged**: Позволяет указать режим модуля для live-конфигурации. Если выбран `merged`, система обновит учетные записи пользователей, пересоберет кэши и обновит параметры пакетов, чтобы изменения конфигурации динамически применялись в работающей системе.
-- **live-config.link-user-dirs | link-user-dirs**: Создаёт ссылки на управляемые пользовательские каталоги по настроенному пути на носителе данных MiniOS. Несовместимо с режимом bind и недоступно при любом `toram` режиме или при активной сессии с шифрованием LUKS.
-- **live-config.bind-user-dirs | bind-user-dirs**: Монтирует управляемые пользовательские каталоги из настроенного пути на носителе данных MiniOS с использованием bind-монта. Несовместимо с режимом link и имеет такие же `toram` и ограничения по шифрованию активной сессии.
-- **live-config.user-dirs-path=PATH | user-dirs-path=PATH**: Задаёт относительный к носителю путь, используемый для `link-user-dirs` или `bind-user-dirs`. По умолчанию используется `/minios/userdata`.
-- **live-config.hooks=filesystem|medium|URL1|URL2|...|URLn | hooks=medium|filesystem|URL1|URL2|...|URLn**: Загружает и выполняет произвольные файлы из временного файла в работающей live-системе. URL-адреса обрабатываются через `wget` и могут использовать HTTP, FTP или `file://`; необходимые интерпретаторы и другие зависимости должны быть установлены заранее. Ключевое слово `filesystem` разворачивает файлы из `/usr/lib/live/config-hooks/`; `medium` разворачивает файлы из `minios/config-hooks/` на обнаруженном live-носителе (с резервным вариантом ISO-пути в компоненте hook). Явно указанные локальные файлы могут использовать `file:///run/initramfs/memory/data/minios/config-hooks/FILE` или `file:///PATH` в корне live-системы. Записи, разделённые вертикальной чертой, выполняются в указанном порядке; файлы, развёрнутые по ключевому слову, — в порядке shell glob. Примеры установлены в `/usr/share/doc/live-config/examples/hooks/`.
+- **live-config.xorg-driver=XORG_DRIVER | xorg-driver=XORG_DRIVER**: Позволяет указать драйвер xorg вместо автоопределения. Если PCI ID указан в `/usr/share/live/config/xserver-xorg/*DRIVER*.ids` внутри live-системы, для этих устройств будет принудительно использоваться *DRIVER*. Если задан и параметр загрузки, и override, приоритет у параметра загрузки.
+- **live-config.xorg-resolution=XORG_RESOLUTION | xorg-resolution=XORG_RESOLUTION**: Позволяет задать разрешение xorg вместо автоопределения, например 1024x768.
+- **live-config.wlan-driver=WLAN_DRIVER | wlan-driver=WLAN_DRIVER**: Позволяет указать драйвер WLAN вместо автоопределения. Если PCI ID указан в `/usr/share/live/config/broadcom-sta/*DRIVER*.ids` внутри live-системы, для этих устройств будет принудительно использоваться *DRIVER*. Если задан и параметр загрузки, и override, приоритет у параметра загрузки.
+- **live-config.module-mode=simple|merged | module-mode=simple|merged**: Позволяет указать режим модуля для live-конфигурации. При значении `merged`, система обновляет учётные записи пользователей, пересобирает кэши и обновляет настройки пакетов, чтобы изменения конфигурации динамически интегрировались в работающую систему.
+- **live-config.link-user-dirs | link-user-dirs**: Создаёт ссылки на управляемые пользовательские каталоги в настроенный путь на MiniOS носителе данных. Взаимоисключает bind-режим и недоступен при любом режиме `toram` или если активная persistent-сессия зашифрована с помощью LUKS.
+- **live-config.bind-user-dirs | bind-user-dirs**: Монтирует с помощью bind управляемые пользовательские каталоги из настроенного пути на MiniOS носителе данных. Взаимоисключает link-режим и имеет такие же ограничения по `toram` и шифрованию активной сессии.
+- **live-config.user-dirs-path=PATH | user-dirs-path=PATH**: Задаёт путь относительно носителя, используемый для `link-user-dirs` или `bind-user-dirs`. По умолчанию `/minios/userdata`.
+- **live-config.hooks=filesystem|medium|URL1|URL2|...|URLn | hooks=medium|filesystem|URL1|URL2|...|URLn**: Загружает и выполняет произвольные файлы из временного файла в работающей live-системе. URL-адреса обрабатываются через `wget` и могут использовать HTTP, FTP или `file://`; необходимые интерпретаторы и зависимости должны быть уже установлены. Ключевое слово `filesystem` раскрывает файлы в `/usr/lib/live/config-hooks/`; `medium` раскрывает файлы в `minios/config-hooks/` на обнаруженном live-носителе (с резервным поиском по ISO-пути в компоненте hook). Явные локальные файлы можно указывать как `file:///run/initramfs/memory/data/minios/config-hooks/FILE` или `file:///PATH` в корне live-системы. Записи, разделённые вертикальной чертой, выполняются в указанном порядке; файлы, раскрытые по ключевому слову, сортируются по glob-порядку оболочки. Примеры установлены в `/usr/share/doc/live-config/examples/hooks/`.
 
-> **Предупреждение по безопасности:** `live-config` выполняется с правами root. Хуки делаются исполняемыми и запускаются от имени root, а preseeds изменяют базу данных debconf системы с правами root. Обычные HTTP и FTP не аутентифицируют загружаемый контент и не обеспечивают его целостность. Предпочитайте проверенные локальные файлы или доверенный аутентифицированный транспорт с независимой проверкой целостности; не используйте удалённые хуки или preseeds из недоверенных сетей.
+> **Предупреждение по безопасности:** `live-config` выполняется с правами root. Hooks делаются исполняемыми и запускаются от root, а preseeds изменяют базу данных debconf с root-правами. Обычные HTTP и FTP не аутентифицируют скачиваемый контент и не обеспечивают целостность. Предпочитайте проверенные локальные файлы или доверенный аутентифицированный транспорт с независимой проверкой целостности; не используйте удалённые hooks или preseeds из недоверенных сетей.
 
-### MiniOS ранние параметры хранения
+### MiniOS параметры раннего хранения
 
-Эти параметры считываются `minios-boot` до запуска обычных сервисов. Для них требуется исправное надёжное `perch` сеанс, но они не активируют его самостоятельно.
+Эти параметры читаются компонентом `minios-boot` до запуска обычных сервисов. Для их работы требуется исправная устойчивая `perch` сессия, но они сами её не активируют.
 
-- **live-config.log-storage=persistent|volatile | log-storage=persistent|volatile**: `volatile` размещает журнал systemd и обычные `/var/log` файлы в ограниченном RAM; диагностическая информация загрузки сохраняется на постоянном носителе. По умолчанию: `persistent`.
-- **live-config.apt-cache=persistent|volatile | apt-cache=persistent|volatile**: `volatile` сохраняет загруженные архивы APT в ограниченном tmpfs, если позволяют условия RAM и swap. Базы данных пакетов и списки репозиториев остаются постоянными. По умолчанию: `persistent`.
-- **live-config.browser-cache=persistent|volatile | browser-cache=persistent|volatile**: `volatile` запрашивает нативные кэши браузера в RAM. `browser-cache` компонент монтирует выбранные каталоги кэша live-пользователя после создания учётной записи. По умолчанию: `persistent`.
+- **live-config.log-storage=persistent|volatile | log-storage=persistent|volatile**: `volatile` размещает журнал systemd и обычные файлы `/var/log` в ограниченном RAM; диагностические сообщения загрузки сохраняются на устойчивом хранилище. По умолчанию: `persistent`.
+- **live-config.apt-cache=persistent|volatile | apt-cache=persistent|volatile**: `volatile` размещает загруженные архивы APT в ограниченном tmpfs, если позволяют условия RAM и swap. Базы данных пакетов и списки репозиториев остаются постоянными. По умолчанию: `persistent`.
+- **live-config.browser-cache=persistent|volatile | browser-cache=persistent|volatile**: `volatile` запрашивает кэш браузера в RAM. Компонент `browser-cache` монтирует выбранные каталоги кэша пользователя после создания учётной записи. По умолчанию: `persistent`.
 
 ## Параметры загрузки (ярлыки)
 
-Для некоторых типовых сценариев, где обычно требуется комбинировать несколько отдельных параметров, **live-config** предоставляет ярлыки. Это позволяет как получить полный контроль над всеми опциями, так и упростить настройку.
+Для некоторых типичных сценариев, где обычно требуется комбинировать несколько отдельных параметров, **live-config** предоставляет ярлыки. Это позволяет как получить полный контроль над всеми опциями, так и упростить настройку.
 
-- **live-config.noroot | noroot**: Отключает установку пароля root и привилегии MiniOS sudo и PolicyKit.
-- **live-config.sudo-mode=passwordless|password|disabled | sudo-mode=passwordless|password|disabled**: Управляет настройкой sudo для live-пользователя. Значение по умолчанию и историческое поведение MiniOS при отсутствии параметра — `passwordless`. Режим `password` требует пароль live-пользователя для доступа к sudo. Режим `disabled` удаляет привилегии MiniOS sudo и исключает live-пользователя из группы sudo при создании пользователя. Более старый ярлык `noroot` отменяет это и полностью отключает настройку root-привилегий.
-- **live-config.polkit-mode=passwordless|password|disabled | polkit-mode=passwordless|password|disabled**: Управляет правилами удобства MiniOS PolicyKit. Значение по умолчанию и историческое поведение MiniOS при отсутствии параметра — `passwordless`. Режимы `password` и `disabled` удаляют это правило, и применяется обычная аутентификация PolicyKit дистрибутива. `disabled` не является строгой политикой запрета; используйте `noroot` если live-пользователь не должен получать административные права.
+- **live-config.noroot | noroot**: Отключает установку пароля root и предоставление привилегий через MiniOS sudo и PolicyKit.
+- **live-config.sudo-mode=passwordless|password|disabled | sudo-mode=passwordless|password|disabled**: Управляет настройкой sudo для live-пользователя. Значение по умолчанию и историческое поведение MiniOS при отсутствии параметра — `passwordless`. Режим `password` сохраняет доступ к sudo, но требует пароль live-пользователя. Режим `disabled` удаляет предоставление sudo через MiniOS и не добавляет live-пользователя в группу sudo при создании. Старый ярлык `noroot` переопределяет это и полностью отключает настройку root-привилегий.
+- **live-config.polkit-mode=passwordless|password|disabled | polkit-mode=passwordless|password|disabled**: Управляет правилами удобства PolicyKit MiniOS. Значение по умолчанию и историческое поведение MiniOS при отсутствии параметра — `passwordless`. Режимы `password` и `disabled` удаляют это правило, и применяется обычная аутентификация PolicyKit дистрибутива. `disabled` не является жёсткой политикой запрета; используйте `noroot` если live-пользователь не должен получать административные права.
 - **live-config.ssh-permit-root-login=true|false | ssh-permit-root-login=true|false**: Записывает политику OpenSSH `PermitRootLogin` при явном указании и установленном openssh-server.
 - **live-config.ssh-password-authentication=true|false | ssh-password-authentication=true|false**: Записывает политику OpenSSH `PasswordAuthentication` при явном указании и установленном openssh-server.
-- **live-config.xrdp-mode=relaxed|hardened|disabled | xrdp-mode=relaxed|hardened|disabled**: Управляет политикой XRDP при установленном xrdp. Режим `relaxed` сохраняет исторические значения MiniOS. `hardened` ограничивает XRDP только localhost, включает повышенные настройки безопасности и запрещает вход root через XRDP. Режим `disabled` отключает и останавливает XRDP через `minios-svc` при наличии.
-- **live-config.x11-mode=relaxed|hardened | x11-mode=relaxed|hardened**: Управляет политикой удобства MiniOS X11. Режим `relaxed` сохраняет совместимость с историческими настройками. `hardened` удаляет разрешающий параметр `-ac` X-сервера и усиливает `Xwrapper.config` при наличии.
-- **live-config.issue-password-hints=true|false | issue-password-hints=true|false**: Управляет тем, показывает ли `/etc/issue` подсказки по умолчанию для паролей root/live MiniOS.
-- **live-config.lockscreen-mode=relaxed|hardened | lockscreen-mode=relaxed|hardened**: Управляет тем, разрешает ли live-config ослабление блокировки экрана. `relaxed` сохраняет удобство для live-сессии, как было раньше. `hardened` не отключает блокировку экрана GNOME и включает блокировку xscreensaver, если файл присутствует.
-- **live-config.noautologin | noautologin**: Запрещает live-config настраивать автологин в консоли и графической среде. Не удаляет автологин, если он уже настроен в постоянной сессии.
-- **live-config.nottyautologin | nottyautologin**: Запрещает live-config настраивать автологин в консоли, не затрагивая графическую среду. Существующая постоянная настройка не удаляется.
-- **live-config.nox11autologin | nox11autologin**: Запрещает live-config настраивать автологин через display-manager, не затрагивая TTY. Существующая постоянная настройка не удаляется.
+- **live-config.xrdp-mode=relaxed|hardened|disabled | xrdp-mode=relaxed|hardened|disabled**: Управляет режимом XRDP при установленном xrdp. `relaxed` сохраняет исторические значения по умолчанию MiniOS. `hardened` ограничивает XRDP localhost, включает повышенные настройки безопасности и запрещает вход root через XRDP. `disabled` отключает и останавливает XRDP через `minios-svc` при наличии.
+- **live-config.x11-mode=relaxed|hardened | x11-mode=relaxed|hardened**: Управляет режимом X11 MiniOS для удобства. `relaxed` сохраняет совместимость с прежними версиями. `hardened` удаляет разрешительный параметр `-ac` X-сервера и усиливает `Xwrapper.config` при наличии.
+- **live-config.issue-password-hints=true|false | issue-password-hints=true|false**: Управляет тем, будет ли `/etc/issue` показывать стандартные подсказки пароля root/live MiniOS.
+- **live-config.lockscreen-mode=relaxed|hardened | lockscreen-mode=relaxed|hardened**: Определяет, будет ли live-config ослаблять блокировку экрана. `relaxed` сохраняет удобство для live-сессии, как в прежних версиях. `hardened` не отключает блокировку в GNOME и включает блокировку xscreensaver, если файл присутствует.
+- **live-config.noautologin | noautologin**: Запрещает live-config настраивать автологин в консоли и графической среде. Не удаляет автологин, уже настроенный в persistent-сессии.
+- **live-config.nottyautologin | nottyautologin**: Запрещает live-config настраивать автологин в консоли, не затрагивая графическую среду. Существующая persistent-конфигурация не удаляется.
+- **live-config.nox11autologin | nox11autologin**: Запрещает live-config настраивать автологин через display-manager, не затрагивая настройку TTY. Существующая persistent-конфигурация не удаляется.
 
 ## Параметры загрузки (специальные опции)
 
-Для особых случаев предусмотрены специальные параметры загрузки.
+Для особых сценариев предусмотрены специальные параметры загрузки.
 
-- **live-config.debug | debug**: Включает вывод отладочной информации в live-config.
+- **live-config.debug | debug**: Включает вывод отладки в live-config.
 
 ## Файлы конфигурации
 
-**live-config** можно настраивать (но не активировать) через конфигурационные файлы. Любой поддерживаемый параметр загрузки можно указать в `LIVE_CONFIG_CMDLINE`, а большинство опций также можно задать через отдельные переменные. `boot=live` параметр по-прежнему необходим для активации **live-config**.
+**live-config** можно настроить (но не активировать) через конфигурационные файлы. Любой поддерживаемый параметр загрузки можно поместить в `LIVE_CONFIG_CMDLINE`, а большинство опций также можно задать через отдельные переменные. Параметр `boot=live` всё равно требуется для активации **live-config**.
 
-**Примечание:** Если используются конфигурационные файлы, то желательно (предпочтительно) все параметры загрузки помещать в переменную **LIVE_CONFIG_CMDLINE** либо задавать их через отдельные переменные. При использовании отдельных переменных пользователь должен убедиться, что все необходимые переменные заданы для создания корректной конфигурации.
+**Примечание:** Если используются конфигурационные файлы, рекомендуется (предпочтительно) все параметры загрузки помещать в переменную **LIVE_CONFIG_CMDLINE**, либо задавать отдельные переменные. При использовании отдельных переменных пользователь должен самостоятельно убедиться, что заданы все необходимые переменные для корректной конфигурации.
 
-`live-config` сам по себе подключает `/etc/live/config.conf` и затем `/etc/live/config.conf.d/*.conf` в порядке сортировки по шаблону оболочки. Более поздние фрагменты могут переопределять значения из основного файла или предыдущих фрагментов. Дополнительный слой конфигурации для второго носителя не подключается.
+`live-config` сам подключает `/etc/live/config.conf` и затем `/etc/live/config.conf.d/*.conf` в порядке glob-сортировки оболочки. Поздние фрагменты могут переопределять значения из основного файла или предыдущих фрагментов. Отдельный второй слой конфигурации media не подключается.
 
-На носителях MiniOS исходными файлами являются `minios/config.conf` и `minios/config.conf.d/*.conf`. До запуска `live-config` MiniOS initramfs синхронизирует их с `/etc/live/` рабочими файлами по времени изменения. Новый исходный файл заменяет свой рабочий аналог; новый рабочий файл копируется обратно только если выбранный каталог данных MiniOS доступен для записи. При одинаковых временных метках копирование не происходит, отсутствующие файлы дополняются, а файлы не удаляются. Это синхронизация на этапе загрузки, а не постоянный мониторинг. Подробнее см. [Конфигурационный файл](/reference/configuration/config.conf) для полного описания правил синхронизации и приоритета командной строки.
+На MiniOS носителях исходные файлы — `minios/config.conf` и `minios/config.conf.d/*.conf`. До запуска `live-config` MiniOS initramfs синхронизирует их с `/etc/live/` рабочими файлами по времени изменения. Более новый исходный файл заменяет рабочий; более новый рабочий файл копируется обратно только если выбранный каталог данных MiniOS доступен для записи. Если метки времени совпадают — копирования нет, отсутствующие файлы заполняются, файлы не удаляются. Это синхронизация при загрузке, а не постоянный мониторинг. Подробнее см. [Файл конфигурации](/reference/configuration/config.conf) для полного описания синхронизации и приоритетов командной строки.
 
-В качестве резервного варианта для initramfs, которые не подготовили рабочий файл, обёртки запуска systemd и SysV копируют `minios/config.conf` с обнаруженного носителя только если `/etc/live/config.conf` отсутствует. Этот резервный механизм не копирует `config.conf.d` фрагменты. Стандартный современный MiniOS LiveKit initramfs выполняет синхронизацию на более раннем этапе.
+В качестве резервного варианта для initramfs, который не подготовил рабочий файл, обёртки запуска systemd и SysV копируют `minios/config.conf` с обнаруженного носителя только если `/etc/live/config.conf` отсутствует. Этот резерв не копирует фрагменты `config.conf.d`. Стандартный актуальный initramfs LiveKit MiniOS выполняет синхронизацию на более раннем этапе.
 
-Имена файлов-фрагментов должны соответствовать `*.conf`. Рекомендуются имена вроде `vendor.conf` или `project.conf`. Выбирайте имена осознанно: более поздние фрагменты переопределяют предыдущие.
+Имена файлов-фрагментов должны соответствовать `*.conf`. Рекомендуются имена вроде `vendor.conf` или `project.conf`. Выбирайте имена осознанно, так как поздние фрагменты переопределяют ранние.
 
-Содержимое конфигурационных файлов представляет собой одну или несколько из следующих переменных.
+Содержимое конфигурационных файлов состоит из одной или нескольких следующих переменных.
 
 - **LIVE_CONFIG_CMDLINE=PARAMETER1 PARAMETER2...PARAMETERn**: Эта переменная соответствует командной строке загрузчика.
 - **LIVE_CONFIG_COMPONENTS=COMPONENT1,COMPONENT2,...COMPONENTn**: Эта переменная соответствует параметру `**live-config.components**=*COMPONENT1*,*COMPONENT2*,...*COMPONENTn*`.
 - **LIVE_CONFIG_NOCOMPONENTS=COMPONENT1,COMPONENT2,...COMPONENTn**: Эта переменная соответствует параметру `**live-config.nocomponents**=*COMPONENT1*,*COMPONENT2*,...*COMPONENTn*`.
 - **LIVE_DEBCONF_PRESEED=filesystem|medium|URL1|URL2|...|URLn**: Эта переменная соответствует параметру `**live-config.debconf-preseed**=filesystem|medium|*URL1*\|*URL2*\|...|*URLn*`.
-- **LIVE_HOSTNAME=HOSTNAME**: Эта переменная соответствует параметру `**live-config.hostname**=*HOSTNAME*` по умолчанию `minios`.
-- **LIVE_NETWORK_METHOD=dhcp|static|off**: Определяет политику проводной сети. `dhcp` и незаданное значение не влияют на уже созданный статический профиль MiniOS.
-- **LIVE_NETWORK_INTERFACE=INTERFACE**: Определяет проводной интерфейс для политики `static` или `off`.
-- **LIVE_NETWORK_ADDRESS=IPV4**: Устанавливает статический IPv4-адрес.
-- **LIVE_NETWORK_PREFIX=PREFIX**: Устанавливает длину статического префикса; по умолчанию `24`.
-- **LIVE_NETWORK_GATEWAY=IPV4**: Устанавливает необязательный статический шлюз.
-- **LIVE_NETWORK_DNS=ADDRESS1,ADDRESS2**: Устанавливает необязательные DNS-серверы через запятую.
+- **LIVE_HOSTNAME=HOSTNAME**: Эта переменная соответствует параметру `**live-config.hostname**=*HOSTNAME*`. По умолчанию `minios`.
+- **LIVE_NETWORK_METHOD=dhcp|static|off**: Определяет политику проводной сети. `dhcp` и отсутствие значения — no-op и не удаляют ранее созданный статический профиль MiniOS.
+- **LIVE_NETWORK_INTERFACE=INTERFACE**: Выбирает проводной интерфейс для политики `static` или `off`.
+- **LIVE_NETWORK_ADDRESS=IPV4**: Задаёт статический IPv4-адрес.
+- **LIVE_NETWORK_PREFIX=PREFIX**: Задаёт длину статического префикса; по умолчанию `24`.
+- **LIVE_NETWORK_GATEWAY=IPV4**: Указывает необязательный статический шлюз.
+- **LIVE_NETWORK_DNS=ADDRESS1,ADDRESS2**: Указывает дополнительные DNS-серверы через запятую.
 - **LIVE_NETWORK_BACKEND=auto|nm|ifupdown**: Определяет используемый backend.
 
-Компонент сети записывает `/var/lib/live/config/network` после успешной записи политики. Чтобы применить изменённую политику на постоянной системе, удалите этот штамп. Для удаления старого статического профиля используйте `network-method=off` или вручную удалите профиль и штамп, управляемые MiniOS.
+Компонент сети сохраняет `/var/lib/live/config/network` после успешной записи политики. Чтобы применить изменённую политику на persistent-системе, удалите этот штамп. Для удаления предыдущего статического профиля используйте `network-method=off` или вручную удалите профиль и штамп, созданные MiniOS.
 
-- **LIVE_USERNAME=USERNAME**: Эта переменная соответствует параметру `**live-config.username**=*USERNAME*` по умолчанию `live`.
+- **LIVE_USERNAME=USERNAME**: Эта переменная соответствует параметру `**live-config.username**=*USERNAME*`. По умолчанию `live`.
 - **LIVE_USER_DEFAULT_GROUPS=GROUP1,GROUP2,...GROUPn**: Эта переменная соответствует параметру `**live-config.user-default-groups**="*GROUP1*,*GROUP2*...*GROUPn*"`.
 - **LIVE_USER_FULLNAME="USER FULLNAME"**: Эта переменная соответствует параметру `**live-config.user-fullname**="*USER FULLNAME*"`.
 - **LIVE_ROOT_PASSWORD=PASSWORD**: Эта переменная соответствует параметру `**live-config.root-password**=*PASSWORD*`. Указывает пароль root в открытом виде.
 - **LIVE_ROOT_PASSWORD_CRYPTED=PASSWORD**: Эта переменная соответствует параметру `**live-config.root-password-crypted**=*PASSWORD*`. Указывает пароль root в зашифрованном виде.
 - **LIVE_USER_PASSWORD=PASSWORD**: Эта переменная соответствует параметру `**live-config.user-password**=*PASSWORD*`. Указывает пароль пользователя в открытом виде.
 - **LIVE_USER_PASSWORD_CRYPTED=PASSWORD**: Эта переменная соответствует параметру `**live-config.user-password-crypted**=*PASSWORD*`. Указывает пароль пользователя в зашифрованном виде.
-- **LIVE_CONFIG_NOROOT=true|false**: Эта переменная соответствует параметру `**live-config.noroot**` и при значении `true` отключает настройку root, sudo и PolicyKit-привилегий.
+- **LIVE_CONFIG_NOROOT=true|false**: Эта переменная соответствует параметру `**live-config.noroot**` и отключает настройку root, sudo и PolicyKit при значении `true`.
 - **LIVE_SUDO_MODE=passwordless|password|disabled**: Эта переменная соответствует параметру `**live-config.sudo-mode**=...`. Если не задано, MiniOS сохраняет историческое поведение sudo без пароля.
-- **LIVE_POLKIT_MODE=passwordless|password|disabled**: Эта переменная соответствует параметру `**live-config.polkit-mode**=...`. `password` и `disabled` удаляют правило MiniOS для входа без пароля и восстанавливают стандартную аутентификацию PolicyKit дистрибутива.
+- **LIVE_POLKIT_MODE=passwordless|password|disabled**: Эта переменная соответствует параметру `**live-config.polkit-mode**=...`. Режимы `password` и `disabled` удаляют правило MiniOS без пароля и возвращают обычную аутентификацию PolicyKit дистрибутива.
 - **LIVE_SSH_PERMIT_ROOT_LOGIN=true|false**: Эта переменная соответствует параметру `**live-config.ssh-permit-root-login**=...`.
 - **LIVE_SSH_PASSWORD_AUTHENTICATION=true|false**: Эта переменная соответствует параметру `**live-config.ssh-password-authentication**=...`.
 - **LIVE_XRDP_MODE=relaxed|hardened|disabled**: Эта переменная соответствует параметру `**live-config.xrdp-mode**=...`.
@@ -158,56 +158,56 @@ program_commits:
 - **LIVE_XORG_RESOLUTION=XORG_RESOLUTION**: Эта переменная соответствует параметру `**live-config.xorg-resolution**=*XORG_RESOLUTION*`.
 - **LIVE_WLAN_DRIVER=WLAN_DRIVER**: Эта переменная соответствует параметру `**live-config.wlan-driver**=*WLAN_DRIVER*`.
 - **LIVE_HOOKS=filesystem|medium|URL1|URL2|...|URLn**: Эта переменная соответствует параметру `**live-config.hooks**=filesystem|medium|*URL1*\|*URL2*\|...|*URLn*`.
-- **LIVE_LINK_USER_DIRS=true|false**: Включает или отключает создание ссылок из стандартных пользовательских каталогов данных на доступный для записи диск MiniOS. Соответствующий параметр загрузки — просто флаг `live-config.link-user-dirs`. Режим ссылок несовместим с режимом bind или любым режимом `toram`.
-- **LIVE_BIND_USER_DIRS=true|false**: Включает или отключает bind-монтирование стандартных пользовательских каталогов данных с доступного для записи диска MiniOS. Соответствующий параметр загрузки — просто флаг `live-config.bind-user-dirs`. Режим bind несовместим с режимом ссылок или любым режимом `toram`.
-- **LIVE_USER_DIRS_PATH=PATH**: Эта переменная соответствует параметру `**live-config.user-dirs-path**=*PATH*`. Указывает безопасный путь внутри диска с файловой системой FAT32, exFAT или NTFS MiniOS. По умолчанию `/minios/userdata`; сегменты с точками и переходами к родительскому каталогу отклоняются.
+- **LIVE_LINK_USER_DIRS=true|false**: Включает или отключает создание ссылок из стандартных пользовательских каталогов данных на записываемый диск MiniOS. Соответствующий параметр загрузки — просто флаг `live-config.link-user-dirs`. Режим link не совместим с bind-режимом и любым режимом `toram`.
+- **LIVE_BIND_USER_DIRS=true|false**: Включает или отключает bind-монтирование стандартных пользовательских каталогов данных с записываемого диска MiniOS. Соответствующий параметр загрузки — просто флаг `live-config.bind-user-dirs`. Режим bind не совместим с link-режимом и любым режимом `toram`.
+- **LIVE_USER_DIRS_PATH=PATH**: Эта переменная соответствует параметру `**live-config.user-dirs-path**=*PATH*`. Указывает безопасный путь внутри диска с файловой системой FAT32, exFAT или NTFS MiniOS. По умолчанию `/minios/userdata`; сегменты . и .. запрещены.
 
-Настройка пользовательских носителей никогда не объединяет автоматически две непустые директории. Локальная непустая директория переносится только если место назначения на носителе пустое. При отключении функции управляемые данные с носителя копируются обратно перед удалением ссылок. Активация пользовательских носителей и обратное копирование блокируются, если активная сессия постоянства зашифрована с помощью LUKS, чтобы предотвратить перенос данных сессии на незашифрованный носитель MiniOS. Решение принимается по фактическому состоянию шифрования: `perchencrypt=luks` только запрашивает шифрование при создании новой сессии и не описывает уже существующую. В случае ошибки проверки или копирования исходные пользовательские каталоги сохраняются, а причина фиксируется в `/var/lib/live/config/user-media.status`.
-- **LIVE_MODULE_MODE=simple|merged**: Эта переменная хранит состояние, заданное параметром `live-config.module-mode` (или `module-mode`). При значении `merged`, live-система применяет обновления (через minios-update-users, minios-update-cache и minios-update-dpkg) для объединения пользовательских настроек с базовой средой.
+При настройке пользовательских носителей никогда не происходит автоматического слияния двух непустых каталогов. Локальный непустой каталог переносится только если его место на носителе пусто. При отключении функции данные с носителя копируются обратно перед удалением ссылок. Активация пользовательских носителей и копирование обратно блокируются, если активная persistent-сессия зашифрована с помощью LUKS, чтобы избежать перемещения данных сессии на незашифрованный носитель MiniOS. Решение принимается по фактическому состоянию шифрования: `perchencrypt=luks` только запрашивает шифрование при создании новой сессии и не описывает уже существующую. При ошибке проверки или копирования исходные пользовательские каталоги остаются на месте, а причина записывается в `/var/lib/live/config/user-media.status`.
+- **LIVE_MODULE_MODE=simple|merged**: Эта переменная хранит состояние, заданное параметром `live-config.module-mode` (или `module-mode`). При значении `merged`, live-система применяет обновления (через minios-update-users, minios-update-cache и minios-update-dpkg), чтобы объединить пользовательские настройки с базовой средой.
 - **LIVE_CONFIG_DEBUG=true|false**: Эта переменная соответствует параметру `**live-config.debug**`.
 
 ## MiniOS переменные кэша и логов
 
-- **LIVE_LOG_STORAGE=persistent|volatile**, **LIVE_APT_CACHE=persistent|volatile**, и **LIVE_BROWSER_CACHE=persistent|volatile**: независимые политики загрузки MiniOS. Также работают в `config.conf.d` и `LIVE_CONFIG_CMDLINE`. Сами по себе не включают постоянство. Подробнее см. в разделе [Файл конфигурации](/reference/configuration/config.conf#cache-and-log-policy-for-a-persistent-session).
+- **LIVE_LOG_STORAGE=persistent|volatile**, **LIVE_APT_CACHE=persistent|volatile**, и **LIVE_BROWSER_CACHE=persistent|volatile**: Независимые политики MiniOS на этапе загрузки. Они также работают в `config.conf.d` и `LIVE_CONFIG_CMDLINE`. Сами по себе не включают постоянство. Подробнее см. [Файл конфигурации](/reference/configuration/config.conf#cache-and-log-policy-for-a-persistent-session).
 
-Компонент `browser-cache` читает долговременную политику `minios-boot` после появления live-пользователя и монтирует стандартные каталоги кэша браузера в общий ограниченный файловый раздел RAM. Отдельно созданная политика Firefox отключает кэш на диске без переноса профилей браузера. Если этот компонент исключён через `components=` или `nocomponents=`, только ранний запрос к кэшу браузера не создаёт монтирования для каждого пользователя.
+Компонент `browser-cache` читает политику для устойчивого `minios-boot` после создания live-пользователя и монтирует стандартные каталоги кэша браузера в общий ограниченный файловый RAM. Для Firefox отдельная политика отключает кэш на диске без перемещения профилей браузера. Если этот компонент исключён через `components=` или `nocomponents=`, только ранний запрос browser-cache не создаёт пользовательские точки монтирования.
 
-Вспомогательные утилиты в объединённом режиме сохраняют обычные ошибки, но создают подробные трассировки команд и отладочные копии только при `LIVE_CONFIG_DEBUG=true`.
+В режиме merged ошибки сохраняются обычным образом, но подробные трассировки команд и отладочные копии создаются только при `LIVE_CONFIG_DEBUG=true`.
 
 # КАСТОМИЗАЦИЯ
 
-**live-config** легко настраивается для собственных проектов или локального использования.
+**live-config** легко адаптируется для downstream-проектов или локального использования.
 
 ## Добавление новых компонентов конфигурации
 
-Проекты downstream могут размещать свои компоненты в /usr/lib/live/config — они будут автоматически запускаться при загрузке, дополнительных действий не требуется.
+Downstream-проекты могут размещать свои компоненты в /usr/lib/live/config — ничего дополнительно делать не требуется, компоненты будут запускаться автоматически при загрузке.
 
-Лучше всего размещать компоненты в отдельном debian-пакете. Пример такого пакета с примером компонента находится в /usr/share/doc/live-config/examples.
+Лучше всего размещать компоненты в отдельном debian-пакете. Пример пакета с примером компонента находится в /usr/share/doc/live-config/examples.
 
 ## Удаление существующих компонентов конфигурации
 
-В настоящее время нет простого способа удалить компоненты без необходимости либо поставлять локально изменённый пакет **live-config** либо использовать dpkg-divert. Однако того же эффекта можно достичь, отключив соответствующие компоненты через механизм live-config.nocomponents (см. выше). Чтобы не указывать отключаемые компоненты каждый раз в параметре загрузки, рекомендуется использовать конфигурационный файл (см. выше).
+На данный момент невозможно корректно удалить компоненты без необходимости либо распространять локально модифицированный пакет **live-config** или использовать dpkg-divert. Однако того же эффекта можно добиться, отключив соответствующие компоненты через механизм live-config.nocomponents (см. выше). Чтобы не указывать отключённые компоненты каждый раз в параметре загрузки, рекомендуется использовать конфигурационный файл (см. выше).
 
-Файлы конфигурации для самой live-системы лучше всего размещать в отдельном debian-пакете. Пример такого пакета с примером конфигурации находится в /usr/share/doc/live-config/examples.
+Файлы конфигурации для самой live-системы лучше всего размещать в отдельном debian-пакете. Пример пакета с примером конфигурации находится в /usr/share/doc/live-config/examples.
 
 # КОМПОНЕНТЫ
 
-**live-config** в настоящее время включает следующие компоненты в /usr/lib/live/config.
+**live-config** на данный момент включает следующие компоненты в /usr/lib/live/config.
 
 - **nss-systemd**: удаляет или восстанавливает модуль NSS systemd в /etc/nsswitch.conf для обхода известной проблемы systemd.
-- **debconf**: позволяет применять любые preseed-файлы, размещённые на live-носителе или http/ftp-сервере.
+- **debconf**: позволяет применять произвольные preseed-файлы, размещённые на live-носителе или http/ftp-сервере.
 - **hostname**: настраивает /etc/hostname и /etc/hosts.
-- **issue-setup**: создаёт файл /etc/issue с приветствием и информацией о дистрибутиве.
+- **issue-setup**: настраивает файл /etc/issue с приветственным баннером и информацией о дистрибутиве.
 - **live-debconfig_passwd**: настраивает пароли пользователя и root через live-debconfig.
 - **user-setup**: добавляет учётную запись live-пользователя.
-- **user-groups**: добавляет live-пользователя во вспомогательные группы, объявленные установленными модулями. Существующие группы, указанные в `/usr/share/live/config/user-default-groups.d/*.groups` применяются после создания пользователя и при последующих запусках live-config.
+- **user-groups**: добавляет live-пользователя в дополнительные группы, объявленные установленными модулями. Существующие группы из списка `/usr/share/live/config/user-default-groups.d/*.groups` применяются после создания пользователя и при последующих запусках live-config.
 - **root-setup**: устанавливает или обновляет пароль root и настраивает окружение пользователя root.
 - **sudo**: предоставляет права sudo live-пользователю.
-- **user-ssh-keys**: синхронизирует пользовательские `authorized_keys.<username>` файлы между live-носителем и домашними директориями пользователей. Поддерживает одновременную работу с несколькими пользователями (например, `authorized_keys.root`, `authorized_keys.live`, `authorized_keys.admin`).
-- **user-media**: создает ссылки или монтирует с помощью bind проверенные пользовательские директории на существующем доступном для записи MiniOS носителе данных с безопасной миграцией и обратным копированием при отключении.
+- **user-ssh-keys**: синхронизирует пользовательские файлы `authorized_keys.<username>` между live-носителем и домашними каталогами пользователей. Поддерживает одновременную работу с несколькими пользователями (например, `authorized_keys.root`, `authorized_keys.live`, `authorized_keys.admin`) и распознаёт формы загрузки без расширения: `toram`, `toram=trim`, и `toram=full` как варианты RAM при определении возможности безопасного обновления live-носителя.
+- **user-media**: создаёт ссылки или bind-монтирует проверенные пользовательские каталоги на существующем записываемом носителе данных MiniOS, с безопасной миграцией и возвратом данных при отключении.
 - **locales**: настраивает локали.
 - **tzdata**: настраивает /etc/timezone.
-- **xorg-service**: настраивает имя пользователя в xorg.service и применяет X11-конфигурацию при поддержке.
+- **xorg-service**: настраивает имя пользователя в xorg.service и применяет режим X11, если поддерживается.
 - **gdm3**: настраивает автологин в gdm3.
 - **sddm**: настраивает автологин в sddm.
 - **kdm**: настраивает автологин в kdm.
@@ -215,37 +215,37 @@ program_commits:
 - **lxdm**: настраивает автологин в lxdm.
 - **nodm**: настраивает автологин в nodm.
 - **slim**: настраивает автологин в slim.
-- **xinit**: настраивает автологин с помощью xinit.
+- **xinit**: настраивает автологин через xinit.
 - **keyboard-configuration**: настраивает клавиатуру.
-- **sysvinit**: настраивает автологин в консоли через `/etc/inittab` при установленном sysvinit. `noautologin` и `nottyautologin` сочетания клавиш отключают эту настройку.
-- **sysv-rc**: настраивает sysv-rc, отключая указанные сервисы.
+- **sysvinit**: настраивает автологин в консоли через `/etc/inittab` при установленном sysvinit. Ярлыки `noautologin` и `nottyautologin` отключают эту настройку.
+- **sysv-rc**: настраивает sysv-rc, отключая указанные службы.
 - **apport**: отключает apport.
 - **gnome-panel-data**: отключает кнопку блокировки экрана.
 - **gnome-power-manager**: отключает гибернацию.
-- **gnome-screensaver**: управляет блокировкой экрана GNOME согласно `LIVE_LOCKSCREEN_MODE`.
-- **kaboom**: отключает мастер миграции KDE (squeeze и новее).
-- **kde-services**: отключает некоторые ненужные сервисы KDE (squeeze и новее).
-- **policykit**: предоставляет пользователю права через PolicyKit.
+- **gnome-screensaver**: управляет блокировкой экрана GNOME в соответствии с `LIVE_LOCKSCREEN_MODE`.
+- **kaboom**: отключает мастер миграции KDE (начиная с squeeze).
+- **kde-services**: отключает некоторые нежелательные службы KDE (начиная с squeeze).
+- **policykit**: предоставляет права пользователя через PolicyKit.
 - **ssl-cert**: пересоздаёт тестовые SSL-сертификаты.
-- **xrdp**: настраивает режим XRDP (ослабленный, защищённый или отключённый) при установленном XRDP.
+- **xrdp**: настраивает режим XRDP (relaxed, hardened или disabled) при установленном XRDP.
 - **anacron**: отключает anacron.
-- **util-linux**: отключает службу util-linux hwclock.
+- **util-linux**: отключает службу hwclock из util-linux.
 - **login**: отключает lastlog.
 - **xserver-xorg**: настраивает xserver-xorg.
-- **network**: настраивает устойчивую проводную политику IPv4 через защищённый keyfile NetworkManager или секцию ifupdown. Запускается до сетевых служб, проверяет все значения и применяет изменения только после успешной записи.
-- **openssh-server**: пересоздаёт ключи хоста OpenSSH и явно записывает политику root-входа или аутентификации по паролю.
-- **xfce4-panel**: сбрасывает xfce4-panel к настройкам по умолчанию.
+- **network**: настраивает устойчивую политику проводной IPv4 через защищённый keyfile NetworkManager или секцию ifupdown. Запускается до сетевых сервисов, валидирует все значения и сохраняет штамп только после успешной записи.
+- **openssh-server**: пересоздаёт ключи OpenSSH и записывает явно запрошенную политику root-login или password-authentication.
+- **xfce4-panel**: настраивает xfce4-panel по умолчанию.
 - **xscreensaver**: управляет блокировкой xscreensaver в соответствии с `LIVE_LOCKSCREEN_MODE`.
 - **broadcom-sta**: настраивает драйверы broadcom-sta для WLAN.
-- **hyperv**: настраивает параметры X11 для улучшения совместимости с платформами Microsoft Hyper-V.
+- **hyperv**: настраивает параметры X11 для повышения совместимости с платформами Microsoft Hyper-V.
 - **ntfs3**: управляет правилами udev для поддержки NTFS3.
 - **config-module-mode**: настраивает режим модулей системы и обновляет кэши, пользовательские настройки и dpkg.
-- **hooks**: позволяет запускать произвольные команды из файла, размещённого на live-носителе или http/ftp-сервере.
+- **hooks**: позволяет запускать произвольные команды из файла на live-носителе или http/ftp-сервере.
 
 # ФАЙЛЫ
 
-- `minios/config.conf` на выбранном MiniOS-носителе данных (копия исходника)
-- `minios/config.conf.d/*.conf` на выбранном MiniOS-носителе данных (фрагменты исходника)
+- `minios/config.conf` на выбранном носителе данных MiniOS (исходная копия)
+- `minios/config.conf.d/*.conf` на выбранном носителе данных MiniOS (фрагменты исходника)
 - `/etc/live/config.conf`
 - `/etc/live/config.conf.d/*.conf`
 - `/usr/lib/live/init-config.sh`
@@ -256,9 +256,9 @@ program_commits:
 - `/var/lib/live/config/`
 - `/var/log/live/config.log`
 - `/var/log/minios/minios-boot.log`
-- `minios/log/YYYYMMDD_HHMMSS/` на выбранных доступных для записи носителях данных при включённом экспорте логов
-- `/usr/lib/live/config-hooks/*` (`filesystem` хуки)
-- `minios/config-hooks/*` на обнаруженном live-носителе (`medium` хуки)
+- `minios/log/YYYYMMDD_HHMMSS/` на выбранных записываемых носителях данных при включённой выгрузке логов
+- `/usr/lib/live/config-hooks/*` (`filesystem` hooks)
+- `minios/config-hooks/*` на обнаруженном live-носителе (`medium` hooks)
 - `/usr/lib/live/config-preseed/*` (`filesystem` preseeds)
 - `minios/config-preseed/*` на обнаруженном live-носителе (`medium` preseeds)
 
@@ -270,12 +270,12 @@ program_commits:
 
 # ДОМАШНЯЯ СТРАНИЦА
 
-Больше информации о **minios-live-config** доступно в [репозитории GitHub](https://github.com/minios-linux/minios-live-config). Общая информация MiniOS доступна на [minios.dev](https://minios.dev).
+Больше информации о **minios-live-config** можно найти в [GitHub-репозитории](https://github.com/minios-linux/minios-live-config). Общая информация MiniOS доступна на [minios.dev](https://minios.dev).
 
 # ОШИБКИ
 
-Об ошибках можно сообщить в [трекере задач minios-live-config](https://github.com/minios-linux/minios-live-config/issues).
+Об ошибках можно сообщить в [трекере ошибок minios-live-config](https://github.com/minios-linux/minios-live-config/issues).
 
 # АВТОР
 
-**live-config** был изначально написан Даниэлем Бауманном ([mail@daniel-baumann.ch](mailto:mail@daniel-baumann.ch)). С 2016 года разработка продолжена командой Debian Live. С 2025 года развитие модифицированной версии **minios-live-config** ведёт команда MiniOS Live.
+**live-config** изначально был написан Даниэлем Бауманом ([mail@daniel-baumann.ch](mailto:mail@daniel-baumann.ch)). С 2016 года разработку продолжает команда Debian Live. С 2025 года разработка модифицированной версии **minios-live-config** ведётся командой MiniOS Live.

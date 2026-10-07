@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-28
+updated: 2026-10-06
 ---
 # Customizing the boot menu
 
@@ -17,10 +17,10 @@ The supplied image commonly presents these semantic choices, although titles, av
 | Menu choice | Typical initrd selector | Purpose |
 |---|---|---|
 | Start MiniOS | `perchdir=resume` | Try the default compatible session and permit replacement creation under the documented conditions. |
-| Start a new session | `perchdir=new` | Create an additional numbered persistent session while keeping existing sessions unchanged. |
-| Choose a saved session | `perchdir=ask` | Select an existing saved session interactively. Use **Start a new session** on empty storage. |
+| Start a new session | `perchdir=setup` | Open the persistence-backend chooser, then create an additional numbered session while keeping existing sessions unchanged. |
+| Choose a saved session | `perchdir=ask` | Select an existing saved session interactively; on empty storage MiniOS enters the same setup flow so the first session can be created. |
 | Start without saving | no persistence selector | Use a temporary writable layer in RAM. |
-| Run from RAM | `toram` | Copy the complete MiniOS data tree to RAM and try to detach the source. |
+| Run from RAM | `toram` | Copy MiniOS system data to RAM; with persistence, the default `perchtoram=trim` separately copies the selected supported session. |
 
 These are selectors, not guarantees that storage is writable, a session is compatible, RAM is sufficient, or source media has detached. See [Boot modes](/using-minios/Boot-Modes) for behavior and combinations, [Initrd persistence](/reference/boot-process/Persistence-Internals) for selector edge cases, and [Performance optimization](/maintenance-and-recovery/Performance) for RAM and I/O tradeoffs.
 

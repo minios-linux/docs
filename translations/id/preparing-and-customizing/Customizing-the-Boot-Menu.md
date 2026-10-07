@@ -1,37 +1,37 @@
 ---
-updated: 2026-08-28
+updated: 2026-10-06
 ---
 
-# Kustomisasi menu boot
+# Kustomisasi Menu Boot
 
-Menu boot MiniOS menyediakan entri yang praktis untuk mode live boot yang umum digunakan. Panduan ini menjelaskan cara memilih dan mengedit entri-entri tersebut.
+Menu boot MiniOS menyediakan entri yang praktis untuk mode live boot yang umum. Panduan ini menjelaskan cara memilih dan mengedit entri tersebut.
 
 ## Ikhtisar
 
-Image MiniOS dapat menggunakan GRUB atau Syslinux tergantung pada firmware, tata letak image, dan build. Grafik menu, tombol pengeditan, penanganan bahasa, dan entri yang tersedia tidak selalu identik. Bootloader pada akhirnya akan meneruskan command line kernel ke initrd yang sama; lihat [Mode Boot](/using-minios/Boot-Modes) untuk sumber yang dihasilkan, persistensi, perilaku RAM-copy, dan ketergantungan media.
+Image MiniOS dapat menggunakan GRUB atau Syslinux tergantung pada firmware, tata letak image, dan build. Struktur menu, tombol pengeditan, penanganan bahasa, serta entri yang tersedia bisa berbeda. Bootloader pada akhirnya akan meneruskan kernel command line ke initrd yang sama; lihat [Mode Boot](/using-minios/Boot-Modes) untuk sumber yang dihasilkan, persistensi, perilaku salin-RAM, dan ketergantungan media.
 
 ## Opsi Menu Boot
 
-Image yang disediakan umumnya menampilkan pilihan semantik berikut, meskipun judul, ketersediaan, urutan, dan pilihan default dapat berbeda-beda tergantung image:
+Image yang disediakan umumnya menampilkan pilihan semantik berikut, meskipun judul, ketersediaan, urutan, dan pilihan default dapat berbeda pada setiap image:
 
-| Pilihan menu | Selector initrd tipikal | Tujuan |
+| Pilihan menu | Selector initrd yang umum | Tujuan |
 |---|---|---|
-| Mulai MiniOS | `perchdir=resume` | Mencoba sesi kompatibel default dan mengizinkan pembuatan pengganti sesuai kondisi yang didokumentasikan. |
-| Mulai sesi baru | `perchdir=new` | Membuat sesi persisten bernomor tambahan tanpa mengubah sesi yang sudah ada. |
-| Pilih sesi tersimpan | `perchdir=ask` | Memilih sesi tersimpan yang sudah ada secara interaktif. Gunakan **Mulai sesi baru** jika penyimpanan kosong. |
-| Mulai tanpa menyimpan | selector tanpa persistensi | Menggunakan layer writable sementara di RAM. |
-| Jalankan dari RAM | `toram` | Menyalin seluruh pohon data MiniOS ke RAM dan mencoba melepas sumbernya. |
+| Mulai MiniOS | `perchdir=resume` | Coba sesi kompatibel default dan izinkan pembuatan pengganti sesuai kondisi yang didokumentasikan. |
+| Mulai sesi baru | `perchdir=setup` | Buka pemilih backend-persistensi, lalu buat sesi bernomor tambahan tanpa mengubah sesi yang sudah ada. |
+| Pilih sesi yang disimpan | `perchdir=ask` | Pilih sesi tersimpan yang sudah ada secara interaktif; jika penyimpanan kosong, MiniOS akan masuk ke alur pengaturan yang sama agar sesi pertama dapat dibuat. |
+| Mulai tanpa menyimpan | tanpa pemilih persistensi | Gunakan layer writable sementara di RAM. |
+| Jalankan dari RAM | `toram` | Salin data sistem MiniOS ke RAM; dengan persistensi, default `perchtoram=trim` menyalin sesi yang didukung dan dipilih secara terpisah. |
 
-Ini adalah selector, bukan jaminan bahwa penyimpanan dapat ditulis, sesi kompatibel, RAM mencukupi, atau media sumber telah dilepas. Lihat [Mode Boot](/using-minios/Boot-Modes) untuk perilaku dan kombinasi, [Persistensi Initrd](/reference/boot-process/Persistence-Internals) untuk kasus tepi selector, dan [Optimasi performa](/maintenance-and-recovery/Performance) untuk RAM dan pertimbangan I/O.
+Ini adalah pemilih, bukan jaminan bahwa penyimpanan dapat ditulis, sesi kompatibel, RAM mencukupi, atau media sumber telah dilepas. Lihat [Mode Boot](/using-minios/Boot-Modes) untuk perilaku dan kombinasi, [Persistensi initrd](/reference/boot-process/Persistence-Internals) untuk kasus khusus pemilih, dan [Optimasi Performa](/maintenance-and-recovery/Performance) untuk RAM dan pertimbangan I/O.
 
 ## Cara Menggunakan Menu Boot
 
-### Navigasi Menu
+### Menavigasi Menu
 
 - Gunakan **tombol panah** untuk berpindah antar opsi
 - Tekan **Enter** untuk memilih opsi
 - Tekan **Esc** untuk kembali ke menu sebelumnya (di GRUB)
-- Pemilihan otomatis dan durasi timeout bergantung pada konfigurasi menu yang aktif; beberapa menu mungkin menunggu tanpa batas waktu
+- Pemilihan otomatis dan durasi timeout bergantung pada konfigurasi menu aktif; beberapa menu mungkin menunggu tanpa batas waktu
 
 ### Pemilihan Bahasa (GRUB)
 
@@ -41,13 +41,13 @@ Jika USB drive MiniOS Anda mendukung beberapa bahasa:
 3. Menu boot akan muncul dalam bahasa yang dipilih
 4. Pilihan ini juga dapat meneruskan pengaturan lokal ke proses startup berikutnya, namun tidak menjamin semua pesan boot atau aplikasi akan diterjemahkan
 
-**Penting:** Menu multibahasa akan menimpa pengaturan lokal apa pun yang ditentukan di `config.conf`. Bahasa yang dipilih di menu boot akan menjadi prioritas dibanding pengaturan lokal yang sudah dikonfigurasi. Lihat **[Configuration File](/reference/configuration/config.conf)** dan **[live-config](/reference/configuration/live-config)** untuk detail mengenai file konfigurasi sistem.
+**Penting:** Menu multibahasa akan menimpa pengaturan lokal apa pun yang telah ditentukan di `config.conf`. Bahasa yang dipilih di menu boot akan diutamakan daripada pengaturan lokal yang sudah dikonfigurasi sebelumnya. Lihat **[Berkas Konfigurasi](/reference/configuration/config.conf)** dan **[live-config](/reference/configuration/live-config)** untuk detail tentang file konfigurasi sistem.
 
-## Menyesuaikan Opsi Boot
+## Kustomisasi Opsi Boot
 
 ### Mengedit Parameter Boot Sementara
 
-Anda dapat memodifikasi opsi boot untuk satu sesi boot saja:
+Anda dapat memodifikasi opsi boot untuk satu sesi boot:
 
 **Di GRUB:**
 1. Pilih opsi menu yang ingin Anda ubah
@@ -59,17 +59,17 @@ Anda dapat memodifikasi opsi boot untuk satu sesi boot saja:
 **Di SYSLINUX:**
 1. Pilih opsi menu yang diinginkan
 2. Tekan **Tab** sebelum menekan Enter
-3. Tambahkan parameter ke baris perintah yang muncul
+3. Tambahkan parameter ke command line yang muncul
 4. Tekan **Enter** untuk boot
 
 ### Modifikasi Parameter Boot yang Umum
 
 - `debug` - Tampilkan pesan boot secara detail (berguna untuk troubleshooting)
-- `toram=trim` - Salin set modul yang difilter dan data penting terbatas ke RAM
-- `perchsize=2000` - Atur ukuran penyimpanan sesi menjadi 2GB (sesuaikan sesuai kebutuhan)
+- `toram=trim` - Salin set modul yang sudah difilter dan data penting terbatas ke RAM
+- `perchsize=2000` - Atur ukuran penyimpanan sesi menjadi 2GB (ubah sesuai kebutuhan)
 - `locales=ru_RU.UTF-8` - Minta bahasa/lokal tertentu
 
-Untuk daftar lengkap parameter boot yang tersedia, lihat **[Boot Parameters](/reference/Boot-Parameters)**.
+Untuk daftar lengkap parameter boot yang tersedia, lihat **[Parameter Boot](/reference/Boot-Parameters)**.
 
 ## Lokasi File Konfigurasi
 
@@ -77,7 +77,7 @@ Untuk daftar lengkap parameter boot yang tersedia, lihat **[Boot Parameters](/re
 
 - **Konfigurasi GRUB:** `/minios/boot/grub/grub.cfg`
 - **Konfigurasi SYSLINUX:** `/minios/boot/syslinux/syslinux.cfg`
-- **Boot images:** `/minios/boot/bootlogo.png`
+- **Image boot:** `/minios/boot/bootlogo.png`
 - **File bahasa:** `/minios/boot/grub/locale/`
 
 ### Di Sistem yang Sedang Berjalan
@@ -87,15 +87,15 @@ Untuk daftar lengkap parameter boot yang tersedia, lihat **[Boot Parameters](/re
 
 ### Mengedit File Konfigurasi
 
-**Peringatan:** Edit file konfigurasi boot hanya jika Anda benar-benar memahami apa yang Anda lakukan. Perubahan yang salah dapat membuat USB drive Anda tidak bisa boot.
+**Peringatan:** Hanya edit file konfigurasi boot jika Anda memahami apa yang Anda lakukan. Perubahan yang salah dapat membuat USB drive Anda tidak dapat melakukan boot.
 
 **Untuk mengedit konfigurasi GRUB:**
 1. Mount USB drive MiniOS Anda
 2. Arahkan ke `/minios/boot/grub/`
-3. Edit `grub.cfg` dengan text editor
-4. Simpan dan eject USB drive dengan aman
+3. Edit `grub.cfg` dengan editor teks
+4. Simpan dan keluarkan USB drive dengan aman
 
 **Perubahan umum:**
-- Ubah direktif timeout yang digunakan oleh menu GRUB atau Syslinux yang aktif
+- Modifikasi direktif timeout yang digunakan oleh menu GRUB atau Syslinux aktif
 - Ubah `set default=0` untuk mengubah opsi menu default
 - Tambahkan entri menu kustom

@@ -1,9 +1,9 @@
 ---
-updated: 2026-09-26
+updated: 2026-10-06
 ---
 # Persistence internals
 
-This page explains the `perch`, `perchdir`, `perchmode`, `perchsize`, and `perchreserve` boot parameters. These parameters control where changes from a live session are stored. For normal use, select a persistent entry in the boot menu or use MiniOS Session Manager instead of editing them manually.
+This page explains the `perch`, `perchdir`, `perchmode`, `perchsize`, `perchreserve`, `perchencrypt`, `perchcomp`, and `perchtoram` boot parameters. These parameters control where changes from a live session are stored, how a new session is created, and whether supported session storage is copied into RAM. For normal use, select a persistent entry in the boot menu or use MiniOS Session Manager instead of editing them manually.
 
 MiniOS builds the live root from read-only modules and one writable upper layer.
 The initrd decides whether that upper layer is a numbered persistent session or a temporary directory in RAM. This page describes that boot-time decision and activation path. For the user-facing controls, see [Boot modes](/using-minios/Boot-Modes) and [Boot parameters](/reference/Boot-Parameters).
@@ -19,8 +19,9 @@ Requesting persistence does not guarantee that it became active. If the target i
 | Parameter | What it tells MiniOS | Typical choice |
 |---|---|---|
 | `perchdir=resume` | Open the default compatible session and, under supported conditions, create a replacement when it cannot be used. | Normal daily work. |
-| `perchdir=new` | Create a new numbered session. | Keep an existing workspace unchanged. |
-| `perchdir=ask` | Display saved sessions after a resumable store has been found and let you choose one. It cannot create the first session on empty storage. | Several existing workspaces on one device; use `perchdir=new` for the first session. |
+| `perchdir=setup` | Interactively choose the persistence backend and its supported encryption/compression choices, then create a new numbered session. | Current **Start a new session** boot-menu entry. |
+| `perchdir=new` | Create a new numbered session directly using the requested/default `perchmode`, encryption, compression, and size rather than showing the backend chooser. | Scripted or expert boot entries with storage options already specified. |
+| `perchdir=ask` | Display saved sessions and let you choose one. When the store has no saved session, the chooser enters the same setup flow used by `perchdir=setup`. | Several workspaces on one device, including a first interactive setup on empty storage. |
 | `perchdir=NUMBER` | Request a particular numbered session. | Stable custom boot entry after checking the session ID. |
 | `perchmode=MODE` | Select `native`, `dynfilefs`, `dynblk`, `vmdk`, `raw`, or `squashfs`. | Match the backing filesystem and desired persistence model. |
 | `perchencrypt=luks` | Add a LUKS2 layer when creating a Raw, DynFileFS, DynBlk, or VMDK session. | Encrypt a supported container backend. |
@@ -28,8 +29,9 @@ Requesting persistence does not guarantee that it became active. If the target i
 | `perchcomp=CODEC` | Select DynBlk backend compression for a newly created DynBlk session. | `none`, `lz4`, `lz4hc`, `lzo`, `lzo-rle`, `zstd`, `deflate`, or `842`; availability still depends on the running kernel. Compression is disabled when LUKS wraps DynBlk. |
 | `perchreserve=MB` | Subtract a margin when sizing a new or growing container and set the low-space warning threshold. | Leave working space when allocating a container; it is not a runtime quota. |
 | `perch` | Use the older resume behavior without automatic replacement creation. | Compatibility with an existing custom entry; prefer `perchdir=resume` for current menus. |
+| `perchtoram=off`, `perchtoram=trim`, `perchtoram=full` | Control persistence copying independently from system `toram`. | `off` keeps the original store live; `trim` copies only the selected supported session; `full` copies all supported container/SquashFS sessions. |
 
-Do not combine persistence with `toram` when you expect changes to be written back to the original device. MiniOS activates the copied session in RAM, and changes to that copy are lost at shutdown.
+When persistence is requested, system `toram` makes `perchtoram=trim` the default unless an explicit persistence-RAM mode is supplied. Without system `toram`, persistence stays on storage by default. A copied session is non-durable while running, but current Session Manager can explicitly save supported RAM-backed state to the original store or publish it as a new session when the original store is available and matches its boot-time identity.
 
 ## Persistence is explicit
 
@@ -51,8 +53,9 @@ The selectors are not all equivalent:
 |---|---|
 | `perch` | Tries to resume the metadata default. It does not automatically create a session when none is usable or when compatibility checks fail. |
 | `perchdir=resume` | Tries the metadata default and may automatically create a new compatible replacement. This is the current boot-menu resume behavior. |
-| `perchdir=new` | Allocates a directory whose numeric ID is one greater than the highest existing numeric ID. It never reuses an existing directory. |
-| `perchdir=ask` | Offers existing sessions after a resumable store and default have been found. An incompatible existing session requires confirmation. On empty storage, use `perchdir=new` to create the first session. |
+| `perchdir=setup` | Opens the backend chooser first, records the selected backend/encryption/compression request, then follows the new-session allocation path. |
+| `perchdir=new` | Allocates a directory whose numeric ID is one greater than the highest existing numeric ID. It never reuses an existing directory and does not open the backend chooser. |
+| `perchdir=ask` | Offers existing sessions when present; an incompatible existing session requires confirmation. If there is no default/session on the store, it switches to `setup` so the first session can be created interactively. |
 | `perchdir=NUMBER` | Uses that directory when it exists. If it does not exist, selection can fall back to the default recorded in metadata; it does not reserve the requested number. |
 
 Other recognized persistence parameters without a selector enter the same legacy resume path as bare `perch`: they request persistence, but do not enable automatic creation. If selection or activation cannot produce a usable upper, boot normally continues with the RAM upper and publishes a failure warning.
@@ -97,7 +100,7 @@ Container sizes use whole counts that are allocated in MiB:
 - A new initrd-created DynFileFS session without `perchsize` uses up to 16 GiB of logical capacity. If the backing store cannot ultimately hold that much after `perchreserve` and DynFileFS index overhead, the default is reduced to the available capacity. Its format-400 index costs about 2 MiB of RAM and about 2 MiB of backing storage per GiB of declared logical capacity, even while the payload is empty. MiniOS therefore also limits DynFileFS capacity from physical RAM and by a tested 2,000,000 MiB hard ceiling.
 - A new DynBlk session without `perchsize` follows the same 16 GiB automatic ceiling and is reduced when less backing space remains after `perchreserve`. Explicit DynBlk size is a thin-capacity request checked against the installed backend limit. Metadata for declared parts is created initially, but payload space grows on demand. DynBlk owns a bounded metadata cache independent of payload fill.
 
-Container growth is best-effort and shrinking is not supported. `perchsize` does not size native or SquashFS sessions. MiniOS Session Manager defaults manually created raw and DynFileFS containers to 4000 MiB and DynBlk to 16 GiB; encrypted variants use the same backend defaults. See [Session management](/using-minios/Sessions-and-Persistence).
+Container growth is best-effort and shrinking is not supported. `perchsize` does not size native or SquashFS sessions. MiniOS Session Manager defaults manually created raw and DynFileFS containers to 4000 MiB and DynBlk/VMDK containers to 16 GiB; encrypted variants use the same backend defaults. See [Session management](/using-minios/Sessions-and-Persistence).
 
 ## Storage activation
 
@@ -108,6 +111,7 @@ All successful backends must supply the writable upper expected by the selected 
 | `native` | Files and directories directly in the numbered session directory | Uses backing filesystem space directly; `perchsize` does not apply | Writable filesystem that passes the POSIX behavior probe | No |
 | `dynfilefs` | Format-400 `changes.dat` plus segment files exposing an ext4 `virtual.dat` | Thin payload with a dense capacity-sized index | Writable POSIX, FAT32, NTFS, or exFAT storage | Yes |
 | `dynblk` | Format-1 `volumeNNN.db` files exposing `/dev/dynblkN`, with ext4 on top | Thin virtual block device with disk-resident mappings and a bounded cache | Filesystem accepted by the DynBlk kernel backend and enough backend resources | Yes |
+| `vmdk` | `volume.vmdk` plus split sparse `volume-sNNN.vmdk` extents exposed by the DynBlk driver, with ext4 on top | Thin split-sparse virtual block device | Filesystem accepted by the DynBlk VMDK backend and the `vmdk-session-v1` capability | Yes |
 | `raw` | Single fixed-size `changes.img` file containing ext4 | File is created at the requested logical size; growth only | Writable filesystem able to hold the image; FAT32 is limited to 4000 MiB | Yes |
 | `squashfs` | Compressed `changes.sb` snapshot; writable runtime upper is reconstructed in RAM | Snapshot size follows captured changes; `perchsize` does not apply | Existing snapshots can be read from supported writable media; exact saving requires a suitable POSIX-capable persistence store | No |
 
@@ -154,7 +158,7 @@ VMDK session support is advertised by `vmdk-session-v1` in
 `/etc/minios-initramfs-dynblk` inside the initrd. The current runtime and every
 source initrd copied by Installer must support it. VMDK has no native compression;
 `perchcomp` is ignored with a warning at boot and Session Manager rejects a
-non-`none` VMDK codec. LUKS remains an optional separate layer. Both modes publish
+non-`none` VMDK codec. LUKS2 remains an optional separate encryption layer. Both modes publish
 their actual session mode and the owning `dynblk_device` in protected boot-state,
 and both shutdown implementations close that device after its users exit.
 
@@ -170,7 +174,7 @@ Existing Raw images are checked with `e2fsck` before writable mounting. Growth e
 
 LUKS2 is an optional encryption layer selected with `perchencrypt=luks` when creating a Raw, DynFileFS, DynBlk, or VMDK session. Existing sessions take their encryption state from session metadata; specifying `perchencrypt` later does not reinterpret or convert an existing plaintext session.
 
-The encryption boundary depends on the backend: Raw attaches `changes.img` through a loop device and puts LUKS2 inside that file; DynFileFS attaches its exposed `virtual.dat` through a loop device and encrypts that logical image; DynBlk uses the `/dev/dynblkN` block device directly as the LUKS2 source. In all three cases MiniOS creates ext4 inside `/dev/mapper/...`, so the filesystem contents and metadata inside the mapper are encrypted at rest. Backend metadata outside the LUKS boundary, boot files, session metadata, and other files on the persistence medium remain unencrypted.
+The encryption boundary depends on the backend: Raw attaches `changes.img` through a loop device and puts LUKS2 inside that file; DynFileFS attaches its exposed `virtual.dat` through a loop device and encrypts that logical image; DynBlk uses its allocated `/dev/dynblkN` block device directly; VMDK uses the block device exposed by the same DynBlk driver for its split sparse image. In all four cases MiniOS creates ext4 inside `/dev/mapper/...`, so the filesystem contents and metadata inside the mapper are encrypted at rest. Backend metadata outside the LUKS boundary, VMDK descriptors, boot files, session metadata, and other files on the persistence medium remain unencrypted.
 
 Size defaults, growth limits, FAT32 restrictions, and thin/fixed allocation behavior still belong to the underlying backend. The initrd authenticates before growing an existing encrypted backend, closes the mapper before backend growth, then reopens it, checks ext4, and expands the filesystem before mounting it. For encrypted DynBlk, backend compression is forced to `none`.
 
@@ -211,19 +215,14 @@ After persistence mounts have disappeared during a clean shutdown, MiniOS remove
 
 Those metadata fields can be stale after a crash, failed metadata write, failed union construction, copied store, or interrupted shutdown. Runtime components that allow saving do not trust `running=` alone. They use the initrd's protected current-boot state, bound to the boot ID, numeric session, mode, actual store identity, writable status, durability, verified active generation, and, for DynBlk, the exact attached `/dev/dynblkN` device. A failed or missing current-boot record means persistence must not be treated as an approved save target.
 
-With `toram` and a recognized persistence request, the session store is copied into RAM before activation. The copied session can be writable and can supply the running upper, but its current-boot state is marked non-durable. Changes to that RAM copy do not return to the original device and are lost at shutdown.
+With `perchtoram=trim` or `full`, supported session containers are copied into a dedicated tmpfs before activation. The copied session can be writable and can supply the running upper, but protected current-boot state marks it non-durable and records a separate `ram-origin` identity for the original store. `trim` copies only the selected supported session and matching metadata; `full` copies every supported Raw, DynFileFS, DynBlk, VMDK, or SquashFS session in the store. Native directory sessions are excluded. Current Session Manager uses `ram-origin` to resolve the original store by filesystem UUID and can explicitly save the RAM-backed session back or as a new numbered session. Unsaved RAM changes are still lost when no successful write-back occurs.
 
 For related operational guidance, see [Boot modes](/using-minios/Boot-Modes), [Boot parameters](/reference/Boot-Parameters), [Sessions and persistence](/using-minios/Sessions-and-Persistence), [Backing up MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS), [Security](/maintenance-and-recovery/Security), and [Troubleshooting](/maintenance-and-recovery/Troubleshooting).
 
 ## Session-aware space reclamation
 
-`minios-session reclaim ID` operates on either block format. For plaintext
-sessions it reports free ext4 ranges with FITRIM, then calls `dynblk reclaim`.
-For an active session, the device is bound to protected current-boot state and
-the actual ext4 mount is checked; the union root is never trimmed directly.
-Inactive sessions are temporarily attached and mounted for this operation.
+`minios-session reclaim ID` supports DynFileFS, DynBlk, and VMDK sessions. For a plaintext session it runs FITRIM on the actual inner ext4 filesystem, never on the combined AUFS/OverlayFS root, and then invokes the owning storage backend's reclaim operation. DynFileFS reclamation requires DynFileFS 4.6.0 or later.
 
-Neither boot nor shutdown runs compaction automatically. `--compact` is an
-explicit user choice in the CLI or the unchecked Session Manager dialog option.
-Without it, only hole punching where supported and free-tail truncation occur.
-LUKS discard policy is not changed by the session command.
+For a running DynFileFS session, Session Manager enters a short-lived private mount namespace so it can reach `virtual.dat` beneath the live ext4 overmount without disturbing the system's active daemon, loop device, or union mounts. Running DynBlk/VMDK devices are validated against protected current-boot state. Inactive sessions are temporarily attached and mounted; a session already mounted by Session Manager reuses that existing attachment. A busy unmount stops teardown rather than disconnecting storage underneath a live filesystem.
+
+Neither boot nor shutdown runs compaction automatically. `--compact` is an explicit user choice in the CLI or the unchecked Session Manager dialog option and may relocate live data, increasing flash writes. Without it, backends reclaim only space they can return without moving live data, such as hole-punchable ranges or completely free file tails; on filesystems such as exFAT, freed interior ranges can remain reusable inside the container even when they cannot be returned to the host filesystem. Encrypted sessions reclaim only space already known to the backend and do not silently enable discard through dm-crypt.

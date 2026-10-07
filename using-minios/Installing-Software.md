@@ -1,7 +1,7 @@
 ---
-updated: 2026-08-31
+updated: 2026-10-06
 program_commits:
-  minios-store: 2226f08d65dffd251ae016664239164a3b237fc0
+  minios-store: eec5785dd7eb547961c2799f1907496a33be2e8c
 ---
 # Installing software
 
@@ -19,7 +19,9 @@ Open an application's details and review the following information before adding
 - The package names and installation method.
 - The installation script, when one is shown.
 - The application homepage and developer information.
+- Screenshots and application artwork, when provided. These are presentation metadata, not proof that a recipe is trustworthy.
 - Whether the recipe downloads a separate Debian package.
+- Any additional software license shown by the recipe. Recipes marked as requiring acceptance cannot be installed until you explicitly accept that license.
 
 Recipes can install APT packages, download Debian packages, or execute shell scripts. Installation operations run with root privileges. Treat a recipe and every download or repository it uses as privileged code.
 
@@ -29,8 +31,10 @@ Recipes can install APT packages, download Debian packages, or execute shell scr
 2. Search or browse by category, open the application details, and inspect the packages or script.
 3. Add one or more applications to the cart.
 4. On a live MiniOS session, select `Module` or `System`.
-5. For multiple applications in module mode, select one combined module or separate modules. A combined module can also be given a custom name.
-6. Select `Install` and follow the progress and command output. The page uses the local daemon when its status is `Connected`; otherwise it tries the URI handler and may show a PolicyKit authentication prompt.
+5. In module mode, choose the build level when needed. **Recipe default** keeps each recipe's configured level; **Auto** uses all currently loaded modules as the build base and produces an unnumbered module name; a numeric level from `01` through `09` uses loaded modules only through that level. Prefer Recipe default unless you deliberately need to avoid dependencies on higher optional layers.
+6. For multiple applications in module mode, select one combined module or separate modules. A combined module can also be given a custom name.
+7. Accept any recipe licenses that explicitly require acceptance.
+8. Select `Install` and follow the progress and command output. The page uses the local daemon when its status is `Connected`; otherwise it tries the URI handler and may show a PolicyKit authentication prompt.
 
 Only one daemon installation batch can run at a time. Closing the progress dialog does not necessarily stop a daemon installation; reopen the installation indicator to view it or explicitly cancel it.
 
@@ -76,7 +80,7 @@ sudo systemctl enable minios-store
 sudo systemctl disable minios-store
 ```
 
-The URI handler is a separate path. It starts the GTK installer through PolicyKit and does not require the WebSocket daemon. Current URI entries are interpreted as APT package names with a requested module level and compression setting. The installer starts after authorization, so inspect the browser request before accepting the authentication prompt.
+The URI handler is a separate path. It starts the GTK installer through PolicyKit and does not require the WebSocket daemon. Current Store links include a complete encoded recipe payload so APT, script, and downloaded-DEB recipes can use the same fallback path; explicit license acceptances are carried separately and revalidated by the local installer. The older `recipes=id:level:compression` form remains a compatibility fallback and is interpreted as an APT recipe. The installer starts after authorization, so inspect the browser request before accepting the authentication prompt.
 
 ## Cancellation
 

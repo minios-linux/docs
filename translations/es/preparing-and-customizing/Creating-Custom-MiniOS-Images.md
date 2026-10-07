@@ -1,150 +1,153 @@
 ---
-updated: 2026-08-26
+updated: 2026-10-06
 program_commits:
-    minios-image-builder: 48f882998f2f8f3cd9fdd0367697f999fa3b402c
-    minios-tools: 7cdd0e10c0f610ebc581efa82105b747437a6125
+    minios-image-builder: bf84d50bfe9461f4e9300033c5855ec8fa387552
+    minios-tools: be508248395979c27cb8036a7d8cc69bdfc82c42
 ---
 
-# Creación de imágenes personalizadas de MiniOS
+# Creación de imágenes personalizadas MiniOS
 
-El Constructor de imágenes MiniOS es una aplicación GTK para remasterizar una imagen existente de MiniOS. Selecciona contenido de una sesión actual de MiniOS, archivo ISO o disco óptico, aplica personalización declarativa y utiliza `minios-image-compose` para producir un ISO arrancable y verificado.
+Constructor de imágenes MiniOS es una aplicación GTK para remasterizar una imagen existente de MiniOS. Selecciona contenido de una sesión actual de MiniOS, archivo ISO o disco óptico, aplica personalización declarativa y utiliza `minios-image-compose` para generar un ISO booteable verificado.
 
 El constructor se ejecuta dentro de MiniOS. No modifica el medio fuente seleccionado.
 
 ## Elige el flujo de trabajo correcto
 
-El Constructor de imágenes MiniOS remasteriza una imagen binaria existente MiniOS. No reemplaza ninguno de estos flujos de trabajo:
+Constructor de imágenes MiniOS remasteriza una imagen binaria existente de MiniOS. No reemplaza ninguno de estos flujos de trabajo:
 
-- **Compilar MiniOS desde el código fuente:** utiliza el sistema de compilación `minios-live` cuando cambies las listas de paquetes de la distribución, la configuración de compilación, la capa del kernel, los artefactos de arranque o la cadena de módulos reproducibles construidos desde el código fuente. Consulta [Compilación de MiniOS](/development/Building-MiniOS).
-- **Crear un módulo reutilizable:** utiliza `apt2sb`, `script2sb`, `chroot2sb`, u otras herramientas de módulos cuando el resultado deseado sea una capa de módulo independiente`.sb` . Consulta [Creación de módulos](/preparing-and-customizing/Managing-Modules#creating-modules).
-- **Remasterizar una imagen:** utiliza el Constructor de imágenes MiniOS al seleccionar módulos existentes, agregar módulos externos finalizados, cambiar configuraciones de imagen compatibles, capturar opcionalmente los cambios de la sesión y publicar otra ISO.
+- **Construir MiniOS desde el código fuente:** utiliza el sistema de construcción `minios-live` al cambiar las listas de paquetes de la distribución, la configuración de compilación, la capa del kernel, los artefactos de arranque o la cadena de módulos reproducibles construidos desde el código fuente. Consulta [Compilación de MiniOS](/development/Building-MiniOS).
+- **Crear un módulo reutilizable:** utiliza `apt2sb`, `script2sb`, `chroot2sb`, o las demás herramientas de módulos cuando el resultado deseado es una capa independiente `.sb` . Consulta [Creación de módulos](/preparing-and-customizing/Managing-Modules#creating-modules).
+- **Remasterizar una imagen:** utiliza Constructor de imágenes MiniOS al seleccionar módulos existentes, agregar módulos externos completados, cambiar configuraciones de imagen soportadas, capturar cambios de sesión opcionalmente y publicar otro ISO.
 
-La capa del sistema de archivos del proyecto es para archivos declarativos en la raíz de la imagen. No ejecuta scripts, ni instala paquetes, ni abre un chroot. El software que se quiera reutilizar debe prepararse como módulo antes de añadirlo a un proyecto de Constructor de imágenes MiniOS.
+La capa del sistema de archivos del proyecto es para archivos declarativos en la raíz de la imagen. No ejecuta scripts, instala paquetes ni abre un chroot. El software que se quiera reutilizar debe prepararse como módulo antes de añadirlo a un proyecto de Constructor de imágenes MiniOS.
 
-## Opciones de fuente
+## Opciones de origen
 
-La página de Fuente acepta:
+La página Origen acepta:
 
-- La sesión actual de MiniOS con LiveKit o dracut.
-- Un archivo ISO de MiniOS.
-- Un disco óptico de MiniOS.
+- La sesión actual de LiveKit o dracut MiniOS.
+- Un archivo ISO MiniOS.
+- Un disco óptico MiniOS.
 
-Las fuentes ISO y de disco óptico se montan en modo solo lectura con `udisksctl`. El inventario de la fuente registra la edición, versión, arquitectura, soporte de gestor de arranque, tamaño, inventario de módulos y una huella digital de la fuente. Si la fuente cambia después de la planificación, la compilación se bloquea en lugar de continuar con una entrada diferente.
+Las fuentes ISO y de disco óptico se montan en modo solo lectura con `udisksctl`. El inventario de origen registra la versión, arquitectura, soporte de cargador de arranque, tamaño, inventario de módulos y una huella digital de la fuente. Si el origen cambia después de la planificación, la compilación se bloquea en lugar de continuar con una entrada diferente.
 
-La captura de sesión siempre describe los cambios en la sesión actual de MiniOS en ejecución. Cuando se selecciona un ISO o disco óptico, la captura solo está disponible si la huella digital del módulo base de esa fuente coincide con la base montada de la sesión en ejecución. Seleccionar medios externos no captura cambios realizados en otro sistema.
+La captura de sesión siempre describe los cambios en la sesión MiniOS actualmente en ejecución. Cuando se selecciona un ISO o disco óptico, la captura solo está disponible si la huella digital del módulo base de esa fuente coincide con la base montada de la sesión en ejecución. Seleccionar medios externos no captura los cambios realizados en otro sistema.
 
 ## Requisitos
 
-El Constructor de imágenes MiniOS requiere el backend `minios-image-compose` correspondiente. Las fuentes de archivos ISO y discos ópticos requieren `udisks2`. Leer un `/etc/live/config.conf` de solo root y capturar una sesión escribible puede requerir `pkexec` y un agente PolicyKit de escritorio. La captura de sesión requiere un `savechanges` compatible proporcionado por `minios-tools` 1.5.0 o superior.
+Constructor de imágenes MiniOS requiere el backend correspondiente `minios-image-compose`. Las fuentes de archivos ISO y discos ópticos requieren `udisks2`. Leer un `/etc/live/config.conf` solo para root y capturar una sesión escribible puede requerir `pkexec` y un agente PolicyKit de escritorio. La captura de sesión requiere un `savechanges` compatible proporcionado por `minios-tools` 1.5.0 o superior.
 
-La aplicación y el backend de composición permanecen sin privilegios. La autorización se limita al lector fijo de configuración en vivo y, cuando se selecciona, a `/usr/bin/savechanges` de confianza.
+La aplicación y el backend de composición permanecen sin privilegios. La autorización se limita al lector fijo de configuración en vivo y, si se selecciona, a `/usr/bin/savechanges` confiables.
 
 ## Flujo de trabajo del proyecto
 
-### Seleccione la fuente
+### Seleccionar el origen
 
-Elija una fuente y espere a que finalice el inventario. Revise su identidad, arquitectura, compatibilidad de arranque, diagnósticos y número de módulos. Resuelva los errores de la fuente antes de continuar.
+Elige una fuente y espera a que finalice el inventario. Revisa su identidad, arquitectura, soporte de arranque, diagnósticos y cantidad de módulos. Resuelve los errores de la fuente antes de continuar.
 
-### Seleccione el contenido
+### Seleccionar contenido
 
-Elija los módulos fuente a incluir y agregue cualquier módulo externo `.sb`. Los módulos esenciales del núcleo y del sistema están bloqueados. Los módulos activos en la sesión actual pero ausentes en la fuente seleccionada se muestran por separado y no se incluyen automáticamente.
+Elige los módulos fuente a incluir y añade cualquier `.sb` módulo externo. Los módulos núcleo y de kernel requeridos están bloqueados. Los módulos externos activos en la sesión actual pero ausentes en la fuente seleccionada se muestran por separado y siguen siendo opcionales.
 
-Los módulos adicionales deben ser archivos regulares legibles con datos SquashFS válidos. Los nombres duplicados o que solo difieren en mayúsculas/minúsculas y las colisiones de destino se rechazan porque el entorno de ejecución resuelve las capas por el nombre base.
+Un módulo externo que reemplaza activamente a un módulo fuente en su ruta original del sistema se trata de forma diferente: la versión actual de Image Builder resuelve el archivo de respaldo por dispositivo e inodo, mantiene el rol original del sistema e incluye ese reemplazo como módulo fuente efectivo en lugar de presentarlo como un duplicado opcional no relacionado. Esto también cubre rutas de respaldo de initramfs reubicadas. Otros módulos externos requieren selección explícita.
 
-### Configure los ajustes
+Los módulos adicionales deben ser archivos regulares legibles con datos válidos SquashFS. Se rechazan los nombres duplicados o insensibles a mayúsculas y las colisiones de destino, ya que el entorno de ejecución resuelve las capas por nombre base.
 
-Elija la ruta de salida y la configuración actual requerida de MiniOS. Los campos de personalización vacíos o `Keep current` preservan el comportamiento de la fuente. Configure solo las anulaciones necesarias para la nueva imagen y decida si se debe capturar la capa de sesión escribible.
+### Configurar ajustes
 
-Los bytes de `/etc/live/config.conf` se copian en un almacenamiento privado de compilación con modo 0600. No se interpretan, muestran ni registran. Los proyectos actuales deben incluir esta configuración; un proyecto antiguo que la desactive explícitamente no podrá avanzar a la revisión hasta corregirse.
+Elige la ruta de salida y la configuración actual requerida de MiniOS. Los campos de personalización vacíos o `Keep current` conservan el comportamiento de la fuente. Configura solo las anulaciones necesarias para la nueva imagen y decide si se debe capturar la capa de sesión escribible.
+
+Los bytes de `/etc/live/config.conf` se copian en un almacenamiento privado de compilación con modo 0600. No se interpretan, muestran ni registran. Los proyectos actuales deben incluir esta configuración; un proyecto antiguo que la desactive explícitamente no puede avanzar a Revisión hasta corregirse.
 
 ### Revisar el plan
 
-La revisión crea un nuevo plan a partir de las identidades de entrada actuales. Verifique los módulos seleccionados, excluidos y adicionales, la ubicación de salida, el espacio estimado, el resumen de personalización, el perfil de captura, las advertencias y el límite de privilegios.
+La revisión crea un nuevo plan a partir de las identidades de entrada actuales. Verifica los módulos seleccionados, excluidos y adicionales, la ubicación de salida, el espacio estimado, el resumen de personalización, el perfil de captura, las advertencias y el límite de privilegios.
 
-La revisión omite intencionadamente los valores de configuración, argumentos de kernel sin procesar, rutas privadas de personalización y rutas de captura seleccionadas. Muestra recuentos, nombres base, huellas digitales y sumas donde son suficientes para vincular el plan.
+La revisión omite intencionalmente los valores de configuración, argumentos de kernel sin procesar, rutas privadas de personalización y rutas de captura seleccionadas. Muestra cantidades, nombres base, huellas digitales y sumas donde estos son suficientes para vincular el plan.
 
-Si la salida ya existe, el reemplazo requiere confirmación. La confirmación está vinculada al dispositivo, inodo, tamaño, marca de tiempo y SHA-256 observados de ese archivo. Un destino cambiado, cancelación o intento fallido borra la aprobación y requiere otra revisión.
+Si la salida ya existe, el reemplazo requiere confirmación. La confirmación se vincula al dispositivo, inodo, tamaño, marca de tiempo y SHA-256 observados de ese archivo. Un destino cambiado, cancelación o intento fallido elimina la aprobación y requiere otra revisión.
 
-### Construir y verificar
+### Compilar y verificar
 
-La compilación revalida cada entrada efectiva y ejecuta `minios-image-compose` con una lista de argumentos en un directorio de trabajo privado. El ISO permanece privado hasta que la verificación estructural sea exitosa. La publicación al destino seleccionado es atómica.
+La compilación revalida cada entrada efectiva y ejecuta `minios-image-compose` con una lista de argumentos en un directorio de trabajo privado. El ISO permanece privado hasta que la verificación estructural sea exitosa. La publicación en el destino seleccionado es atómica.
 
-Guarde el proyecto si se reutilizarán su fuente, selección de módulos, salida e intención de personalización. Los archivos de proyecto son JSON. Los cambios no guardados requieren confirmación antes de abrir otro proyecto o cerrar la aplicación.
+Guarda el proyecto si su fuente, selección de módulos, salida e intención de personalización se reutilizarán. Los archivos de proyecto son JSON. Los cambios no guardados requieren confirmación antes de abrir otro proyecto o cerrar la aplicación.
 
 ## Captura de sesión y privacidad
 
-Los módulos fuente, `/etc/live/config.conf` y la captura de sesión son entradas independientes. Si la selección de módulos y la personalización declarativa son suficientes, no capture la sesión escribible.
+Los módulos fuente, `/etc/live/config.conf`, y la captura de sesión son entradas independientes. Si la selección de módulos y la personalización declarativa son suficientes, no captures la sesión escribible.
 
 ### No incluir cambios de sesión
 
-Esta es la opción recomendada por defecto. El constructor utiliza los módulos seleccionados, la configuración actual, los ajustes de arranque y otras personalizaciones de la imagen sin copiar la capa de sesión escribible.
+Esta es la opción recomendada por defecto. El constructor utiliza los módulos seleccionados, la configuración actual, los ajustes de arranque y otras personalizaciones de imagen sin copiar la capa de sesión escribible.
 
-### Incluir todos los cambios de la sesión
+### Incluir todos los cambios de sesión
 
-Este perfil conserva todos los cambios escribibles admitidos por el proveedor de OverlayFS o AUFS detectado. Puede incluir contraseñas, llaves, tokens, datos de navegador, identidad de la máquina, archivos personales, registros y estado de archivos eliminados. Requiere reconocimiento explícito y no debe usarse para una imagen destinada a otras personas sin una auditoría independiente.
+Este perfil conserva cada cambio escribible soportado del proveedor detectado OverlayFS o AUFS. Puede incluir contraseñas, claves, tokens, datos de navegador, identidad de la máquina, archivos personales, registros y estado de archivos eliminados. Requiere reconocimiento explícito y no debe usarse para una imagen destinada a otras personas sin una auditoría aparte.
 
-### Incluir solo los cambios reutilizables
+### Incluir solo cambios reutilizables
 
-Este perfil utiliza una lista de rutas permitidas estricta para software y valores seguros por defecto, omitiendo datos personales, de identidad, caché y registros en general. Reduce la exposición, pero no garantiza que los archivos permitidos no contengan información secreta. Inspeccione la imagen finalizada antes de compartirla.
+Este perfil utiliza una lista de permitidos estricta por ruta para software y valores seguros por defecto, omitiendo datos personales, de identidad, caché y registros. Reduce la exposición pero no garantiza que los archivos permitidos no contengan secretos. Revisa la imagen final antes de compartirla.
 
-### Selecciona manualmente los cambios de la sesión
+### Elegir manualmente los cambios de sesión
 
-Ejecuta `Analyze session changes` y selecciona al menos una ruta normalizada del inventario en memoria. Un directorio seleccionado representa a sus descendientes. Las exclusiones exactas o de ancestros tienen prioridad sobre selecciones coincidentes.
+Ejecuta `Analyze session changes`, luego selecciona al menos una ruta normalizada del inventario en memoria. Un directorio seleccionado representa a sus descendientes. Las exclusiones exactas o de ancestros anulan selecciones coincidentes.
 
-El inventario contiene metadatos, incluidos nombres de archivos, y por tanto es sensible aunque no incluya el contenido de los archivos. Permanece en memoria y no se escribe en el proyecto ni se copia en la Revisión o los registros. Las reglas explícitas de inclusión y exclusión reflejan la intención del proyecto y se guardan; la Revisión solo muestra su cantidad y resumen.
+El inventario contiene metadatos, incluidos nombres de archivo, y por tanto es sensible aunque no contenga el contenido de los archivos. Permanece en memoria y no se escribe en el proyecto ni se copia en la revisión o los registros. Las reglas explícitas de inclusión y exclusión son la intención del proyecto y se guardan; la revisión solo muestra su cantidad y suma.
 
-Iniciar otro análisis, actualizar o cambiar la fuente, cancelar o fallar, y abrir o crear un proyecto borran el inventario en tiempo de ejecución. El análisis y la captura pueden requerir autorización de administrador, pero el proceso de Constructor de imágenes MiniOS y la composición ISO no se ejecutan con privilegios elevados.
+Iniciar otro análisis, actualizar o cambiar la fuente, cancelar o fallar, y abrir o crear un proyecto borran el inventario en tiempo de ejecución. El análisis y la captura pueden solicitar autorización de administrador, pero el proceso de Constructor de imágenes MiniOS y la composición del ISO no se ejecutan con privilegios elevados.
 
 ## Personalización de la imagen
 
-Los ajustes admitidos están restringidos y validados por el backend:
+Los ajustes soportados están restringidos y validados por el backend:
 
-- **Valores predeterminados del sistema:** nombre de host, zona horaria, objetivo predeterminado de systemd y servicios habilitados o deshabilitados.
-- **Seguridad y acceso:** sudo permitido, PolicyKit, SSH, XRDP, X11, modos de bloqueo de pantalla y sugerencias de inicio de sesión.
-- **Datos de usuario:** directorios de usuario validados relativos a la raíz con comportamiento de enlace simbólico o bind, pero no ambos.
-- **Comportamiento de arranque:** un tiempo de espera de 0 a 300 segundos, el menú fuente o uno construido, y una entrada predeterminada seleccionada.
-- **Entradas de arranque:** las plantillas resume, new, choose, fresh y copy-to-RAM pueden ocultarse, reordenarse, duplicarse y configurarse mediante controles tipados de persistencia, módulo, inicio, localización, zRAM y diagnóstico.
+- **Valores predeterminados del sistema:** nombre de host, zona horaria, objetivo systemd predeterminado y servicios habilitados o deshabilitados.
+- **Seguridad y acceso:** modos permitidos de sudo, PolicyKit, SSH, XRDP, X11, bloqueo de pantalla y sugerencias de inicio de sesión.
+- **Datos de usuario:** directorios de usuario validados relativos a root con comportamiento de enlace o unión, pero no ambos.
+- **Comportamiento de arranque:** un tiempo de espera de 0 a 300 segundos, el menú de origen o uno construido, y una entrada predeterminada seleccionada.
+- **Entradas de arranque:** las plantillas resume, new, choose, fresh y copy-to-RAM pueden ocultarse, reordenarse, duplicarse y configurarse mediante controles tipados de persistencia, módulo, inicio, localización, zRAM y diagnóstico. Las plantillas de nueva sesión actuales usan `perchdir=setup` para que el backend de persistencia pueda seleccionarse al inicio; si una fuente antigua ya usa `perchdir=new`, ese selector heredado se conserva en vez de sobrescribirse en silencio.
+- **Comportamiento RAM:** copia de sistema (`toram`) y copia de sesión persistente (`perchtoram`) son controles independientes. `perchtoram=off` mantiene la persistencia en el almacenamiento, `trim` copia la sesión soportada seleccionada y `full` solicita una copia completa de la sesión soportada. Cuando la persistencia está habilitada, los menús actuales usan `trim` con un arranque del sistema RAM y `off` en caso contrario, salvo que elijas otro valor. Las sesiones de directorio nativo no se copian mediante `perchtoram`.
 - **Ajustes avanzados de arranque:** argumentos de kernel globales y por entrada validados para opciones no representadas por controles tipados.
 - **Apariencia:** un fondo de arranque PNG validado.
-- **Capa de sistema de archivos del proyecto:** un único directorio real interpretado relativo a la raíz de la imagen y empaquetado como un módulo overlay SquashFS propiedad de root.
+- **Capa de sistema de archivos del proyecto:** un directorio real interpretado en relación a la raíz de la imagen y empaquetado como un módulo overlay SquashFS propiedad de root.
 
-La capa de sistema de archivos admite archivos regulares, enlaces simbólicos relativos seguros, directorios vacíos, bits de ejecución y marcas de tiempo. Se rechazan nodos de dispositivo, sockets, FIFOs, cruces de sistemas de archivos, enlaces absolutos o que escapen, y nombres inseguros. Se eliminan los bits de privilegio y la propiedad en el módulo generado se normaliza.
+La capa de sistema de archivos admite archivos regulares, enlaces simbólicos relativos seguros, directorios vacíos, bits de ejecución y marcas de tiempo. Se rechazan nodos de dispositivo, sockets, FIFOs, cruces de sistemas de archivos, enlaces absolutos o que escapen y nombres inseguros. Los bits de privilegio se eliminan y la propiedad en el módulo generado se normaliza.
 
-La personalización de arranque admite GRUB de MiniOS reconocido, SYSLINUX nativo y la cadena estándar de SYSLINUX a GRUB. La configuración de arranque no compatible o ambigua se rechaza en lugar de adivinar. Una compilación sin personalización de arranque puede preservar una estructura fuente que el analizador de personalización no comprende.
+La personalización de arranque admite GRUB MiniOS reconocidos, SYSLINUX nativo y la cadena estándar de SYSLINUX a GRUB. La configuración de arranque no soportada o ambigua se rechaza en vez de adivinar. Una compilación sin personalización de arranque puede conservar una estructura de origen que el analizador de personalización no entiende.
 
-## Verificación de la salida
+## Verificación de salida
 
-Antes de la publicación, `minios-image-compose` verifica el ISO generado en lugar de confiar solo en una salida exitosa de `xorriso`. Las comprobaciones incluyen:
+Antes de la publicación, `minios-image-compose` verifica el ISO generado en vez de depender solo de una `xorriso` salida exitosa. Las comprobaciones incluyen:
 
-- El árbol del sistema de archivos ISO y la etiqueta de volumen.
+- El árbol de sistema de archivos ISO y la etiqueta de volumen.
 - Registros de arranque BIOS y UEFI y el área del sistema.
-- Archivos de arranque requeridos, kernel, initramfs, configuración y contenido de módulos.
-- Personalización embebida y atestaciones de captura de sesión cuando estén presentes.
-- Sumas de comprobación y estructura de los módulos overlay generados y de sesión capturada.
-- Objetivos de fondo de arranque y configuración de arranque transformada cuando se haya personalizado.
+- Contenido requerido de arranque, kernel, initramfs, configuración y módulos.
+- Personalización embebida y atestaciones de captura de sesión cuando están presentes.
+- Sumas y estructura de los módulos overlay generados y de sesión capturada.
+- Fondos de arranque y configuración de arranque transformada cuando se personaliza.
 
-La identidad de la ruta de entrada, el modo, la hora de modificación y el SHA-256 se registran antes de la compilación. Las entradas mutables se capturan de forma privada con reflinks cuando es compatible; de lo contrario, se comprueba si han cambiado antes y después de escribir el ISO. Una discrepancia o fallo de verificación impide la publicación.
+La identidad de la ruta de entrada, modo, hora de modificación y SHA-256 se registran antes de la compilación. Las entradas mutables se almacenan en instantáneas privadas con reflinks cuando es compatible; de lo contrario, se verifica que no hayan cambiado antes y después de escribir el ISO. Una discrepancia o fallo de verificación impide la publicación.
 
-Después de una compilación exitosa, registra una suma de comprobación por separado:
+Después de una compilación exitosa, registra una suma de verificación por separado:
 
 ```bash
 sha256sum custom-minios.iso > custom-minios.iso.sha256
 sha256sum -c custom-minios.iso.sha256
 ```
 
-La verificación estructural no reemplaza una prueba de arranque. Arranca el ISO en una máquina virtual desechable y prueba tanto BIOS como UEFI si ambos deben ser soportados. El Constructor de imágenes MiniOS puede informar si QEMU o VirtualBox están instalados, pero no inicia ni configura un hipervisor.
+La verificación estructural no reemplaza una prueba de arranque. Arranca el ISO en una máquina virtual desechable y prueba tanto BIOS como UEFI si ambos deben ser soportados. Constructor de imágenes MiniOS puede informar si QEMU o VirtualBox están instalados, pero no inicia ni configura un hipervisor.
 
 ## Seguridad y cancelación
 
-- Mantén los medios fuente en solo lectura y escribe la salida en un sistema de archivos con suficiente espacio libre para la estimación y el margen temporal.
-- No construyas directamente sobre el único ISO conocido como bueno. Usa un nuevo nombre de salida a menos que el reemplazo sea intencionado y confirmado.
-- Verifica los módulos externos antes de agregarlos. El Constructor de imágenes MiniOS valida su estructura SquashFS, pero no determina quién es el autor de su contenido.
+- Mantén el medio fuente en solo lectura y escribe la salida en un sistema de archivos con suficiente espacio libre para la estimación y margen temporal.
+- No compiles directamente sobre el único ISO conocido como bueno. Usa un nombre de salida nuevo salvo que el reemplazo sea intencionado y confirmado.
+- Verifica los módulos externos antes de agregarlos. Constructor de imágenes MiniOS valida su estructura SquashFS, pero no determina quién creó su contenido.
 - Prefiere no capturar la sesión para imágenes distribuidas. Si es necesario capturar, audita el sistema de archivos resultante, no solo el nombre del perfil.
-- Trata los archivos de proyecto como sensibles cuando contengan rutas fuente explícitas, rutas de módulos, rutas de salida o reglas de captura seleccionadas.
+- Trata los archivos de proyecto como sensibles cuando contienen rutas fuente explícitas, rutas de módulos, rutas de salida o reglas de captura seleccionadas.
 
-Los subprocesos de inventario, construcción y verificación se ejecutan en grupos de procesos dedicados. La cancelación solicita la terminación y escala tras un periodo de gracia. Una pasada de hash puede finalizar antes de que la cancelación alcance un punto seguro, pero los resultados obsoletos se descartan. Una vez que comienza la publicación atómica, se permite que finalice para que el destino no quede intencionadamente a medio escribir.
+Los subprocesos de inventario, compilación y verificación se ejecutan en grupos de procesos dedicados. La cancelación solicita terminación y escala tras un periodo de gracia. Un paso de hash puede finalizar antes de que la cancelación alcance un punto seguro, pero los resultados obsoletos se descartan. Una vez que comienza la publicación atómica, se permite que termine para no dejar el destino a medio escribir.
 
-Una compilación cancelada o fallida no publica su ISO privado. Cualquier destino anterior permanece salvo que un reemplazo verificado haya llegado a la publicación atómica.
+Una compilación cancelada o fallida no publica su ISO privado. Cualquier destino anterior permanece salvo que un reemplazo verificado haya alcanzado la publicación atómica.
 
 ## Documentación relacionada
 
@@ -152,25 +155,25 @@ Una compilación cancelada o fallida no publica su ISO privado. Cualquier destin
 - [Creación de módulos](/preparing-and-customizing/Managing-Modules#creating-modules)
 - [Composición de imágenes ISO desde la línea de comandos](/preparing-and-customizing/Creating-Custom-MiniOS-Images#composing-minios-iso-images-from-the-command-line)
 
-## Componer imágenes ISO de MiniOS desde la línea de comandos
+## Composición de imágenes ISO MiniOS desde la línea de comandos
 
-`minios-image-compose` es el backend de línea de comandos que se suministra con el Constructor de imágenes MiniOS. Sustituye a la utilidad `sb2iso` retirada. El comando remasteriza un árbol de contenido MiniOS existente, opcionalmente cambia su conjunto de módulos y configuración soportada, verifica el resultado y publica un ISO arrancable.
+`minios-image-compose` es el backend de línea de comandos suministrado con Constructor de imágenes MiniOS. Sustituye al retirado `sb2iso` utilitario. El comando remasteriza un árbol de contenido MiniOS existente, cambia opcionalmente su conjunto de módulos y configuración soportada, verifica el resultado y publica un ISO booteable.
 
-Utiliza la interfaz gráfica [Constructor de imágenes MiniOS](/preparing-and-customizing/Creating-Custom-MiniOS-Images) para un flujo de trabajo guiado de proyectos. Usa este comando directamente para scripts, automatización o compilaciones reproducibles por línea de comandos. Para una compilación completa desde el código fuente, utiliza [Compilando MiniOS](/development/Building-MiniOS).
+Utiliza la interfaz gráfica [Constructor de imágenes MiniOS](/preparing-and-customizing/Creating-Custom-MiniOS-Images) para un flujo de trabajo guiado de proyectos. Usa este comando directamente para scripts, automatización o compilaciones reproducibles por línea de comandos. Para una compilación completa desde código fuente, utiliza [Compilación de MiniOS](/development/Building-MiniOS) en su lugar.
 
 ### Uso básico
 
-Desde una sesión en vivo de MiniOS en ejecución, crea una ISO con la fuente MiniOS detectada y `/etc/live/config.conf`:
+Desde una sesión en vivo MiniOS en ejecución, crea un ISO con la fuente detectada MiniOS y `/etc/live/config.conf`:
 
 ```bash
 minios-image-compose --name ./custom-minios.iso
 ```
 
-No antepongas el comando completo con `sudo` ni `pkexec`. La composición, verificación y publicación se ejecutan como el usuario actual. Solo la captura de sesión opcional puede invocar el backend confiable `/usr/bin/savechanges` mediante PolicyKit.
+No antepongas el comando completo con `sudo` o `pkexec`. La composición, verificación y publicación se ejecutan como el usuario actual. Solo la captura de sesión opcional puede invocar el backend `/usr/bin/savechanges` de confianza a través de PolicyKit.
 
-El nombre de salida predeterminado es `minios-YYYYMMDD_HHMM.iso`. Un destino existente será rechazado a menos que se indique explícitamente `--overwrite`.
+El nombre de salida predeterminado es `minios-YYYYMMDD_HHMM.iso`. Un destino existente se rechaza salvo que `--overwrite` se indique explícitamente.
 
-### Selecciona una fuente
+### Seleccionar una fuente
 
 Sin `--source`, el comando detecta el contenido MiniOS utilizado por la sesión actual de LiveKit o dracut. Para remasterizar otro árbol MiniOS montado, especifica el directorio que contiene `boot/` y los módulos MiniOS:
 
@@ -185,26 +188,26 @@ La fuente es solo de lectura y nunca se modifica. Los archivos ISO y medios ópt
 
 ### Seleccionar módulos
 
-Módulos adicionales `.sb` son argumentos posicionales:
+Los `.sb` módulos adicionales son argumentos posicionales:
 
 ```bash
 minios-image-compose 06-development.sb 10-site-config.sb \
   --name ./minios-development.iso
 ```
 
-El comando valida cada módulo como un archivo SquashFS legible y que no sea un enlace simbólico.
-Los módulos cuyos nombres comienzan con dos dígitos y un guion se ubican en el nivel superior MiniOS. Los demás módulos añadidos se colocan en `minios/modules/`. Se rechazan los nombres base duplicados o que colisionen por mayúsculas/minúsculas.
+El comando valida cada módulo como un archivo SquashFS legible y que no sea enlace simbólico.
+Los módulos cuyos nombres empiezan con dos dígitos y un guion se colocan en el nivel superior MiniOS. Otros módulos añadidos se colocan en `minios/modules/`. Se rechazan colisiones de nombre base duplicadas o insensibles a mayúsculas.
 
-Excluye rutas fuente con una expresión regular extendida de POSIX:
+Excluye rutas fuente con una expresión regular POSIX extendida:
 
 ```bash
 minios-image-compose --exclude 'firefox|libreoffice|gimp' \
   --name ./minios-lite.iso
 ```
 
-No se pueden excluir los archivos de arranque requeridos, archivos de kernel e initramfs, módulos principales, el menú de arranque seleccionado ni la configuración seleccionada.
+No se pueden excluir archivos de arranque requeridos, archivos de kernel e initramfs, módulos principales, el menú de arranque seleccionado ni la configuración seleccionada.
 
-Crea módulos reutilizables antes de componer la ISO. Consulta [Creación de módulos](/preparing-and-customizing/Managing-Modules#creating-modules) y [Gestor de módulos de MiniOS](/preparing-and-customizing/Managing-Modules).
+Crea módulos reutilizables antes de componer el ISO. Consulta [Creación de módulos](/preparing-and-customizing/Managing-Modules#creating-modules) y [Gestor de módulos de MiniOS](/preparing-and-customizing/Managing-Modules).
 
 ### Configuración y manifiesto
 
@@ -217,11 +220,11 @@ minios-image-compose --config ./config.conf \
   --name ./minios-lab.iso
 ```
 
-El manifiesto opcional debe ser un objeto JSON. Las etiquetas de volumen contienen de 1 a 32 caracteres ASCII imprimibles; las etiquetas fuera del conjunto estricto de ISO 9660 (mayúsculas, dígitos y guion bajo) generan una advertencia.
+El manifiesto opcional debe ser un objeto JSON. Las etiquetas de volumen contienen de 1 a 32 caracteres ASCII imprimibles; las etiquetas fuera del conjunto estricto ISO 9660 de mayúsculas, dígitos y guion bajo generan una advertencia.
 
 ### Capturar cambios de sesión
 
-La captura de sesión es opcional y se aplica a la capa escribible de la sesión MiniOS que se está ejecutando actualmente. Solo se acepta para una fuente explícita cuando esa fuente tiene la misma huella digital de módulo base que el sistema en ejecución.
+La captura de sesión es opcional y se aplica a la capa escribible de la sesión MiniOS actualmente en ejecución. Se acepta para una fuente explícita solo cuando esa fuente tiene la misma huella digital de módulo base que el sistema en ejecución.
 
 ```bash
 minios-image-compose --capture-changes clean \
@@ -230,9 +233,9 @@ minios-image-compose --capture-changes clean \
 
 Los perfiles disponibles son:
 
-- `exact` captura todos los cambios representables y puede incluir credenciales, datos personales, registros, estado del navegador e identidad de la máquina.
-- `clean` utiliza una lista blanca orientada al software más restringida. Reduce la exposición pero no garantiza que el resultado no contenga secretos.
-- `selected` utiliza una selección de inventario producida por un frontend compatible o un flujo de trabajo `savechanges`.
+- `exact` captura cada cambio representable y puede incluir credenciales, datos personales, registros, estado del navegador e identidad de la máquina.
+- `clean` utiliza una lista de permitidos orientada a software. Reduce la exposición pero no garantiza que el resultado no contenga secretos.
+- `selected` utiliza una selección de inventario producida por una interfaz compatible o `savechanges` flujo de trabajo.
 
 ```bash
 minios-image-compose --capture-changes selected \
@@ -241,11 +244,11 @@ minios-image-compose --capture-changes selected \
   --name ./selected-session.iso
 ```
 
-Prefiere módulos y configuración declarativa sobre la captura de sesión cuando el ISO se vaya a compartir. Consulta [Constructor de imágenes MiniOS](/preparing-and-customizing/Creating-Custom-MiniOS-Images) para conocer el modelo de privacidad y el flujo de revisión.
+Prefiere módulos y configuración declarativa en lugar de captura de sesión cuando el ISO se va a compartir. Consulta [Constructor de imágenes MiniOS](/preparing-and-customizing/Creating-Custom-MiniOS-Images) para el modelo de privacidad y el flujo de revisión.
 
 ### Personalizar el comportamiento de arranque
 
-La CLI puede cambiar los diseños soportados de GRUB y SYSLINUX:
+La CLI puede modificar los diseños soportados de GRUB y SYSLINUX:
 
 ```bash
 minios-image-compose \
@@ -256,41 +259,41 @@ minios-image-compose \
   --name ./custom-boot.iso
 ```
 
-`--default-boot` acepta `resume`, `new`, `choose`, `fresh` o `toram`.
-`--menu` acepta `multilang` o un locale soportado como `en_US`, `ru_RU` o `de_DE`. Los argumentos del kernel se validan y se agregan sin evaluación de shell. Los diseños de menú de arranque no soportados o ambiguos se rechazan en vez de modificarse por conjetura.
+`--default-boot` acepta `resume`, `new`, `choose`, `fresh`, o `toram`. El `new` plantilla semántica se asigna a `perchdir=setup` en los menús actuales de MiniOS, mientras que las entradas de fuente heredadas `perchdir=new` siguen siendo reconocibles. El constructor gráfico de menús de arranque también conserva `perchtoram=off|trim|full` independientemente de la configuración de `toram` del sistema.
+`--menu` acepta `multilang` o un locale soportado como `en_US`, `ru_RU`, o `de_DE`. Los argumentos de kernel se validan y se agregan sin evaluación de shell. Los diseños de menú de arranque no soportados o ambiguos se rechazan en vez de modificarse por conjetura.
 
-### Añadir arte o una superposición de sistema de archivos
+### Agregar arte o un overlay de sistema de archivos
 
-Sustituye el fondo de arranque por un PNG validado:
+Reemplaza el fondo de arranque con un PNG validado:
 
 ```bash
 minios-image-compose --boot-background ./art/boot.png \
   --name ./custom-art.iso
 ```
 
-Empaqueta un árbol de directorios preparado como un módulo de superposición de imagen propiedad de root:
+Empaqueta un árbol de directorios preparado como un módulo overlay propiedad de root:
 
 ```bash
 minios-image-compose --overlay-directory "$PWD/image-overlay" \
   --name ./custom-overlay.iso
 ```
 
-La superposición se interpreta en relación con la raíz de la imagen. No ejecuta scripts, no instala paquetes ni abre un chroot. Se rechazan enlaces inseguros, archivos especiales, cruces de sistemas de archivos y colisiones de destino.
+El overlay se interpreta relativo a la raíz de la imagen. No ejecuta scripts, instala paquetes ni abre un chroot. Se rechazan enlaces inseguros, archivos especiales, cruces de sistemas de archivos y colisiones de destino.
 
 ### Verificación y publicación
 
-Antes de la publicación, `minios-image-compose` verifica el árbol del sistema de archivos ISO, la etiqueta de volumen, los registros de arranque BIOS y UEFI, el área del sistema, los archivos de arranque, los módulos y la personalización solicitada. Los módulos de superposición generados y los módulos de sesión capturada se extraen y se comprueban contra su metadatos y sumas de verificación registrados.
+Antes de la publicación, `minios-image-compose` verifica el árbol de sistema de archivos ISO, la etiqueta de volumen, los registros de arranque BIOS y UEFI, el área del sistema, los archivos de arranque, los módulos y la personalización solicitada. Los módulos overlay generados y de sesión capturada se extraen y verifican contra sus metadatos y sumas registrados.
 
-La ISO se construye en un directorio privado en el sistema de archivos de destino y solo se publica de forma atómica después de que la verificación sea exitosa. La mutación de entrada, fallo de verificación, cancelación o espacio insuficiente en el destino impiden la publicación. Un destino anterior permanece sin cambios a menos que una compilación `--overwrite` aprobada explícitamente alcance la publicación atómica.
+El ISO se construye en un directorio privado en el sistema de archivos de destino y solo se publica de forma atómica tras una verificación exitosa. La mutación de entrada, fallo de verificación, cancelación o espacio insuficiente en el destino impiden la publicación. Un destino anterior permanece sin cambios salvo que una compilación `--overwrite` aprobada explícitamente alcance la publicación atómica.
 
-Crea una suma de verificación y realiza una prueba de arranque por separado tras una compilación exitosa:
+Crea una suma de verificación y realiza una prueba de arranque separada tras una compilación exitosa:
 
 ```bash
 sha256sum custom-minios.iso > custom-minios.iso.sha256
 sha256sum --check custom-minios.iso.sha256
 ```
 
-La verificación estructural no sustituye la prueba de los caminos de arranque BIOS y UEFI previstos en una máquina virtual desechable o en hardware adecuado.
+La verificación estructural no sustituye la prueba de los caminos BIOS y UEFI previstos en una máquina virtual desechable o en hardware adecuado.
 
 ### Referencia de comandos
 
@@ -305,18 +308,18 @@ Las opciones comunes incluyen:
 
 | Opción | Propósito |
 |---|---|
-| `-n`, `--name FILE` | Establece la ruta de salida. |
-| `-e`, `--exclude REGEX` | Excluye rutas de origen coincidentes. |
-| `--source DIR` | Selecciona un árbol de contenido MiniOS explícito. |
-| `--config FILE` | Selecciona la configuración en vivo incrustada en la ISO. |
-| `--manifest FILE` | Incluye un manifiesto de compilación JSON validado. |
-| `--capture-changes MODE` | Captura cambios de sesión `exact`, `clean` o `selected`. |
-| `--boot-timeout SECONDS` | Establece un tiempo de espera del menú de arranque de 0 a 300 segundos. |
-| `--default-boot MODE` | Selecciona la acción de sesión MiniOS predeterminada. |
-| `--kernel-args TEXT` | Añade argumentos globales de kernel validados. |
-| `--boot-background PNG` | Sustituye el arte de arranque soportado. |
-| `--overlay-directory DIR` | Añade una capa de sistema de archivos declarativa. |
-| `--menu TYPE` | Selecciona un menú multilingüe o localizado. |
-| `--overwrite` | Permite explícitamente la sustitución de una salida existente. |
+| `-n`, `--name FILE` | Establecer la ruta de salida. |
+| `-e`, `--exclude REGEX` | Excluir rutas fuente coincidentes. |
+| `--source DIR` | Seleccionar un árbol de contenido MiniOS explícito. |
+| `--config FILE` | Seleccionar la configuración en vivo embebida en el ISO. |
+| `--manifest FILE` | Incluir un manifiesto de compilación JSON validado. |
+| `--capture-changes MODE` | Capturar `exact`, `clean`, o `selected` cambios de sesión. |
+| `--boot-timeout SECONDS` | Establecer un tiempo de espera del menú de arranque de 0 a 300 segundos. |
+| `--default-boot MODE` | Seleccionar la acción de sesión MiniOS predeterminada. |
+| `--kernel-args TEXT` | Agregar argumentos globales de kernel validados. |
+| `--boot-background PNG` | Reemplazar el arte de arranque soportado. |
+| `--overlay-directory DIR` | Agregar una capa de sistema de archivos declarativa. |
+| `--menu TYPE` | Seleccionar un menú multilingüe o localizado. |
+| `--overwrite` | Permitir explícitamente el reemplazo de una salida existente. |
 
-El comando termina con un valor distinto de cero cuando fallan las comprobaciones de fuente, módulo, personalización, almacenamiento, verificación o publicación. No distribuyas una salida a menos que el comando haya finalizado correctamente y se hayan probado la suma de verificación y los caminos de arranque resultantes.
+El comando sale con código distinto de cero si fallan las comprobaciones de fuente, módulo, personalización, almacenamiento, verificación o publicación. No distribuyas una salida salvo que el comando haya finalizado correctamente y se hayan probado la suma de verificación y los caminos de arranque resultantes.

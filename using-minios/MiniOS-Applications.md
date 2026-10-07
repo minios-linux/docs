@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-30
+updated: 2026-10-06
 ---
 # MiniOS applications
 
@@ -18,13 +18,14 @@ A native installation keeps the familiar MiniOS desktop experience — its visua
 |---|---|---|---|
 | Edit MiniOS boot-time and new-session settings | **MiniOS Configurator** | For the MiniOS live configuration model. It writes settings for a later live boot and does not reconfigure the running system immediately. | [MiniOS Configurator](/preparing-and-customizing/Preconfiguring-MiniOS) |
 | Deploy MiniOS to another disk | **MiniOS Installer** | Runs from a MiniOS live session. Live mode keeps the complete MiniOS live environment; native mode creates a conventional Debian desktop and removes the MiniOS-specific software intended for live operation. | [MiniOS Installer](/installing-minios/MiniOS-Installer) |
-| Create, select, resize, save, or remove persistent sessions | **MiniOS Session Manager** | MiniOS live systems only. | [Session management](/using-minios/Sessions-and-Persistence) |
-| Package, activate, inspect, or remove MiniOS kernels | **MiniOS Kernel Manager** | MiniOS modular live systems only. | [Kernel management](/preparing-and-customizing/Managing-Kernels) |
-| Install applications or build application modules from catalog recipes | **MiniOS Store** | MiniOS live systems. Choose module or direct system installation; persistence determines whether direct changes survive reboot. | [MiniOS Store](/using-minios/Installing-Software) |
-| Remaster an existing MiniOS image through a guided project | **MiniOS Image Builder** | Works with MiniOS live image content from the running live session, an ISO, or optical media. It creates another live ISO. | [MiniOS Image Builder](/preparing-and-customizing/Creating-Custom-MiniOS-Images) |
+| Create, select, mount, resize, save, reclaim, encrypt, or remove persistent sessions | **MiniOS Session Manager** | MiniOS live systems only. It can write supported RAM-backed sessions to their original store, change detached LUKS passphrases, and mount inactive container sessions for file access. | [Session management](/using-minios/Sessions-and-Persistence) |
+| Package, activate, inspect, or remove MiniOS kernels | **MiniOS Kernel Manager** | MiniOS modular live systems only. Repository packaging can also add compatible drivers from the curated MiniOS DKMS catalog. | [Kernel management](/preparing-and-customizing/Managing-Kernels) |
+| Install applications or build application modules from catalog recipes | **MiniOS Store** | MiniOS live systems. Module builds can keep a recipe level or use an explicit build-base level; recipes can require license acceptance. | [MiniOS Store](/using-minios/Installing-Software) |
+| Remaster an existing MiniOS image through a guided project | **MiniOS Image Builder** | Works with MiniOS live image content from the running live session, an ISO, or optical media. It can select modules, capture session changes, and construct supported boot-menu behavior before producing another verified live ISO. | [MiniOS Image Builder](/preparing-and-customizing/Creating-Custom-MiniOS-Images) |
 | Inspect, create, activate, and select `.sb` modules | **MiniOS Module Manager** | MiniOS live systems only; module composition and runtime activation depend on the layered `.sb` root model. | [MiniOS Module Manager](/preparing-and-customizing/Managing-Modules) |
-| Write a MiniOS ISO to a USB drive | **Drive Utility** | Generic disk-image utility included with MiniOS. It writes bootable media; it does not perform managed deployment like MiniOS Installer. | [Drive Utility](/installing-minios/installation-tools/Drive-Utility) |
-| Browse the installed documentation offline | **MiniOS Help** | Reads the packaged documentation without requiring a network connection. | [MiniOS documentation](/) |
+| Write/read disk images, format storage, or erase a device | **Drive Utility** | Generic storage utility included with MiniOS. Raw image writing does not perform managed deployment like MiniOS Installer. | [Drive Utility](/installing-minios/installation-tools/Drive-Utility) |
+| Browse the installed documentation offline | **MiniOS Help** | Native GTK viewer for a precompiled documentation bundle; it does not require the website, WebKit, or a network connection at runtime. | [MiniOS documentation](/) |
+| Show the localized first-run introduction | **MiniOS Welcome** | Local browser-based welcome page with Mio, project links, help, community, and support prompts. It is introductory content rather than a system configurator. | [Quick start](/getting-started/Quick-Start) |
 
 ## Command-line tools
 
@@ -35,13 +36,13 @@ Most graphical tools have a public command-line counterpart or backend. These co
 | Task | Tool | Scope | Documentation |
 |---|---|---|---|
 | List target disks, preview a deployment plan, or install MiniOS non-interactively | **`minios-deploy`** | Runs from a MiniOS live session. Installation requires root and explicit confirmation; native mode, when supported, creates a conventional Debian desktop from the selected image. | [Command-line deployment](/installing-minios/MiniOS-Installer#command-line-deployment); `man minios-deploy` |
-| Create, activate, save, resize, export, import, or remove persistent sessions | **`minios-session`** | Requires root and a MiniOS live system with a compatible persistence store. | [Session command reference](/using-minios/Sessions-and-Persistence#command-reference); `man minios-session` |
+| Create, activate, save, mount, resize, reclaim, change encryption credentials, export, import, or remove persistent sessions | **`minios-session`** | Requires root and a MiniOS live system with a compatible persistence store. RAM-backed save, detached mounts, and backend-specific operations are capability-gated. | [Session command reference](/using-minios/Sessions-and-Persistence#command-reference); `man minios-session` |
 
 ### Kernels and images
 
 | Task | Tool | Scope | Documentation |
 |---|---|---|---|
-| List, package, activate, inspect, or remove kernels | **`minios-kernel`** | Requires root and a modular MiniOS live installation with a writable MiniOS root. | [`minios-kernel` CLI](/preparing-and-customizing/Managing-Kernels#method-2-using-minios-kernel-cli); `man minios-kernel` |
+| List, package, activate, inspect, or remove kernels | **`minios-kernel`** | Requires root and a modular MiniOS live installation with a writable MiniOS root. | [`minios-kernel` CLI](/preparing-and-customizing/Managing-Kernels#command-line-reference); `man minios-kernel` |
 | Remaster an existing MiniOS content tree from scripts or automation | **`minios-image-compose`** | Operates on MiniOS live image content and publishes a bootable ISO. | [Composing ISO images from the command line](/preparing-and-customizing/Creating-Custom-MiniOS-Images#composing-minios-iso-images-from-the-command-line); `man minios-image-compose` |
 
 ### Module workflows
@@ -59,6 +60,6 @@ Most graphical tools have a public command-line counterpart or backend. These co
 
 | Task | Tool | Scope | Documentation |
 |---|---|---|---|
-| Read or write disk images, format a device, or overwrite a device | **`driveutility-read`**, **`driveutility-write`**, **`driveutility-format`**, **`driveutility-wipe`** | Generic disk operations. Writing, formatting, and wiping are destructive and normally require root. | [Drive Utility](/installing-minios/installation-tools/Drive-Utility); `man driveutility-read`, `man driveutility-write`, `man driveutility-format`, `man driveutility-wipe` |
+| Read or write disk images, format a device, or erase storage | **`driveutility-read`**, **`driveutility-write`**, **`driveutility-format`**, **`driveutility-wipe`** | Generic disk operations. Wipe supports controller erase, discard, and host overwrite methods where the device and required tools support them. Destructive operations normally require root. | [Drive Utility](/installing-minios/installation-tools/Drive-Utility); `man driveutility-read`, `man driveutility-write`, `man driveutility-format`, `man driveutility-wipe` |
 
 For changes to source package lists, kernels, boot artifacts, or the complete module chain, use the source build system instead of either image-remastering tool. See [Building MiniOS](/development/Building-MiniOS).
