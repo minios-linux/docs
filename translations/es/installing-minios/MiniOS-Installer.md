@@ -1,7 +1,7 @@
 ---
-updated: 2026-10-06
+updated: 2026-10-15
 program_commits:
-    minios-installer: ecabe245a5eaff606ce06f034af334b399f4c3b3
+    minios-installer: e895f8065faef84356f9c1cda4dbfa97700b0370
 ---
 
 # Instalador de MiniOS
@@ -28,26 +28,28 @@ Este despliegue es diferente de una escritura directa de ISO, una configuración
 
 ## Iniciar el instalador gráfico
 
-Abre el menú de aplicaciones, selecciona Sistema y luego el Instalador de MiniOS. También puede iniciarse desde una terminal:
+Abre el Instalador de MiniOS desde el **MiniOS** menú de aplicaciones. También puedes iniciarlo desde una terminal y solicitar autorización de administrador si es necesario:
 
 ```bash
-sudo minios-installer
+minios-installer
 ```
 
-El asistente recopila el modo de instalación, seguridad, ubicación, red cableada, teclado, cuenta, módulos, almacenamiento y opciones de arranque. Revisa la geometría exacta de las particiones y el resumen de operaciones antes de aceptar la confirmación final destructiva.
+El asistente recopila la configuración de modo de instalación, seguridad, ubicación, red cableada, teclado, cuenta, módulo, almacenamiento y arranque. Revisa la geometría exacta de las particiones y el resumen de operaciones antes de aceptar la confirmación final, que es irreversible.
 
-## Ubicación y esquemas de arranque
+## Disposición y esquemas de arranque
 
-El instalador gráfico ofrece estas opciones de ubicación cuando el destino es elegible:
+El instalador gráfico ofrece estas opciones de disposición cuando el destino es elegible:
 
 - Borrar todo crea una nueva tabla de particiones y elimina todos los datos del disco de destino.
-- Espacio libre utiliza el espacio no asignado disponible sin reducir el tamaño de un sistema de archivos existente.
-- Junto a reduce una partición final ext2, ext3, ext4 o NTFS elegible y desmontada. Se rechazan esquemas sucios, montados, anidados, ambiguos o inseguros. El instalador puede solicitar confirmación antes de descargar herramientas de sistema de archivos faltantes.
-- El particionado manual solo está disponible para conversiones nativas en la interfaz gráfica y en discos directos elegibles. Los cambios se preparan hasta la confirmación final.
+- Espacio libre utiliza el espacio no asignado disponible sin reducir el tamaño de ningún sistema de archivos existente.
+- Junto a reduce una partición final ext2, ext3, ext4 o NTFS elegible y desmontada. Se rechazan las disposiciones sucias, montadas, anidadas, ambiguas o inseguras. El instalador puede solicitar confirmación antes de descargar herramientas de sistema de archivos faltantes.
+- El particionado manual solo está disponible para conversiones nativas en la interfaz gráfica sobre discos directos elegibles. Los cambios se aplican solo tras la confirmación final.
 
-Los esquemas automáticos de arranque son BIOS/MBR, UEFI/MBR y UEFI/GPT. UEFI funciona con GPT o esquemas MBR primarios. BIOS es compatible solo con MBR primario, no con GPT. No se admiten esquemas extendidos o lógicos MBR preservados.
+Los esquemas de arranque automáticos son BIOS/MBR, UEFI/MBR y UEFI/GPT. UEFI funciona con GPT o disposiciones MBR primarias. BIOS es compatible solo con MBR primario, no con GPT. No se admiten disposiciones MBR extendidas o lógicas para preservar.
 
-El modo manual permite crear, eliminar, formatear y reutilizar particiones; reducir un sistema de archivos compatible desde el final; asignar puntos de montaje, una partición EFI y swap; y deshacer o restablecer los cambios preparados. No admite LVM, RAID, raíces LUKS nativas, almacenamiento mapeado o anidado, bcache, ZFS ni edición de subvolúmenes Btrfs. El cifrado LUKS2 para una sesión de persistencia en vivo no cifra un sistema de archivos raíz nativo.
+Para **Borrar todo** en modo Live, **Automático** selecciona MBR incluso cuando el instalador se ejecuta bajo UEFI. Los destinos Live en MBR conservan archivos EFI y reciben un gestor de arranque BIOS, por lo que admiten ambos modos de firmware. Los discos de 2 TiB o más requieren seleccionar explícitamente **UEFI/GPT**; los destinos Live en GPT son solo UEFI. El borrado nativo sigue su propia política dependiente del firmware. Las instalaciones en espacio libre y junto a mantienen la tabla de particiones existente.
+
+El modo manual permite crear, eliminar, formatear y reutilizar particiones; reducir desde el final un sistema de archivos compatible; asignar puntos de montaje, una partición del sistema EFI y swap; y deshacer o restablecer los cambios pendientes. No admite LVM, RAID, raíces LUKS nativas, almacenamiento mapeado o anidado, bcache, edición de subvolúmenes ZFS o Btrfs. El cifrado LUKS2 para una sesión persistente en modo live no cifra el sistema de archivos raíz nativo.
 
 ## Sistemas de archivos
 
@@ -61,29 +63,31 @@ El espacio requerido incluye los datos de los módulos seleccionados, recursos d
 
 ## Configuración y seguridad
 
-El instalador puede configurar el locale, zona horaria, teclado, nombre de usuario, contraseñas, grupos de usuario, nombre de host, servicios, menú de arranque y selección de módulos. Seleccionar un módulo MiniOS superior incluye sus capas inferiores requeridas.
+El instalador puede configurar el idioma, zona horaria, teclado, nombre de usuario, contraseñas, grupos de usuarios, nombre del host, servicios, menú de arranque y selección de módulos. Al seleccionar una capa superior del sistema, se incluyen automáticamente las capas inferiores requeridas. Los módulos personalizados de `minios/modules/` se seleccionan de forma independiente, incluso si sus nombres de archivo se parecen a los de módulos del sistema o del kernel.
 
-Los perfiles de seguridad son `convenient`, `balanced`, y `strict`. El modo en vivo utiliza por defecto `convenient`; la conversión nativa comienza desde `balanced`. Los controles de SSH y XRDP son independientes del perfil seleccionado. Revisa los servicios de acceso remoto antes de la primera conexión de red. Tras la conversión nativa, la configuración de seguridad posterior sigue el flujo de trabajo habitual de administración de sistemas Debian.
+Los perfiles de seguridad son `convenient`, `balanced` y `strict`. El modo Live utiliza por defecto `convenient`; la conversión nativa comienza desde `balanced`. Los controles de SSH y XRDP son independientes del perfil seleccionado. Revisa los servicios de acceso remoto antes de la primera conexión de red. Tras la conversión nativa, la configuración de seguridad posterior sigue el flujo habitual de administración de sistemas Debian.
 
-La configuración de red abarca el nombre de host y DHCP cableado o IPv4 estática. El instalador no crea ni modifica perfiles Wi-Fi. La conversión nativa y algunas operaciones junto a otra pueden requerir acceso a red, con tu consentimiento, para obtener GRUB, EFI, initramfs, `os-prober`, o paquetes de redimensionamiento de sistema de archivos antes de realizar cambios en el disco.
+La configuración de red abarca el nombre del host y DHCP por cable o IPv4 estática. El instalador no crea ni modifica perfiles Wi-Fi. La conversión nativa y algunas operaciones en paralelo pueden requerir acceso a la red, con tu consentimiento, para obtener paquetes de GRUB, EFI, initramfs, `os-prober`, o de redimensionamiento de sistemas de archivos antes de realizar cambios en el disco.
 
 ## Persistencia de la sesión en vivo
 
-La persistencia solo aplica a instalaciones en modo live. Cuando `minios-session` está disponible, el Instalador de MiniOS puede crear y activar una sesión numerada real directamente en el destino antes de finalizar la instalación. **Configurar automáticamente en el primer arranque** omite este paso; MiniOS podrá crear el almacenamiento de sesión más adelante mediante su lógica normal de persistencia al arrancar.
+La persistencia solo se aplica a instalaciones en vivo. Cuando `minios-session` está disponible, el Instalador de MiniOS puede crear y activar una sesión real numerada directamente en el destino antes de que finalice la instalación. **Configuración automática en el primer arranque** omite este paso; MiniOS podrá crear el almacenamiento de sesión más adelante mediante su lógica normal de persistencia al arrancar.
 
 El instalador ofrece estos backends de almacenamiento cuando el sistema en ejecución y el destino los soportan:
 
-- `native` almacena los cambios de la sesión en vivo directamente en el directorio de sesión sobre un sistema de archivos de destino compatible con POSIX. A pesar del nombre, este es un **backend de persistencia en vivo** y no está relacionado con la instalación nativa. No se ofrece en FAT32 ni NTFS.
+- `native` almacena los cambios de la sesión en vivo directamente en el directorio de sesión sobre un sistema de archivos compatible con POSIX en el destino. A pesar del nombre, se trata de un **backend de persistencia en vivo** y no está relacionado con la instalación nativa. No se ofrece en FAT32 ni NTFS.
 - DynFileFS crea almacenamiento ext4 expandible basado en archivos. El tamaño seleccionado es el máximo lógico, no espacio reservado por adelantado. Su tamaño predeterminado es 4000 MiB.
-- DynBlk crea un sistema de archivos ext4 sobre un dispositivo de bloques fino proporcionado por el controlador de kernel DynBlk. Los datos de la sesión se almacenan en archivos `volumeNNN.db` segmentados que se asignan según sea necesario, por lo que el tamaño seleccionado es un máximo lógico y no un uso de disco preasignado. El instalador asigna por defecto 16384 MiB a nuevas sesiones DynBlk. Para sesiones DynBlk sin cifrar, el instalador puede seleccionar un códec de compresión compatible tanto con el sistema en ejecución como con el initrd copiado al destino.
-- VMDK utiliza el controlador DynBlk para crear almacenamiento VMDK estándar dividido y disperso (`volume.vmdk` y `volume-sNNN.vmdk`). Tiene el mismo modelo de asignación fina y 16384 MiB por defecto que DynBlk, pero la compresión en el backend no está disponible.
+- DynBlk crea un sistema de archivos ext4 sobre un dispositivo de bloque thin proporcionado por el controlador del kernel DynBlk. Los datos de la sesión se almacenan en archivos segmentados `volumeNNN.db` que se asignan según sea necesario, por lo que el tamaño seleccionado es un máximo lógico y no un uso de disco preasignado. El instalador asigna por defecto 16384 MiB a las nuevas sesiones DynBlk. Para sesiones DynBlk sin cifrar, el instalador puede seleccionar un códec de compresión compatible tanto con el sistema en ejecución como con el initrd copiado al destino.
+- VMDK utiliza el controlador DynBlk para crear almacenamiento VMDK estándar dividido y disperso (`volume.vmdk` y `volume-sNNN.vmdk`). Utiliza el mismo modelo de asignación thin y el tamaño predeterminado de 16384 MiB que DynBlk, pero no está disponible la compresión en el backend.
 - Raw crea una imagen ext4 de tamaño fijo y reserva la capacidad seleccionada de inmediato. Su tamaño predeterminado es 4000 MiB.
 
-LUKS2 es una capa de cifrado independiente que puede envolver almacenamiento de sesión Raw, DynFileFS, DynBlk o VMDK. El instalador solicita la frase de contraseña confirmada solo para la creación de la sesión, la envía a `minios-session` por la entrada estándar y no la coloca en argumentos de línea de comandos, registros ni configuración persistente. La frase de contraseña será necesaria al desbloquear la sesión cifrada al arrancar. LUKS2 solo se ofrece cuando el entorno en ejecución y el initrd copiado al destino anuncian soporte compatible. La compresión DynBlk se desactiva al seleccionar LUKS2.
+LUKS2 es una capa de cifrado independiente que puede envolver almacenamiento de sesión Raw, DynFileFS, DynBlk o VMDK. El instalador solicita la frase de contraseña confirmada solo para la creación de la sesión y la envía a `minios-session` por entrada estándar, sin incluirla en argumentos de línea de comandos, registros ni configuraciones persistentes. Luego, la frase de contraseña será necesaria para desbloquear la sesión cifrada al arrancar. LUKS2 solo se ofrece cuando el entorno en ejecución y el initrd copiado al destino anuncian soporte compatible. La compresión DynBlk se desactiva al seleccionar LUKS2.
 
-DynBlk y el almacenamiento de sesión VMDK no están disponibles mientras UEFI Secure Boot esté activado, ya que el módulo de kernel externo DynBlk utilizado por estos backends no está firmado por MiniOS. Los contenedores Raw están limitados a 4000 MiB en FAT32; DynFileFS, DynBlk y el almacenamiento VMDK dividido no dependen de que un solo archivo supere el límite de 4 GiB de FAT32, aunque siguen aplicando sus propios límites de backend y espacio libre.
+DynBlk y el almacenamiento de sesión VMDK no están disponibles cuando UEFI Secure Boot está habilitado, ya que el módulo externo del kernel DynBlk utilizado por estos backends no está firmado por MiniOS. Los contenedores Raw están limitados a 4000 MiB en FAT32; DynFileFS, DynBlk y el almacenamiento VMDK dividido no dependen de que un solo archivo supere el límite de 4 GiB de FAT32, aunque siguen aplicando sus propios límites de backend y espacio libre.
 
-Como el instalador crea y activa la sesión seleccionada en el destino, no depende de `perchmode` y `perchsize` para crear ese almacenamiento en el primer arranque. Esos parámetros de arranque siguen describiendo la creación y selección de persistencia gestionada por initrd fuera de la ruta de sesión precreada por el instalador. Consulta [Gestión de sesiones](/using-minios/Sessions-and-Persistence), [Persistencia en initrd](/reference/boot-process/Persistence-Internals), y [Parámetros de arranque](/reference/Boot-Parameters).
+Como el instalador crea y activa la sesión seleccionada en el destino, no depende de `perchmode` y `perchsize` para crear ese almacenamiento en el primer arranque. Esos parámetros de arranque aún describen la creación y selección de persistencia gestionada por initrd fuera del flujo de sesión pre-creada por el instalador. Consulte [Gestión de sesiones](/using-minios/Sessions-and-Persistence), [Persistencia en initrd](/reference/boot-process/Persistence-Internals), y [Parámetros de arranque](/reference/Boot-Parameters).
+
+<a id="command-line-deployment"></a>
 
 ## Despliegue por línea de comandos
 

@@ -1,8 +1,8 @@
 ---
-updated: 2026-10-06
+updated: 2026-10-15
 program_commits:
-    minios-module-manager: fbe617f2955ddbef97f9ee3e5856b7d58439a565
-    minios-tools: be508248395979c27cb8036a7d8cc69bdfc82c42
+    minios-module-manager: 356c7582cf81884d606da388c93c674bf32049ba
+    minios-tools: bc6de2e7649ef7629fe6491b906de2290e394fd0
 ---
 
 # Module verwalten
@@ -21,16 +21,16 @@ Die Anwendung läuft unter Ihrem Desktop-Benutzer. Administratorrechte werden nu
 
 Der Arbeitsbereich Module bietet zwei getrennte Ansichten:
 
-- **Aktuell laufend** ist die sortierte Liste der Module, die das aktuelle Live-System bilden.
-- **Nächster Start** ist die vom aktuellen MiniOS-Boot-Regeln ausgewählte Reihenfolge.
+- **Aktuell laufend** ist die geordnete Menge der Module, die das aktuell aktive System bilden.
+- **Nächster Start** ist die geordnete Auswahl, die durch die aktuellen MiniOS-Startregeln bestimmt wird.
 
-Eine Änderung in einer Ansicht wirkt sich nicht stillschweigend auf die andere aus. Zum Beispiel: **Für diese Sitzung aktivieren** betrifft nur das laufende System, während **Zum nächsten Start hinzufügen** ein Modul in den dauerhaften Modulspeicher kopiert, ohne es sofort zu aktivieren.
+Eine Änderung in einer Ansicht wirkt sich nicht automatisch auf die andere aus. Zum Beispiel: **Für diese Sitzung aktivieren** betrifft nur das laufende System, während **Zum nächsten Start hinzufügen** ein Modul in den dauerhaften Modulspeicher kopiert, ohne es sofort zu aktivieren.
 
-Die maßgeblichen Boot-Regeln, einschließlich Kandidatenquellen, exakter Basename-Ersetzung, numerischer Reihenfolge und `load=`, `noload=`, und `bext=`-Filterung, finden Sie unter [Initrd-Modulladen](/reference/boot-process/Module-Loading). Dort wird auch erklärt, warum sich Aktuell laufend und Nächster Start unterscheiden können.
+Für die maßgeblichen Startzeit-Regeln, einschließlich Kandidatenquellen, exakter Basename-Ersetzung, numerischer Reihenfolge und `load=`, `noload=`, sowie `bext=`-Filterung finden Sie weitere Informationen unter [Initrd-Modulladen](/reference/boot-process/Module-Loading). In dieser Anleitung wird auch erklärt, warum sich Aktuell laufend und Nächster Start unterscheiden können.
 
-Aktivierung und Deaktivierung zur Laufzeit sind nur möglich, wenn das Root-Dateisystem aktuell AUFS verwendet. Auf einem OverlayFS-Root stehen sie nicht zur Verfügung, auch wenn der Kernel AUFS unterstützt. Basismodule können über die Anwendung nicht deaktiviert werden.
+Aktivierung und Deaktivierung zur Laufzeit sind nur möglich, wenn das Root-Dateisystem aktuell AUFS verwendet. Sie stehen auf einem OverlayFS-Root nicht zur Verfügung, selbst wenn der Kernel AUFS unterstützt. Basismodule können über die Anwendung nicht deaktiviert werden.
 
-Änderungen für den nächsten Start sind nur möglich, wenn MiniOS einen geeigneten dauerhaften und beschreibbaren Modulspeicher findet. Basismodule sowie Module auf schreibgeschützten oder flüchtigen Speichern können nicht entfernt werden. Boot-Filter wie `load`, `noload`, und `bext` bestimmen weiterhin, welche Module ausgewählt werden.
+Änderungen für den nächsten Start sind nur mit geeignetem, dauerhaftem und beschreibbarem Modulspeicher möglich. Das Deaktivieren eines Benutzermoduls verschiebt es in einen parallelen `modules-disabled/` Speicher, anstatt es zu löschen; es kann später wiederhergestellt werden. Das endgültige Löschen ist eine separate Aktion für deaktivierte Module. Basismodule sowie Module auf schreibgeschützten oder flüchtigen Speichern können nicht deaktiviert werden. Startfilter wie `load`, `noload`, sowie `bext` bestimmen weiterhin, welche Module ausgewählt werden.
 
 ## Modul inspizieren
 
@@ -69,13 +69,15 @@ Drag & Drop füllt nur ein Eingabefeld oder öffnet die Inspektion:
 
 Das Ablegen eines Elements führt keinen Code aus und ändert weder Aktuell laufend noch Nächster Start.
 
-## Verwandte Dokumentation
+## Zugehörige Dokumentation
 
 - [Module erstellen](/preparing-and-customizing/Managing-Modules#creating-modules)
 - [Initrd-Modulladen](/reference/boot-process/Module-Loading)
 - [Boot-Modi](/using-minios/Boot-Modes)
-- [ISO-Abbilder per Kommandozeile zusammenstellen](/preparing-and-customizing/Creating-Custom-MiniOS-Images#composing-minios-iso-images-from-the-command-line)
+- [ISO-Images über die Kommandozeile erstellen](/preparing-and-customizing/Creating-Custom-MiniOS-Images#composing-minios-iso-images-from-the-command-line)
 - [Boot-Parameter](/reference/Boot-Parameters)
+
+<a id="creating-modules"></a>
 
 ## Module erstellen
 
@@ -107,15 +109,17 @@ Verwenden Sie die `--help`-Ausgabe jedes Befehls als Referenz für die installie
 
 ### Modulnamen und Filterstufen
 
-Namen beginnen häufig mit einer Zahl wie `06-browser.sb`, da die Schichtreihenfolge die Konfliktlösung beeinflusst. Ein Modul sollte Pfade relativ zum System-Root enthalten, etwa `usr/bin/example`, nicht ein zusätzliches Verzeichnis mit diesem Baum.
+Namen beginnen häufig mit einer Zahl, wie z. B. `06-browser.sb`, da die Reihenfolge der Ebenen die Konfliktlösung beeinflusst. Ein Modul sollte Pfade relativ zum System-Root enthalten, zum Beispiel `usr/bin/example`, und nicht ein zusätzliches Verzeichnis, das diesen Baum enthält.
 
-Für die genauen Kandidatenquellen, das Verhalten bei Basename-Kollisionen, die numerische Reihenfolge und `bext=`, `load=`, und `noload=`-Semantik siehe [Initrd-Modulladen](/reference/boot-process/Module-Loading). Verwenden Sie insbesondere einen eindeutigen Basename, es sei denn, das Modul soll gezielt einen gleichnamigen Slot aus einer früheren Quellstufe ersetzen.
+Für die genauen Quell-Tiers, das Verhalten bei Basename-Kollisionen, die numerische Reihenfolge sowie `bext=`, `load=` und `noload=`-Semantik siehe [Initrd-Modulladen](/reference/boot-process/Module-Loading). Verwenden Sie insbesondere einen eindeutigen Basename, es sei denn, das Modul soll den gleichnamigen Slot aus einer früheren Quell-Tier ersetzen.
 
-Die `--level LEVEL`-Option bei `apt2sb`, `script2sb`, und `chroot2sb` begrenzt die Basisschichten, die für die Build-Union verwendet werden. Mit `--level 3`, werden Schichten bis einschließlich `03` verwendet und höher nummerierte Schichten herausgefiltert. Dadurch kann ein Modul weniger von optionalen höheren Schichten abhängen, enthält aber ggf. mehr Abhängigkeiten im Ergebnis.
+Die Option `--level LEVEL` bei `apt2sb`, `script2sb` und `chroot2sb` beschränkt die Basisebenen, die zum Erstellen der Build-Union verwendet werden. Mit `--level 3`, werden Ebenen mit Nummern bis `03` genutzt und höher nummerierte Ebenen herausgefiltert. Dadurch kann ein Modul weniger von optionalen höheren Ebenen abhängen, allerdings werden dadurch mehr Abhängigkeiten in das Ergebnis aufgenommen.
 
-### Modul aus Paketen erstellen
+<a id="create-a-module-from-packages"></a>
 
-`apt2sb` installiert Repository-Pakete oder lesbare lokale `.deb`-Dateien in eine private Build-Union und erfasst das Ergebnis. Erfordert eine unterstützte MiniOS-Live-Sitzung und Root.
+### Ein Modul aus Paketen erstellen
+
+`apt2sb` installiert Repository-Pakete oder lesbare lokale `.deb` Dateien in eine private Build-Union und erfasst das Ergebnis. Erfordert eine unterstützte MiniOS Live-Session und Root-Rechte.
 
 ```bash
 sudo apt2sb install chromium chromium-sandbox
@@ -123,7 +127,7 @@ sudo apt2sb install -y --level 3 -n 06-browser.sb chromium chromium-sandbox
 sudo apt2sb install -y --no-install-recommends ./example_amd64.deb -n 06-example.sb
 ```
 
-Ohne `--name` wird der Ausgabename vom ersten Paket abgeleitet. Nützliche APT-Optionen sind `--install-recommends`, `--no-install-recommends`, `--install-suggests`, `--no-install-suggests`, `--allow-downgrades` und `--target-release RELEASE`. Die Target-Release-Option gilt nur für `install`.
+Ohne `--name` wird der Ausgabename vom ersten Paket abgeleitet. Nützliche APT-Optionen sind unter anderem `--install-recommends`, `--no-install-recommends`, `--install-suggests`, `--no-install-suggests`, `--allow-downgrades` und `--target-release RELEASE`. Die Option target-release gilt nur für `install`.
 
 Um Upgrades bereits installierter Pakete zu erfassen:
 
@@ -131,16 +135,18 @@ Um Upgrades bereits installierter Pakete zu erfassen:
 sudo apt2sb upgrade -y -n upgrades.sb
 ```
 
-### Modul aus Skript erstellen
+<a id="create-a-module-from-a-script"></a>
 
-`script2sb` kopiert ein Installationsskript in ein privates Chroot, macht es ausführbar, führt es als Root ohne interaktives Terminal aus, entfernt es und erfasst die resultierenden Dateisystemänderungen. Ein fehlgeschlagenes Skript erzeugt kein Modul.
+### Ein Modul aus einem Skript erstellen
+
+`script2sb` kopiert ein Installationsskript in ein privates Chroot, macht es ausführbar, führt es als root ohne interaktives Terminal aus, entfernt es anschließend und protokolliert die daraus resultierenden Änderungen am Dateisystem. Ein fehlgeschlagenes Skript erzeugt kein Modul.
 
 ```bash
 sudo script2sb --script ./install-example.sh -n 06-example.sb
 sudo script2sb --script ./install-example.sh --directory ./seed-root --level 3 -n 06-example.sb
 ```
 
-Der optionale `--directory DIR` kopiert alle Quellinhalte, einschließlich versteckter Dateien, vor dem Skriptstart ins Modul-Root. Ordnen Sie das Seed-Verzeichnis als Dateisystembaum an:
+Optional: `--directory DIR` kopiert alle Quelldateien, einschließlich versteckter Dateien, vor dem Ausführen des Skripts in das Modul-Root. Strukturieren Sie das Seed-Verzeichnis als Dateisystembaum:
 
 ```text
 seed-root/
@@ -150,50 +156,56 @@ seed-root/
             `-- example.desktop
 ```
 
-Überprüfen Sie das Skript vor der Ausführung. Es läuft mit Administratorrechten und kann beliebige Befehle ausführen. Verwenden Sie `chroot2sb` stattdessen, falls die Installation Eingaben oder manuelle Schritte erfordert.
+Überprüfen Sie das Skript, bevor Sie es ausführen. Es läuft mit Administratorrechten und kann beliebige Befehle ausführen. Verwenden Sie `chroot2sb` stattdessen, wenn für die Installation Eingaben oder manuelle Schritte erforderlich sind.
+
+<a id="create-a-module-interactively"></a>
 
 ### Modul interaktiv erstellen
 
-`chroot2sb` erstellt eine private Build-Union und öffnet darin eine Root-Shell. Installieren Sie Pakete oder bearbeiten Sie Dateien, und beenden Sie dann die Shell, um die Änderungen zu erfassen:
+`chroot2sb` erstellt ein privates Build-Union und öffnet darin eine Root-Shell. Installieren Sie Pakete oder bearbeiten Sie Dateien; beim Verlassen der Shell werden die Änderungen übernommen:
 
 ```bash
 sudo chroot2sb --level 3 -n 06-custom.sb
 sudo chroot2sb --directory ./seed-root -c xz -n 06-custom.sb
 ```
 
-Im Terminal eingegebene Befehle werden beim Laden des Moduls nicht erneut ausgeführt; das Modul ist ein Schnappschuss des resultierenden Dateisystemzustands. Die Shell-Historie wird entfernt. Wird kein Name angegeben, verwendet der generierte Name das aktuelle Datum und die Uhrzeit.
+Befehle, die in der Shell eingegeben werden, werden beim Laden des Moduls nicht erneut ausgeführt; das Modul ist ein Schnappschuss des resultierenden Dateisystemzustands. Die Shell-Historie wird entfernt. Wenn kein Name angegeben wird, wird ein Name mit aktuellem Datum und Uhrzeit generiert.
 
-Der geteilte `prepare`, `shell`, `finish` und `cancel`-Lebenszyklus existiert für geschützte grafische Oberflächen. Für die normale Terminalnutzung verwenden Sie den oben gezeigten Einzelbefehl.
+Die getrennte `prepare`, `shell`, `finish` und `cancel`-Lebenszyklus ist für geschützte grafische Oberflächen vorgesehen. Für die normale Terminal-Nutzung verwenden Sie den oben gezeigten interaktiven Einzelbefehl.
 
-### Modul aus Verzeichnis erstellen
+<a id="create-a-module-from-a-directory"></a>
 
-`dir2sb` verpackt den Inhalt eines vorbereiteten Verzeichnisses in ein neues Modul. Beide Operanden sind erforderlich:
+### Ein Modul aus einem Verzeichnis erstellen
+
+`dir2sb`packt den Inhalt eines vorbereiteten Verzeichnisses in ein neues Modul. Beide Operanden sind erforderlich:
 
 ```bash
 dir2sb my-app-root 06-my-app.sb
 dir2sb --comp xz my-app-root 06-my-app-xz.sb
 ```
 
-Die normale Konvertierung ist ohne Root möglich. Sie lässt die Quelle unverändert, setzt gewöhnliche Benutzer- und Gruppen-IDs (1000–60000) außerhalb von `/home` und `/opt`, behält System-IDs bei und macht Standard-Top-Level-Verzeichnisse root-eigen. Geräte, Sockets und FIFOs werden abgelehnt, und das Ziel wird nie überschrieben. `--keep-ownership` erhält alle Quellbesitzer und `--allow-special` erlaubt Spezialdateien; beides erfordert Root.
+Die Standardkonvertierung erfolgt ohne Root-Rechte. Die Quelle bleibt unverändert, normale Benutzer- und Gruppen-IDs (1000–60000) werden außerhalb von`/home` und `/opt`zu root geändert, System-IDs bleiben erhalten und Standardverzeichnisse auf oberster Ebene werden root-zugeordnet. Gerätedateien, Sockets und FIFOs werden abgelehnt, und das Ziel wird niemals überschrieben.`--keep-ownership`behält alle Eigentümer der Quelle bei und`--allow-special`erlaubt spezielle Dateien; beide Optionen erfordern Root-Rechte.
 
-`sb2dir` schreibt `.minios-module-origin.json` ins extrahierte Verzeichnis. Wurde beim Extrahieren der Besitz erhalten, `dir2sb` erkennt diesen Nachweis und erhält beim erneuten Verpacken automatisch Besitzer und Spezialdateien; der Nachweis selbst wird nicht ins neue Modul übernommen. Ein ohne Besitzübernahme extrahiertes Verzeichnis kann nicht erneut verpackt werden, da die ursprünglichen Besitzer nicht mehr bekannt sind. Extrahieren Sie das Originalmodul erneut mit den privilegierten Optionen.
+`sb2dir`schreibt`.minios-module-origin.json`im extrahierten Verzeichnis. Wenn beim Extrahieren die Eigentümer erhalten bleiben,`dir2sb`erkennt dieses Protokoll und bewahrt beim erneuten Verpacken automatisch Eigentümer und spezielle Dateien; das Protokoll selbst wird nicht in das neue Modul übernommen. Ein Verzeichnis, das ohne Eigentümerübernahme extrahiert wurde, kann nicht erneut verpackt werden, da die ursprünglichen Eigentümer nicht mehr bekannt sind. Extrahieren Sie das ursprüngliche Modul erneut mit den privilegierten Optionen.
+
+<a id="capture-current-session-changes"></a>
 
 ### Aktuelle Sitzungsänderungen erfassen
 
-`savechanges` liest die maßgebliche beschreibbare Schicht einer laufenden MiniOS-Sitzung. Root ist erforderlich, da diese Schicht root-exklusive Dateien enthalten kann. Der Standardpfad für Änderungen wird automatisch erkannt:
+`savechanges`liest die maßgebliche beschreibbare Schicht einer laufenden MiniOS-Sitzung aus. Dafür sind Root-Rechte erforderlich, da diese Schicht Dateien enthalten kann, auf die nur Root zugreifen darf. Der Standardpfad für Änderungen wird automatisch erkannt:
 
 ```bash
 sudo savechanges session-changes.sb
 sudo savechanges --comp xz session-changes-xz.sb
 ```
 
-Ohne `--profile` wendet die historische MiniOS-Richtlinie an, die leere Verzeichnisse, Caches, Protokolle, Bootdaten, Laufzeitpfade, Pseudo-Dateisysteme sowie ausgewählte Sitzungs- und Systemdateien ausschließt. Das ist praktisch für die klassische Modulerstellung, stellt aber keine explizite Datenschutzgarantie dar.
+Ohne `--profile`, lässt die historische MiniOS-Richtlinie leere Verzeichnisse, Caches, Protokolle, Boot-Daten, Laufzeitpfade, Pseudo-Dateisysteme sowie ausgewählte Sitzungs- und Systemdateien aus. Das ist praktisch für die klassische Modulerstellung, stellt jedoch keine ausdrückliche Datenschutzgarantie dar.
 
 Die expliziten Profile sind:
 
-- `exact` erhält alle darstellbaren Änderungen, einschließlich Benutzerdaten, Protokolle, Caches, Identitätsdateien, Anmeldedaten und unterstützte Löschmetadaten. Nicht unterstützte Dateisystemobjekte werden abgelehnt, statt sie stillschweigend zu verlieren.
-- `clean` verwendet eine enge, softwareorientierte Pfad-Positivliste. Home- und Root-Daten, Protokolle, Caches, Identitäten, Netzwerkkonfiguration, Anmeldedaten, beliebige Systemkonfigurationen und `/usr/local` werden ausgeschlossen. Das reduziert die Datenschutzexponierung, garantiert aber nicht, dass eine zugelassene Softwaredatei keine Geheimnisse enthält.
-- `selected` enthält nur geprüfte relative Pfade aus einer Inventar- und Auswahldatei. Explizite Ausschlüsse haben Vorrang. Dieses Profil eignet sich, wenn das Modul einen kontrollierten Teil der Sitzungsänderungen enthalten soll.
+- `exact`bewahrt alle darstellbaren Änderungen auf, einschließlich Benutzerdaten, Protokollen, Caches, Identitätsdateien, Zugangsdaten und unterstützten Löschungsmetadaten. Nicht unterstützte Dateisystemobjekte werden abgelehnt, anstatt sie stillschweigend zu verlieren.
+- `clean`verwendet eine enge, softwareorientierte Positivliste von Pfaden. Es werden Home- und Root-Daten, Protokolle, Caches, Identitäten, Netzwerkkonfiguration, Zugangsdaten, beliebige Systemkonfigurationen sowie `/usr/local`ausgeschlossen. Dadurch wird das Risiko für Datenschutz reduziert, jedoch kann nicht garantiert werden, dass eine zugelassene Softwaredatei keine vertraulichen Informationen enthält.
+- `selected`enthält nur geprüfte relative Pfade aus einer Inventar- und Auswahldatei. Explizite Ausschlüsse haben Vorrang. Dieses Profil ist geeignet, wenn das Modul eine kontrollierte Teilmenge der Sitzungsänderungen enthalten soll.
 
 Beispiele:
 
@@ -215,9 +227,11 @@ Eine Auswahldatei hat diese strikte JSON-Struktur:
 }
 ```
 
-Pfade sind normalisiert, nicht leer und relativ zum Changes-Root. Erstellen und prüfen Sie zuerst das Inventar; jede Aufnahme muss zu den Inventardaten passen. Das Inventar enthält Metadaten wie Pfad, Typ, Kategorie, Sensitivität und Größe, liest aber keine Dateiinhalte, Symlink-Ziele oder Geheimnisse. Ausgaben und Inventare im expliziten Profil sind Modus `0600`; Module mit Legacy-Policy sind Modus `0644`.
+Pfade sind normalisiert, nicht leer und relativ zum Änderungsverzeichnis. Erstellen und prüfen Sie zunächst das Inventar; jeder Einschluss muss mit den Inventardaten übereinstimmen. Das Inventar erfasst Metadaten wie Pfad, Typ, Kategorie, Sensitivität und Größe, liest oder speichert jedoch keine Dateiinhalte, symbolische Link-Ziele oder geheime Werte. Ausgaben und Inventare mit explizitem Profil sind im Modus `0600`; Module mit Legacy-Richtlinie sind im Modus `0644`.
 
-Die Sitzungserfassung kann unterstützte Dateilöschungen und Verzeichnis-Opazität für den aktiven AUFS- oder OverlayFS-Backend erhalten. Laufzeit-Mounts, eingebettete Dateisysteme, Union-Bookkeeping und das eigene Ergebnis werden ausgeschlossen. Ein bestehendes Ziel wird nie überschrieben.
+Die Sitzungsaufnahme kann unterstützte Dateilöschungen und Verzeichnis-Opazität für das aktive AUFS- oder OverlayFS-Backend beibehalten. Laufzeit-Mounts, verschachtelte Dateisysteme, Union-Verwaltung und die Ausgabedatei selbst werden ausgeschlossen. Ein vorhandenes Ziel wird niemals überschrieben.
+
+<a id="inspect-and-extract-modules"></a>
 
 ### Module inspizieren und extrahieren
 
@@ -228,7 +242,7 @@ sb inspect 06-example.sb
 sb inspect 06-example.sb --json
 ```
 
-Die Inspektion ist ohne Root möglich und funktioniert auch außerhalb einer laufenden MiniOS-Sitzung.
+Die Inspektion erfolgt ohne Root-Rechte und funktioniert auch außerhalb einer laufenden MiniOS-Sitzung.
 
 Ein Modul in ein neues Verzeichnis extrahieren:
 
@@ -236,60 +250,71 @@ Ein Modul in ein neues Verzeichnis extrahieren:
 sb2dir 06-example.sb example-root
 ```
 
-Die normale Extraktion ist ohne Root möglich und verändert die Quelle nicht. Das Zielverzeichnis darf nicht existieren. Spezialdateien werden abgelehnt, außer wenn `--allow-special` mit ausreichenden Rechten angefordert wird.
+Die normale Extraktion ist rootlos und verändert die Quelle nicht. Das Zielverzeichnis darf nicht existieren. Spezielle Dateien werden abgelehnt, es sei denn,`--allow-special` dies wird mit ausreichenden Berechtigungen angefordert.
 
-Um ein Verzeichnis zu erhalten, das sich verlustfrei erneut verpacken lässt, extrahieren Sie mit Administratorrechten und erhalten Sie Besitz und Spezialdateien:
+Um ein Verzeichnis vollständig und originalgetreu zu extrahieren, verwenden Sie Administratorrechte und erhalten Sie Besitzrechte sowie spezielle Dateien:
 
 ```bash
 sudo sb2dir --keep-ownership --allow-special 06-example.sb example-root
 ```
 
-Die Extraktion dokumentiert die Modulherkunft in `.minios-module-origin.json` im neuen Verzeichnis. Bei rootloser Extraktion wird vermerkt, dass der Besitz nicht erhalten wurde; ein solches Verzeichnis kann nicht an `dir2sb` zurückgegeben werden. Bewahren Sie den Ursprungsnachweis bei privilegierter Extraktion bis zum Repackaging auf.
+Bei der Extraktion wird der Ursprung des Moduls in`.minios-module-origin.json` im neuen Verzeichnis gespeichert. Bei rootloser Extraktion wird vermerkt, dass Besitzrechte nicht erhalten wurden; ein solches Verzeichnis kann nicht zurück an`dir2sb` übergeben werden. Bewahren Sie den Ursprungsnachweis bei privilegierter Extraktion bis zur erneuten Verpackung auf.
 
-Von aktuellen `sb2dir` erzeugte Verzeichnisse sind normale Verzeichnisse. `rmsbdir`, `sb rm`, und `sb rmdir` sind veraltete Kompatibilitätsbefehle, die das Entfernen immer verweigern; sie führen kein Unmount oder rekursives Löschen durch. Prüfen Sie einen extrahierten Pfad und dessen Inhalt, bevor Sie ihn mit Standard-Dateisystemwerkzeugen entfernen.
+Von aktuellen`sb2dir` erzeugte Verzeichnisse sind normale Verzeichnisse.`rmsbdir` `sb rm` und `sb rmdir` sind veraltete Kompatibilitätsbefehle, die das Entfernen immer verweigern; sie führen kein Unmount oder rekursives Löschen durch. Prüfen Sie einen extrahierten Pfad und dessen Inhalte, bevor Sie ihn mit Standard-Dateisystemwerkzeugen entfernen.
 
-### Laufende und nächste Module verwalten
+<a id="manage-running-and-next-boot-modules"></a>
 
-Aktuell laufend und Nächster Start sind unabhängige Zusammenstellungen. Siehe [Union-Erstellung und Laufzeitaktivierung](/reference/boot-process/Module-Loading#union-construction) für die Boot-/Laufzeitgrenze und warum sich die beiden Listen unterscheiden können.
+### Laufende und nächste Boot-Module verwalten
 
-Listen Sie die tatsächlich das aktuelle AUFS- oder OverlayFS-Root zusammensetzenden Module von niedrigster bis höchster Priorität auf:
+Laufend und Nächster Boot sind unabhängige Zusammenstellungen. Siehe [Union-Erstellung und Laufzeitaktivierung](/reference/boot-process/Module-Loading#union-construction) für die Abgrenzung zwischen Boot und Laufzeit sowie die Gründe, warum sich die beiden Listen unterscheiden können.
+
+Zeigt die tatsächlich im aktuellen AUFS- oder OverlayFS-Root enthaltenen Module in aufsteigender Priorität an:
 
 ```bash
 sb list
 sb list --json
 ```
 
-Listen Sie die durch die aktuellen Boot-Regeln ausgewählten Module auf:
+Zeigt die Module an, die durch die aktuellen Boot-Regeln ausgewählt wurden:
 
 ```bash
 sb next-boot
 sb next-boot --json
 ```
 
-Diese Abfragen sind ohne Root möglich. Die maßgeblichen [Kandidatenstufen- und Ersetzungsregeln](/reference/boot-process/Module-Loading#candidate-tiers) bestimmen, welche Quelle für jeden Next-Boot-Basename verwendet wird.
+Diese Abfragen sind rootlos. Die maßgeblichen [Kandidatentier- und Ersetzungsregeln](/reference/boot-process/Module-Loading#candidate-tiers) bestimmen, welche Quelle für jeden Next Boot-Basename verwendet wird.
 
-So machen Sie ein Benutzermodul beim nächsten Start verfügbar:
+So machen Sie ein Benutzer-Modul beim nächsten Boot verfügbar:
 
 ```bash
 sudo sb next-boot add 50-extra.sb
 ```
 
-MiniOS verwendet geeigneten dauerhaften, beschreibbaren Speicher, bereitet die Kopie vor, prüft sie und veröffentlicht sie atomar, ohne ein bestehendes Modul zu ersetzen. Der Dateiname muss den aktuellen Boot-Filtern entsprechen. Entfernen Sie ein ausgewähltes Benutzermodul anhand des exakten Basenames:
+MiniOS nutzt geeigneten, dauerhaften, beschreibbaren Speicher, bereitet die Kopie vor, validiert sie und veröffentlicht sie atomar, ohne ein bestehendes Modul zu ersetzen. Der Dateiname muss den aktuellen Boot-Filtern entsprechen. Ein ausgewähltes Benutzer-Modul deaktivieren Sie über dessen exakten Basename:
 
 ```bash
-sudo sb next-boot remove 50-extra.sb
+sudo sb next-boot disable 50-extra.sb
 ```
 
-Das Entfernen wird für Basismodule und Module auf schreibgeschützten oder flüchtigen Quellen verweigert.
+Beim Deaktivieren bleibt die Datei in `modules-disabled/` erhalten. Der ältere `next-boot remove`-Befehl ist ein Alias für Deaktivieren, nicht für das endgültige Löschen. Sie können das Modul wiederherstellen oder endgültig löschen mit:
 
-Die Aktivierung zur Laufzeit ist ein separater, nur für die Sitzung gültiger Vorgang:
+```bash
+sudo sb next-boot enable 50-extra.sb
+# To delete it permanently, disable it first:
+sudo sb next-boot disable 50-extra.sb
+sudo sb next-boot delete 50-extra.sb
+```
+
+Basismodule sowie Module auf schreibgeschützten oder flüchtigen Quellen können nicht deaktiviert werden. Auch eine endgültige Löschung wird bei aktiven Modulen verweigert. Prüfen Sie `sb next-boot` und die Liste der deaktivierten Module, bevor Sie die zurückbehaltene Datei löschen.
+
+Die Aktivierung zur Laufzeit ist ein separater, nur für die aktuelle Sitzung gültiger Vorgang:
 
 ```bash
 sudo sb activate 50-extra.sb
 sudo sb deactivate 50-extra.sb
 ```
 
-Aktivierung und Deaktivierung funktionieren nur, wenn `/` aktuell eine AUFS-Union ist. Sie stehen auf OverlayFS nicht zur Verfügung, und allein Kernel-AUFS-Unterstützung reicht nicht aus. Keine der beiden Aktionen ändert Nächster Start.
+Aktivieren und Deaktivieren funktionieren nur, wenn `/` aktuell eine AUFS-Union ist. Auf OverlayFS sind sie nicht verfügbar, und Kernel-AUFS-Unterstützung allein reicht nicht aus. Keine der beiden Befehle ändert Next Boot.
 
 Der Kompatibilitäts-Konverter-Dispatcher benötigt beide Operanden:
 
@@ -298,7 +323,7 @@ sudo sb conv my-app-root 06-my-app.sb
 sudo sb conv 06-my-app.sb example-root
 ```
 
-Direkte Nutzung von `dir2sb` und `sb2dir` ist vorzuziehen, da die normale Konvertierung ohne Root möglich ist.
+Direkte `dir2sb` und `sb2dir`-Verwendung ist vorzuziehen, da die normale Konvertierung auch rootlos ausgeführt werden kann.
 
 ### Verwandte Dokumentation
 

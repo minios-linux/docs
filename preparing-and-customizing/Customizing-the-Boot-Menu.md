@@ -1,5 +1,5 @@
 ---
-updated: 2026-10-06
+updated: 2026-10-15
 ---
 # Customizing the boot menu
 
@@ -32,14 +32,11 @@ These are selectors, not guarantees that storage is writable, a session is compa
 - Press **Esc** to return to previous menu (in GRUB)
 - Automatic selection and timeout duration depend on the active menu configuration; some menus may wait indefinitely
 
-### Language Selection (GRUB)
-If your MiniOS USB drive supports multiple languages:
-1. The first screen will show language options
-2. Select your preferred language
-3. The boot menu will appear in the selected language
-4. The selection can also pass locale settings to later startup, but it does not guarantee that every boot or application message is translated
+### Help and language selection
 
-**Important:** The multilingual menu overrides any locale settings specified in `config.conf`. The language selected in the boot menu takes precedence over pre-configured locale settings. See **[Configuration File](/reference/configuration/config.conf)** and **[live-config](/reference/configuration/live-config)** for details about system configuration files.
+Current multilingual GRUB and native SYSLINUX menus start with boot modes, not a language-selection screen. **F1** opens boot help and **F2** opens language selection. Choosing a language returns to the translated mode menu. Single-language media keeps help but does not offer unavailable language navigation.
+
+The initial multilingual menu leaves the configured system locale in effect. Only an explicit language selection adds locale settings that override `config.conf` for that boot. It does not guarantee that every startup or application message is translated. See [Configuration file](/reference/configuration/config.conf) and [live-config](/reference/configuration/live-config).
 
 ## Customizing Boot Options
 
@@ -62,7 +59,7 @@ You can modify boot options for a single boot session:
 ### Common Boot Parameter Modifications
 - `debug` - Show detailed boot messages (useful for troubleshooting)
 - `toram=trim` - Copy the filtered module set and limited required data to RAM
-- `perchsize=2000` - Set session storage size to 2GB (adjust as needed)
+- `perchsize=2000` - Request 2000 MiB for a new or growing supported container; this does not size native or SquashFS sessions
 - `locales=ru_RU.UTF-8` - Request a specific language/locale
 
 For a complete list of available boot parameters, see **[Boot Parameters](/reference/Boot-Parameters)**.
@@ -71,8 +68,9 @@ For a complete list of available boot parameters, see **[Boot Parameters](/refer
 
 ### On Your MiniOS USB Drive
 - **GRUB configuration:** `/minios/boot/grub/grub.cfg`
+- **GRUB mode and language menus:** `/minios/boot/grub/main.cfg` and `/minios/boot/grub/languages.cfg`; localized builds can select other generated files
 - **SYSLINUX configuration:** `/minios/boot/syslinux/syslinux.cfg`
-- **Boot images:** `/minios/boot/bootlogo.png`
+- **Boot artwork:** inspect the active SYSLINUX `MENU BACKGROUND` or GRUB theme setting; the paths depend on the selected bootloader
 - **Language files:** `/minios/boot/grub/locale/`
 
 ### In Running System

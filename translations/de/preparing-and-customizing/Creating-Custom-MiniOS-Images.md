@@ -1,8 +1,8 @@
 ---
-updated: 2026-10-06
+updated: 2026-10-15
 program_commits:
-    minios-image-builder: bf84d50bfe9461f4e9300033c5855ec8fa387552
-    minios-tools: be508248395979c27cb8036a7d8cc69bdfc82c42
+    minios-image-builder: 8592ec061393e48e6bdfbd43d5b4365a94c73a67
+    minios-tools: bc6de2e7649ef7629fe6491b906de2290e394fd0
 ---
 
 # Eigene MiniOS-Abbilder erstellen
@@ -21,17 +21,17 @@ Der MiniOS-Abbildersteller passt ein bestehendes binäres MiniOS-Abbild an. Er e
 
 Die Projekt-Dateisystemebene ist für deklarative Dateien im Abbild-Root vorgesehen. Es werden keine Skripte ausgeführt, keine Pakete installiert und kein chroot geöffnet. Software, die wiederverwendet werden soll, sollte vor dem Hinzufügen zu einem MiniOS-Abbildersteller-Projekt als Modul vorbereitet werden.
 
-## Quelloptionen
+## Quellenoptionen
 
-Die Quellseite akzeptiert:
+Auf der Seite „Quellen“ werden folgende Optionen akzeptiert:
 
 - Die aktuelle LiveKit- oder dracut-MiniOS-Sitzung.
 - Eine MiniOS-ISO-Datei.
 - Eine MiniOS-optische Disc.
 
-ISO- und optische Quellen werden schreibgeschützt mit `udisksctl` eingebunden. Das Quell-Inventar erfasst Release, Version, Architektur, Bootloader-Unterstützung, Größe, Modulinventar und einen Quell-Fingerabdruck. Ändert sich eine Quelle nach der Planung, wird der Build blockiert, statt mit anderen Eingaben fortzufahren.
+ISO- und optische Quellen werden schreibgeschützt eingehängt mit `udisksctl`. Im Quellinventar werden Release, Version, Architektur, Bootloader-Unterstützung, Größe, Modulübersicht und ein Quell-Fingerabdruck erfasst. Wenn sich eine Quelle nach der Planung ändert, wird der Build gestoppt, anstatt mit anderen Eingaben fortzufahren.
 
-Die Sitzungsaufnahme beschreibt immer Änderungen in der aktuell laufenden MiniOS-Sitzung. Wird eine ISO oder optische Disc ausgewählt, ist die Aufnahme nur möglich, wenn der Basis-Modul-Fingerabdruck dieser Quelle mit dem eingebundenen Basis-Modul der laufenden Sitzung übereinstimmt. Die Auswahl externer Medien erfasst keine Änderungen eines anderen Systems.
+Im grafischen Builder ist die Sitzungsaufnahme nur mit der **laufenden MiniOS-Sitzung** als Quelle verfügbar, wobei jedes Quellmodul und jedes aktive externe Modul einbezogen wird. Für eine separat ausgewählte ISO oder optische Disc, selbst wenn sie das gleiche Release enthält, ist diese Funktion nicht verfügbar. Deaktivieren Sie beim Aufzeichnen der beschreibbaren Sitzung keine Quell-Layer, da deren Änderungen auf dieser vollständigen laufenden Basis aufbauen.
 
 ## Voraussetzungen
 
@@ -97,23 +97,23 @@ Das Inventar enthält Metadaten, einschließlich Dateinamen, und ist daher sensi
 
 Ein neuer Analysevorgang, das Aktualisieren oder Wechseln der Quelle, Abbruch oder Fehler sowie das Öffnen oder Erstellen eines Projekts löschen das Laufzeit-Inventar. Analyse und Aufnahme können Administratorrechte anfordern, aber der MiniOS-Abbildersteller-Prozess und die ISO-Erstellung laufen ohne erhöhte Rechte.
 
-## Abbild-Anpassung
+## Bildanpassung
 
 Unterstützte Einstellungen werden durch das Backend eingeschränkt und validiert:
 
-- **Systemvorgaben:** Hostname, Zeitzone, systemd-Standardziel sowie aktivierte oder deaktivierte Dienste.
-- **Sicherheit und Zugriff:** zugelassene sudo-, PolicyKit-, SSH-, XRDP-, X11-, Sperrbildschirm- und Hinweis-Modi.
-- **Benutzerdaten:** validierte benutzerbezogene Verzeichnisse relativ zum Root mit entweder Link- oder Bind-Verhalten, aber nicht beides.
-- **Boot-Verhalten:** ein Timeout von 0 bis 300 Sekunden, das Quellmenü oder ein konstruiertes Menü sowie einen ausgewählten Standard-Eintrag.
-- **Boot-Einträge:** resume-, neu-, auswählen-, fresh- und copy-to-RAM-Vorlagen können ausgeblendet, umsortiert, dupliziert und über typisierte Persistenz-, Modul-, Start-, Lokalisierungs-, zRAM- und Diagnoseoptionen konfiguriert werden. Aktuelle neue Sitzungs-Vorlagen verwenden `perchdir=setup`, sodass das Persistenz-Backend beim Start ausgewählt werden kann; wenn eine ältere Quelle bereits `perchdir=new` verwendet, bleibt dieser Legacy-Selektor erhalten und wird nicht stillschweigend überschrieben.
-- **RAM-Verhalten:** Systemkopie (`toram`) und Persistenz-Sitzungskopie (`perchtoram`) sind unabhängige Steuerungen. `perchtoram=off` behält Persistenz auf dem Speicher, `trim` kopiert die gewählte unterstützte Sitzung und `full` fordert eine vollständige unterstützte Sitzungs-Kopie an. Ist Persistenz aktiviert, verwenden aktuelle Menüs `trim` mit einem RAM-Systemstart und `off` ansonsten, sofern Sie keinen anderen Wert wählen. Native Verzeichnis-Sitzungen werden von `perchtoram` nicht kopiert.
-- **Experten-Boot-Einstellungen:** validierte globale und eintragsbezogene Kernel-Parameter für Optionen, die nicht durch typisierte Steuerungen abgedeckt sind.
+- **Systemvorgaben:** Hostname, Zeitzone, Standard-systemd-Target sowie aktivierte oder deaktivierte Dienste.
+- **Sicherheit und Zugriff:** erlaubte sudo-, PolicyKit-, SSH-, XRDP-, X11-, Sperrbildschirm- und Hinweis-Modi.
+- **Benutzerdaten:** validierte benutzerbezogene Verzeichnisse relativ zum Root mit entweder Link- oder Bind-Verhalten, jedoch nicht beides.
+- **Boot-Verhalten:** ein Timeout von 0 bis 300 Sekunden, das Quellmenü oder ein konstruiertes Menü sowie ein ausgewählter Standard-Eintrag.
+- **Boot-Einträge:** Resume-, New-, Choose-, Fresh- und Copy-to-RAM-Vorlagen können ausgeblendet, umsortiert, dupliziert und über typisierte Persistenz-, Modul-, Start-, Lokalisierungs-, zRAM- und Diagnoseoptionen konfiguriert werden. Aktuelle New-Session-Vorlagen verwenden `perchdir=setup` sodass das Persistenz-Backend beim Start ausgewählt werden kann; wenn bereits eine ältere Quelle `perchdir=new` nutzt, bleibt dieser Legacy-Selektor erhalten und wird nicht stillschweigend überschrieben.
+- **RAM-Verhalten:** Systemkopie (`toram`) und Persistenz-Session-Kopie (`perchtoram`) sind unabhängige Optionen. `perchtoram=off` behält Persistenz auf dem Speicher, `trim` kopiert die ausgewählte unterstützte Sitzung und `full` fordert eine vollständige Kopie der unterstützten Sitzung an. Bei einer Persistenz-Anforderung startet ein RAM-System standardmäßig mit `trim` sofern kein anderer Wert gewählt wird. Native Verzeichnisdaten werden nicht kopiert: Das initrd startet in diesem Fall normalerweise einen neuen, leeren Container für die Anforderung. Verwenden Sie `perchtoram=off` um native Daten auf dem Speicher zu behalten.
+- **Experten-Boot-Einstellungen:** validierte globale und eintragsbezogene Kernel-Parameter für Optionen, die nicht durch typisierte Steuerelemente abgebildet werden.
 - **Erscheinungsbild:** ein validierter PNG-Boot-Hintergrund.
-- **Projekt-Dateisystemebene:** ein echtes Verzeichnis, relativ zum Abbild-Root interpretiert und als root-eigenes SquashFS-Overlay-Modul gepackt.
+- **Projekt-Dateisystemebene:** ein reales Verzeichnis relativ zum Image-Root, das als root-eigenes SquashFS-Overlay-Modul gepackt wird.
 
-Die Dateisystemebene unterstützt reguläre Dateien, sichere relative Symlinks, leere Verzeichnisse, Ausführungsrechte und Zeitstempel. Gerätedateien, Sockets, FIFOs, Dateisystemgrenzen, absolute oder ausbrechende Links und unsichere Namen werden abgelehnt. Privilegienbits werden entfernt und Eigentümer im generierten Modul normalisiert.
+Die Dateisystemebene unterstützt reguläre Dateien, sichere relative symbolische Links, leere Verzeichnisse, Ausführbarkeitsrechte und Zeitstempel. Gerätedateien, Sockets, FIFOs, Dateisystemgrenzen, absolute oder ausbrechende Links sowie unsichere Namen werden abgelehnt. Privilegienbits werden entfernt und die Eigentümer im generierten Modul normalisiert.
 
-Die Boot-Anpassung unterstützt erkannte MiniOS-GRUB-, native SYSLINUX- und die Standard-SYSLINUX-zu-GRUB-Kette. Nicht unterstützte oder mehrdeutige Boot-Konfigurationen werden abgelehnt statt geraten. Ein Build ohne Boot-Anpassung kann ein Quelllayout erhalten, das der Anpassungsparser nicht versteht.
+Die Boot-Anpassung unterstützt erkannte MiniOS-GRUB, natives SYSLINUX und die Standardkette von SYSLINUX zu GRUB. Nicht unterstützte oder mehrdeutige Boot-Konfigurationen werden abgelehnt, statt geraten. Ein Build ohne Boot-Anpassung kann ein Quell-Layout beibehalten, das vom Parser der Anpassung nicht erkannt wird.
 
 ## Ausgabeverifikation
 
@@ -149,11 +149,13 @@ Inventar-, Build- und Verifikationsprozesse laufen in eigenen Prozessgruppen. Ei
 
 Ein abgebrochener oder fehlgeschlagener Build veröffentlicht sein privates ISO nicht. Ein vorheriges Ziel bleibt erhalten, außer ein verifizierter Ersatz wurde atomar veröffentlicht.
 
-## Verwandte Dokumentation
+## Zugehörige Dokumentation
 
-- [Building MiniOS](/development/Building-MiniOS)
-- [Creating modules](/preparing-and-customizing/Managing-Modules#creating-modules)
-- [ISO-Abbilder über die Kommandozeile zusammenstellen](/preparing-and-customizing/Creating-Custom-MiniOS-Images#composing-minios-iso-images-from-the-command-line)
+- [Erstellen von MiniOS](/development/Building-MiniOS)
+- [Module erstellen](/preparing-and-customizing/Managing-Modules#creating-modules)
+- [ISO-Abbilder über die Befehlszeile erstellen](/preparing-and-customizing/Creating-Custom-MiniOS-Images#composing-minios-iso-images-from-the-command-line)
+
+<a id="composing-minios-iso-images-from-the-command-line"></a>
 
 ## MiniOS-ISO-Abbilder über die Kommandozeile zusammenstellen
 

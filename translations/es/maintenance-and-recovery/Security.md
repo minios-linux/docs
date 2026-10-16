@@ -1,5 +1,5 @@
 ---
-updated: 2026-10-06
+updated: 2026-10-15
 ---
 
 # Seguridad
@@ -56,19 +56,19 @@ SSH puede estar habilitado en una imagen de MiniOS para tareas de recuperación.
 
 Los parámetros de arranque pueden sobrescribir los valores del archivo de configuración. Revise el comportamiento inesperado de los servicios consultando [Parámetros de arranque](/reference/Boot-Parameters).
 
-## Cifre los datos persistentes
+## Cifrar datos persistentes
 
-La persistencia sin cifrar en modo nativo, DynFileFS, DynBlk, VMDK, raw y SquashFS puede ser leída por quien obtenga el dispositivo. MiniOS puede superponer LUKS2 sobre Raw, DynFileFS, DynBlk o VMDK. LUKS2 sigue siendo una capa de cifrado, no un modo de sesión independiente. Para crearla al arrancar, selecciónela con `perchencrypt=luks`; las sesiones existentes obtienen su estado de cifrado desde los metadatos de la sesión y no por una anulación posterior en la línea de comandos.
+La persistencia nativa sin cifrar, DynFileFS, DynBlk, VMDK, raw y SquashFS pueden ser leídas por cualquier persona que obtenga el dispositivo. MiniOS puede superponer LUKS2 sobre Raw, DynFileFS, DynBlk o VMDK. LUKS2 sigue siendo una capa de cifrado, no un modo de sesión independiente. Para crearla al arrancar, selecciónala con `perchencrypt=luks`; las sesiones existentes obtienen su estado de cifrado desde los metadatos de la sesión en lugar de un cambio posterior por línea de comandos.
 
-El límite de cifrado varía según el backend. Raw cifra la imagen de bloques lógicos dentro de `changes.img`; DynFileFS cifra el `virtual.dat` expuesto; DynBlk y VMDK cifran el dispositivo de bloques expuesto por el controlador DynBlk. Los metadatos de sesión, archivos de arranque, metadatos del backend y descriptores VMDK fuera del dispositivo de bloques cifrado, y archivos no relacionados en el medio, permanecen visibles. La compresión del backend de DynBlk se desactiva cuando se selecciona LUKS2; VMDK no ofrece compresión de backend.
+El límite de cifrado varía según el backend. Raw cifra la imagen de bloques lógicos dentro de `changes.img`; DynFileFS cifra el `virtual.dat`; DynBlk y VMDK cifran el dispositivo de bloques expuesto por el controlador DynBlk. Los metadatos de sesión, archivos de arranque, metadatos del backend y descriptores VMDK fuera del dispositivo de bloques cifrado, así como archivos no relacionados en el medio, permanecen visibles. La compresión del backend DynBlk se desactiva cuando se selecciona LUKS2; VMDK no ofrece compresión de backend.
 
-El initrd crea el sistema de archivos cifrado en el primer uso y solicita su frase de contraseña; el instalador no recibe ni almacena esa frase. Al arrancar, tres intentos fallidos de desbloqueo detienen el arranque en vez de continuar en modo sin cifrar, con otro backend o con un reemplazo en memoria bajo la misma petición de persistencia.
+La creación al arrancar solicita la contraseña dos veces en el initrd. Cuando Installer pre-crea una sesión cifrada en el destino, su asistente recopila y confirma la contraseña y la pasa a `minios-session` por entrada estándar. No se almacena en la configuración, registros ni argumentos de proceso. Las sesiones cifradas existentes solicitan la contraseña al arrancar; tres intentos fallidos de desbloqueo detienen el arranque en lugar de volver a texto plano, otro backend o un reemplazo en memoria bajo la misma solicitud de persistencia.
 
-La capa de persistencia LUKS2 de MiniOS protege el contenido del sistema de archivos mientras el mapper está cerrado. No protege los datos tras el desbloqueo, los archivos de arranque sin cifrar, los archivos copiados fuera del backend cifrado ni un sistema de archivos raíz nativo. El cifrado en persistencia por capas no es cifrado raíz nativo. Las exportaciones lógicas contienen archivos de sesión descifrados, por lo que debe proteger los respaldos por separado. Use una frase de contraseña robusta y mantenga una copia de seguridad probada.
+La capa de persistencia LUKS2 MiniOS protege el contenido del sistema de archivos mientras el mapper está cerrado. No protege los datos después del desbloqueo, los archivos de arranque sin cifrar, los archivos copiados fuera del backend cifrado ni un sistema de archivos raíz nativo. El cifrado de persistencia en capas no es cifrado nativo de raíz. Las exportaciones lógicas contienen archivos de sesión descifrados, por lo que debes proteger los respaldos por separado. Utiliza una contraseña robusta y mantén una copia de seguridad probada.
 
-El almacenamiento temporal de caché o journal es una opción para reducir escrituras, no para cifrar. Incluso con `LIVE_LOG_STORAGE=volatile`, MiniOS mantiene `minios-boot` y `live-config` diagnósticos en el almacenamiento de sesión duradero. Para SquashFS, estos archivos quedan fuera de `changes.sb`, en el directorio `boot-logs/` de la sesión. Un dispositivo de respaldo sin cifrar los expone junto con sus otros archivos. `LIVE_CONFIG_DEBUG=true` también habilita trazas detalladas y copias de entradas de fusión de cuentas de usuario; mantenga la depuración desactivada en uso normal y revise esos registros antes de compartirlos. Consulte [Rendimiento](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch).
+El almacenamiento temporal de caché o journal es una opción para reducir escrituras, no para cifrar. Con persistencia duradera, MiniOS mantiene `minios-boot` y `live-config` diagnósticos en el almacén de sesión incluso cuando `LIVE_LOG_STORAGE=volatile`. Para SquashFS duradero, estos archivos quedan fuera de `changes.sb`, en el directorio `boot-logs/` de la sesión. Con `perchtoram`, la sesión y sus diagnósticos se almacenan en memoria; la persistencia requiere un guardado exitoso en almacenamiento. Un dispositivo de respaldo sin cifrar expone sus registros junto con el resto de sus archivos. `LIVE_CONFIG_DEBUG=true` también habilita trazas detalladas y copias de entradas de fusión de cuentas de usuario; mantén la depuración desactivada en uso normal y revisa esos registros antes de compartirlos. Consulta [Rendimiento](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch).
 
-Consulte [Instalador de MiniOS](/installing-minios/MiniOS-Installer) y [Gestión de sesiones](/using-minios/Sessions-and-Persistence).
+Consulta [Instalador de MiniOS](/installing-minios/MiniOS-Installer) y [Gestión de sesiones](/using-minios/Sessions-and-Persistence).
 
 ## Aplique actualizaciones de forma deliberada
 

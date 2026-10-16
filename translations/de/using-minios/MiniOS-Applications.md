@@ -1,5 +1,5 @@
 ---
-updated: 2026-10-06
+updated: 2026-10-15
 ---
 
 # MiniOS Anwendungen
@@ -12,24 +12,24 @@ Die verfügbaren Tools hängen von den im MiniOS-Image enthaltenen Paketen ab. P
 
 Eine native Installation behält das gewohnte MiniOS Desktop-Erlebnis – mit identischer visueller Gestaltung, ausgewählter Desktop-Umgebung und Standardanwendungen – übernimmt jedoch nicht die MiniOS-spezifische Verwaltungssoftware für die Live-Architektur. Sitzungen, `.sb` Module, modulare Kernelverwaltung und ähnliche Workflows entfallen, sodass das installierte System stattdessen die üblichen Debian-Tools für Pakete, Kernel, Konfiguration und Bootloader verwendet.
 
-## Grafische Tools
+## Grafische Werkzeuge
 
-| Aufgabe | Werkzeug | Geltungsbereich | Dokumentation |
+| Aufgabe | Werkzeug | Anwendungsbereich | Dokumentation |
 |---|---|---|---|
-| MiniOS Start- und Sitzungseinstellungen bearbeiten | **MiniOS-Konfigurator** | Für das MiniOS Live-Konfigurationsmodell. Einstellungen werden für einen späteren Live-Start geschrieben und wirken sich nicht sofort auf das laufende System aus. | [MiniOS-Konfigurator](/preparing-and-customizing/Preconfiguring-MiniOS) |
-| MiniOS auf eine andere Festplatte installieren | **MiniOS-Installationsprogramm** | Wird aus einer MiniOS Live-Session gestartet. Im Live-Modus bleibt die vollständige MiniOS Live-Umgebung erhalten; im nativen Modus wird ein klassischer Debian-Desktop erstellt und die für den Live-Betrieb vorgesehene MiniOS-spezifische Software entfernt. | [MiniOS-Installationsprogramm](/installing-minios/MiniOS-Installer) |
-| Persistente Sitzungen erstellen, auswählen, einbinden, vergrößern, speichern, zurückfordern, verschlüsseln oder entfernen | **MiniOS-Sitzungsmanager** | Nur für MiniOS Live-Systeme. Unterstützte RAM-basierte Sitzungen können im Ursprungspeicher gespeichert, LUKS-Passphrasen geändert und inaktive Containersitzungen für den Dateizugriff eingebunden werden. | [Sitzungsverwaltung](/using-minios/Sessions-and-Persistence) |
+| MiniOS Boot- und Sitzungseinstellungen bearbeiten | **MiniOS-Konfigurator** | Für das MiniOS Live-Konfigurationsmodell. Schreibt Einstellungen für einen späteren Live-Start und nimmt keine sofortige Änderung am laufenden System vor. | [MiniOS-Konfigurator](/preparing-and-customizing/Preconfiguring-MiniOS) |
+| MiniOS auf ein anderes Laufwerk übertragen | **MiniOS-Installationsprogramm** | Wird aus einer MiniOS Live-Session ausgeführt. Im Live-Modus bleibt die vollständige MiniOS Live-Umgebung erhalten; im nativen Modus wird ein klassischer Debian-Desktop erstellt und die für den Live-Betrieb bestimmte MiniOS-spezifische Software entfernt. | [MiniOS-Installationsprogramm](/installing-minios/MiniOS-Installer) |
+| Persistente Sitzungen erstellen, auswählen, einbinden, vergrößern, speichern, zurückgewinnen, verschlüsseln oder entfernen | **MiniOS-Sitzungsmanager** | Nur für MiniOS Live-Systeme. Unterstützte RAM-basierte Sitzungen können auf das ursprüngliche Medium geschrieben werden, getrennte LUKS-Passphrasen geändert und inaktive Containersitzungen für den Dateizugriff eingebunden werden. | [Sitzungsverwaltung](/using-minios/Sessions-and-Persistence) |
 | MiniOS Kernel paketieren, aktivieren, prüfen oder entfernen | **MiniOS-Kernelmanager** | Nur für MiniOS modulare Live-Systeme. Die Paketierung aus dem Repository kann auch kompatible Treiber aus dem kuratierten MiniOS DKMS-Katalog hinzufügen. | [Kernelverwaltung](/preparing-and-customizing/Managing-Kernels) |
-| Anwendungen installieren oder Anwendungs-Module aus Katalog-Rezepten bauen | **MiniOS-App-Store** | MiniOS Live-Systeme. Modul-Builds können auf Rezept- oder expliziter Build-Base-Ebene erfolgen; Rezepte können eine Lizenzbestätigung erfordern. | [MiniOS-App-Store](/using-minios/Installing-Software) |
-| Ein vorhandenes MiniOS Image über ein geführtes Projekt remastern | **MiniOS-Abbildersteller** | Funktioniert mit MiniOS Live-Image-Inhalten aus der laufenden Live-Session, einer ISO oder optischen Medien. Module können ausgewählt, Sitzungsänderungen übernommen und unterstütztes Bootmenü-Verhalten konfiguriert werden, bevor ein weiteres geprüftes Live-ISO erzeugt wird. | [MiniOS-Abbildersteller](/preparing-and-customizing/Creating-Custom-MiniOS-Images) |
-| Module inspizieren, erstellen, aktivieren und auswählen`.sb` Module | **MiniOS-Modulmanager** | Nur für MiniOS Live-Systeme; Modulkombination und Aktivierung zur Laufzeit hängen vom geschichteten `.sb` Root-Modell ab. | [MiniOS-Modulmanager](/preparing-and-customizing/Managing-Modules) |
-| Festplatten-Images schreiben/lesen, Speicher formatieren oder ein Gerät löschen | **Laufwerksprogramm** | Allgemeines Speicher-Tool, enthalten in MiniOS. Das Schreiben von Roh-Images führt keine verwaltete Bereitstellung wie das MiniOS-Installationsprogramm durch. | [Laufwerksprogramm](/installing-minios/installation-tools/Drive-Utility) |
-| Installierte Dokumentation offline durchsuchen | **MiniOS-Hilfe** | Nativer GTK-Viewer für ein vorab kompiliertes Dokumentationspaket; benötigt zur Laufzeit weder Website, WebKit noch Netzwerkverbindung. | [MiniOS Dokumentation](/) |
-| Die lokalisierte Einführung beim ersten Start anzeigen | **MiniOS Willkommen** | Lokale, browserbasierte Willkommensseite mit Mio, Projektlinks, Hilfe, Community und Support-Hinweisen. Es handelt sich um eine Einführung und nicht um ein Systemkonfigurationstool. | [Schnellstart](/getting-started/Quick-Start) |
+| Anwendungen installieren oder Anwendungs-Module aus Katalog-Rezepten erstellen | **MiniOS-App-Store** | Für MiniOS Live-Systeme. Modul-Builds können auf Rezept- oder expliziter Build-Basis erfolgen; Rezepte können eine Lizenzbestätigung erfordern. | [MiniOS-App-Store](/using-minios/Installing-Software) |
+| Ein vorhandenes MiniOS-Abbild über ein geführtes Projekt remastern | **MiniOS-Abbildersteller** | Verwendet die laufende Sitzung, ein ISO oder optische Medien. Die Sitzungsaufnahme erfordert die laufende Sitzung als Quelle mit vollständigem Quell- und aktivem externen Modul-Set; für separat ausgewählte ISO-/optische Quellen ist sie nicht verfügbar. | [MiniOS-Abbildersteller](/preparing-and-customizing/Creating-Custom-MiniOS-Images) |
+| Module inspizieren, erstellen, aktivieren und auswählen`.sb` | **MiniOS-Modulmanager** | Nur für MiniOS Live-Systeme; Modulerstellung und Aktivierung zur Laufzeit hängen vom geschichteten`.sb`Root-Modell ab. | [MiniOS-Modulmanager](/preparing-and-customizing/Managing-Modules) |
+| Festplattenabbilder schreiben/lesen, Speicher formatieren oder ein Gerät löschen | **Laufwerksprogramm** | Allgemeines Speicher-Tool, enthalten in MiniOS. Das Schreiben von Rohabbildern führt keine verwaltete Bereitstellung wie das MiniOS-Installationsprogramm durch. | [Laufwerksprogramm](/installing-minios/installation-tools/Drive-Utility) |
+| Installierte Dokumentation offline durchsuchen | **MiniOS-Hilfe** | Nativer GTK-Viewer für ein vorkompiliertes Dokumentationspaket; benötigt zur Laufzeit weder Webseite, WebKit noch Netzwerkverbindung. | [MiniOS Dokumentation](/) |
+| Die lokalisierte Einführung beim ersten Start anzeigen | **MiniOS Willkommen** | Lokale, browserbasierte Willkommensseite mit Mio, Projektlinks, Hilfe, Community und Support-Hinweisen. Sie bietet Einführung und Orientierung, ist aber kein Systemkonfigurator. | [Schnellstart](/getting-started/Quick-Start) |
 
 ## Kommandozeilen-Tools
 
-Die meisten grafischen Tools verfügen über ein öffentliches Kommandozeilen-Pendant oder Backend. Diese Befehle werden entweder im gleichen Paket wie die grafische Anwendung oder in einem erforderlichen Zusatzpaket bereitgestellt. Das gemeinsame Kernmanifest enthält `minios-tools` und `minios-image-compose`. Die Verfügbarkeit der anderen Befehle richtet sich nach den jeweiligen grafischen Paketen. Ob sie auf einem bestimmten installierten System oder Image vorhanden sind, muss jeweils direkt geprüft werden.
+Die meisten grafischen Tools verfügen über ein öffentliches Gegenstück oder Backend für die Kommandozeile. Das zentrale Manifest fordert `minios-tools` für jede Edition und `minios-image-compose`, `minios-deploy`, `minios-kernel` sowie `minios-session` für Nicht-Minimum-Varianten an, unabhängig von den grafischen Desktop-Tools. Flux verwendet die `minimum`-Variante und fordert diese vier zugehörigen Backends standardmäßig nicht an. Prüfen Sie die tatsächlich installierten Pakete; Abhängigkeiten und eigene Images können zusätzliche Tools enthalten, die nicht im Manifest aufgeführt sind.
 
 ### Bereitstellung und Sitzungen
 

@@ -105,6 +105,8 @@ Activation changes the next boot only; it does not reboot the current system. Ke
 
 Delete only an inactive packaged kernel that you no longer need. Do not manually mix a kernel image, initramfs, or `01-kernel-*.sb` from different bundles.
 
+<a id="command-line-reference"></a>
+
 ## Command-line reference
 
 Typical commands are:

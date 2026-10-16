@@ -6,9 +6,9 @@ program_commits:
 
 # Utilitaire de disque
 
-L’Utilitaire de disque est un utilitaire de disque généraliste GTK inclus avec MiniOS. Il permet d’écrire une image disque existante, de créer une image à partir d’un périphérique physique, de formater un périphérique entier ou de l’effacer. Il n’est pas limité aux supports MiniOS et ne remplace pas le Programme d’installation MiniOS.
+Utilitaire de disque est un utilitaire de disque GTK polyvalent fourni avec MiniOS. Il peut écrire une image disque existante, créer une image à partir d’un périphérique physique, formater un périphérique entier ou l’effacer. Il n’est pas limité aux supports MiniOS et ne remplace pas le Programme d’installation MiniOS.
 
-Ouvrez-le depuis le menu des applications sous **Système**, ou exécutez :
+Ouvrez-le dans le menu des applications, sous **Système**, ou exécutez :
 
 ```bash
 driveutility
@@ -16,20 +16,20 @@ driveutility
 
 ## Sécurité
 
-L’écriture d’une image, le formatage et l’effacement sont des opérations destructrices. Vérifiez le périphérique cible par nom, modèle et capacité avant de confirmer. Sauvegardez tout ce qui est important et déconnectez les autres supports amovibles si possible.
+L’écriture d’une image, le formatage et l’effacement sont des opérations destructives. Avant de confirmer, vérifiez le périphérique cible, son modèle et sa capacité. Conservez des sauvegardes de tout élément important et débranchez les lecteurs amovibles non concernés lorsque c’est possible.
 
-Les disques montés sont masqués par défaut. Vous pouvez choisir de les afficher, mais l’Utilitaire de disque avertit avant toute opération destructive et le backend tente de démonter le périphérique sélectionné ainsi que ses partitions avant toute modification. Si l’état de montage est ambigu ou si un système de fichiers reste monté, l’opération échoue au lieu de continuer sur un système de fichiers actif.
+Par défaut, les disques montés sont masqués. Vous pouvez les afficher explicitement, mais Utilitaire de disque avertit l’utilisateur avant toute opération destructive et le backend tente de démonter le périphérique sélectionné et ses partitions avant de le modifier. Si l’état du montage est incertain ou si un système de fichiers reste monté, l’opération échoue au lieu de se poursuivre sur un système de fichiers actif.
 
 ## Écrire une image
 
-**Écrire** copie une image octet par octet sur le périphérique sélectionné. L’entrée d’image compressée est détectée par le backend lorsque cela est pris en charge.
+**Écrire** copie une image octet par octet sur le périphérique sélectionné. Le backend détecte les images compressées lorsque cette fonctionnalité est prise en charge.
 
-Les utilisations courantes incluent l’écriture d’une ISO MiniOS sur une clé USB ou un support SD, ainsi que la restauration d’une image de périphérique complète préalablement créée.
-Pour une ISO MiniOS, il s’agit d’une écriture brute. Cela copie exactement la partition ISO et la structure de démarrage telles qu’elles sont stockées dans l’image. Cela ne **crée pas** de partition de données supplémentaire en écriture, ne crée pas de session persistante et n’effectue pas de déploiement géré par le Programme d’installation MiniOS.
+Parmi les usages courants : écrire une image ISO MiniOS sur un support USB ou SD, et restaurer une image précédemment créée d’un périphérique entier.
+Pour une image ISO MiniOS, il s’agit d’une écriture d’image brute. La partition et la configuration de démarrage de l’ISO sont copiées à l’identique. Cela ne **crée pas** de partition de données supplémentaire accessible en écriture, ne crée pas de session de persistance et ne réalise pas de déploiement géré du Programme d’installation MiniOS.
 
-La persistance après une écriture brute dépend toujours du mode de démarrage et du stockage accessible en écriture exposé par l’image résultante. Pour une disposition cible gérée ou une session pré-créée, utilisez [Programme d’installation MiniOS](/installing-minios/MiniOS-Installer).
+Après une écriture brute, la persistance dépend toujours du mode de démarrage et du stockage accessible en écriture exposé par l’image obtenue. Pour une configuration cible gérée ou une session précréée, utilisez [Programme d’installation MiniOS](/installing-minios/MiniOS-Installer).
 
-Exemple en ligne de commande :
+Exemple en ligne de commande :
 
 ```bash
 sudo driveutility-write -s /path/to/minios.iso -t /dev/sdX
@@ -37,39 +37,39 @@ sudo driveutility-write -s /path/to/minios.iso -t /dev/sdX
 
 ## Créer une image de périphérique
 
-**Créer une image** lit un périphérique physique dans un fichier image. La sortie peut rester brute ou être compressée lors de l’écriture.
+**Créer une image** lit le contenu d’un périphérique physique et l’enregistre dans un fichier image. Le fichier de sortie peut rester brut ou être compressé pendant son écriture.
 
-Les choix de compression pris en charge sont :
+Les options de compression disponibles sont :
 
 - gzip (`.gz`)
 - bzip2 (`.bz2`)
 - XZ (`.xz`)
 - LZ4 (`.lz4`)
-- Zstandard (`.zst`) lorsque le support Python zstd requis est installé
+- Zstandard (`.zst`) lorsque la prise en charge de zstd par Python est installée
 
-L’application graphique peut également attribuer le fichier résultant à l’utilisateur du bureau afin qu’une sauvegarde créée en tant que root soit immédiatement utilisable sans correction de droits séparée.
-Exemple en ligne de commande :
+L’application graphique peut également attribuer le fichier obtenu à l’utilisateur du bureau, afin qu’une sauvegarde créée par root soit immédiatement utilisable sans avoir à modifier les droits de propriété.
+Exemple en ligne de commande :
 
 ```bash
 sudo driveutility-read -s /dev/sdX -t /path/to/backup.img -c zstd
 ```
 
-L’extension spécifique à la compression est ajoutée automatiquement par l’outil en ligne de commande.
+L’outil de lecture en ligne de commande ajoute automatiquement l’extension correspondant à la compression.
 
 ## Formater un périphérique
 
-**Formater** crée une nouvelle structure à système de fichiers unique sur le périphérique sélectionné. Les systèmes de fichiers actuellement proposés sont :
+**Le formatage** crée une nouvelle structure sur un seul système de fichiers sur le périphérique sélectionné. Les systèmes de fichiers disponibles sont les suivants :
 
 - FAT32
 - exFAT
 - NTFS
 - ext4
 
-Vous pouvez définir une étiquette de volume. Pour ext4, l’Utilitaire de disque peut attribuer le dossier racine à l’utilisateur et au groupe sélectionnés.
+Vous pouvez définir un nom de volume. Pour ext4, Utilitaire de disque peut attribuer le répertoire racine à l’utilisateur et au groupe sélectionnés.
 
-Le formatage est indépendant de l’écriture d’une ISO MiniOS. Les systèmes de fichiers listés ici concernent l’opération de formatage de l’Utilitaire de disque ; ils ne modifient pas la structure de fichiers intégrée lors d’une écriture ISO brute.
+Le formatage est indépendant de l’écriture d’une image MiniOS. Les systèmes de fichiers proposés sur cette page concernent l’opération de formatage de l’Utilitaire de disque ; ils ne modifient pas la structure du système de fichiers intégrée à l’écriture brute d’une image ISO.
 
-Exemple en ligne de commande :
+Exemple d’utilisation de la CLI :
 
 ```bash
 sudo driveutility-format -d /dev/sdX -f ext4 -u 1000 -g 1000 MYDISK
@@ -77,21 +77,21 @@ sudo driveutility-format -d /dev/sdX -f ext4 -u 1000 -g 1000 MYDISK
 
 ## Effacer un périphérique
 
-**Effacer** choisit parmi les opérations d’effacement natives du contrôleur, discard/TRIM et les réécritures côté hôte, selon le périphérique sélectionné et la méthode demandée.
+**L’effacement** choisit entre les opérations d’effacement natives du contrôleur, le discard/TRIM et l’écrasement depuis l’hôte, en fonction du périphérique sélectionné et de la méthode demandée.
 
-Backends actuellement pris en charge :
+Les méthodes actuellement disponibles sont les suivantes :
 
-- **Effacement sécurisé** — sélectionne automatiquement une méthode prise en charge par le contrôleur lorsque disponible.
-- **ATA Secure Erase / Enhanced Secure Erase** — exécuté via UDisks2 pour les disques SATA/ATA pris en charge ; les périphériques gelés ou non pris en charge sont refusés.
-- **NVMe User Data Erase / Cryptographic Erase** — utilise NVMe Format NVM uniquement lorsque le contrôleur indique la capacité requise.
-- **Discard / discard sécurisé** — utilise `blkdiscard` lorsque le périphérique bloc prend en charge discard.
-- **Écrasement par zéros** — écrit des zéros depuis l’hôte.
-- **Écrasement aléatoire** — écrit des données aléatoires pour le nombre de passes demandé et peut ajouter un passage final avec des zéros.
+- **Effacement sécurisé** — sélectionne automatiquement une méthode prise en charge par le contrôleur, si disponible.
+- **Effacement sécurisé ATA / effacement sécurisé ATA amélioré** — exécuté via UDisks2 pour les disques SATA/ATA pris en charge ; les périphériques verrouillés ou non pris en charge sont rejetés.
+- **Effacement des données utilisateur NVMe / effacement cryptographique** — utilise Format NVM de NVMe uniquement si le contrôleur indique qu’il prend en charge la capacité demandée.
+- **Discard / discard sécurisé** — utilise `blkdiscard` lorsque le périphérique bloc prend en charge le discard.
+- **Écrasement par des zéros** — écrit des zéros depuis l’hôte.
+- **Écrasement par des données aléatoires** — écrit des données aléatoires pendant le nombre de passes demandé et peut ajouter une dernière passe de zéros.
 
-L’effacement sécurisé par le contrôleur n’est pas équivalent à l’écrasement répété de chaque bloc logique depuis l’hôte. La disponibilité dépend du firmware du périphérique, des interfaces du noyau, de UDisks2, `nvme-cli`, et du `blkdiscard` support.
-Pour les périphériques NVMe, l’Utilitaire de disque préserve le format LBA de l’espace de noms actif, le paramètre de métadonnées et la protection des informations lors de l’exécution du Format NVM. Il refuse également les opérations du contrôleur dont la portée pourrait affecter plusieurs espaces de noms lorsque la cible ne peut être prouvée comme sûre pour une opération à espace de noms unique.
+L’effacement sécurisé par le contrôleur n’équivaut pas à l’écrasement répété de chaque bloc logique depuis l’hôte. La disponibilité dépend du firmware du périphérique, des interfaces du noyau, d’UDisks2, `nvme-cli`, et de la prise en charge de `blkdiscard`.
+Pour les périphériques NVMe, Utilitaire de disque conserve le format LBA de l’espace de noms actif, le paramètre de métadonnées et le paramètre d’informations de protection lors de l’exécution de Format NVM. L’application refuse également les opérations du contrôleur susceptibles d’affecter plusieurs espaces de noms lorsque l’innocuité d’une opération limitée à un seul espace de noms ne peut être garantie pour la cible.
 
-Exemples :
+Exemples :
 
 ```bash
 sudo driveutility-wipe -d /dev/nvme0n1 -m secure
@@ -99,25 +99,25 @@ sudo driveutility-wipe -d /dev/sdX -m discard
 sudo driveutility-wipe -d /dev/sdX -p 3 -t random -z
 ```
 
-Utilisez les contrôles de nombre de passes et de taille partielle uniquement pour les méthodes traditionnelles zéro/aléatoire. L’effacement par contrôleur et discard s’effectue selon la commande du périphérique, et non selon un nombre d’octets côté hôte.
+Utilisez les options de nombre de passes et de taille partielle uniquement pour les méthodes classiques par zéros ou données aléatoires. L’effacement par le contrôleur et le discard suivent la commande du périphérique plutôt qu’une quantité d’octets définie par l’hôte.
 
 ## Outils en ligne de commande
 
-L’Utilitaire de disque installe quatre commandes de bas niveau :
+Utilitaire de disque installe quatre commandes de bas niveau :
 
 | Commande | Fonction |
 |---|---|
 | `driveutility-write` | Écrire une image brute ou compressée prise en charge sur un périphérique bloc. |
 | `driveutility-read` | Créer une image brute ou compressée à partir d’un périphérique bloc. |
-| `driveutility-format` | Créer un stockage FAT32, exFAT, NTFS ou ext4 sur un périphérique. |
-| `driveutility-wipe` | Effacer via les méthodes contrôleur, discard ou écrasement. |
+| `driveutility-format` | Créer un espace de stockage FAT32, exFAT, NTFS ou ext4 sur un périphérique. |
+| `driveutility-wipe` | Effacer à l’aide des méthodes par contrôleur, discard ou écrasement. |
 
-Toutes les commandes destructrices doivent être exécutées uniquement après avoir vérifié précisément le périphérique cible. Consultez leurs pages de manuel installées et `--help` pour les options spécifiques à la version.
+N’exécutez les commandes destructives qu’après avoir vérifié précisément le périphérique cible. Consultez les pages de manuel installées et la sortie `--help` pour connaître les options propres à chaque version.
 
-## Utilitaire de disque versus Programme d’installation MiniOS
+## Utilitaire de disque ou MiniOS
 
-Utilisez **Utilitaire de disque** lorsque l’opération souhaitée concerne une action générique sur le disque : écriture brute d’image, création d’image de périphérique, formatage ou effacement.
+Utilisez **Utilitaire de disque** pour les opérations génériques sur les disques : écriture d’image brute, création d’image d’un périphérique, formatage ou effacement.
 
-Utilisez **Programme d’installation MiniOS** si vous souhaitez un déploiement compatible MiniOS avec placement contrôlé, choix du système de fichiers et du schéma de démarrage, sélection des modules, configuration ou création optionnelle d’une session live.
+Utilisez **Programme d’installation MiniOS** pour un déploiement prenant en compte MiniOS, avec un contrôle précis de l’emplacement, du système de fichiers et de la structure d’amorçage, de la sélection des modules, de la configuration ou de la création facultative d’une session live.
 
-Pour d’autres façons de placer MiniOS sur un support, consultez [Méthodes d’installation](/installing-minios/Installation-Methods). Pour conserver les modifications après le démarrage, voir [Modes de démarrage](/using-minios/Boot-Modes) et [Sessions et persistance](/using-minios/Sessions-and-Persistence).
+Pour découvrir d’autres façons d’installer MiniOS sur un support, consultez [Méthodes d’installation](/installing-minios/Installation-Methods). Pour enregistrer les modifications après le démarrage, consultez [Modes de démarrage](/using-minios/Boot-Modes) et [Sessions et persistance](/using-minios/Sessions-and-Persistence).

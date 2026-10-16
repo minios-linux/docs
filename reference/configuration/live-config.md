@@ -1,7 +1,7 @@
 ---
-updated: 2026-10-06
+updated: 2026-10-15
 program_commits:
-  minios-live-config: cf3ae490e5df92581483ec6345a5f56bdaa812d8
+  minios-live-config: 2a798c533b2980a40e8457205cabfa24ccad2d10
 ---
 # live-config
 
@@ -10,7 +10,7 @@ program_commits:
 
 **live-config** contains the components that configure a live system during the boot process (late userspace).
 
-The persistent-session cache and log policy is decided earlier by `minios-boot`, after the live root and its configuration have been prepared but before ordinary services start. The `browser-cache` live-config component applies the per-user mounts after user creation. These policies require a healthy durable `perch` session and a current initrd advertising `perch-storage-v1`; see [Performance](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch) for the effects and limits.
+The persistent-session cache and log policy is decided earlier by `minios-boot`, after the live root and its configuration have been prepared but before ordinary services start. The `browser-cache` component applies per-user mounts after user creation. These policies require successful persistence activation on durable storage or as a writable RAM-copied session with protected origin information, and an initrd supporting `perch-storage-v1`. RAM-copied sessions remain non-durable until saved; see [Performance](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch).
 
 Network boot in the initramfs (`ip=`, PXE, `from=http://…`) is a separate LiveKit layer and is **not** managed by live-config. See [Network boot](/reference/boot-process/Network-Boot).
 
@@ -69,7 +69,7 @@ Some individual components can change their behaviour upon a boot parameter.
 
 ### MiniOS early storage options
 
-These options are read by `minios-boot` before ordinary services start. They require a healthy durable `perch` session and do not activate one by themselves.
+These options are read by `minios-boot` before ordinary services start. They require successful persistence activation on durable storage or a writable RAM session with protected `ram-origin` information. They do not activate persistence themselves and cannot make RAM changes durable without saving.
 
 - **live-config.log-storage=persistent|volatile | log-storage=persistent|volatile**: `volatile` places the systemd journal and ordinary `/var/log` files in bounded RAM; boot diagnostics stay on durable storage. Default: `persistent`.
 - **live-config.apt-cache=persistent|volatile | apt-cache=persistent|volatile**: `volatile` places downloaded APT archives in a bounded tmpfs when RAM and swap conditions allow it. Package databases and repository lists stay persistent. Default: `persistent`.
@@ -170,7 +170,7 @@ User-media setup never merges two non-empty directories automatically. A local n
 
 - **LIVE_LOG_STORAGE=persistent|volatile**, **LIVE_APT_CACHE=persistent|volatile**, and **LIVE_BROWSER_CACHE=persistent|volatile**: Independent MiniOS boot-time policies. They also work in `config.conf.d` and `LIVE_CONFIG_CMDLINE`. They do not enable persistence by themselves. See [Configuration file](/reference/configuration/config.conf#cache-and-log-policy-for-a-persistent-session).
 
-The `browser-cache` component reads the durable `minios-boot` policy after the live user exists and bind-mounts standard native-browser cache directories into a shared bounded RAM filesystem. A separately created Firefox policy disables its disk cache without moving browser profiles. If this component is excluded by `components=` or `nocomponents=`, the early browser-cache request alone does not set up the per-user mounts.
+The `browser-cache` component reads the validated `minios-boot` policy after the live user exists and bind-mounts standard native-browser cache directories into a shared bounded RAM filesystem, subject to memory/swap checks. A separately created Firefox policy disables its disk cache without moving browser profiles. If this component is excluded by `components=` or `nocomponents=`, the early browser-cache request alone does not set up the per-user mounts.
 
 Merged-mode helpers retain normal errors, but create detailed command traces and debug copies only when `LIVE_CONFIG_DEBUG=true`.
 
@@ -240,6 +240,7 @@ The configuration files for the live system itself are best put into an own debi
 - **hyperv**: configures X11 settings to improve compatibility on Microsoft Hyper-V platforms.
 - **ntfs3**: manages udev rules for NTFS3 support.
 - **config-module-mode**: configures system module mode and updates caches, user settings, and dpkg.
+- **browser-cache**: applies the validated browser-cache policy after user creation, subject to available memory, swap, safe cache paths, and existing Firefox policy files.
 - **hooks**: allows one to run arbitrary commands from a file placed on the live media or an http/ftp server.
 
 # FILES

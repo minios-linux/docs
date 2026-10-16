@@ -1,7 +1,7 @@
 ---
-updated: 2026-10-06
+updated: 2026-10-15
 program_commits:
-    minios-store: eec5785dd7eb547961c2799f1907496a33be2e8c
+    minios-store: c3d0d31db7966cd7809f0f4ba1ca642133c8f07a
 ---
 
 # Instalación de software
@@ -42,16 +42,16 @@ Solo puede ejecutarse un lote de instalación del demonio a la vez. Cerrar el di
 
 ### Modo módulo
 
-El modo módulo ejecuta `apt2sb` o `script2sb` en un entorno aislado para construcción de módulos. Escribe los archivos resultantes de `.sb` en la primera ubicación con permisos de escritura de la siguiente lista:
+El modo módulo ejecuta `apt2sb` o `script2sb` en un entorno aislado para la construcción de módulos. Escribe los archivos resultantes de `.sb` en la primera ubicación con permisos de escritura de la siguiente lista:
 
 1. `/run/initramfs/memory/data/minios/modules`
 2. `/var/lib/minios-store/modules`
 
-La primera ruta es el directorio de módulos en el almacenamiento de arranque actual de MiniOS. Un módulo creado allí no se activa en la sesión actual mediante la Tienda de aplicaciones de MiniOS. Deja el módulo en ese directorio y reinicia para cargarlo en el próximo arranque. El resultado solo estará disponible si el almacenamiento de arranque es escribible y conserva el archivo.
+La primera ruta corresponde al directorio de módulos del árbol de datos efectivo MiniOS. En un arranque normal con permisos de escritura, se encuentra en el almacenamiento, pero después de la copia del sistema `toram` puede estar respaldado por RAM; Store verifica la posibilidad de escritura, no la durabilidad. Un módulo creado no se activa en la sesión actual. Solo se carga en un arranque posterior si se copia a un almacenamiento `minios/modules/` duradero y es permitido por los filtros de arranque. Utiliza la opción **Agregar al próximo arranque** o `sudo sb next-boot add /path/to/module.sb` cuando haya almacenamiento duradero disponible.
 
-La segunda ruta es una alternativa utilizada cuando el directorio de módulos normal no es escribible. Un módulo en el directorio alternativo no forma parte automáticamente del siguiente arranque en vivo. Usa `Open folder`, luego copia el módulo terminado al directorio `minios/modules` en el medio de arranque escribible de MiniOS antes de reiniciar.
+La segunda ruta es una alternativa utilizada cuando el directorio normal de módulos no permite escritura. Un módulo en el directorio alternativo no se incluye automáticamente en el próximo arranque en vivo. Usa `Open folder`, luego copia el módulo finalizado al directorio `minios/modules` en un medio de arranque MiniOS con permisos de escritura antes de reiniciar.
 
-Un módulo combinado contiene todas las recetas seleccionadas. Si se empaquetan por separado, un fallo puede afectar a una receta mientras los módulos completados previamente permanecen en el directorio de destino.
+Un módulo combinado contiene todas las recetas seleccionadas. Si se empaquetan por separado, un fallo puede afectar solo a una receta, mientras que los módulos completados previamente en el lote permanecen en el directorio de destino.
 
 ### Modo sistema
 

@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-31
+updated: 2026-10-15
 ---
 # Quick start
 
@@ -69,7 +69,7 @@ For normal portable use, keep using the default **Start MiniOS** entry. Choose a
 | **Start a new session** | You want a separate additional workspace | Creates an additional numbered persistent session and keeps existing sessions unchanged |
 | **Choose a saved session** | You want to select one of several existing workspaces | Lets you choose an existing session interactively |
 | **Start without saving** | You want a clean temporary boot without persistence | Uses a temporary writable layer in RAM |
-| **Run from RAM** | You want to copy MiniOS into RAM for this boot | Runs from a RAM copy; treat changes as temporary |
+| **Run from RAM** | You want to copy MiniOS into RAM for this boot | The supplied entry starts temporarily without a saved session. With an added persistence request, supported sessions can be copied separately and explicitly saved back; native data is not copied |
 
 Automatic persistence still requires suitable writable storage. A raw ISO write does not by itself prepare persistent storage. File-based installations, Ventoy layouts, and Live installations made by [MiniOS Installer](/installing-minios/MiniOS-Installer) can provide writable layouts for persistent MiniOS use. Existing sessions can be inspected and managed with [Session management](/using-minios/Sessions-and-Persistence).
 

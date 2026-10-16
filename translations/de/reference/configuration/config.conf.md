@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-26
+updated: 2026-10-15
 ---
 
 # config.conf
@@ -113,13 +113,13 @@ Mit dieser Funktion wird kein WLAN konfiguriert. Nach dem Booten werden kabelgeb
 
 ## MiniOS Early-Userspace-Einstellungen
 
-`DEFAULT_TARGET`, `ENABLE_SERVICES`, `DISABLE_SERVICES`, `EXPORT_LOGS`, und die drei `LIVE_*` Speicher-Richtlinien oben sind MiniOS Boot-Einstellungen und keine late live-config-Komponentenvariablen. MiniOS wendet sie an, bevor das normale Init-System übernimmt; `minios-boot` verwaltet die drei Speicher-Richtlinien. Sie sind alle **Rekonfigurierbar: Ja**.
+`DEFAULT_TARGET`, `ENABLE_SERVICES`, `DISABLE_SERVICES`, `EXPORT_LOGS`, und die drei `LIVE_*` Speicher-Richtlinien oben sind MiniOS Boot-Einstellungen und keine späten live-config-Komponentenvariablen. MiniOS wendet sie an, bevor das normale Init-System übernimmt; `minios-boot` besitzt die drei Speicher-Richtlinien. Sie sind alle **Rekonfigurierbar: Ja**.
 
-Die entsprechenden Boot-Parameter `default-target=`, `enable-services=`, und `disable-services=` haben für den aktuellen Bootvorgang Vorrang. Der `text` Parameter erzwingt `multi-user.target`.
+Die entsprechenden Boot-Parameter `default-target=`, `enable-services=`, und `disable-services=` haben für den aktuellen Boot-Vorgang Vorrang. Der `text` Parameter erzwingt `multi-user.target`.
 
-Aktuelle Toolbox- und Ultra-Builds fügen `ssh` zu `ENABLE_SERVICES`. Um SSH explizit zu deaktivieren, tragen Sie es in `DISABLE_SERVICES` ein; das bloße Entfernen aus `ENABLE_SERVICES` bewirkt keine Deaktivierung.
+Aktuelle Toolbox- und Ultra-Builds fügen `ssh` zu `ENABLE_SERVICES`. Um SSH explizit zu deaktivieren, tragen Sie es in `DISABLE_SERVICES` ein; das bloße Entfernen aus `ENABLE_SERVICES` fordert keine Deaktivierung an.
 
-Mit `EXPORT_LOGS="true"`, erhält beschreibbares MiniOS Medium die Startprotokolle unten:
+Mit `EXPORT_LOGS="true"`, erhält beschreibbares MiniOS-Medium die folgenden Startprotokolle:
 
 ```text
 minios/log/YYYYMMDD_HHMMSS/
@@ -127,11 +127,13 @@ minios/log/YYYYMMDD_HHMMSS/
 └── live/
 ```
 
-Die entsprechenden Laufzeitprotokolle sind `/var/log/minios/minios-boot.log` und `/var/log/live/config.log`.
+Die zugehörigen Laufzeitprotokolle sind `/var/log/minios/minios-boot.log` und `/var/log/live/config.log`.
+
+<a id="cache-and-log-policy-for-a-persistent-session"></a>
 
 ## Cache- und Protokollrichtlinie für eine persistente Sitzung
 
-Um Schreibzugriffe während einer `perch` Sitzung zu reduzieren, fügen Sie die Einstellungen unabhängig hinzu:
+Um Schreibvorgänge während einer `perch` Sitzung zu reduzieren, fügen Sie die Einstellungen jeweils separat hinzu:
 
 ```bash
 LIVE_LOG_STORAGE="volatile"
@@ -139,9 +141,9 @@ LIVE_APT_CACHE="volatile"
 LIVE_BROWSER_CACHE="volatile"
 ```
 
-Sie akzeptieren auch `persistent`, die Voreinstellung. `minios-boot` akzeptiert die gleichen Einstellungen von `/etc/live/config.conf.d/*.conf`, `LIVE_CONFIG_CMDLINE` (`log-storage=volatile`, `apt-cache=volatile`, `browser-cache=volatile`), oder Kernel-Parameter. Spätere Fragmente ersetzen frühere, der Parameter-Blob hat Vorrang vor Dateischlüsseln, und tatsächliche Kernel-Parameter haben letztendlich Priorität. Die drei Optionen sind unabhängig und fordern für sich genommen keine Persistenz an. Ein kompatibles initrd kündigt `perch-storage-v1` bei `/run/initramfs/etc/minios-initramfs-storage` an; MiniOS-Konfigurator warnt, wenn das aktuelle initrd dies nicht meldet.
+Sie akzeptieren außerdem `persistent`, die Voreinstellung. `minios-boot` akzeptiert die gleichen Einstellungen wie `/etc/live/config.conf.d/*.conf`, `LIVE_CONFIG_CMDLINE` (`log-storage=volatile`, `apt-cache=volatile`, `browser-cache=volatile`), oder Kernel-Parameter. Spätere Fragmente überschreiben frühere, der Parameter-Blob hat Vorrang vor Dateischlüsseln, und tatsächliche Kernel-Parameter haben letztlich Priorität. Die drei Optionen sind unabhängig und fordern selbst keine Persistenz an. Ein kompatibles initrd gibt `perch-storage-v1` an unter `/run/initramfs/etc/minios-initramfs-storage`; der MiniOS-Konfigurator warnt, wenn das aktuelle initrd dies nicht angibt.
 
-Die Richtlinien gelten bei einem späteren Start nur, wenn die Persistenz tatsächlich auf einem dauerhaften, beschreibbaren Speicher aktiviert wurde. Mit `toram`, fehlgeschlagener Persistenz oder **Ohne Speichern starten**, wird die angeforderte volatile Richtlinie nicht als Nachweis dafür behandelt, dass etwas gespeichert wird. Die Browser-Cache-Komponente läuft später als `minios-boot`, nachdem der Live-Benutzer erstellt wurde. Siehe [Leistung](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch) für die genauen RAM-Grenzwerte, unterstützte Browser-Pfade, Fallback-Bedingungen und Protokolle, die auf dem Medium verbleiben.
+Die Richtlinien erfordern eine erfolgreiche Aktivierung der Persistenz, entweder auf dauerhaft beschreibbarem Speicher oder als beschreibbare RAM-Sitzung mit geschützten `ram-origin` Informationen. Das System `toram` allein bestimmt nicht die Beständigkeit der Sitzung: `perchtoram=off` kann eine auf dem Speicher befindliche Sitzung beibehalten, während eine kopierte Sitzung weiterhin gespeichert werden muss. Fehlgeschlagene Persistenz und **Ohne Speichern starten** erfüllen die Anforderungen nicht. Boot-Diagnosen werden getrennt von den normalen flüchtigen Protokollen gespeichert, verbleiben jedoch in einer RAM-kopierten Sitzung speicherbasiert, bis sie gespeichert werden. Die browser-cache-Komponente wird ausgeführt, nachdem der Live-Benutzer erstellt wurde. Siehe [Leistung](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch) für RAM-Grenzwerte, unterstützte Pfade und Zulassungsbedingungen.
 
 ## Quelle, Laufzeitkopie und Priorität
 

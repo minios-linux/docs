@@ -1,7 +1,7 @@
 ---
-updated: 2026-08-31
+updated: 2026-10-15
 program_commits:
-    minios-live: f59faa38c0667fbeefdc6dbe899a2db6e131e462
+    minios-live: a70af61230d2891ed9ca2447019bd7210a670694
 ---
 
 # CondinAPT
@@ -249,7 +249,7 @@ Die Implementierung kennt einen speziellen Paketnamen: `qemu-kvm`. Dieser wird a
 
 ### Modulaufruf
 
-Für ein gewöhnliches Modul kopiert `build-modules` das Installationsskript nach `/install`, CondinAPT nach `/condinapt`, die generierte Konfiguration nach `/minios_build.conf` und das Mapping nach `/condinapt.map`. Ein konventionelles Installationsskript sieht so aus:
+Für ein gewöhnliches Modul `build-modules` wird das Installationsskript nach `/install`, CondinAPT nach `/condinapt`, die generierte Konfiguration nach `/minios_build.conf`, und die Map nach `/condinapt.map`. Ein typisches Installationsskript ist:
 
 ```bash
 #!/bin/bash
@@ -258,6 +258,7 @@ set -o pipefail
 set -u
 
 . /minioslib || exit 1
+console_colors
 . /minios_build.conf || exit 1
 
 SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
@@ -267,10 +268,10 @@ SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
   -m "${SCRIPT_DIR}/condinapt.map"
 ```
 
-Verwenden Sie `SCRIPT_DIR`; `$CWD` ist nicht Teil des gewöhnlichen Modulvertrags.
-`00-core` ist eine spezielle frühere Build-Stufe und ruft stattdessen die Quellbaum-Kopie unter `/linux-live` auf.
+Verwenden Sie `SCRIPT_DIR`; `$CWD` gehört nicht zum Standard-Modulvertrag.
+`00-core` ist eine spezielle, frühere Build-Phase und ruft die Kopie aus dem Quellverzeichnis unter `/linux-live` stattdessen auf.
 
-Der aktuelle Builder für gewöhnliche Module kopiert automatisch nur eine Datei namens `packages.list`. Module, die zusätzliche Listendateinamen verwenden, müssen diese Eingaben explizit bereitstellen; gehen Sie nicht davon aus, dass jede Datei neben `install` im Chroot-Root liegt.
+Der aktuelle Standard-Modul-Builder kopiert automatisch nur eine Datei mit dem Namen `packages.list`. Module, die zusätzliche Listendateinamen verwenden, müssen diese Eingaben explizit bereitstellen; gehen Sie nicht davon aus, dass jede Datei neben `install` im chroot-Root-Verzeichnis erscheint.
 
 ### MiniOS-Filter-Mapping
 

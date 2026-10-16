@@ -18,20 +18,20 @@ hero:
   <h2>Cosa vuoi fare?</h2>
   <div class="home-path-grid">
     <a class="home-path-card" href="installing-minios/Installation-Methods">
-      <span class="home-path-title">Installa MiniOS</span>
-      <span class="home-path-details">Scegli un metodo di installazione e prepara una chiavetta USB o un altro supporto di destinazione.</span>
+      <span class="home-path-title">Installare MiniOS</span>
+      <span class="home-path-details">Scegli un metodo di installazione e prepara un&#39;unità USB o un altro supporto.</span>
     </a>
     <a class="home-path-card" href="using-minios/MiniOS-Applications">
-      <span class="home-path-title">Esplora le applicazioni di MiniOS</span>
-      <span class="home-path-details">Scopri gli strumenti MiniOS inclusi nel sistema e a cosa servono.</span>
+      <span class="home-path-title">Esplorare le applicazioni MiniOS</span>
+      <span class="home-path-details">Scopri gli strumenti MiniOS inclusi nel sistema e a cosa serve ciascuno.</span>
     </a>
     <a class="home-path-card" href="using-minios/Sessions-and-Persistence">
-      <span class="home-path-title">Gestisci le sessioni</span>
+      <span class="home-path-title">Gestire le sessioni</span>
       <span class="home-path-details">Scegli come MiniOS salva le modifiche e come lavorare con le sessioni salvate.</span>
     </a>
     <a class="home-path-card" href="preparing-and-customizing/Managing-Modules">
-      <span class="home-path-title">Gestisci i moduli</span>
-      <span class="home-path-details">Aggiungi software e modifiche come moduli senza ricostruire il sistema base.</span>
+      <span class="home-path-title">Gestire i moduli</span>
+      <span class="home-path-details">Aggiungi software e modifiche come moduli, senza ricreare il sistema di base.</span>
     </a>
   </div>
 </section>

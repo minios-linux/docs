@@ -1,16 +1,16 @@
 ---
-updated: 2026-08-31
+updated: 2026-10-15
 program_commits:
-    minios-live: f59faa38c0667fbeefdc6dbe899a2db6e131e462
+    minios-live: a70af61230d2891ed9ca2447019bd7210a670694
 ---
 
 # CondinAPT
 
-CondinAPT memilih dan memasang paket APT dari daftar yang entri-entrinya dapat bergantung pada variabel konfigurasi Bash. MiniOS menggunakannya untuk pemeriksaan prasyarat host, set paket inti, dan modul SquashFS biasa.
+CondinAPT memilih dan menginstal paket APT dari daftar yang entrinya dapat bergantung pada variabel konfigurasi Bash. MiniOS menggunakannya untuk memeriksa prasyarat host, kumpulan paket inti, dan modul SquashFS biasa.
 
-Halaman ini mendokumentasikan implementasi di `linux-live/condinapt`. CondinAPT bukanlah pemecah dependensi umum: ia mengevaluasi filter dan ketersediaan repositori terlebih dahulu, membangun antrean APT, lalu memasang setiap antrean terpilih dalam satu pemanggilan `apt-get`.
+Halaman ini mendokumentasikan implementasi di `linux-live/condinapt`. CondinAPT bukan solver dependensi umum: fitur ini mengevaluasi filter dan ketersediaan repositori terlebih dahulu, menyusun antrean APT, lalu menginstal setiap antrean yang dipilih dalam satu `apt-get` panggilan.
 
-## Sinopsis
+## Ringkasan
 
 ```bash
 sudo bash linux-live/condinapt \
@@ -19,31 +19,31 @@ sudo bash linux-live/condinapt \
   -m filters.map
 ```
 
-Daftar paket dan konfigurasi harus berupa file reguler yang dapat dibaca. File mapping dan prioritas bersifat opsional.
+Daftar paket dan konfigurasi harus berupa file reguler yang dapat dibaca. File pemetaan dan prioritas bersifat opsional.
 
-| Opsi | Makna |
+| Opsi | Arti |
 | --- | --- |
 | `-l`, `--package-list PATH` | File daftar paket |
 | `-c`, `--config PATH` | Konfigurasi Bash tepercaya |
-| `-m`, `--filter-mapping PATH` | Mapping prefix ke variabel |
-| `-P`, `--priority-list PATH` | Ekspresi reguler Bash untuk ekstraksi prioritas |
-| `-s`, `--simulation` | Memilih dan menampilkan paket tanpa memasangnya |
-| `-C`, `--check-only` | Memeriksa nama paket terpasang tanpa instalasi |
+| `-m`, `--filter-mapping PATH` | Pemetaan prefiks ke variabel |
+| `-P`, `--priority-list PATH` | Ekspresi reguler Bash untuk mengambil prioritas |
+| `-s`, `--simulation` | Pilih dan tampilkan paket tanpa menginstalnya |
+| `-C`, `--check-only` | Periksa nama paket yang terinstal tanpa melakukan instalasi |
 | `-v`, `--verbose` | Diagnostik filter dan antrean |
-| `-vv`, `--very-verbose` | Diagnostik tambahan antrean prioritas |
+| `-vv`, `--very-verbose` | Diagnostik antrean prioritas tambahan |
 | `-x`, `--xtrace` | Aktifkan pelacakan shell |
-| `-f`, `--force` | Jalankan `apt-get update` bahkan jika `pkgcache.bin` ada |
+| `-f`, `--force` | Jalankan `apt-get update` meskipun `pkgcache.bin` ada |
 | `-h`, `--help` | Tampilkan bantuan |
 
-CondinAPT menjalankan `apt-get update` saat tidak dalam mode check-only dan baik `-f` digunakan atau `/var/cache/apt/pkgcache.bin` tidak ada. Ini termasuk simulasi, jadi `-s` bukanlah dry run tanpa efek samping.
+CondinAPT menjalankan `apt-get update` saat tidak dalam mode hanya-periksa dan jika `-f` digunakan atau `/var/cache/apt/pkgcache.bin` tidak ada. Ini juga berlaku untuk simulasi, jadi `-s` bukan uji coba tanpa efek samping.
 
-Instalasi normal memerlukan akses root. Check-only dapat dijalankan tanpa hak istimewa; simulasi juga membutuhkan root jika memicu pembaruan APT. Implementasi saat ini tidak selalu meneruskan kegagalan `apt-get update` dengan andal, jadi anggaplah kesalahan update sebagai kegagalan meskipun CondinAPT nantinya mengembalikan `0`.
+Instalasi normal memerlukan akses root. Mode hanya-periksa dapat dijalankan tanpa hak istimewa; simulasi juga memerlukan akses root jika memicu pembaruan APT. Implementasi saat ini tidak meneruskan kegagalan `apt-get update` dengan andal, jadi anggap kesalahan pembaruan sebagai kegagalan proses meskipun CondinAPT kemudian mengembalikan `0`.
 
-## Berkas input
+## File input
 
 ### Konfigurasi
 
-File `-c` akan di-source dengan Bash. Ini adalah kode yang dapat dieksekusi, bukan format data pasif, jadi gunakan hanya file yang tepercaya.
+File `-c` dimuat menggunakan Bash. File ini adalah kode yang dapat dieksekusi, bukan format data pasif, jadi gunakan hanya file tepercaya.
 
 ```bash
 DISTRIBUTION="bookworm"
@@ -51,14 +51,14 @@ SYSTEM_TYPE="server"
 FEATURES=(web database monitoring)
 ```
 
-Array terindeks menyediakan filter keanggotaan. Sebuah variabel skalar yang berisi koma tetap dianggap satu string persis: `FEATURES="web,database"` tidak cocok dengan `+feat=web`.
+Array terindeks menyediakan filter keanggotaan. Skalar yang berisi koma tetap dianggap sebagai satu string persis: `FEATURES="web,database"` tidak cocok dengan `+feat=web`.
 
-Implementasi saat ini mem-parsing opsi CLI sebelum melakukan sourcing file ini.
-Variabel konfigurasi yang menggunakan kembali nama internal CondinAPT, seperti `VERBOSITY_LEVEL`, dapat menimpa status CLI. Hindari penggunaan nama tersebut dalam konfigurasi generik.
+Implementasi saat ini mengurai opsi CLI sebelum memuat file ini.
+Variabel konfigurasi yang menggunakan kembali nama internal CondinAPT, seperti `VERBOSITY_LEVEL`, dapat menimpa status CLI. Hindari nama seperti itu dalam konfigurasi umum.
 
 ### Pemetaan filter
 
-File `-m` opsional memetakan prefix pendek ke nama variabel Bash:
+Opsional `-m` memetakan prefiks singkat ke nama variabel Bash:
 
 ```text
 d=DISTRIBUTION
@@ -66,14 +66,14 @@ st=SYSTEM_TYPE
 feat=FEATURES
 ```
 
-Formatnya persis `prefix=VariableName`; spasi di sekitar tidak akan dipangkas. Baris kosong dan baris yang field pertamanya dimulai dengan `#` akan diabaikan.
-Prefix duplikat menggunakan nilai terakhir.
+Formatnya harus persis `prefix=VariableName`; spasi di awal atau akhir tidak akan dihapus. Baris kosong dan baris yang kolom pertamanya diawali dengan `#` akan diabaikan.
+Jika ada prefiks duplikat, nilai terakhir yang digunakan.
 
-Tanpa entri mapping, prefix itu sendiri dianggap sebagai nama variabel. Skalar yang tidak di-set akan dianggap sebagai string kosong. Salah ketik pada filter negatif dapat secara diam-diam menyertakan paket, jadi lebih baik gunakan mapping dan aktifkan simulasi verbose saat menambah filter.
+Jika tidak ada entri pemetaan, prefiks itu sendiri dianggap sebagai nama variabel. Skalar yang tidak disetel akan dianggap sebagai string kosong. Filter negatif yang salah ketik dapat membuat paket tetap disertakan tanpa diketahui, jadi sebaiknya gunakan pemetaan dan simulasi verbose saat menambahkan filter.
 
 ### Daftar paket
 
-Tata bahasa baris yang aman adalah:
+Sintaks baris yang aman:
 
 ```text
 [!] package[=version|==version] filters... [&& ...] [|| ...] [@release] [# comment]
@@ -93,36 +93,36 @@ package==strict-version
 systemd-timesyncd +d=buster @buster-backports
 ```
 
-Semua yang dimulai dari `#` pertama hingga akhir baris akan dihapus. Spasi yang tersisa akan dinormalisasi. Tidak didukung pengutipan, escape, tanda kurung, grup bertingkat, dan spasi di dalam satu token filter. Token tidak dikenal di akhir baris tidak akan ditolak, jadi perlakukan tata bahasa di atas sebagai batasan, bukan mengandalkan parsing yang permisif.
+Semua teks mulai dari `#` pertama hingga akhir baris akan dihapus. Spasi yang tersisa akan dinormalisasi. Tanda kutip, escape, tanda kurung, grup bertingkat, dan spasi di dalam satu token filter tidak didukung. Token tambahan yang tidak dikenal di akhir baris tidak akan ditolak, jadi anggap sintaks di atas sebagai batasan, bukan mengandalkan parsing yang permisif.
 
-Gunakan satu target rilis per baris fisik dan letakkan di akhir. CondinAPT mengekstrak target sebelum mengevaluasi alternatif paket, jadi nilai `@release` yang berbeda tidak dapat diberikan ke alternatif di baris yang sama.
+Gunakan satu target rilis pada tiap baris fisik dan letakkan di akhir. CondinAPT mengekstrak target sebelum mengevaluasi alternatif paket, sehingga nilai `@release` yang berbeda tidak dapat ditetapkan ke alternatif pada baris yang sama.
 
 ## Filter
 
-Filter membandingkan nilai konfigurasi menggunakan persamaan string yang persis dan peka huruf besar-kecil. Jika variabel yang dipetakan adalah array terindeks, kecocokan dengan salah satu elemen array dianggap lolos. Array asosiatif bukanlah set keanggotaan.
+Filter membandingkan nilai konfigurasi menggunakan kecocokan string yang persis dan peka huruf besar-kecil. Jika variabel yang dipetakan adalah array berindeks, filter lolos jika nilainya cocok dengan salah satu elemen array. Array asosiatif bukanlah set keanggotaan.
 
-| Bentuk | Efek |
+| Format | Efek |
 | --- | --- |
-| `+x=value` | Hanya sertakan jika `x` cocok |
+| `+x=value` | Sertakan hanya jika `x` cocok |
 | `-x=value` | Kecualikan jika `x` cocok |
-| `+{a|b}` | Setidaknya satu anggota harus cocok |
-| `+{a&b}` | Semua anggota harus cocok |
-| `-{a|b}` | Kecualikan jika ada anggota yang cocok |
+| `+{a|b}` | Require at least one member to match |
+| `+{a&b}` | Wajibkan semua anggota cocok |
+| `-{a|b}` | Exclude when any member matches |
 | `-{a&b}` | Kecualikan hanya jika semua anggota cocok |
 
-Filter positif sederhana yang diulang dengan prefix yang sama adalah alternatif:
+Filter positif sederhana yang diulang dengan prefiks sama merupakan alternatif:
 
 ```text
 audacity +pv=toolbox +pv=ultra
 ```
 
-Filter positif dengan prefix berbeda semuanya harus lolos. Setiap filter negatif sederhana adalah veto independen:
+Semua filter positif dengan prefiks berbeda harus lolos. Setiap filter negatif sederhana merupakan veto tersendiri:
 
 ```text
 driver +da=amd64 -d=bookworm -d=bullseye
 ```
 
-Anggota grup harus menggunakan satu jenis operator saja. Jangan mencampur `|` dan `&` dalam satu grup; tidak ada prioritas atau penempatan di dalam grup. Ekspresikan "kecualikan Flux, atau minimum Xfce" sebagai dua filter:
+Anggota grup hanya boleh menggunakan satu jenis operator. Jangan gabungkan `|` dan `&` dalam satu grup; tidak ada prioritas operator atau pengelompokan bertingkat di dalam grup. Untuk menyatakan "kecualikan Flux, atau minimum Xfce", gunakan dua filter:
 
 ```text
 htop -de=flux -{pv=minimum&de=xfce}
@@ -130,7 +130,7 @@ htop -de=flux -{pv=minimum&de=xfce}
 
 ## Alternatif dan konjungsi
 
-`&&` memiliki prioritas lebih tinggi daripada `||`. CondinAPT membagi alternatif terlebih dahulu lalu mengevaluasi setiap anggota konjungsi, sehingga:
+`&&` memiliki prioritas lebih tinggi daripada `||`. CondinAPT memisahkan alternatif terlebih dahulu, lalu mengevaluasi setiap anggota konjungsi, sehingga:
 
 ```text
 A || B && C
@@ -138,11 +138,11 @@ A || B && C
 
 berarti `A || (B && C)`.
 
-CondinAPT memilih alternatif pertama yang semua filter dan pemeriksaan ketersediaan paketnya lolos. Jika satu anggota konjungsi gagal, paket yang sudah dipilih dari konjungsi itu akan dibatalkan dan alternatif berikutnya dievaluasi.
+CondinAPT memilih alternatif pertama yang semua filternya lolos dan semua paketnya tersedia. Jika salah satu anggota konjungsi gagal, paket yang sudah dipilih dari konjungsi tersebut akan dibatalkan, lalu alternatif berikutnya dievaluasi.
 
-Ini adalah seleksi preflight, bukan percobaan instalasi ulang atau transaksi. Jika kemudian antrean `apt-get install` gagal untuk alternatif yang dipilih, CondinAPT tidak kembali ke cabang `||` berikutnya.
+Ini adalah pemilihan sebelum proses, bukan percobaan ulang instalasi atau transaksi. Jika `apt-get install` pada tingkat antrean yang berjalan kemudian gagal untuk alternatif terpilih, CondinAPT tidak akan beralih ke cabang `||` berikutnya.
 
-Setiap alternatif harus mengulang filternya sendiri:
+Setiap alternatif harus mencantumkan ulang filternya sendiri:
 
 ```text
 firefox-esr +dp=debian || firefox +dp=ubuntu
@@ -156,26 +156,26 @@ firefox-esr +dp=debian || firefox +dp=ubuntu
 !preferred-package || fallback-package
 ```
 
-Ekspresi ini bersifat fatal pada mode normal hanya jika tidak ada alternatif yang berhasil dan paket aktif atau versi ketat tidak tersedia. Filter dapat menonaktifkan baris wajib tanpa kegagalan. Kegagalan instalasi APT normal akan membatalkan antrean terlepas dari `!`.
+Dalam mode normal, ekspresi akan menyebabkan kegagalan hanya jika tidak ada alternatif yang berhasil dan paket aktif atau versi strict tidak tersedia. Filter dapat menonaktifkan baris wajib tanpa menyebabkan kegagalan. Kegagalan instalasi APT normal akan menghentikan antreannya, terlepas dari `!`.
 
-Pada simulasi, kesalahan ketersediaan wajib akan dilaporkan tetapi tidak menghentikan pemrosesan antrean; simulasi tetap berakhir dengan status nonzero yang telah didokumentasikan.
+Dalam simulasi, error ketersediaan paket wajib dilaporkan, tetapi tidak menghentikan pemrosesan antrean; simulasi tetap berakhir dengan status nonzero sebagaimana didokumentasikan.
 
 ## Versi
 
 | Sintaks | Perilaku |
 | --- | --- |
-| `package=VERSION` | Lebih mengutamakan versi persis; fallback ke kandidat tanpa versi |
-| `package==VERSION` | Hanya menerima versi repositori yang persis |
+| `package=VERSION` | Utamakan versi yang persis sama; jika tidak tersedia, gunakan kandidat tanpa versi |
+| `package==VERSION` | Hanya terima versi repositori yang persis sama |
 
-Ketersediaan persis dicocokkan dengan field versi lengkap dari `apt-cache madison`. Jika versi ketat yang tidak wajib tidak tersedia, kondisi itu gagal; alternatif `||` berikutnya masih bisa lolos, jika tidak baris tersebut dilewati. Awali ekspresi dengan `!` untuk membuat kegagalan ketersediaan aktif menjadi fatal.
+Ketersediaan versi yang persis sama dicocokkan dengan seluruh kolom versi dari `apt-cache madison`. Jika versi strict nonwajib tidak tersedia, kondisi tersebut gagal; alternatif `||` berikutnya masih dapat berhasil, jika tidak, baris akan dilewati. Awali ekspresi dengan `!` agar kegagalan ketersediaan aktif menyebabkan kegagalan.
 
-Saat CondinAPT memasang versi yang diminta secara persis, ia menjadwalkan `apt-mark hold` setelah seluruh antrean APT berhasil. Versi yang sudah terpasang dan sesuai dianggap sudah terpenuhi dan tidak akan di-hold ulang. Kegagalan hold tidak diteruskan sebagai status keluar CondinAPT.
+Jika CondinAPT menginstal versi yang diminta secara persis, sistem akan menjadwalkan `apt-mark hold` setelah seluruh antrean APT berhasil diproses. Versi persis yang sudah terinstal dianggap terpenuhi dan tidak akan ditahan lagi. Kegagalan penahanan tidak diteruskan sebagai status keluar CondinAPT.
 
-Untuk paket terpasang tanpa versi, CondinAPT membandingkan versi terpasang dengan kandidat dari repositori. Jika kandidat berbeda, akan diantrekan ulang; APT dipanggil dengan `--allow-downgrades`.
+Untuk paket tanpa versi yang sudah terinstal, CondinAPT membandingkan versi terinstal dengan kandidat repositori. Jika berbeda, kandidat akan dimasukkan kembali ke antrean; APT dipanggil dengan `--allow-downgrades`.
 
 ## Antrean
 
-`---` mengakhiri antrean normal saat ini. Setiap paket terpilih dalam antrean akan diteruskan ke satu pemanggilan `apt-get install` noninteraktif dengan `--force-confdef`, `--force-confold`, `--allow-downgrades`, dan `--no-install-suggests`.
+`---` mengakhiri antrean normal saat ini. Semua paket terpilih dalam satu antrean diteruskan dalam satu pemanggilan `apt-get install` noninteraktif dengan `--force-confdef`, `--force-confold`, `--allow-downgrades`, dan `--no-install-suggests`.
 
 ```text
 build-essential
@@ -184,30 +184,30 @@ pkg-config
 application
 ```
 
-Baris dengan target rilis dihapus dari alur antrean normal dan dikelompokkan secara global berdasarkan rilis. Baris untuk rilis yang sama akan digabungkan meskipun dipisahkan oleh `---`.
-Urutan eksekusi efektif adalah:
+Baris yang menargetkan rilis dikeluarkan dari alur antrean normal dan dikelompokkan secara global berdasarkan rilis. Baris untuk rilis yang sama digabungkan meskipun dipisahkan oleh `---`.
+Urutan eksekusi yang berlaku:
 
 1. Antrean prioritas non-target.
-2. Antrean prioritas target-release.
+2. Antrean target-rilis prioritas.
 3. Antrean normal sesuai urutan sumber.
-4. Sisa antrean target-release berdasarkan urutan rilis pertama kali ditemukan.
+4. Antrean target-rilis lainnya sesuai urutan pertama kali munculnya rilis.
 
-Akibatnya, baris target yang ditulis di antara dua baris normal tidak menjadi pemisah, dan antrean target dijalankan setelah semua antrean normal kecuali diekstraksi sebagai pekerjaan prioritas.
+Karena itu, baris target yang ditulis di antara dua baris normal tidak menjadi pemisah, dan antrean target dijalankan setelah semua antrean normal, kecuali jika diekstrak sebagai pekerjaan prioritas.
 
-Pemeriksaan ketersediaan repositori preflight tidak memperhatikan target; hanya `apt-get install` terakhir yang menerima `-t RELEASE`. Pastikan paket target sudah sesuai dengan repositori yang dikonfigurasi.
+Pemeriksaan awal ketersediaan repositori tidak memperhitungkan target; hanya `apt-get install` akhir yang menerima `-t RELEASE`. Pastikan paket target tersedia di repositori yang dikonfigurasi.
 
 ## Daftar prioritas
 
-`-P` membaca satu ekspresi reguler Bash per baris. Pola akan dicocokkan dengan nama paket pertama di setiap ekspresi daftar paket. Jika cocok, seluruh ekspresi, termasuk filter, alternatif, status wajib, dan target rilis, akan dipindahkan ke antrean prioritas.
+`-P` membaca satu ekspresi reguler extended Bash per baris. Pola dicocokkan dengan nama paket pertama dalam setiap ekspresi daftar paket. Jika cocok, seluruh ekspresi—termasuk filter, alternatif, status wajib, dan target rilis—dipindahkan ke antrean prioritas.
 
 ```text
 ^dkms$
 ^linux-.*
 ```
 
-Pola tidak di-anchor kecuali mengandung anchor. Mencocokkan paket `&&` atau `||` berikutnya tidak berpengaruh; hanya token paket pertama yang diperiksa. Ekstraksi prioritas juga menggabungkan kecocokan dari antrean normal terpisah, jadi jangan gunakan fitur ini untuk entri yang membutuhkan batas `---` asli untuk staging dependensi.
+Pola tidak ditambatkan ke awal atau akhir kecuali menyertakan anchor. Mencocokkan paket `&&` atau `||` berikutnya tidak berpengaruh; hanya token paket pertama yang diperiksa. Ekstraksi prioritas juga menggabungkan kecocokan dari antrean normal yang terpisah, jadi jangan gunakan untuk entri yang memerlukan batas `---` aslinya untuk pengaturan dependensi bertahap.
 
-Prioritas berarti evaluasi dan instalasi lebih awal, bukan jaminan instalasi. Filter dan pemeriksaan ketersediaan tetap berlaku.
+Prioritas berarti evaluasi dan instalasi dilakukan lebih awal, bukan jaminan bahwa paket akan diinstal. Filter dan pemeriksaan ketersediaan tetap berlaku.
 
 ## Mode operasi dan status keluar
 
@@ -218,32 +218,32 @@ bash linux-live/condinapt \
   -l packages.list -c system.conf -m filters.map -s -v
 ```
 
-Simulasi mengevaluasi filter, versi, alternatif, dan antrean, lalu mencetak paket yang akan diteruskan ke APT. Ini tidak menjamin bahwa instalasi nantinya akan berhasil. Simulasi yang valid sengaja keluar dengan status `1`, bahkan saat pemilihan paket berhasil.
+Simulasi mengevaluasi filter, versi, alternatif, dan antrean, lalu mencetak paket yang akan diteruskan ke APT. Simulasi tidak membuktikan bahwa proses instalasi nantinya akan berhasil. Simulasi yang valid sengaja keluar dengan status `1`, bahkan jika pemilihan paket berhasil.
 
-### Hanya-periksa
+### Pemeriksaan saja
 
 ```bash
 bash linux-live/condinapt \
   -l packages.list -c system.conf -m filters.map -C
 ```
 
-Hanya-periksa mengevaluasi filter dan operator tapi hanya memeriksa apakah nama paket sudah terpasang melalui `dpkg-query`. Ini tidak memvalidasi versi yang diminta, kandidat repositori, atau target rilis. Akan mengembalikan `0` jika setiap ekspresi aktif terpenuhi dan `1` jika tidak.
+Pemeriksaan saja mengevaluasi filter dan operator, tetapi hanya memeriksa apakah nama paket telah terinstal melalui `dpkg-query`. Pemeriksaan ini tidak memvalidasi versi yang diminta, kandidat dari repositori, atau target rilis. Pemeriksaan ini mengembalikan `0` jika semua ekspresi aktif terpenuhi dan `1` jika tidak.
 
-Perintah `sudo apt install ...` yang dicetak hanya diagnostik kasar. Ia menghilangkan versi dan target rilis, dapat mencakup beberapa alternatif gagal, dan tidak dijamin mereproduksi ekspresi asli.
+Perintah `sudo apt install ...` yang dicetak hanya berfungsi sebagai diagnostik kasar. Perintah ini menghilangkan informasi versi dan target rilis, dapat menyertakan beberapa alternatif yang gagal, dan tidak dijamin dapat mereproduksi ekspresi aslinya.
 
 ### Ringkasan status
 
 | Kasus | Status |
 | --- | --- |
 | Bantuan | `0` |
-| Berhasil dijalankan normal | `0` |
+| Proses normal berhasil | `0` |
 | Input tidak valid, kegagalan ketersediaan wajib, atau kegagalan antrean APT | `1` |
 | Simulasi valid | `1` |
-| Hanya-periksa dengan paket aktif yang hilang | `1` |
+| Pemeriksaan saja dengan paket aktif yang tidak ditemukan | `1` |
 
 ## Penanganan paket khusus
 
-Implementasi memiliki satu nama paket khusus: `qemu-kvm`. Nama ini diterima jika `apt-cache show qemu-kvm` melaporkannya sebagai paket virtual murni. Paket virtual lain tidak memiliki resolusi penyedia generik. Sebaiknya gunakan alternatif penyedia eksplisit jika portabilitas penting.
+Implementasi ini memiliki satu nama paket khusus: `qemu-kvm`. Paket ini diterima jika `apt-cache show qemu-kvm` melaporkannya sebagai paket virtual murni. Paket virtual lainnya tidak memiliki resolusi penyedia generik. Jika portabilitas penting, gunakan alternatif penyedia yang eksplisit.
 
 ## Integrasi MiniOS
 
@@ -258,6 +258,7 @@ set -o pipefail
 set -u
 
 . /minioslib || exit 1
+console_colors
 . /minios_build.conf || exit 1
 
 SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
@@ -268,35 +269,35 @@ SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
 ```
 
 Gunakan `SCRIPT_DIR`; `$CWD` bukan bagian dari kontrak modul biasa.
-`00-core` adalah tahap build khusus yang lebih awal dan memanggil salinan source-tree di bawah `/linux-live` sebagai gantinya.
+`00-core` adalah tahap build khusus yang lebih awal dan menjalankan penyalinan pohon sumber di bawah `/linux-live` sebagai gantinya.
 
-Builder modul biasa saat ini hanya otomatis menyalin file bernama `packages.list`. Modul yang menggunakan nama file daftar tambahan harus mengatur input tersebut secara eksplisit; jangan mengasumsikan setiap file di samping `install` akan muncul di root chroot.
+Builder modul biasa saat ini hanya menyalin secara otomatis file bernama `packages.list`. Modul yang menggunakan nama file daftar tambahan harus mengatur input tersebut secara eksplisit; jangan berasumsi bahwa setiap file di samping `install` akan muncul di direktori root chroot.
 
 ### Peta filter MiniOS
 
 `linux-live/condinapt.map` saat ini mendefinisikan:
 
-| Prefix | Variabel | Makna |
+| Prefiks | Variabel | Arti |
 | --- | --- | --- |
-| `d` | `DISTRIBUTION` | Target suite |
-| `da` | `DISTRIBUTION_ARCH` | Target arsitektur |
-| `dp` | `DISTRIBUTION_PROFILE` | Keluarga paket `debian` atau `ubuntu` |
-| `is` | `INIT_SYSTEM` | Sistem init terpilih |
+| `d` | `DISTRIBUTION` | Suite target |
+| `da` | `DISTRIBUTION_ARCH` | Arsitektur target |
+| `dp` | `DISTRIBUTION_PROFILE` | `debian` atau `ubuntu` keluarga paket |
+| `is` | `INIT_SYSTEM` | Sistem init yang dipilih |
 | `de` | `DESKTOP_ENVIRONMENT` | Lingkungan modul |
 | `pv` | `PACKAGE_VARIANT` | Varian paket |
-| `ik` | `INSTALL_KERNEL` | Toggle instalasi kernel |
-| `kf` | `KERNEL_FLAVOUR` | Flavour kernel |
+| `ik` | `INSTALL_KERNEL` | Sakelar instalasi kernel |
+| `kf` | `KERNEL_FLAVOUR` | Varian kernel |
 | `kp` | `KERNEL_PROVIDER` | `distribution` atau `minios` |
-| `ks` | `KERNEL_SERIES` | Seri kernel aktual selama seleksi DKMS `01-kernel` |
-| `kc` | `KERNEL_CAPABILITIES` | Array kapabilitas terdeteksi selama seleksi DKMS `01-kernel` |
-| `kbd` | `KERNEL_BUILD_DKMS` | Toggle build DKMS |
+| `ks` | `KERNEL_SERIES` | Seri kernel aktual saat `01-kernel` pemilihan DKMS |
+| `kc` | `KERNEL_CAPABILITIES` | Array kemampuan yang terdeteksi saat `01-kernel` pemilihan DKMS |
+| `kbd` | `KERNEL_BUILD_DKMS` | Sakelar build DKMS |
 | `ib` | `INITRAMFS_BUILDER` | Implementasi initramfs |
 | `lo` | `LOCALE` | Lokal sistem |
-| `ml` | `MULTILINGUAL` | Toggle multibahasa |
-| `kl` | `KEEP_LOCALES` | Toggle retensi lokal |
+| `ml` | `MULTILINGUAL` | Sakelar multibahasa |
+| `kl` | `KEEP_LOCALES` | Sakelar penyimpanan lokal |
 
-`ks` dan `kc` adalah filter `01-kernel` khusus. Ketika build DKMS diaktifkan, modul tersebut mendeteksi `KERNEL_SERIES` dari kernel yang terpasang dan membuat array `KERNEL_CAPABILITIES` terindeks dalam konfigurasi sementara yang digunakan untuk seleksi paket DKMS. Keduanya tidak ada di konfigurasi modul biasa; menggunakannya di sana membuat filter positif gagal dan filter negatif bisa lolos.
-`KERNEL_SERIES` bukan preferensi `MINIOS_KERNEL_SERIES`. Kapabilitas terdeteksi saat ini meliputi `aufs`, `ntfs3`, `btf_modules`, dan driver `rtw88_*` in-tree yang didukung.
+`ks` dan `kc` adalah filter `01-kernel` khusus. Jika build DKMS diaktifkan, modul tersebut mendeteksi `KERNEL_SERIES` dari kernel yang terinstal dan membuat array `KERNEL_CAPABILITIES` berindeks dalam konfigurasi sementara yang digunakan untuk pemilihan paket DKMS-nya. Keduanya tidak ada dalam konfigurasi modul biasa; menggunakannya di sana akan membuat filter positif gagal dan dapat menyebabkan filter negatif lolos.
+`KERNEL_SERIES` bukan preferensi `MINIOS_KERNEL_SERIES`. Kemampuan yang terdeteksi saat ini mencakup `aufs`, `ntfs3`, `btf_modules`, serta driver `rtw88_*` bawaan yang didukung.
 
 Contoh dari daftar paket kernel saat ini:
 
@@ -309,7 +310,7 @@ zfs-dkms +pv=toolbox +pv=ultra +da=amd64
 
 ## Pemecahan masalah
 
-Gunakan simulasi verbose untuk memeriksa seleksi:
+Gunakan simulasi verbose untuk memeriksa pemilihan:
 
 ```bash
 tmp_list="$(mktemp)"
@@ -319,12 +320,12 @@ bash linux-live/condinapt \
 rm -f "$tmp_list"
 ```
 
-Jangan gunakan `/dev/stdin`; `-l` memerlukan file reguler.
+Jangan gunakan `/dev/stdin`; `-l` memerlukan file biasa.
 
-- Jika filter tidak terduga lolos, periksa mapping prefix, tipe variabel, huruf besar-kecil, dan nilainya secara persis. Cek apakah variabel tidak di-set atau salah ketik.
-- Jika fallback tidak terpilih, ingat bahwa fallback terjadi saat preflight, bukan setelah kegagalan APT pada antrean.
-- Jika paket target gagal, periksa sumber yang dikonfigurasi dan jalankan `apt-cache policy PACKAGE`; preflight tidak menerapkan `-t RELEASE`.
-- Jika versi ketat dilewati, bandingkan field versi persis dengan `apt-cache madison PACKAGE`.
-- Jika urutan antrean mengejutkan, perhitungkan pengelompokan target global dan ekstraksi prioritas sebelum antrean normal.
+- Jika filter meloloskan sesuatu secara tak terduga, periksa pemetaan prefix, tipe variabel, huruf besar-kecil, dan nilainya. Periksa apakah ada variabel yang belum disetel atau salah eja.
+- Jika fallback tidak dipilih, ingat bahwa fallback terjadi selama preflight, bukan setelah kegagalan APT pada level antrean.
+- Jika paket yang ditargetkan gagal, periksa sumber yang dikonfigurasi dan jalankan `apt-cache policy PACKAGE`; preflight tidak menerapkan `-t RELEASE`.
+- Jika versi yang ditetapkan secara ketat dilewati, bandingkan kolom versi yang persis dengan `apt-cache madison PACKAGE`.
+- Jika urutan antrean tidak sesuai dugaan, perhitungkan pengelompokan target global dan ekstraksi prioritas sebelum antrean normal.
 
 Untuk alur kerja build yang lebih luas, lihat [Membangun MiniOS](/development/Building-MiniOS).

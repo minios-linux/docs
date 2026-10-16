@@ -1,7 +1,7 @@
 ---
-updated: 2026-08-31
+updated: 2026-10-15
 program_commits:
-    minios-live: f59faa38c0667fbeefdc6dbe899a2db6e131e462
+    minios-live: a70af61230d2891ed9ca2447019bd7210a670694
 ---
 
 # Compilando MiniOS
@@ -152,17 +152,18 @@ Si `REMOVE_SOURCES=true`, la etapa final `remove-sources` elimina y recrea todo 
 
 ## Configuración
 
-`linux-live/build.conf` controla la identidad del destino, kernel, locale, gestor de arranque, usuario live, servicios, cachés, instantáneas, limpieza y publicación. Los grupos importantes incluyen:
+`linux-live/build.conf` gestiona la identidad de destino, kernel, configuración regional, gestor de arranque, usuario en vivo, servicios, cachés, instantáneas, limpieza y publicación. Los grupos más importantes incluyen:
 
-- `DISTRIBUTION`, `DISTRIBUTION_ARCH`, `DESKTOP_ENVIRONMENT` y `PACKAGE_VARIANT` seleccionan el destino y la cadena de módulos.
+- `DISTRIBUTION`, `DISTRIBUTION_ARCH`, `DESKTOP_ENVIRONMENT`, y `PACKAGE_VARIANT` seleccionan el destino y la cadena de módulos.
 - `COMP_TYPE` controla la compresión SquashFS.
-- `KERNEL_*` y `MINIOS_KERNEL_SERIES` controlan la adquisición y el payload del kernel.
-- `INITRAMFS_BUILDER`, `INITRAMFS_CRYPT`, `BOOTLOADER`, `MENU_LANG` y `SERIAL_CONSOLE` controlan los artefactos de arranque.
-- `USE_ROOTFS`, `USE_APT_CACHE`, `USE_SHARED_APT_CACHE`, `USE_APT_CACHE_REPO` y `USE_APT_CACHER` controlan las entradas reutilizables.
-- `VERBOSITY_LEVEL` acepta `0`, `1` o `2`.
-- `REMOVE_OLD_ISO`, `REMOVE_SOURCES` y `BUILD_TEST_ISO` controlan la publicación y limpieza.
+- `LIVE_MODULE_MODE` permite elegir `merged` (la opción predeterminada actual para cada variante) o `simple` la integración con live-config; ya no se infiere únicamente por el tamaño de la edición.
+- `KERNEL_*` y `MINIOS_KERNEL_SERIES` gestionan la obtención y el contenido del kernel.
+- `INITRAMFS_BUILDER`, `INITRAMFS_CRYPT`, `BOOTLOADER`, `MENU_LANG`, y `SERIAL_CONSOLE` gestionan los artefactos de arranque.
+- `USE_ROOTFS`, `USE_APT_CACHE`, `USE_SHARED_APT_CACHE`, `USE_APT_CACHE_REPO`, y `USE_APT_CACHER` gestionan entradas reutilizables.
+- `VERBOSITY_LEVEL` acepta `0`, `1`, o `2`.
+- `REMOVE_OLD_ISO`, `REMOVE_SOURCES`, y `BUILD_TEST_ISO` gestionan la publicación y la limpieza.
 
-No edites un `build/<target>/build.conf` generado como sustituto de mantener la configuración fuente seleccionada.
+No edite un `build/<target>/build.conf` generado como sustituto de mantener la configuración de origen seleccionada.
 
 ### Selección de kernel
 
@@ -176,14 +177,14 @@ En el código actual, `MINIOS_KERNEL_SERIES=auto` se resuelve como `6.12`; usa `
 
 ## Sistema de módulos
 
-Las fuentes de los módulos se encuentran bajo `linux-live/scripts/`. Un entorno bajo `linux-live/environments/<desktop>/` contiene enlaces simbólicos ordenados a las fuentes que utiliza. El nombre local del entorno controla el orden de compilación y puede renumerar una fuente compartida, por ejemplo:
+Las fuentes de los módulos se encuentran en `linux-live/scripts/`. Un entorno en `linux-live/environments/<desktop>/` contiene enlaces simbólicos ordenados a las fuentes que utiliza. El nombre local del entorno determina el orden de compilación y puede renumerar una fuente compartida, por ejemplo:
 
 ```text
 linux-live/environments/xfce/06-firefox -> ../../scripts/10-firefox
 ```
 
-`00-core` es producido por `build-live` y no es un enlace de entorno ordinario.
-Los módulos `01` y superiores son acumulativos: cada uno se construye sobre los módulos inferiores aplicables. `skip_conditions.conf` puede omitir entradas para un destino, así que inspecciona el entorno seleccionado en vez de asumir una cadena universal.
+`00-core` es generado por `build-live` y no es un enlace de entorno común.
+Los módulos `01` y superiores son acumulativos: cada uno se construye sobre los módulos inferiores correspondientes. `skip_conditions.conf` puede omitir entradas para un destino, así que revisa el entorno seleccionado en lugar de asumir una cadena universal.
 
 Utiliza `linux-live/scripts/10-example/` como plantilla de autoría actual. Un módulo puede contener:
 
@@ -201,17 +202,17 @@ NN-module-name/
 
 Solo se requieren los archivos necesarios para el módulo. `build`, `postinstall`, condiciones de omisión, parches y árboles rootcopy son opcionales. `build` y `patches/` no están disponibles para `00-core`.
 
-La propiedad del host en los árboles rootcopy no se conserva; los archivos copiados normalmente pasan a ser `root:root`. Un manifiesto `.minios-ownership` dentro de un árbol rootcopy utiliza:
+La propiedad del host en los árboles rootcopy no se conserva; los archivos copiados normalmente pasan a ser `root:root`. Un `.minios-ownership` manifiesto dentro de un árbol rootcopy utiliza:
 
 ```text
 owner:group relative/path
 ```
 
-Las rutas deben permanecer dentro del árbol. El host aplica el manifiesto inmediatamente y resuelve los nombres usando la base de datos de cuentas del host. Usa valores numéricos `UID:GID` para cuentas solo de destino, o define la propiedad desde `install` o `postinstall` dentro del chroot. Mover el manifiesto a `rootcopy-postinstall/` no cambia la resolución de nombres.
+Las rutas deben permanecer dentro del árbol. El host aplica el manifiesto de inmediato y resuelve los nombres usando la base de datos de cuentas del host. Utiliza valores numéricos de `UID:GID` para cuentas exclusivas del destino, o asigna la propiedad desde `install` o `postinstall` dentro del chroot. Mover el manifiesto a `rootcopy-postinstall/` no cambia la resolución de nombres.
 
-Como la comprobación de contención actual no canoniza la ruta de destino, nunca uses componentes `..` ni componentes de enlaces simbólicos en las rutas del manifiesto. Inspecciona los árboles rootcopy antes de una compilación con privilegios; una ruta manipulada puede hacer que `chown` en el host escape del árbol copiado.
+Debido a que la verificación de contención actual no canoniza la ruta de destino, nunca utilices componentes `..` o componentes de enlaces simbólicos en las rutas del manifiesto. Revisa los árboles rootcopy antes de una compilación con privilegios; una ruta manipulada puede hacer que `chown` se escape del árbol copiado.
 
-Para los paquetes, los scripts de instalación de módulos ordinarios usan los archivos copiados al chroot por `build-modules`:
+Para los paquetes, los scripts de instalación de módulos habituales utilizan los archivos copiados al chroot por `build-modules`:
 
 ```bash
 #!/bin/bash
@@ -220,6 +221,7 @@ set -o pipefail
 set -u
 
 . /minioslib || exit 1
+console_colors
 . /minios_build.conf || exit 1
 
 SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
@@ -229,7 +231,7 @@ SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
   -m "${SCRIPT_DIR}/condinapt.map"
 ```
 
-Consulta [CondinAPT](/development/CondinAPT) para la sintaxis de listas de paquetes y el mapa de filtros actual de MiniOS.
+Consulta [CondinAPT](/development/CondinAPT) para la sintaxis de la lista de paquetes y el filtro actual MiniOS.
 
 ### Añadir un módulo
 

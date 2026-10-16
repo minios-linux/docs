@@ -1,7 +1,7 @@
 ---
-updated: 2026-08-31
+updated: 2026-10-15
 program_commits:
-  minios-live: f59faa38c0667fbeefdc6dbe899a2db6e131e462
+  minios-live: a70af61230d2891ed9ca2447019bd7210a670694
 ---
 # CondinAPT
 
@@ -257,6 +257,7 @@ set -o pipefail
 set -u
 
 . /minioslib || exit 1
+console_colors
 . /minios_build.conf || exit 1
 
 SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"

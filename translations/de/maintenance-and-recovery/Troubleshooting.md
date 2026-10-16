@@ -1,5 +1,5 @@
 ---
-updated: 2026-10-06
+updated: 2026-10-15
 ---
 
 # Fehlerbehebung
@@ -65,15 +65,17 @@ findmnt -R /run/initramfs 2>/dev/null
 
 ## Anzeigeprobleme
 
-Bei schwarzem Bildschirm, unbrauchbarer Auflösung oder einer Display-Manager-Schleife:
+Bei schwarzem Bildschirm, unbrauchbarer Auflösung oder einer Endlosschleife des Display-Managers:
 
-1. Probieren Sie den `text` Boot-Parameter. Eine funktionierende Konsole grenzt Grafik-/Desktop-Probleme von früheren Boot-Fehlern ab.
-2. Entfernen Sie manuell gesetzte `xorg-driver` oder `xorg-resolution`-Parameter.
-3. Testen Sie **Ohne Speichern starten**, um eine persistente Anzeige-Konfiguration auszuschließen.
+1. Probieren Sie den `text` Boot-Parameter. Eine funktionierende Konsole grenzt Grafik- oder Desktop-Probleme von einem früheren Boot-Fehler ab.
+2. Entfernen Sie manuell angegebene `xorg-driver` oder `xorg-resolution` Parameter.
+3. Testen Sie **Ohne Speichern starten** um eine persistente Anzeige-Konfiguration auszuschließen.
 4. Notieren Sie GPU und Treiber mit `lspci -nnk`.
-5. Untersuchen Sie `journalctl -b -p warning` und `dmesg --level=err,warn`.
+5. Überprüfen Sie `journalctl -b -p warning` und `dmesg --level=err,warn`.
 
 Für virtuelle Maschinen siehe [Virtualisierung](/maintenance-and-recovery/Virtualization).
+
+In Debian 13 / Devuan Excalibur XFCE-Images bietet **Anzeigeeinstellungen** eine **Skalierung der Benutzeroberfläche**-Steuerung mit automatischen und manuellen Prozentwerten. Automatisch folgt dem primären Display; ein gespeicherter expliziter Wert überschreibt dies. Nutzen Sie die zeitgesteuerte Vorschau und Bestätigung, anstatt Ausgaberesolution und Skalierung der Oberfläche als identische Einstellung zu behandeln. Fenstereffekte und der Renderer werden separat unter **Fensterverwaltung → Kompositor** konfiguriert.`xfwm4-gl` Bei Ausfall von OpenGL wird auf XRender zurückgegriffen; Unschärfe und Magic Lamp benötigen OpenGL, während Überblendungen/Skalierungsanimationen und Peek auch mit XRender funktionieren.
 
 ## Netzwerkprobleme
 
@@ -120,9 +122,13 @@ Kann der Sitzungsmanager die Sitzung weder lesen noch exportieren, beenden Sie a
 
 Siehe [Backup von MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS) für unterstützte Backup- und Sitzungsimport-Workflows.
 
+### Ventoy Persistence-Plugin
+
+Wenn der Session Manager meldet, dass er mit dem Ventoy Persistence-Plugin nicht verfügbar ist, handelt es sich um das erwartete Einzel-Image-Modell und nicht um fehlende Sitzungsmetadaten. Wählen Sie einen anderen Backend-Typ in Ventoy aus oder starten Sie ohne ausgewähltes Plugin-Image, um nummerierte MiniOS Sitzungen zu verwenden. Ein nicht verfügbarer oder nicht ext4-kompatibler Backend, ein anderes aufgezeichnetes Union-Format oder eine fehlgeschlagene Aktivierung des beschreibbaren Modus führt dazu, dass MiniOS eine Warnung ausgibt und in RAM fortfährt. Prüfen Sie`/run/initramfs/minios-persistence/boot-state` die Startmeldungen und Warnungen; erstellen Sie `session.conf` nicht manuell im Plugin-Image. Siehe [Ventoy](/installing-minios/installation-tools/Ventoy).
+
 ## Speicher- und Platzprobleme
 
-Untersuchen Sie Geräte und Einbindungen, ohne Änderungen vorzunehmen:
+Geräte und Mounts überprüfen, ohne Änderungen vorzunehmen:
 
 ```bash
 lsblk -o NAME,SIZE,TYPE,FSTYPE,LABEL,UUID,MOUNTPOINTS,MODEL
@@ -131,15 +137,17 @@ df -hT
 df -ih
 ```
 
-Ein volles Dateisystem kann fehlerhafte Paketoperationen, unvollständige Sitzungs-Sicherungen und andere Folgefehler verursachen. Geben Sie Speicherplatz frei, indem Sie bekannte Daten erst nach Bestätigung des richtigen Dateisystems verschieben oder löschen. Verwenden Sie den MiniOS-Sitzungsmanager für Sitzungs-Löschungen, statt nummerierte Sitzungsverzeichnisse manuell zu entfernen.
+Ein volles Dateisystem kann zu fehlgeschlagenen Paketoperationen, unvollständigen Sitzungs-Speicherungen und weiteren Folgefehlern führen. Schaffen Sie Speicherplatz, indem Sie bekannte Daten verschieben oder löschen – aber nur, nachdem Sie das richtige Dateisystem bestätigt haben. Verwenden Sie für das Löschen von Sitzungen den MiniOS-Sitzungsmanager, anstatt nummerierte Sitzungsverzeichnisse manuell zu entfernen.
 
-Wenn `LIVE_APT_CACHE=volatile`, prüfen Sie auch `findmnt -T /var/cache/apt/archives` und `df -h /var/cache/apt/archives`: Der Archivbereich ist ein begrenztes RAM-Dateisystem und ein großer Download kann ihn füllen, auch wenn auf dem USB-Gerät noch Platz ist. Mit `LIVE_LOG_STORAGE=volatile`, besitzt die normale `/var/log` einen separaten 32 MiB RAM-Grenzwert. Wird einer der Bereiche voll, schreibt MiniOS diese Dateien nicht automatisch auf das USB-Gerät. Siehe [Leistung](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch).
+Falls `LIVE_APT_CACHE=volatile`, prüfen Sie auch `findmnt -T /var/cache/apt/archives` und `df -h /var/cache/apt/archives`: Der Archivbereich ist ein begrenztes RAM-Dateisystem, und ein großer Download kann diesen Bereich füllen, auch wenn auf dem USB-Gerät noch freier Speicherplatz vorhanden ist. Mit `LIVE_LOG_STORAGE=volatile`, hat das normale `/var/log` ein separates Limit von 32 MiB für RAM. Wenn einer der Bereiche voll ist, führt das nicht dazu, dass MiniOS diese Dateien automatisch auf das USB-Gerät schreibt. Siehe [Leistung](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch).
 
-Dateisystemreparatur ist keine generische MiniOS-Operation. Ist das Dateisystem selbst beschädigt, binden Sie es aus, sichern Sie wichtige Daten oder ein Abbild und verwenden Sie ein für dieses Dateisystem und Speichermedium geeignetes Reparaturverfahren.
+Die Reparatur eines Dateisystems ist keine allgemeine MiniOS-Operation. Ist das Dateisystem selbst beschädigt, sollten Sie es aushängen, wichtige Daten oder ein Abbild sichern und anschließend ein passendes Reparaturverfahren für dieses Dateisystem und das Speichermedium anwenden.
 
 ## Paketänderungen und Systemaktualisierungen
 
-Wenn Probleme nach APT-Paketänderungen auftraten, beachten Sie, dass eine Live-Persistenzsitzung Dateien aus den schreibgeschützten MiniOS-Modulen überschreiben kann. Testen Sie **Ohne Speichern starten**, um mit dem ursprünglichen Modulsatz zu vergleichen. Siehe [Aktualisierung von MiniOS](/maintenance-and-recovery/Updating-MiniOS) für den Unterschied zwischen APT-Wartung und dem Wechsel von MiniOS-Releases.
+Falls nach Änderungen an APT-Paketen Probleme aufgetreten sind, beachten Sie, dass eine Live-Persistenz-Sitzung Dateien aus den schreibgeschützten MiniOS-Modulen überschreiben kann. Testen Sie **Ohne Speichern starten** um mit dem ursprünglichen Modulsatz zu vergleichen. Weitere Informationen finden Sie unter [Aktualisierung von MiniOS](/maintenance-and-recovery/Updating-MiniOS) für den Unterschied zwischen APT-Wartung und Änderungen an MiniOS-Releases.
+
+<a id="collecting-logs"></a>
 
 ## Protokolle sammeln
 
@@ -156,9 +164,9 @@ lspci -nnk
 lsusb
 ```
 
-Bei wiederholten Boot-Fehlern auf beschreibbaren MiniOS-Medien `EXPORT_LOGS=true` in `config.conf` exportiert Boot-Protokolle unter `minios/log/`. Siehe [config.conf](/reference/configuration/config.conf).
+Bei wiederholten Startfehlern auf beschreibbaren MiniOS-Medien, `EXPORT_LOGS=true` in `config.conf` exportiert Startprotokolle unter `minios/log/`. Siehe [config.conf](/reference/configuration/config.conf).
 
-In einer intakten dauerhaften `perch`-Sitzung werden die beiden obligatorischen Startprotokolle unabhängig von `LIVE_LOG_STORAGE` bereits gespeichert:
+In einer intakten, dauerhaften `perch`-Sitzung werden die beiden obligatorischen Startprotokolle unabhängig von `LIVE_LOG_STORAGE` bereits gespeichert:
 
 ```bash
 sudo ls -l /var/log/minios/minios-boot.log*
@@ -168,27 +176,27 @@ findmnt -T /var/log
 findmnt -T /var/log/minios
 ```
 
-Die `.1`, `.2` und `.3`-Versionen sind frühere Starts. Die normale `/var/log`-Einbindung kann `tmpfs` sein, während `/var/log/minios` und `/var/log/live` auf dem Persistenzspeicher verbleiben. Bei SquashFS liegen diese Protokolle ebenfalls unter `minios/changes/<session-id>/boot-logs/`, außerhalb von `changes.sb` ; sie bleiben erhalten, selbst wenn der Shutdown-Snapshot fehlschlägt. Eine fehlgeschlagene oder nicht-dauerhafte `perch`-Aktivierung hat kein garantiertes persistentes Protokollziel. Mit `LIVE_LOG_STORAGE=volatile`, `journalctl -b` und andere normale Protokolle sind nur für den **aktuellen** Boot-Vorgang verfügbar. Aktivieren Sie detaillierte `minios-update-*`-Traces mit `LIVE_CONFIG_DEBUG=true` nur bei Bedarf; normale Fehler werden trotzdem gemeldet.
+Die `.1`, `.2`, und `.3`-Versionen stammen von früheren Starts. Das normale `/var/log`-Mount kann `tmpfs` werden, während `/var/log/minios` und `/var/log/live` auf dem Persistenzspeicher verbleiben. Für SquashFS befinden sich diese Protokolle ebenfalls unter `minios/changes/<session-id>/boot-logs/`, außerhalb von `changes.sb`; sie bleiben erhalten, selbst wenn der Shutdown-Snapshot fehlschlägt. Eine fehlgeschlagene oder nicht dauerhafte `perch`-Aktivierung hat kein garantiertes dauerhaftes Protokollziel. Mit `LIVE_LOG_STORAGE=volatile`, `journalctl -b` und andere normale Protokolle sind nur für den **aktuellen** Start verfügbar. Aktivieren Sie detaillierte `minios-update-*`-Traces mit `LIVE_CONFIG_DEBUG=true` nur bei Bedarf; normale Fehler werden auch ohne gemeldet.
 
-Entfernen Sie Zugangsdaten, private Schlüssel, WLAN-Passwörter und andere vertrauliche Informationen, bevor Sie Protokolle weitergeben. Bei einem reproduzierbaren Fehler fügen Sie relevante Ausschnitte bei und eröffnen ein Ticket im [MiniOS-Issue-Tracker](https://github.com/minios-linux/minios-live/issues).
+Entfernen Sie Anmeldedaten, private Schlüssel, WLAN-Zugangsdaten und andere vertrauliche Informationen, bevor Sie Protokolle weitergeben. Bei einem reproduzierbaren Fehler fügen Sie die relevanten Auszüge bei und eröffnen ein Ticket im [MiniOS Issue Tracker](https://github.com/minios-linux/minios-live/issues).
 
 ### VMDK-Sitzungen werden nicht angeboten
 
-Aktualisieren Sie den DynBlk-Treiber/CLI und die Sitzungstools gemeinsam und bauen Sie dann die
-Boot-initrd neu. Die laufende initrd muss `vmdk-session-v1`anzeigen; das Installationsprogramm
-prüft jedes Quell-initrd, das es kopieren wird. Die alte leere DynBlk-Markierung
-zeigt nur native Block-Unterstützung an und garantiert keine VMDK-Sitzungs-Boot-Unterstützung.
-Ändern Sie den Modus einer bestehenden Sitzung nicht von Hand: Verwenden Sie eine explizite Kopie oder
+Aktualisieren Sie den DynBlk-Treiber/CLI sowie die Session-Tools gemeinsam und erstellen Sie anschließend das
+Boot-initrd neu. Das laufende initrd muss `vmdk-session-v1`anzeigen; der Installer prüft außerdem
+jedes Quell-initrd, das kopiert werden soll. Der alte leere DynBlk-Marker
+zeigt nur native Blockunterstützung an und garantiert keine VMDK-Session-Boot-Unterstützung.
+Ändern Sie den Modus einer bestehenden Sitzung nicht manuell: Verwenden Sie stattdessen eine explizite Kopie oder
 Konvertierung in das andere Format.
 
-### Speicherplatz freigeben in DynFileFS, DynBlk oder VMDK-Sitzungen
+### Freigeben von Speicherplatz in DynFileFS, DynBlk oder VMDK-Sitzungen
 
-Verwenden Sie das Kontextmenü des Sitzungsmanagers **Speicherplatz freigeben...** oder
-`minios-session reclaim ID --json`. Bei Klartext-Sitzungen wird dabei das
-eigentliche innere ext4 getrimmt und anschließend der zuständige Backend gebeten, Speicherplatz zurückzugewinnen, ohne
-aktive Daten zu verschieben. DynFileFS benötigt für diesen Vorgang mindestens Version 4.6.0.
-Auf Dateisystemen wie exFAT können innere Lücken der Host-Datei zugeordnet bleiben,
-sind aber für den Container wiederverwendbar; `--compact`ist eine separate manuelle Option, die
-aktive Daten verlagern und mehr auf das Flash-Gerät schreiben kann. Nichts aktiviert
-automatisch Kompaktierung oder LUKS-Discard. Eine verschlüsselte Sitzung kann nur
-Speicherplatz zurückgewinnen, der dem zugrunde liegenden Backend durch diesen Befehl bereits bekannt ist.
+Verwenden Sie das Kontextmenü des Sitzungsmanagers **Speicherplatz freigeben...**, oder
+`minios-session reclaim ID --json`. Bei Klartext-Sitzungen wird das
+eigentliche innere ext4-Dateisystem getrimmt und anschließend das zugehörige Backend aufgefordert, den Speicherplatz freizugeben, ohne
+aktive Daten zu verschieben. DynFileFS benötigt für diesen Vorgang Version 4.6.0 oder neuer.
+Bei Dateisystemen wie exFAT können innere Lücken weiterhin der Host-Datei zugeordnet bleiben,
+aber vom Container wiederverwendet werden; `--compact` ist eine separate manuelle Option, die
+aktive Daten verschieben und zusätzliche Schreibvorgänge auf das Flash-Laufwerk auslösen kann. Keine Option aktiviert
+automatisch Komprimierung oder LUKS-Discard. Eine verschlüsselte Sitzung kann nur
+Speicherplatz zurückgewinnen, der dem zugrunde liegenden Backend bereits durch diesen Befehl bekannt ist.

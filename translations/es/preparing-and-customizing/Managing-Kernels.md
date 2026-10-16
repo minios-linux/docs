@@ -100,15 +100,17 @@ El empaquetado falla en lugar de generar un conjunto de kernel que haría que un
 
 La vista de gestión distingue:
 
-- **EN EJECUCIÓN** — el kernel que está ejecutándose en el arranque actual;
-- **ACTIVO** — el conjunto completo seleccionado para el próximo arranque;
-- **DISPONIBLE** — otro conjunto empaquetado en el repositorio MiniOS.
+- **EN EJECUCIÓN** — el kernel que se está ejecutando en el arranque actual;
+- **ACTIVO** — el paquete completo seleccionado para el próximo arranque;
+- **DISPONIBLE** — otro paquete disponible en el repositorio MiniOS.
 
 La activación requiere una entrada completa en el repositorio. Prepara la imagen del kernel, el initramfs, el módulo activo SquashFS, el marcador de versión activa y los cambios en el gestor de arranque como una sola operación coordinada. Se requiere la configuración de GRUB; la configuración nativa de SYSLINUX se actualiza si está presente. Si la activación falla, los archivos de arranque preparados se revierten.
 
-La activación solo modifica el próximo arranque; no reinicia el sistema actual. Conserva al menos un conjunto completo conocido y funcional hasta que el reemplazo haya arrancado correctamente.
+La activación solo modifica el próximo arranque; no reinicia el sistema actual. Mantén al menos un paquete completo comprobado hasta que el reemplazo haya iniciado correctamente.
 
-Elimina solo un kernel empaquetado inactivo que ya no necesites. No mezcles manualmente una imagen de kernel, initramfs o`01-kernel-*.sb` de diferentes conjuntos.
+Elimina solo un kernel empaquetado inactivo que ya no necesites. No mezcles manualmente una imagen de kernel, initramfs o `01-kernel-*.sb` de diferentes paquetes.
+
+<a id="command-line-reference"></a>
 
 ## Referencia de línea de comandos
 

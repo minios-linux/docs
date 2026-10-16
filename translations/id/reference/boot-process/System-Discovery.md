@@ -1,73 +1,73 @@
 ---
-updated: 2026-08-28
+updated: 2026-10-15
 ---
 
-# Penemuan sistem
+# Pengenalan sistem
 
-Halaman ini menjelaskan perubahan yang dilakukan oleh parameter boot `from`, `ip`, `cache`, `bext`, `toram`, dan `toram=full`. Penjelasan ini ditujukan untuk entri boot kustom, boot jaringan, dan pemecahan masalah. Sebagian besar pengguna dapat memilih entri normal di menu boot tanpa perlu mengatur parameter ini secara manual.
+Halaman ini menjelaskan fungsi `from`, `ip`, `cache`, `bext`, `toram` dan `toram=full` parameter boot. Bagian ini ditujukan untuk entri boot khusus, boot jaringan, dan pemecahan masalah. Sebagian besar pengguna dapat memilih entri normal di menu boot tanpa mengatur parameter ini secara manual.
 
-Setelah bootloader memuat kernel dan initramfs, initramfs harus menemukan pohon data MiniOS yang menyediakan modul sistem `.sb`. Proses ini terjadi sebelum stack jaringan userspace normal, desktop, dan sesi persisten aktif.
+Setelah bootloader memuat kernel dan initramfs, initramfs harus menemukan pohon data MiniOS yang menyediakan modul sistem `.sb`. Proses ini berlangsung sebelum network stack userspace normal, desktop, dan sesi persisten aktif.
 
-## Dalam bahasa sederhana
+## Sederhananya
 
-MiniOS perlu menemukan direktori yang berisi modul sistemnya. Biasanya, sistem akan mencari drive yang terpasang untuk direktori `minios/`. Parameter `from=` mengarahkannya ke direktori atau ISO yang berbeda. Parameter jaringan menggantikan pencarian lokal ini dengan ISO HTTP atau unduhan PXE.
+MiniOS perlu menemukan direktori yang berisi modul sistemnya. Biasanya, sistem akan mencari drive yang terhubung untuk menemukan direktori `minios/`. Parameter `from=` mengarahkannya ke direktori atau ISO lain. Parameter jaringan menggantikan pencarian lokal ini dengan pengunduhan ISO melalui HTTP atau PXE.
 
-Menemukan drive tidak membuktikan bahwa set modul sudah lengkap, dan menemukan file sistem tidak otomatis mengaktifkan persistensi. Itu adalah langkah startup yang terpisah.
+Menemukan drive tidak membuktikan bahwa kumpulan modulnya lengkap, dan menemukan file sistem tidak mengaktifkan persistensi. Keduanya merupakan tahap startup yang terpisah.
 
 ## Penjelasan parameter
 
-| Parameter | Fungsi pada MiniOS | Penggunaan umum |
+| Parameter | Fungsi MiniOS | Penggunaan umum |
 |---|---|---|
-| `from=PATH` | Cari MiniOS di direktori atau ISO tertentu, bukan menerima sumber lokal pertama yang cocok. | Boot dari ISO yang tersimpan di disk atau menggunakan direktori non-standar. |
-| `from=askdisk` | Buka pemilih interaktif untuk partisi yang berisi MiniOS. | Beberapa drive terhubung berisi sumber yang memungkinkan. |
-| `from=http://...` | Mount ISO dari server HTTP biasa. | Boot jaringan terkontrol di mana sistem berjalan dapat terus bergantung pada server. |
-| `ip=...` | Gunakan jaringan statis awal. Tanpa HTTP `from=`, memilih unduhan data PXE dan melewati drive lokal. | Deploy PXE atau penetapan alamat statis untuk ISO HTTP. |
-| `cache=MB` | Alokasikan cache httpfs untuk ISO HTTP. Tidak menjamin seluruh ISO terunduh. | Mengurangi pembacaan berulang dari sumber HTTP. |
-| `bext=EXTENSION` | Cari nama file modul dengan ekstensi lain selain `.sb`. | Hanya untuk image khusus; tidak mengonversi modul. |
-| `toram` atau `toram=full` | Salin seluruh pohon data MiniOS yang ditemukan ke RAM dan coba lepaskan sumbernya. Bentuk tanpa parameter berarti `full`. | Operasi RAM sementara pada mesin dengan memori __LOKIT_PRESERVE_TERM_hardware.ram__ yang cukup. |
+| `from=PATH` | Mencari MiniOS di direktori atau ISO tertentu, alih-alih menerima sumber lokal pertama yang cocok. | Boot dari ISO yang tersimpan di disk atau gunakan direktori nonstandar. |
+| `from=askdisk` | Membuka pemilih interaktif untuk partisi yang berisi MiniOS. | Beberapa drive yang terhubung berisi sumber yang mungkin digunakan. |
+| `from=http://...` | Memasang ISO dari server HTTP biasa. | Boot jaringan terkontrol, saat sistem yang berjalan mungkin tetap bergantung pada server. |
+| `ip=...` | Menggunakan jaringan statis sejak awal. Tanpa `from=` HTTP, sistem akan memilih pengunduhan data PXE dan melewati drive lokal. | Penerapan PXE atau pengalamatan statis untuk ISO HTTP. |
+| `cache=MB` | Mengalokasikan cache httpfs untuk ISO HTTP. Ini tidak menjamin seluruh ISO telah diunduh. | Mengurangi pembacaan berulang dari sumber HTTP. |
+| `bext=EXTENSION` | Mencari nama file modul dengan ekstensi lain, bukan `.sb`. | Hanya untuk image khusus; parameter ini tidak mengonversi modul. |
+| `toram` atau `toram=full` | Menyalin data sistem MiniOS yang ditemukan, termasuk entri tersembunyi di tingkat teratas tetapi tidak termasuk `changes/`, ke RAM lalu mencoba melepas sumber. Penyalinan sesi menggunakan `perchtoram` secara terpisah. Bentuk tanpa argumen berarti `full`. | Operasi RAM pada mesin dengan memori yang cukup. |
 
-Jika boot USB lokal berhenti sebelum desktop muncul, pertama-tama hapus nilai kustom `from=` dan `ip=`. `ip=` yang tidak sengaja terisi mencegah penemuan drive lokal, sedangkan `from=` yang salah dapat membuat MiniOS mencari path yang tidak ada.
+Jika proses boot dari USB lokal berhenti sebelum desktop muncul, hapus dulu nilai khusus untuk `from=` dan `ip=` terlebih dahulu. Nilai `ip=` yang tidak sengaja diisi akan mencegah pencarian drive lokal, sedangkan nilai `from=` yang salah dapat membuat MiniOS mencari jalur yang tidak tersedia.
 
 ## Prioritas sumber
 
-Pemilihan sumber memiliki urutan prioritas tetap:
+Pemilihan sumber mengikuti urutan prioritas tetap:
 
 1. Nilai literal `from=http://...` memilih ISO HTTP.
-2. Jika tidak, nilai `ip=` yang tidak kosong memilih unduhan PXE.
-3. Jika tidak, `from=askdisk` atau `from=askdisk:...` membuka pemilih disk.
-4. Jika tidak, initramfs memindai perangkat blok lokal.
+2. Jika tidak, nilai `ip=` yang tidak kosong akan memilih pengunduhan PXE.
+3. Jika tidak, `from=askdisk` atau `from=askdisk:...` akan membuka pemilih disk.
+4. Jika tidak, initramfs akan memindai perangkat blok lokal.
 
-Kedua jalur jaringan tidak akan kembali ke media lokal. Setelah percobaan ISO HTTP atau PXE, penemuan akan mengembalikan hasil jaringan tersebut, bukan mencoba disk; hasil yang tidak dapat digunakan atau tidak lengkap akan gagal validasi atau pengaturan berikutnya.
+Kedua jalur jaringan tidak beralih ke media lokal. Setelah percobaan ISO HTTP atau PXE, proses pencarian mengembalikan hasil jaringan tersebut, bukan mencoba disk; hasil yang tidak dapat digunakan atau tidak lengkap akan gagal saat validasi atau tahap penyiapan berikutnya.
 
 Urutan ini memiliki dua konsekuensi penting:
 
-- `from=http://...` lebih diutamakan daripada `ip=`. Opsi `ip=` kemudian menyediakan alamat statis untuk koneksi ISO HTTP.
-- Nilai `ip=` yang tidak kosong mengalahkan setiap nilai lokal `from=`, termasuk perangkat, direktori, path ISO, atau `askdisk`. Jangan gunakan `ip=` hanya untuk mengatur jaringan pada sistem yang boot dari lokal.
+- `from=http://...` lebih diprioritaskan daripada `ip=`. Nilai opsional `ip=` kemudian menyediakan pengalamatan statis untuk koneksi ISO HTTP.
+-  yang tidak kosong lebih diprioritaskan `ip=` daripada setiap nilai `from=` lokal, termasuk perangkat, direktori, jalur ISO, atau `askdisk`. Jangan gunakan `ip=` hanya untuk mengonfigurasi jaringan sistem yang di-boot secara lokal.
 
 ## Penemuan lokal
 
-Tanpa sumber HTTP atau `ip=` yang tidak kosong, MiniOS melakukan 45 kali proses penemuan, kira-kira satu kali per detik. Setiap proses memperbarui node perangkat, mendapatkan kandidat perangkat blok dari `blkid`, mengurutkan nama perangkat, dan mengujinya sesuai urutan tersebut. Kandidat pertama yang berisi sumber MiniOS yang memenuhi syarat akan dipilih; perangkat berikutnya tidak akan dipertimbangkan.
+Tanpa sumber HTTP atau `ip=`, MiniOS melakukan 45 kali pemindaian, kira-kira satu kali per detik. Setiap pemindaian memperbarui node perangkat dan mengambil kandidat perangkat blok dari `blkid`. Jika `/dev/mapper/ventoy` tersedia, pemetaan ISO tersebut akan dicoba terlebih dahulu; kandidat lainnya diurutkan berdasarkan nama perangkat dan duplikat dihapus. Sumber MiniOS pertama yang memenuhi syarat akan dipilih. Ini mencegah modul pengganti pada partisi data Ventoy disalahartikan sebagai sumber ISO utama.
 
-Jika `from=` kosong, path yang diuji pada setiap filesystem adalah `minios`. Sebuah sumber memenuhi syarat jika direktori tersebut atau subdirektori `modules/` di dalamnya berisi setidaknya satu file dengan ekstensi `.sb` secara default. Parameter `bext=` mengubah ekstensi yang digunakan pada pengujian ini. Penemuan tidak memvalidasi apakah set modul yang ditemukan sudah lengkap atau dapat di-boot.
+Jika `from=` kosong, jalur yang diuji pada setiap sistem berkas adalah `minios`. Sumber memenuhi syarat jika direktori tersebut atau subdirektori `modules/` langsungnya berisi setidaknya satu file dengan ekstensi `.sb` secara default. Parameter `bext=` mengubah ekstensi yang digunakan dalam pengujian ini. Penemuan tidak memvalidasi apakah kumpulan modul yang ditemukan lengkap atau dapat di-boot.
 
-Setiap kandidat awalnya di-mount hanya-baca. Setelah memenuhi syarat, MiniOS mencoba membuat mount data yang dipilih tersebut dapat ditulis, tetapi kegagalan melakukannya tidak akan menggugurkan sumber yang valid.
+Setiap kandidat awalnya di-mount dalam mode hanya baca. Setelah kandidat memenuhi syarat, MiniOS mencoba membuat mount data yang dipilih dapat ditulis, tetapi kegagalan melakukannya tidak menggugurkan sumber yang valid.
 
-### Bentuk lokal `from=`
+### Lokal `from=` formulir
 
-Path relatif biasa atau yang tampak absolut akan diinterpretasikan di dalam setiap filesystem kandidat. Tanda slash di awal akan dinormalisasi oleh konstruksi path, sehingga kedua contoh berikut mencari direktori yang sama:
+Jalur relatif biasa atau jalur yang tampak absolut akan ditafsirkan di dalam setiap sistem berkas kandidat. Garis miring di awal dinormalisasi saat jalur dibuat, sehingga kedua contoh ini mencari direktori yang sama:
 
 ```text
 from=minios
 from=/minios
 ```
 
-Jika path yang diminta adalah file reguler pada filesystem kandidat, MiniOS akan memperlakukannya sebagai ISO, melakukan loop-mount secara hanya-baca, dan menguji direktori `minios` di dalam ISO:
+Jika jalur yang diminta adalah file biasa di sistem berkas kandidat, MiniOS menganggapnya sebagai ISO, me-mount-nya melalui loop dalam mode hanya baca, lalu menguji direktori `minios` di dalam ISO:
 
 ```text
 from=/images/minios.iso
 ```
 
-Path dengan kualifikasi perangkat hanya mendukung bentuk berikut:
+Jalur dengan nama perangkat hanya mendukung format berikut:
 
 ```text
 from=/dev/sdb1/minios
@@ -75,9 +75,9 @@ from=/dev/sr0/minios
 from=/dev/disk/by-label/MINIOS/minios
 ```
 
-`/dev/<name>/path` mendukung nama perangkat sederhana diikuti path. Bentuk label harus persis `/dev/disk/by-label/LABEL/path`; label akan di-resolve dengan `blkid`, lalu sisa path diuji pada filesystem tersebut.
+`/dev/<name>/path` mendukung nama perangkat sederhana yang diikuti jalur. Format label harus persis `/dev/disk/by-label/LABEL/path`; label dicari menggunakan `blkid`, lalu jalur sisanya diuji pada sistem berkas tersebut.
 
-Tidak ada parser yang sesuai untuk path UUID, PARTUUID, atau by-id. Bentuk seperti berikut tidak didukung:
+Tidak ada parser untuk jalur UUID, PARTUUID, atau by-id. Format seperti berikut tidak didukung:
 
 ```text
 from=/dev/disk/by-uuid/UUID/minios
@@ -87,76 +87,76 @@ from=/dev/disk/by-id/ID/minios
 
 ### Pemilihan interaktif
 
-Gunakan `askdisk` untuk memilih partisi lalu menguji path di dalamnya:
+Gunakan `askdisk` untuk memilih partisi, lalu menguji jalur di dalamnya:
 
 ```text
 from=askdisk
 from=askdisk:custom:dir
 ```
 
-Bentuk pertama menguji `minios` pada partisi yang dipilih. Pada bentuk kedua, tanda titik dua menjadi pemisah path, sehingga `askdisk:custom:dir` menguji `custom/dir`.
-Sintaks slash seperti `from=askdisk/custom/dir` tetap membuka pemilih, tetapi secara diam-diam mengabaikan path kustom dan menguji `minios`; jangan gunakan cara ini.
+Format pertama menguji `minios` pada partisi yang dipilih. Dalam format kedua, titik dua menjadi pemisah jalur, sehingga `askdisk:custom:dir` menguji `custom/dir`.
+Sintaks garis miring seperti `from=askdisk/custom/dir` tetap membuka pemilih, tetapi jalur kustom akan diabaikan tanpa pemberitahuan dan yang diuji adalah `minios`; jangan gunakan sintaks ini.
 
-Daftar perangkat yang ditampilkan akan diperbarui selama pemilih terbuka dan tidak menampilkan filesystem swap. Pemilihan tetap melakukan pengujian kehadiran modul secara normal; memilih partisi saja tidak cukup.
+Daftar perangkat yang ditampilkan diperbarui selama pemilih terbuka dan tidak menyertakan sistem berkas swap. Pemilihan tetap menjalankan pengujian keberadaan modul seperti biasa; memilih partisi saja tidak cukup.
 
 ## ISO HTTP
 
-Sumber ISO HTTP memiliki bentuk berikut:
+Sumber ISO HTTP memiliki format berikut:
 
 ```text
 from=http://server.example/path/minios.iso
 ```
 
-Hanya HTTP biasa yang dikenali. HTTPS dan skema URL lain tidak didukung.
-Initramfs akan mencari antarmuka jaringan non-loopback pertama yang terdeteksi, mengaktifkan jaringan, dan me-mount ISO remote melalui `httpfs2`. Pemilihan antarmuka tidak memverifikasi link, keterjangkauan, atau apakah antarmuka tersebut yang dapat digunakan pada sistem multi-NIC.
+Hanya HTTP biasa yang dikenali. HTTPS dan skema URL lainnya tidak didukung.
+initramfs mencari antarmuka jaringan non-loopback pertama yang terdeteksi, mengaktifkan jaringan, lalu me-mount ISO jarak jauh melalui `httpfs2`. Pemilihan antarmuka tidak memeriksa koneksi, keterjangkauan, atau apakah antarmuka tersebut dapat digunakan pada sistem dengan beberapa NIC.
 
-Jika `ip=` tidak ada, boot ISO HTTP akan meminta DHCP dengan `udhcpc`. Jika `ip=` ada, akan digunakan field statis yang diharapkan oleh parser PXE:
-
-```text
-ip=<client-ip>:<server-ip>:<gateway-ip>:<netmask>[:<port>]
-```
-
-Untuk boot ISO HTTP, URL tetap menentukan server HTTP. Field statis mengatur alamat klien, netmask, gateway default, dan entri DNS awal; field port opsional hanya untuk unduhan file PXE dan tidak menggantikan port pada URL ISO.
-
-`cache=<MB>` mengaktifkan cache httpfs dengan ukuran yang diminta di `/tmp`. Ini adalah cache, bukan unduhan penuh yang dijamin. Sistem yang berjalan tetap bergantung pada ISO remote dan jaringan kecuali salinan RAM berhasil dan sumber dapat dilepaskan.
-
-## Unduhan data PXE
-
-Setiap `ip=` yang tidak kosong akan memilih unduhan data PXE kecuali `from=http://...` sudah dipilih terlebih dahulu. Sintaks yang didukung adalah:
+Jika `ip=` tidak ada, boot ISO HTTP meminta DHCP dengan `udhcpc`. Jika `ip=` tersedia, parameter tersebut menggunakan kolom statis yang diharapkan parser PXE:
 
 ```text
 ip=<client-ip>:<server-ip>:<gateway-ip>:<netmask>[:<port>]
 ```
 
-Netmask menggunakan notasi IPv4 bertitik. Port HTTP opsional secara default adalah `7529`.
-Bentuk kernel generik atau dracut seperti `ip=dhcp` dan `ip=:::::eth0:dhcp` tidak didukung. Unduhan data PXE sendiri tidak memiliki bentuk DHCP di parser ini.
+Untuk boot ISO HTTP, URL tetap menentukan server HTTP. Kolom statis mengatur alamat klien, netmask, gateway default, dan entri DNS awal; kolom port opsional digunakan untuk pengunduhan file PXE dan tidak menggantikan port dalam URL ISO.
 
-MiniOS akan mengonfigurasi antarmuka non-loopback pertama yang terdeteksi tanpa membuktikan adanya link yang aktif. Pertama-tama akan meminta `PXEFILELIST` dan file MiniOS yang terdaftar melalui HTTP dari field server. TFTP hanya menjadi fallback terbatas: dipilih hanya jika permintaan HTTP awal untuk `PXEFILELIST` gagal. Ini bukan failover antarmuka umum, fallback ke media lokal, atau pemulihan dari setiap kegagalan unduhan HTTP parsial.
+`cache=<MB>` mengaktifkan cache httpfs dengan ukuran yang diminta di `/tmp`. Cache ini tidak menjamin seluruh file selesai diunduh. Sistem yang berjalan tetap bergantung pada ISO jarak jauh dan jaringan, kecuali salinan RAM berhasil memutus ketergantungan pada sumber tersebut.
 
-## Menyalin dan melepas dengan `toram=full`
+## Unduh data PXE
 
-`toram=full` penting dalam proses penemuan karena dapat menghilangkan ketergantungan berkelanjutan pada sumber yang dipilih. Setelah penemuan, MiniOS akan menyalin pohon data ke RAM lalu mencoba unmount sumber dan memindahkan salinan RAM ke tempatnya. Hanya unmount dan pemindahan yang berhasil yang akan melepaskan media lokal, ISO yang di-mount loop, atau ISO HTTP.
+Setiap `ip=`yang tidak kosong akan memilih unduhan data PXE, kecuali `from=http://...`dipilih lebih dahulu. Sintaks yang didukung adalah:
+
+```text
+ip=<client-ip>:<server-ip>:<gateway-ip>:<netmask>[:<port>]
+```
+
+Netmask menggunakan notasi IPv4 bertitik. Port HTTP bersifat opsional dan nilai bawaannya adalah `7529`.
+Format kernel generik atau dracut seperti `ip=dhcp` dan `ip=:::::eth0:dhcp` tidak didukung. Parser ini tidak menyediakan format DHCP untuk unduhan data PXE.
+
+MiniOS mengonfigurasi antarmuka non-loopback pertama yang terdeteksi, tanpa memastikan bahwa koneksinya berfungsi. Proses ini terlebih dahulu meminta `PXEFILELIST` dan file MiniOS yang tercantum melalui HTTP dari server yang disebutkan pada kolom server. TFTP hanya menjadi opsi cadangan terbatas: opsi ini dipilih hanya jika permintaan HTTP awal untuk `PXEFILELIST` gagal. Ini bukan mekanisme failover antarmuka umum, opsi cadangan media lokal, ataupun pemulihan dari setiap kegagalan unduhan HTTP parsial.
+
+## Menyalin dan melepaskan dengan `toram=full`
+
+`toram=full`penting untuk proses discovery karena langkah ini dapat menghilangkan ketergantungan berkelanjutan pada sumber yang dipilih. Setelah menemukan sumber dan pohon MiniOS eksternal, data sistem disalin ke RAM, lalu sistem mencoba melepas mount sumber dan memindahkan salinan RAM ke lokasinya. Sumber hanya terlepas jika pelepasan mount dan pemindahan berhasil; filesystem host ISO dan pemetaan Ventoy juga perlu dilepas.
 
 Batasan penting:
 
-- Tidak ada pengecekan awal apakah RAM yang tersedia cukup untuk menampung salinan.
-- Jika persistensi diminta, salinan `*` tingkat atas akan mengabaikan dotfiles.
-- Jika persistensi tidak diminta, entri `changes` sengaja diabaikan. Cabang ini akan menyalin entri tingkat atas lain, termasuk dotfiles.
-- Kegagalan menyalin, unmount, atau memindahkan dapat menyebabkan sumber asli tetap ter-mount. Jangan berasumsi bahwa menentukan `toram=full` membuat pelepasan media atau kehilangan jaringan menjadi aman; pastikan proses pelepasan benar-benar berhasil.
+- Tidak ada pemeriksaan awal untuk memastikan RAM yang tersedia cukup untuk menampung salinan.
+- Penyalinan seluruh sistem mencakup entri tersembunyi di tingkat teratas dan tidak menyertakan `changes/`baik persistensi diminta maupun tidak. Pohon MiniOS eksternal yang ditemukan akan disalin menimpa pohon sumber, termasuk modul pengganti.
+- Kontainer sesi yang didukung disalin secara terpisah dengan `perchtoram=trim|full`; `perchtoram=off`tetap bergantung pada penyimpanan. Sesi native memiliki batasan tersendiri yang dijelaskan di bagian [Mode boot](/using-minios/Boot-Modes).
+- Kesalahan penyalinan sistem akan masuk ke jalur initramfs fatal. Kegagalan melepas mount atau memindahkan sumber dapat menyebabkan sumber asli tetap ter-mount sementara boot menggunakan jalur staging RAM. Jangan berasumsi bahwa `toram=full`membuat pelepasan media atau hilangnya jaringan menjadi aman; pastikan sumber benar-benar terlepas.
 
-Lihat [Persistensi Initrd](/reference/boot-process/Persistence-Internals) sebelum menggabungkan `toram` dengan `perch` atau `perchdir`.
+Lihat [Persistensi initrd](/reference/boot-process/Persistence-Internals) sebelum menggabungkan `toram` dengan `perch` atau `perchdir`.
 
 ## Kegagalan dan diagnostik
 
-Jika semua 45 proses lokal gagal, MiniOS akan masuk ke jalur error fatal dan membuka shell initramfs, bukan memulai sistem live. Jalur jaringan tidak melakukan pencarian lokal 45 kali atau kembali ke media lokal; tergantung hasil parsial, proses ini bisa gagal pada pemeriksaan data atau pengaturan berikutnya. Keluar dari shell fatal tidak memperbaiki sumber yang hilang dan mungkin hanya membuat kegagalan berikutnya kurang jelas.
+Jika semua 45 percobaan lokal gagal, MiniOS akan masuk ke jalur kesalahan fatal dan membuka shell initramfs, alih-alih memulai sistem live. Jalur jaringan tidak melakukan pencarian lokal sebanyak 45 kali atau beralih ke media lokal; bergantung pada hasil parsial, proses dapat gagal saat pemeriksaan data atau pada tahap penyiapan berikutnya. Keluar dari shell fatal tidak akan memulihkan sumber yang hilang dan hanya dapat menyebabkan kegagalan yang kurang jelas pada tahap selanjutnya.
 
 Parameter diagnostik yang berguna:
 
-- `debug` mengaktifkan pelacakan shell, diagnostik tambahan, dan shell interaktif di beberapa checkpoint initramfs. Keluar dari shell checkpoint untuk melanjutkan.
-- `timing` mencetak waktu yang berlalu antar tahap initramfs dan total akhir.
-- `rd.break` meminta shell initramfs di dekat penyerahan ke root sebenarnya; keluar dari shell ini untuk melanjutkan booting.
+- `debug`mengaktifkan pelacakan shell, diagnostik tambahan, dan shell interaktif di beberapa checkpoint initramfs. Keluar dari shell checkpoint untuk melanjutkan.
+- `timing`menampilkan waktu yang berlalu di antara tahap initramfs serta total waktu akhir.
+- `rd.break`meminta shell initramfs menjelang peralihan ke root sebenarnya; keluar dari shell untuk melanjutkan boot.
 
-Di shell, periksa `/proc/cmdline`, `/proc/net/dev`, `blkid`, filesystem yang di-mount, dan `/var/log/livedbg`. Mulailah dengan nilai `from=`, `ip=`, dan `bext=` persis seperti yang ditampilkan di `/proc/cmdline`.
+Di shell, periksa `/proc/cmdline`, `/proc/net/dev`, `blkid`, filesystem yang ter-mount, dan `/var/log/livedbg`. Mulailah dengan nilai `from=` yang persis, `ip=`, dan `bext=` yang ditampilkan di `/proc/cmdline`.
 
 ## Dokumentasi terkait
 

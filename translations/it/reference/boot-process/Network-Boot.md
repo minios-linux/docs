@@ -2,29 +2,29 @@
 updated: 2026-08-26
 ---
 
-# Avvio da rete
+# Avvio di rete
 
-Questa pagina descrive **come caricare MiniOS tramite rete**: PXE (kernel + initrd + dati MiniOS) e HTTP ISO (`from=http://…`). Questo è l’unico scopo della rete all’interno dell’initramfs di MiniOS.
+Questa pagina descrive **come caricare MiniOS tramite la rete**: PXE (kernel + initrd + dati MiniOS) e ISO HTTP (`from=http://…`). Questo è l’unico scopo della rete nell’initramfs MiniOS.
 
-Non riguarda:
+Non si tratta di **configurare** dopo l’avvio del sistema:
 
-- Configurare NetworkManager o un IP statico permanente dopo l’avvio del sistema
-- Wi‑Fi nell’initrd
-- [live-config](/reference/configuration/live-config) (userspace tardivo)
+- Configurare NetworkManager o un IP statico permanente
+- Wi-Fi nell’initrd
+- [live-config](/reference/configuration/live-config) (spazio utente avviato in una fase successiva)
 
-La rete della sessione dopo l’avvio è separata. Per un IP statico cablato e persistente, usa il passaggio Rete dell’installer, NetworkManager o ifupdown—non il parametro PXE `ip=`.
+La configurazione di rete della sessione dopo l’avvio è un aspetto distinto. Per impostare un IP statico cablato permanente, usa la fase Rete dell’installer, NetworkManager o ifupdown: non il parametro PXE `ip=` parametro.
 
-Vedi anche: [Parametri di avvio](/reference/Boot-Parameters) (`ip`, `from`, `cache`).
+Correlati: [Parametri di avvio](/reference/Boot-Parameters) (`ip`, `from`, `cache`).
 
 ## Panoramica
 
 | Modalità | Cosa viene avviato | Come vengono ottenuti i dati MiniOS |
 |------|----------------|-----------------------------|
-| **PXE** | Kernel + initrd da un server di boot di rete | `ip=` non vuoto senza `from=http://…` → initrd scarica i file MiniOS dal server dati PXE |
-| **HTTP ISO** | Kernel + initrd da supporto locale **oppure** PXE | `from=http://…/minios.iso` → initrd attiva la rete e monta l’ISO con `httpfs2` |
-| **Supporto locale** | USB / ISO / disco | Nessuna rete in initrd; solo ricerca locale |
+| **PXE** | Kernel + initrd da un server di avvio di rete | Valore `ip=` non vuoto`from=http://…` → l’initrd scarica i file MiniOS dal server dati PXE |
+| **ISO HTTP** | Kernel + initrd da supporto locale **oppure** PXE | `from=http://…/minios.iso` → l’initrd attiva la rete e monta l’ISO con `httpfs2` |
+| **Supporto locale** | USB / ISO / disco | Nessuna rete nell’initrd; solo ricerca locale |
 
-Builder di initramfs: **LiveKit** (`livekit-mos`) o **dracut** (`dracut-mos`). Entrambi utilizzano gli stessi helper di rete LiveKit per il recupero iniziale.
+Generatori di initramfs: **LiveKit** (`livekit-mos`) oppure **dracut** (`dracut-mos`). Entrambi usano gli stessi helper di rete di LiveKit per il download iniziale.
 
 ```text
 find_data()
@@ -33,29 +33,29 @@ find_data()
   └─ else              → search local disks/ISO only (no network)
 ```
 
-`from=http://…` ha precedenza su `ip=`. In quella modalità, `ip=` fornisce l’indirizzamento statico per la connessione HTTP ISO. Altrimenti, qualsiasi `ip=` non vuoto seleziona il **percorso dati PXE** e salta i supporti locali. Non aggiungere `ip=` su un normale avvio USB/ISO solo per "impostare un indirizzo statico". Nessun percorso di rete effettua il fallback sui supporti locali in caso di errore di discovery o download.
+`from=http://…` ha la precedenza su `ip=`. In questa modalità, `ip=` fornisce l’indirizzamento statico per la connessione ISO HTTP. Altrimenti, qualsiasi valore non vuoto di `ip=` seleziona il percorso dati **PXE** e ignora il supporto locale. Non aggiungere `ip=` a un normale avvio da USB/ISO solo per «impostare un indirizzo statico». Se il rilevamento o il download non riescono, nessuno dei due percorsi di rete ripiega sul supporto locale.
 
 ## Requisiti
 
 | Requisito | Note |
 |-------------|--------|
-| Ethernet cablata (o virtio/vmxnet in VM) | Viene usata la prima interfaccia rilevata non di loopback; il collegamento e la raggiungibilità non sono verificati e non c’è selezione `BOOTIF` / `ethdevice` nell’initrd |
-| Initrd con moduli di rete | Necessario per varianti di pacchetto diverse dal valore interno `minimum` (`--network`, spesso `--cloud`) |
-| Nessuna dipendenza dal Wi‑Fi | Il wireless non è supportato nel percorso di avvio da rete |
-| Preferire NIC senza firmware blob | Le schede che richiedono firmware spesso falliscono nell’initrd |
-| Preferire immagini **Standard** o più grandi | L’edizione **Flux** non include i moduli di rete NIC, quindi PXE / HTTP ISO non sono effettivamente supportati |
-| Solo HTTP per URL ISO | `from=http://…` funziona; **`https://` non è supportato** |
+| Ethernet cablata (o virtio/vmxnet nelle VM) | Viene usata la prima interfaccia rilevata diversa dal loopback; non vengono verificati né il collegamento né la raggiungibilità e non è possibile selezionare `BOOTIF` / `ethdevice` nell’initrd |
+| Initrd con moduli di rete | Compilato per varianti del pacchetto diverse dal valore interno `minimum` (`--network`, spesso `--cloud`) |
+| Nessuna dipendenza dal Wi-Fi | Il wireless non è supportato nel percorso di avvio di rete |
+| Preferire schede di rete senza firmware proprietario | Le schede che dipendono dal firmware spesso non funzionano nell’initrd |
+| Preferire le immagini **Standard** o superiori | L’**Flux** edition non include i moduli di rete per le schede NIC, quindi PXE / ISO HTTP non è di fatto supportato |
+| Solo HTTP per l’URL dell’ISO | `from=http://…` è supportato; **`https://` non è supportato** |
 
-Strumenti presenti nell’initrd: busybox `ifconfig`, `route`, `udhcpc`, `wget`, `tftp` e `@mount.httpfs2`. NetworkManager non è presente nell’initrd.
+Strumenti nell’initrd: busybox `ifconfig`, `route`, `udhcpc`, `wget`, `tftp`, e `@mount.httpfs2`. NetworkManager non è presente nell’initrd.
 
 ## Avvio PXE
 
 ### Flusso
 
-1. Firmware / server PXE carica il **kernel** e l’**initrd** di MiniOS (pxelinux, iPXE, ecc.—al di fuori di MiniOS stesso).
-2. La riga di comando del kernel include un **`ip=`** non vuoto (e normalmente `boot=live` per un avvio MiniOS completo).
-3. L’initrd configura un indirizzo statico da `ip=`, contatta il campo **server**, scarica l’elenco dei file e poi i bundle/file MiniOS.
-4. Il sistema prosegue nel root live come di consueto.
+1. Il firmware / server PXE carica il MiniOS **kernel** e **initrd** (pxelinux, iPXE ecc.—non il MiniOS stesso).
+2. La riga di comando del kernel include un **`ip=`** non vuoto (e normalmente `boot=live` per un avvio completo di MiniOS).
+3. Initrd configura un indirizzo statico da `ip=`, contatta il campo **server**, scarica un elenco di file e poi MiniOS pacchetti/file.
+4. Il sistema prosegue normalmente con il root live.
 
 ### Parametro `ip=`
 
@@ -66,10 +66,10 @@ ip=<client-ip>:<server-ip>:<gateway-ip>:<netmask>[:<port>]
 | Campo | Ruolo |
 |-------|------|
 | client-ip | Indirizzo assegnato con busybox `ifconfig` |
-| server-ip | Host per i dati MiniOS via HTTP/TFTP; viene anche scritto come nameserver DNS nell’initrd |
-| gateway-ip | Route predefinita; viene anche scritto come nameserver DNS |
-| netmask | Netmask IPv4 puntata (non lunghezza prefisso CIDR) |
-| port | Porta HTTP opzionale per elenco file e file (default **7529**) |
+| server-ip | Host per i dati MiniOS HTTP/TFTP; viene anche scritto come server DNS in initrd |
+| gateway-ip | Route predefinita; viene anche scritto come server DNS |
+| netmask | Netmask IPv4 in formato decimale puntato (non la lunghezza del prefisso CIDR) |
+| port | Porta HTTP facoltativa per l'elenco di file e i file (predefinita **7529**) |
 
 Esempi:
 
@@ -78,25 +78,25 @@ ip=192.168.1.10:192.168.1.1:192.168.1.1:255.255.255.0
 ip=192.168.1.10:192.168.1.1:192.168.1.1:255.255.255.0:8080
 ```
 
-### Come vengono recuperati i file
+### Come vengono scaricati i file
 
-1. **HTTP** (preferito): `http://<server-ip>:<port>/PXEFILELIST?<kernel-release>:<machine>` e poi ogni percorso elencato in quel file dallo stesso host/porta.
-2. **TFTP**: busybox `tftp` viene selezionato solo se la richiesta HTTP iniziale per `PXEFILELIST` fallisce. Un successivo errore di download file via HTTP non commuta il trasferimento su TFTP.
+1. **HTTP** (preferito): `http://<server-ip>:<port>/PXEFILELIST?<kernel-release>:<machine>` quindi ogni percorso elencato in quel file dallo stesso host/porta.
+2. **TFTP**: busybox `tftp` viene selezionato solo se la richiesta HTTP iniziale per `PXEFILELIST` non va a buon fine. Un errore successivo durante il download di un file via HTTP non fa passare il trasferimento a TFTP.
 
-La porta predefinita è **7529** quando il quinto campo viene omesso.
+La porta predefinita è **7529** se il quinto campo è omesso.
 
-### Cosa NON è `ip=`
+### Cosa `ip=` non è supportato
 
 | Aspettativa | Realtà |
 |-------------|---------|
-| Formati kernel / dracut (`ip=dhcp`, `ip=:::::eth0:dhcp`, …) | **Non supportati** — interpretati erroneamente come indirizzo client |
-| IP statico per l’intera sessione live | **Non supportato** — dopo l’avvio, NetworkManager (o simili) gestisce l’interfaccia |
-| IP statico durante il caricamento dei dati MiniOS da USB/ISO | **Non usare** — senza `from=http://…`, forza il download dati PXE |
-| Elenco DNS dedicato | Solo gateway + server sono usati come nameserver nell’initrd |
+| Formati kernel / dracut (`ip=dhcp`, `ip=:::::eth0:dhcp`, …) | **Non supportato** — interpretato erroneamente come indirizzo client |
+| IP statico per l'intera sessione live | **Non supportato** — dopo l'avvio, NetworkManager (o un componente simile) gestisce l'interfaccia |
+| IP statico durante il caricamento dei dati MiniOS da USB/ISO | **Non usare** — senza `from=http://…`, forza il download dei dati PXE |
+| Elenco DNS dedicato | In initrd vengono usati come server DNS solo gateway e server |
 
 ## Avvio HTTP ISO (`from=http://…`)
 
-Carica i dati MiniOS da una ISO remota senza un elenco file PXE completo:
+Carica i dati di MiniOS da un ISO remoto senza un elenco completo di file PXE:
 
 ```text
 from=http://192.168.1.1/path/minios.iso
@@ -104,62 +104,62 @@ from=http://192.168.1.1/path/minios.iso
 
 Comportamento:
 
-1. L’initrd attiva la rete:
+1. Initrd attiva la rete:
    - Se **`ip=`** è impostato → configurazione statica come sopra
    - Se **`ip=`** è omesso → **DHCP** tramite busybox `udhcpc`
-2. Monta la ISO remota con **`httpfs2`**
-3. Continua la ricerca dei contenuti MiniOS su quel mount
+2. Monta l'ISO remoto con **`httpfs2`**
+3. Continua a cercare i contenuti di MiniOS su quel mount
 
-L’opzionale **`cache=`** (megabyte) abilita una cache di download httpfs, ad esempio `cache=512`.
+Opzionale **`cache=`** (megabyte) abilita una cache di download httpfs, ad esempio `cache=512`.
 
-Solo **`http://`** è accettato per questo percorso ISO remoto. **`https://` non è supportato.**
+Per questo percorso ISO remoto è accettato solo **`http://`**. **`https://` non è supportato.**
 
-## Dopo l’avvio del sistema live
+## Dopo l'avvio del sistema live
 
-| Voce | Dopo switch_root |
+| Elemento | Dopo switch\_root |
 |------|-------------------|
-| IP/kernel/route sulla NIC | Possono rimanere finché l’userspace non riconfigura l’interfaccia |
-| DNS initrd (`resolv.conf`) | Non è una policy di sessione permanente |
-| Rete di sessione | Tipicamente **NetworkManager** sulle immagini MiniOS predefinite |
+| IP/route del kernel sulla NIC | Possono rimanere attivi finché lo userspace non riconfigura l'interfaccia |
+| DNS di Initrd (`resolv.conf`) | Non è una configurazione di sessione persistente |
+| Rete della sessione | In genere **NetworkManager** sulle immagini MiniOS predefinite |
 | Significato di `ip=` | Solo per il recupero iniziale — non è un profilo statico memorizzato |
 
-Se la root è ancora fornita tramite **httpfs**, la riconfigurazione della NIC da parte di NetworkManager può interrompere la root live. Pianifica i deployment di avvio da rete tenendo conto di ciò (es. copia in RAM / evita di modificare l’interfaccia di recupero quando possibile).
+Se il root è ancora fornito da **httpfs**, la riconfigurazione della NIC da parte di NetworkManager può interrompere il root live. Tienine conto quando pianifichi le distribuzioni con avvio di rete (ad es. copia su RAM / evita, quando possibile, di sovrascrivere l'interfaccia usata per il recupero).
 
-L’userspace tardivo **live-config** può attivare temporaneamente la rete solo per scaricare hook/preseed remoti (`Setup_network`). Questo non è collegato all’indirizzamento persistente PXE/`ip=`.
+Lo userspace avviato in un secondo momento, **live-config**, potrebbe attivare brevemente la rete solo per scaricare hook/preseed remoti (`Setup_network`). Questo non è correlato al PXE/indirizzamento`ip=` persistente.
 
 ## Errori comuni
 
-1. Inserire `ip=` nella riga di comando USB/ISO "per IP statico" → il sistema tenta il download PXE invece del supporto locale a meno che `from=http://…` non selezioni prima l’avvio HTTP ISO.
-2. Usare `ip=dhcp` o altra sintassi kernel `ip=` → parser errato, configurazione indirizzo non riuscita.
-3. Aspettarsi selezione Wi‑Fi o multi-NIC `BOOTIF` nell’initrd → non implementato.
-4. Usare un’immagine **Flux** per PXE/HTTP ISO → moduli di rete mancanti nell’initrd.
-5. Servire la ISO solo tramite HTTPS → `from=http://…` non corrisponderà.
-6. Confondere questa funzione con la configurazione statica dell’installer/NetworkManager dopo il login.
+1. Aggiungere `ip=` alla riga di comando di USB/ISO "per un IP statico" → il sistema tenta il download PXE invece di usare il supporto locale, a meno che `from=http://…` non abbia selezionato prima l'avvio HTTP ISO.
+2. Usare `ip=dhcp` o altra sintassi del kernel `ip=` → parser errato, configurazione degli indirizzi non valida.
+3. Aspettarsi la selezione di Wi‑Fi o di più NIC `BOOTIF` in initrd → non implementata.
+4. Usare un'immagine **Flux** per PXE/HTTP ISO → mancano i moduli di rete in initrd.
+5. Servire l'ISO solo tramite HTTPS → `from=http://…` non corrisponderà.
+6. Confondere questa configurazione con la configurazione statica dell'installer/di NetworkManager dopo l'accesso.
 
-## Riepilogo affidabilità
+## Riepilogo dell'affidabilità
 
 | Scenario | Valutazione |
 |----------|------------|
-| PXE + `ip=…` + elenco HTTP su :7529 (o TFTP dopo il fallimento della richiesta elenco HTTP), semplice cablato / virtio | Target supportato |
-| `from=http://…iso` + DHCP (o `ip=`), stessa classe NIC | Di solito funziona |
-| Avvio normale USB/ISO | Rete initrd non utilizzata |
-| Statico in sessione tramite `ip=` | Non supportato |
-| Multi-NIC / NIC con firmware / Wi‑Fi / `https://` / edizione Flux | Debole o non supportato |
+| PXE + `ip=…` + elenco HTTP sulla porta 7529 (o TFTP se la richiesta dell'elenco HTTP non riesce), rete cablata semplice / virtio | Configurazione supportata |
+| `from=http://…iso` + DHCP (o `ip=`), stessa classe di NIC | Di solito funziona |
+| Avvio normale da USB/ISO | La rete di Initrd non viene usata |
+| Sessione con IP statico tramite `ip=` | Non supportato |
+| Più NIC / NIC firmware / Wi‑Fi / `https://` / edizione Flux | Inaffidabile o non supportato |
 
-## Riferimenti implementativi
+## Riferimento all’implementazione
 
 | Componente | Posizione nell’albero MiniOS |
 |-------|-----------------------------|
-| Init entry | `linux-live/initramfs/livekit-mos/init` |
-| Network + PXE + HTTP ISO | `linux-live/initramfs/livekit-mos/lib/livekitlib` (`init_network_ip`, `download_data_pxe`, `mount_data_http`, `find_data`) |
-| Builder LiveKit (`--network`) | `linux-live/initramfs/livekit-mos/mkinitrfs` |
+| Voce init | `linux-live/initramfs/livekit-mos/init` |
+| Rete + PXE + ISO HTTP | `linux-live/initramfs/livekit-mos/lib/livekitlib` (`init_network_ip`, `download_data_pxe`, `mount_data_http`, `find_data`) |
+| Generatore LiveKit (`--network`) | `linux-live/initramfs/livekit-mos/mkinitrfs` |
 | Modulo Dracut MiniOS | `linux-live/initramfs/dracut-mos/90minios/` |
-| Quando viene passato `-n` | `linux-live/build-initramfs` (non-minimum) |
+| Quando `-n` è passato | `linux-live/build-initramfs` (non minimo) |
 
 ## Vedi anche
 
 - [Parametri di avvio](/reference/Boot-Parameters) — tabella completa dei parametri (`ip`, `from`, `cache`, …)
-- [Rilevamento sistema initrd](/reference/boot-process/System-Discovery) — precedenza delle fonti, rilevamento locale e comportamento in caso di errore
-- [live-config](/reference/configuration/live-config) — configurazione userspace tardiva (non avvio da rete)
-- [Architettura di sistema](/reference/System-Architecture)
-- [Costruire MiniOS](/development/Building-MiniOS) — builder initramfs (`livekit` / `dracut`)
+- [Rilevamento del sistema initrd](/reference/boot-process/System-Discovery) — priorità delle origini, rilevamento locale e comportamento in caso di errore
+- [live-config](/reference/configuration/live-config) — configurazione tardiva dello userspace (non avvio da rete)
+- [Architettura del sistema](/reference/System-Architecture)
+- [Compilazione di MiniOS](/development/Building-MiniOS) — generatore di initramfs (`livekit` / `dracut`)

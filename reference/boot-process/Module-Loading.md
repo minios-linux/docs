@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-28
+updated: 2026-10-15
 ---
 # Module loading
 
@@ -25,20 +25,22 @@ The `load=` and `noload=` parameters filter module paths before assembly. They u
 
 Before changing filters, record the current command line and module set. Test one change at a time and keep a known-working boot entry available.
 
+<a id="candidate-tiers"></a>
+
 ## Candidate tiers
 
-After locating the MiniOS data directory, normally `minios/`, the initrd scans module candidates in this order:
+After locating the MiniOS data directory, normally `minios/`, the initrd discovers an optional external MiniOS tree before RAM copying or session activation. A same-drive persistence partition or writable Ventoy data layout can supply that tree even on a boot without a saved session. The selected Ventoy Persistence Plugin backend is a separate model and does not provide this external-module tree.
 
-1. Entries immediately inside `minios/`. This scan is not recursive.
-2. Entries recursively below `minios/modules/`.
-3. Entries recursively below `minios/modules/` on the writable persistence source recorded by the initrd.
+Candidates form two groups:
 
-The third tier is separate from the `minios/modules/` directory in the selected read-only data tree. It permits durable user modules to override files from an ISO or other read-only source. It is available only when persistence discovery has published a writable root containing that directory.
+1. Top-level module names from the selected data tree and the external `minios/` tree, sorted and deduplicated by relative name.
+2. Files and symbolic links recursively below `modules/` in both trees, sorted and deduplicated by relative path.
 
-Candidate paths are flattened to their exact basename when mounted. For example, `modules/work/50-extra.sb` and `modules/test/50-extra.sb` both use the mountpoint named `50-extra.sb`. They do not become two independently addressable layers. A candidate in a later tier with the same basename is mounted on the same mountpoint and replaces the earlier candidate visible to union assembly.
-The same basename should therefore be treated as one replacement slot, not as a way to load multiple modules from different directories.
+For the same relative path, an external regular file takes precedence over the ISO or other selected source. This applies to replacement system modules as well as additional modules. Filters apply to the merged relative paths before mounting or trimmed RAM copying. The persistence partition root remains separate from its numbered-session store.
 
-The normal module format is a regular SquashFS filesystem image. The initrd scan itself is filename-driven: it selects paths ending in the configured extension and does not first prove that each path is a regular file or valid SquashFS. Recursive scans can therefore encounter another kind of filesystem object with a matching name. A failed loop or SquashFS mount is reported by `mount`, but the candidate loop does not make that failure fatal by itself and boot may continue with a missing layer. Validate questionable files with the workflow in [Inspect and extract modules](/preparing-and-customizing/Managing-Modules#inspect-and-extract-modules).
+Mountpoints are still flattened to exact basenames. For example, `modules/work/50-extra.sb` and `modules/test/50-extra.sb` both address `50-extra.sb`; they are not independent union layers. Use distinct basenames unless an exact-path replacement is intended. Do not rely on duplicate basenames in different directories as a replacement mechanism.
+
+The normal module format is a SquashFS filesystem image. A matching filename does not validate its contents. Recursive scans consider files and symbolic links, while the top-level scan remains filename-driven. Failure to bind an external replacement or mount a selected module now enters the fatal initramfs path rather than silently omitting that layer. Validate questionable files with [Inspect and extract modules](/preparing-and-customizing/Managing-Modules#inspect-and-extract-modules).
 
 ## Ordering and precedence
 
@@ -47,7 +49,7 @@ Use explicit, distinct numeric prefixes rather than relying on tie ordering.
 
 The final union gives later, higher-numbered modules precedence over earlier, lower-numbered modules. If two selected modules contain the same root-relative path, the file from the higher-priority module is visible. The writable changes layer has precedence over all read-only modules.
 
-Tier replacement happens before this effective module ordering. A later-tier `50-extra.sb` replaces an earlier-tier file with that exact basename, then its `50` prefix determines where that surviving mount belongs in the union.
+External replacement by relative path happens before this effective module ordering. A replacement `modules/50-extra.sb` occupies the same selected slot as the source file, and its `50` prefix determines its union priority.
 
 ## Bundle extension
 
@@ -62,7 +64,7 @@ Changing `bext` changes the selected filename suffix; it does not convert a file
 ## Load and noload filters
 
 `load=` and `noload=` are unanchored extended regular expressions applied to the candidate path strings produced by each tier. They are not exact-name lists. A simple value such as `kernel` matches that text anywhere in a path, while anchors must be supplied explicitly when an exact position is required.
-Paths differ by tier: top-level candidates are basenames, recursive data candidates include `modules/`, and persistence candidates are absolute paths.
+Top-level candidates are basenames and recursive candidates include `modules/`. External candidates use the same relative-path form, not absolute persistence mount paths.
 
 Commas are converted to regular-expression alternation. For example:
 
@@ -94,7 +96,9 @@ minios/kernels/VERSION/
 
 When the repository triplet is complete, it copies the module to `minios/` and the boot files to `minios/boot/`. A partial copy is cleaned up. If the triplet is not complete, kernel setup returns a failure, but the caller continues to the normal module-mount stage. The resulting system can still fail later because the root filesystem lacks the support files for the running kernel.
 
-Other top-level files matching `01-kernel-*.sb` are treated as inactive. The initrd attempts to move each inactive module and its matching `vmlinuz` and `initrfs` files into `minios/kernels/VERSION/`. These repository fallback and relocation operations require a writable data tree; individual relocation failures are not fatal. They always use `.sb`, regardless of `bext=`. See [Kernel management](/preparing-and-customizing/Managing-Kernels) for supported kernel installation and activation workflows.
+Other top-level files matching `01-kernel-*.sb` are treated as inactive. The initrd attempts to move each inactive module and its matching `vmlinuz` and `initrfs` files into `minios/kernels/VERSION/`. These repository fallback and relocation operations require a writable data tree; individual relocation failures are not fatal. They always use `.sb`, regardless of `bext=`. The merged candidate scan additionally excludes `01-kernel-*` modules that do not match the running kernel, including external candidates. See [Kernel management](/preparing-and-customizing/Managing-Kernels) for supported kernel installation and activation workflows.
+
+<a id="union-construction"></a>
 
 ## Union construction
 
@@ -108,18 +112,17 @@ This boot-time composition is distinct from runtime activation. After startup, `
 
 ## Toram trim
 
-`toram=trim` creates a RAM data tree before persistence and kernel coordination.
-It copies exactly these items from the selected MiniOS data tree:
+`toram=trim` creates a RAM system-data tree after external-module discovery and before session activation and kernel coordination. It copies:
 
 - `config.conf`, which is required by this copy path.
 - `authorized_keys` when it exists as a regular file.
-- Top-level extension-matching candidates selected by `load=` and `noload=`.
+- Top-level extension-matching candidates selected by `load=`, `noload=`, and the running-kernel filter.
 - Selected extension-matching candidates recursively below `modules/`, with their relative directories preserved.
-- The complete `changes/` tree when the command line requests persistence.
+- External replacements and additions selected by the same rules, copied into their corresponding relative paths.
 
-It does not copy `boot/`, `kernels/`, `rootcopy/`, `config.conf.d/`, logs, other nonmodule data, unselected modules, or the separate writable-persistence module tier. In particular, repository fallback cannot use a `kernels/` directory that was omitted from the trimmed RAM tree. The copied module set is filtered before the persistence module tier is discovered.
+It creates an empty `changes/` directory; session copying is handled separately by `perchtoram`. It does not copy `boot/`, `kernels/`, `rootcopy/`, `config.conf.d/`, logs, other nonmodule data, or unselected modules. In particular, repository fallback cannot use a `kernels/` directory omitted from the trimmed RAM tree. External modules are already included, so RAM boot does not reopen their original files after copying.
 
-There is no RAM-capacity preflight. A failure to copy `config.conf` or requested `changes/` exits the copy function's execution context, but its callers do not reliably convert that status into a clean boot stop. A failure to copy `authorized_keys` is reported but does not stop the copy. Selected modules are copied through a pipeline; an individual module-copy failure is reported, but its status is not reliably propagated to stop the outer boot path. There is no transactional rollback of a partly populated RAM tree.
+System copying has no RAM-capacity preflight. A failure to copy `config.conf` or a selected module propagates to the init entry and enters its fatal path. A failure to copy optional `authorized_keys` is reported without aborting. There is no transactional rollback of a partly populated system-data tree. Session copying has its own memory preflight and falls back to the original on-storage session if the copy cannot be prepared; see [Persistence internals](/reference/boot-process/Persistence-Internals).
 
 After copying, the initrd tries to unmount the source mount, remove its old data path, and move the RAM tree into that path. Only success of that complete chain marks the source detached. If the chain fails, boot continues using the RAM staging path instead. Related ISO and Ventoy detach operations are best effort.
 Consequently, `toram=trim` is not proof that the boot device is removable. Do not unplug it unless diagnostics confirm that its filesystem, loop device, and device-mapper mappings are no longer mounted or in use.

@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-31
+updated: 2026-10-15
 ---
 # Installation methods
 
@@ -51,6 +51,6 @@ From the live session, start [MiniOS Installer](/installing-minios/MiniOS-Instal
 The defining MiniOS architecture is the modular live system described in [About MiniOS](/getting-started/About-MiniOS). Native mode keeps the familiar MiniOS desktop experience, including its visual identity, desktop environment, and ordinary applications, but converts the system to a conventional Debian installation. MiniOS-specific tools for sessions, modules, modular kernels, and other live workflows are removed because those features no longer apply. Choose a live installation if you want the complete MiniOS feature set.
 :::
 
-Live persistence is prepared during early boot; the detailed behavior is in [Initrd persistence](/reference/boot-process/Persistence-Internals). It does not apply after native conversion.
+Live persistence can be pre-created on the target by MiniOS Installer or prepared during early boot. The detailed behavior is in [Initrd persistence](/reference/boot-process/Persistence-Internals). It does not apply after native conversion.
 
-The installer supports automatic BIOS/MBR, UEFI/MBR, and UEFI/GPT layouts. BIOS on GPT is not supported by the current installer. See [Using MiniOS Installer](/installing-minios/MiniOS-Installer) for placement, filesystem, persistence, and partitioning limits.
+The installer supports BIOS/MBR, UEFI/MBR, and UEFI/GPT layouts. Automatic whole-disk Live installation uses MBR with BIOS and UEFI boot support; disks of 2 TiB or larger require an explicit UEFI/GPT choice. BIOS on GPT is not supported. Native and existing-table workflows have separate policies. See [Using MiniOS Installer](/installing-minios/MiniOS-Installer) for placement, filesystem, persistence, and partitioning limits.

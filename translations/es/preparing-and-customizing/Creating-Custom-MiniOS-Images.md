@@ -1,8 +1,8 @@
 ---
-updated: 2026-10-06
+updated: 2026-10-15
 program_commits:
-    minios-image-builder: bf84d50bfe9461f4e9300033c5855ec8fa387552
-    minios-tools: be508248395979c27cb8036a7d8cc69bdfc82c42
+    minios-image-builder: 8592ec061393e48e6bdfbd43d5b4365a94c73a67
+    minios-tools: bc6de2e7649ef7629fe6491b906de2290e394fd0
 ---
 
 # Creación de imágenes personalizadas MiniOS
@@ -23,15 +23,15 @@ La capa del sistema de archivos del proyecto es para archivos declarativos en la
 
 ## Opciones de origen
 
-La página Origen acepta:
+La página de Origen acepta:
 
 - La sesión actual de LiveKit o dracut MiniOS.
-- Un archivo ISO MiniOS.
-- Un disco óptico MiniOS.
+- Un archivo ISO de MiniOS.
+- Un disco óptico de MiniOS.
 
-Las fuentes ISO y de disco óptico se montan en modo solo lectura con `udisksctl`. El inventario de origen registra la versión, arquitectura, soporte de cargador de arranque, tamaño, inventario de módulos y una huella digital de la fuente. Si el origen cambia después de la planificación, la compilación se bloquea en lugar de continuar con una entrada diferente.
+Las fuentes ISO y de disco óptico se montan en modo solo lectura con `udisksctl`. El inventario de origen registra la edición, versión, arquitectura, compatibilidad con el gestor de arranque, tamaño, inventario de módulos y una huella digital de la fuente. Si una fuente cambia después de la planificación, la compilación se bloquea en lugar de continuar con una entrada diferente.
 
-La captura de sesión siempre describe los cambios en la sesión MiniOS actualmente en ejecución. Cuando se selecciona un ISO o disco óptico, la captura solo está disponible si la huella digital del módulo base de esa fuente coincide con la base montada de la sesión en ejecución. Seleccionar medios externos no captura los cambios realizados en otro sistema.
+En el generador gráfico, la captura de sesión solo está disponible con la **sesión en ejecución de MiniOS** como origen, incluyendo todos los módulos de origen y cada módulo externo activo. No está disponible para un ISO o disco óptico seleccionado por separado, aunque contenga la misma edición. No deselecciones capas de origen al capturar la sesión editable, ya que sus cambios dependen de esa base completa en ejecución.
 
 ## Requisitos
 
@@ -97,23 +97,23 @@ El inventario contiene metadatos, incluidos nombres de archivo, y por tanto es s
 
 Iniciar otro análisis, actualizar o cambiar la fuente, cancelar o fallar, y abrir o crear un proyecto borran el inventario en tiempo de ejecución. El análisis y la captura pueden solicitar autorización de administrador, pero el proceso de Constructor de imágenes MiniOS y la composición del ISO no se ejecutan con privilegios elevados.
 
-## Personalización de la imagen
+## Personalización de imagen
 
-Los ajustes soportados están restringidos y validados por el backend:
+La configuración admitida está limitada y validada por el backend:
 
-- **Valores predeterminados del sistema:** nombre de host, zona horaria, objetivo systemd predeterminado y servicios habilitados o deshabilitados.
-- **Seguridad y acceso:** modos permitidos de sudo, PolicyKit, SSH, XRDP, X11, bloqueo de pantalla y sugerencias de inicio de sesión.
-- **Datos de usuario:** directorios de usuario validados relativos a root con comportamiento de enlace o unión, pero no ambos.
+- **Valores predeterminados del sistema:** nombre de host, zona horaria, destino predeterminado de systemd y servicios habilitados o deshabilitados.
+- **Seguridad y acceso:** modos permitidos de sudo, PolicyKit, SSH, XRDP, X11, bloqueo de pantalla y sugerencia de incidencia.
+- **Datos de usuario:** directorios de usuario validados relativos a la raíz con comportamiento de enlace o bind, pero no ambos.
 - **Comportamiento de arranque:** un tiempo de espera de 0 a 300 segundos, el menú de origen o uno construido, y una entrada predeterminada seleccionada.
-- **Entradas de arranque:** las plantillas resume, new, choose, fresh y copy-to-RAM pueden ocultarse, reordenarse, duplicarse y configurarse mediante controles tipados de persistencia, módulo, inicio, localización, zRAM y diagnóstico. Las plantillas de nueva sesión actuales usan `perchdir=setup` para que el backend de persistencia pueda seleccionarse al inicio; si una fuente antigua ya usa `perchdir=new`, ese selector heredado se conserva en vez de sobrescribirse en silencio.
-- **Comportamiento RAM:** copia de sistema (`toram`) y copia de sesión persistente (`perchtoram`) son controles independientes. `perchtoram=off` mantiene la persistencia en el almacenamiento, `trim` copia la sesión soportada seleccionada y `full` solicita una copia completa de la sesión soportada. Cuando la persistencia está habilitada, los menús actuales usan `trim` con un arranque del sistema RAM y `off` en caso contrario, salvo que elijas otro valor. Las sesiones de directorio nativo no se copian mediante `perchtoram`.
-- **Ajustes avanzados de arranque:** argumentos de kernel globales y por entrada validados para opciones no representadas por controles tipados.
+- **Entradas de arranque:** las plantillas resume, new, choose, fresh y copy-to-RAM se pueden ocultar, reordenar, duplicar y configurar mediante controles de persistencia tipada, módulo, inicio, localización, zRAM y diagnóstico. Las plantillas de nueva sesión actuales utilizan `perchdir=setup` para que el backend de persistencia pueda seleccionarse al iniciar; cuando una fuente anterior ya utiliza `perchdir=new`, ese selector heredado se conserva en lugar de sobrescribirse sin aviso.
+- **Comportamiento de RAM:** copia del sistema (`toram`) y copia de sesión de persistencia (`perchtoram`) son controles independientes. `perchtoram=off` mantiene la persistencia en el almacenamiento, `trim` copia la sesión compatible seleccionada, y `full` solicita una copia completa de la sesión compatible. Si se solicita persistencia, un arranque de sistema RAM predetermina a `trim` salvo que se elija otro valor. Los datos nativos de directorio no se copian: normalmente el initrd inicia un contenedor vacío nuevo para esa solicitud. Utilice `perchtoram=off` para conservar los datos nativos en el almacenamiento.
+- **Configuración avanzada de arranque:** argumentos de kernel validados globalmente y por entrada para opciones no representadas por controles tipados.
 - **Apariencia:** un fondo de arranque PNG validado.
-- **Capa de sistema de archivos del proyecto:** un directorio real interpretado en relación a la raíz de la imagen y empaquetado como un módulo overlay SquashFS propiedad de root.
+- **Capa de sistema de archivos del proyecto:** un directorio real interpretado relativo a la raíz de la imagen y empaquetado como un módulo overlay SquashFS propiedad de root.
 
-La capa de sistema de archivos admite archivos regulares, enlaces simbólicos relativos seguros, directorios vacíos, bits de ejecución y marcas de tiempo. Se rechazan nodos de dispositivo, sockets, FIFOs, cruces de sistemas de archivos, enlaces absolutos o que escapen y nombres inseguros. Los bits de privilegio se eliminan y la propiedad en el módulo generado se normaliza.
+La capa de sistema de archivos admite archivos regulares, enlaces simbólicos relativos seguros, directorios vacíos, bits de ejecución y marcas de tiempo. Se rechazan nodos de dispositivo, sockets, FIFOs, cruces de sistemas de archivos, enlaces absolutos o que escapen, y nombres inseguros. Los bits de privilegio se eliminan y la propiedad en el módulo generado se normaliza.
 
-La personalización de arranque admite GRUB MiniOS reconocidos, SYSLINUX nativo y la cadena estándar de SYSLINUX a GRUB. La configuración de arranque no soportada o ambigua se rechaza en vez de adivinar. Una compilación sin personalización de arranque puede conservar una estructura de origen que el analizador de personalización no entiende.
+La personalización de arranque admite MiniOS GRUB reconocidos, SYSLINUX nativo y la cadena estándar de SYSLINUX a GRUB. Se rechaza la configuración de arranque no admitida o ambigua en lugar de intentar adivinarla. Una compilación sin personalización de arranque puede conservar una estructura de origen que el analizador de personalización no reconoce.
 
 ## Verificación de salida
 
@@ -151,9 +151,11 @@ Una compilación cancelada o fallida no publica su ISO privado. Cualquier destin
 
 ## Documentación relacionada
 
-- [Compilación de MiniOS](/development/Building-MiniOS)
-- [Creación de módulos](/preparing-and-customizing/Managing-Modules#creating-modules)
-- [Composición de imágenes ISO desde la línea de comandos](/preparing-and-customizing/Creating-Custom-MiniOS-Images#composing-minios-iso-images-from-the-command-line)
+- [Compilando MiniOS](/development/Building-MiniOS)
+- [Creando módulos](/preparing-and-customizing/Managing-Modules#creating-modules)
+- [Generar imágenes ISO desde la línea de comandos](/preparing-and-customizing/Creating-Custom-MiniOS-Images#composing-minios-iso-images-from-the-command-line)
+
+<a id="composing-minios-iso-images-from-the-command-line"></a>
 
 ## Composición de imágenes ISO MiniOS desde la línea de comandos
 

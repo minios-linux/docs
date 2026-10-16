@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-31
+updated: 2026-10-15
 ---
 
 # Métodos de instalación
@@ -40,17 +40,17 @@ La configuración del firmware varía según el equipo. Una imagen de MiniOS pue
 
 Utiliza [Modos de arranque](/using-minios/Boot-Modes) como la guía principal sobre el comportamiento del arranque en vivo. Si el arranque temprano no puede encontrar la imagen o sus módulos, consulta [Descubrimiento del sistema Initrd](/reference/boot-process/System-Discovery).
 
-## Elige una disposición instalada
+## Elige una distribución instalada
 
-Desde la sesión live, inicia el [Instalador de MiniOS](/installing-minios/MiniOS-Installer) cuando quieras el sistema en otra unidad USB, SSD o disco duro.
+Desde la sesión en vivo, inicia [Instalador de MiniOS](/installing-minios/MiniOS-Installer) cuando quieras el sistema en otra unidad USB, SSD o disco duro.
 
-- **Modo Live** preserva la pila de módulos comprimidos, la disposición de arranque MiniOS, las herramientas de gestión MiniOS y la persistencia de sesión opcional. Elige esta opción si quieres MiniOS en el disco de destino.
-- **Modo nativo** expande la imagen seleccionada en un escritorio Debian convencional y escribible. El destino mantiene el entorno de escritorio, la identidad visual y las aplicaciones habituales de la edición seleccionada, mientras que el entorno live MiniOS y el software de gestión específico de live se eliminan. El sistema instalado utiliza un initramfs, gestor de arranque, paquetes de kernel y flujo de trabajo de gestión de paquetes convencionales de Debian.
+- **Modo en vivo** conserva la pila de módulos comprimidos, el diseño de arranque MiniOS, las herramientas de gestión MiniOS y la persistencia de sesión opcional. Elige esta opción si deseas MiniOS en el disco de destino.
+- **Modo nativo** expande la imagen seleccionada en un escritorio Debian convencional y editable. El destino mantiene el entorno de escritorio, la identidad visual y las aplicaciones habituales de la edición seleccionada, mientras que el entorno en vivo MiniOS y el software de gestión específico de live se eliminan. El sistema instalado utiliza un initramfs, gestor de arranque, paquetes del kernel y flujo de trabajo de gestión de paquetes convencionales de Debian.
 
 ::: warning La instalación nativa utiliza un modelo de sistema diferente
-La arquitectura definitoria de MiniOS es el sistema modular live descrito en [Acerca de MiniOS](/getting-started/About-MiniOS). El modo nativo mantiene la experiencia de escritorio familiar de MiniOS, incluyendo su identidad visual, entorno de escritorio y aplicaciones habituales, pero convierte el sistema en una instalación Debian convencional. Las herramientas específicas de MiniOS para sesiones, módulos, kernels modulares y otros flujos de trabajo live se eliminan porque esas funciones ya no aplican. Elige una instalación live si deseas el conjunto completo de características de MiniOS.
+La arquitectura definitoria de MiniOS es el sistema en vivo modular descrito en [Acerca de MiniOS](/getting-started/About-MiniOS). El modo nativo mantiene la experiencia de escritorio familiar de MiniOS, incluyendo su identidad visual, entorno de escritorio y aplicaciones habituales, pero convierte el sistema en una instalación Debian convencional. Las herramientas específicas de MiniOS para sesiones, módulos, kernels modulares y otros flujos de trabajo en vivo se eliminan porque esas funciones ya no aplican. Elige una instalación en vivo si deseas el conjunto completo de funciones de MiniOS.
 :::
 
-La persistencia live se prepara durante el arranque inicial; el comportamiento detallado se describe en [Persistencia de Initrd](/reference/boot-process/Persistence-Internals). No aplica después de la conversión nativa.
+La persistencia en vivo puede pre-crearse en el destino mediante el Instalador de MiniOS o prepararse durante el arranque inicial. El comportamiento detallado se encuentra en [Persistencia initrd](/reference/boot-process/Persistence-Internals). No aplica después de la conversión nativa.
 
-El instalador admite disposiciones automáticas BIOS/MBR, UEFI/MBR y UEFI/GPT. BIOS sobre GPT no es compatible con el instalador actual. Consulta [Uso del Instalador de MiniOS](/installing-minios/MiniOS-Installer) para información sobre ubicación, sistema de archivos, persistencia y límites de particionamiento.
+El instalador es compatible con diseños BIOS/MBR, UEFI/MBR y UEFI/GPT. La instalación automática en vivo de disco completo utiliza MBR con soporte de arranque BIOS y UEFI; los discos de 2 TiB o más requieren una elección explícita de UEFI/GPT. BIOS sobre GPT no está soportado. Los flujos de trabajo nativos y con tabla existente tienen políticas separadas. Consulta [Uso del Instalador de MiniOS](/installing-minios/MiniOS-Installer) para límites de ubicación, sistema de archivos, persistencia y particionado.

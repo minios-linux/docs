@@ -1,7 +1,7 @@
 ---
-updated: 2026-10-06
+updated: 2026-10-15
 program_commits:
-    minios-configurator: 4d82e44c6ee6f04909e9dd3ef8e31389d3ac8817
+    minios-configurator: 7705e764f152d2d2ae2268ce3ddde7e0adbad8bc
 ---
 
 # Vorkonfiguration von MiniOS
@@ -46,13 +46,13 @@ Die ausgewählte Datei bleibt das Speicherziel. Unbekannte Kernel-Parameter werd
 
 Jede Steuerung gibt an, wann sie verwendet wird. Speichern wendet eine Einstellung nie auf die aktuelle Sitzung an.
 
-### Nach Neustart angewendet
+### Wirksam nach Neustart
 
-Hostname, Sprache, Zeitzone, Tastatur, Boot-Ziel, Dienstauswahl, Modulmodus, Medienverwaltung für Benutzerverzeichnisse, Debug-Einstellungen, Log-Export und die drei erweiterten Speicheroptionen werden beim nächsten Systemstart gelesen. Starten Sie nach dem Speichern neu, um sie zu übernehmen.
+Hostname, Spracheinstellung, Zeitzone, Tastatur, Boot-Ziel, Dienstauswahl, Modus für Module, Medienverwaltung im Benutzerverzeichnis, Debug-Einstellungen, Log-Export und die drei erweiterten Speicheroptionen werden beim nächsten Start eingelesen. Starten Sie nach dem Speichern neu, um diese Einstellungen zu übernehmen.
 
-In **Erweitert**, **Modulmodus** akzeptiert `simple` oder `merged`. Ist `LIVE_MODULE_MODE` in der ausgewählten Konfiguration nicht vorhanden, zeigt der aktuelle MiniOS-Konfigurator `merged` als effektiven Standard an. Im Merged-Modus aktualisiert live-config Benutzer, Caches und Paketstatus, sodass die Konfiguration aus dem Modul-Stack in das laufende Live-System integriert wird.
+Im **Erweitert**, **Modus für Module** werden `simple` oder `merged` akzeptiert. Wenn `LIVE_MODULE_MODE` in der gewählten Konfiguration fehlt, zeigt der aktuelle MiniOS-Konfigurator `merged` als wirksamen Standard an. Im Merged-Modus aktualisiert live-config Benutzer, Caches und Paketstatus, sodass die Konfiguration aus dem Modul-Stack in das laufende Live-System integriert wird.
 
-In **Erweitert**, **System-Log-Speicher**, **APT-Download-Cache**, und **Browser-Cache** bieten jeweils `persistent` (Standard) oder `volatile`. Ihre `volatile`-Auswahl gilt nur für eine gesunde, dauerhafte `perch`-Sitzung. Logs von `minios-boot` und `live-config` bleiben persistent, auch wenn normale Logs temporär sind. APT-Paketstatus und Browser-Profile bleiben persistent; nur die ausgewählten Logs und Caches werden in den begrenzten RAM verschoben. Die Browser-Einrichtung erfolgt, nachdem der Live-Benutzer erstellt wurde. Der Konfigurator warnt, wenn das laufende initrd die `perch-storage-v1`-Markierung für diese Einstellungen fehlt. Siehe [Leistung](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch) bevor Sie RAM-Größen für ein System mit wenig Arbeitsspeicher wählen.
+Im **Erweitert**, **Systemprotokoll-Speicher**, **APT-Download-Cache**, und **Browser-Cache** bieten jeweils `persistent` (Standard) oder `volatile`. Sie werden nach erfolgreicher Aktivierung der Persistenz angewendet, einschließlich einer beschreibbaren RAM-kopierten Sitzung mit geschützter Ursprungsinformation. Bei dauerhafter Persistenz bleiben MiniOS-Bootdiagnose, APT-Paketstatus und Browser-Profile auf dem Speicher erhalten; nur ausgewählte Protokolle und Caches werden auf begrenzte RAM verschoben. Bei einer RAM-kopierten Sitzung muss der erhaltene Zustand dennoch erfolgreich gespeichert werden. Für APT- und Browser-RAM-Caches sind mindestens 1 GiB verfügbarer Speicher und kein nicht-zRAM-Swap erforderlich. Die Browser-Einrichtung erfolgt nach der Benutzererstellung. Der Konfigurator warnt, wenn das initrd die erforderliche `perch-storage-v1` Markierung nicht enthält. Siehe [Leistung](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch) für die festen RAM-Grenzwerte.
 
 ### Nur für eine neue Sitzung verwendet
 
@@ -62,9 +62,9 @@ Sicherheitsprofile sind Editor-Vorlagen. Der Profilname wird nicht gespeichert; 
 
 ## Benutzerverzeichnisse und Persistenz
 
-Das Verlinken und Bind-Mounten von Benutzerverzeichnissen schließen sich gegenseitig aus. Beide verwenden ein vorhandenes, beschreibbares lokales MiniOS-Datenmedium und einen sicheren, medienrelativen Pfad. Sie sind nicht verfügbar mit `toram`, `toram=full`, oder `toram=trim`, und MiniOS führt keine automatische Zusammenführung zweier befüllter Verzeichnisbäume durch.
+Das Verlinken und das Bind-Mounten von Benutzerverzeichnissen schließen sich gegenseitig aus. Beide Methoden nutzen ein vorhandenes, beschreibbares lokales MiniOS-Speichermedium sowie einen sicheren, medienrelativen Pfad. Sie stehen nicht zur Verfügung mit `toram`, `toram=full`, oder `toram=trim`, oder während eine aktive Persistenzsitzung LUKS-verschlüsselt ist. Auch das Zurückkopieren ist bei einer verschlüsselten Sitzung blockiert. MiniOS führt keine automatische Zusammenführung zweier bereits befüllter Verzeichnisbäume durch.
 
-`perchmode` und `perchsize` sind initramfs-Boot-Parameter, keine Einstellungen des MiniOS-Konfigurators. Die neuen Cache-/Log-Speicheroptionen wählen oder erstellen keine `perch`-Sitzung. Der MiniOS-Konfigurator erstellt, entsperrt, vergrößert oder repariert keinen Persistenz-Container. Bei verschlüsselter Persistenz wird angezeigt, ob die initramfs-Verschlüsselungsmarkierung vorhanden ist.
+`perchmode` und `perchsize` sind initramfs-Boot-Parameter, keine MiniOS-Konfigurator-Einstellungen. Die neuen Steuerungen für Cache-/Log-Speicher wählen oder erstellen keine `perch`-Sitzung. Der MiniOS-Konfigurator erstellt, entsperrt, vergrößert oder repariert keinen Persistenzcontainer. Bei verschlüsselter Persistenz zeigt er an, ob der Initramfs-Verschlüsselungsmarker vorhanden ist.
 
 ## Speicherverhalten
 

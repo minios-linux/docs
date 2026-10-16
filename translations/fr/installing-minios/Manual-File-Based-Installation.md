@@ -2,43 +2,43 @@
 updated: 2026-08-31
 ---
 
-# Installation manuelle basée sur les fichiers
+# Installation manuelle à partir d’un fichier
 
-Cette méthode d'installation MiniOS copie les fichiers système sur un système de fichiers classique et installe le programme de démarrage à cet endroit, au lieu d'écrire l'ISO bloc par bloc.
-L'espace restant sur le système de fichiers reste disponible pour les fichiers ordinaires, ce qui permet à l'appareil d'être utilisé comme une clé USB classique ainsi que comme périphérique de démarrage MiniOS.
+Cette méthode d’installation MiniOS copie les fichiers système sur un système de fichiers classique et y installe le chargeur d’amorçage, au lieu d’écrire l’image ISO bloc par bloc.
+L’espace restant sur le système de fichiers reste disponible pour des fichiers ordinaires. Le périphérique peut donc continuer à servir de clé USB classique et de périphérique d’amorçage MiniOS.
 
-Cette méthode est particulièrement utile si vous souhaitez un accès direct aux fichiers MiniOS, un stockage de données classique sur la même partition, ou une structure modifiable pour des sessions persistantes. Elle utilise le programme de démarrage SYSLINUX et est destinée à Windows et Linux.
+Cette méthode est particulièrement utile si vous souhaitez accéder directement aux fichiers MiniOS, stocker des données ordinaires sur la même partition ou utiliser une configuration accessible en écriture pour des sessions persistantes. Elle utilise le chargeur d’amorçage SYSLINUX et est conçue pour Windows et Linux.
 
 ## Important
 
-**Avertissement :** Cette procédure repartitionne et formate le périphérique sélectionné. Elle est destructive pour l'ensemble du périphérique, et pas seulement pour les fichiers actuellement visibles. Sauvegardez vos données importantes et vérifiez avec précision le chemin du périphérique, le modèle, la capacité, la partition et le point de montage avant d’exécuter `fdisk`, `mkfs` ou `bootinst`. Déconnectez les autres supports amovibles si possible.
+**Avertissement :** Cette procédure repartitionne et formate le périphérique sélectionné. Elle efface l’intégralité du périphérique, et pas seulement les fichiers actuellement visibles. Sauvegardez les données importantes et vérifiez précisément le chemin d’accès, le modèle, la capacité, la partition et le point de montage du périphérique avant d’exécuter `fdisk`, `mkfs` ou `bootinst`. Déconnectez les autres lecteurs amovibles si possible.
 
-## Exigences pour le support
+## Exigences relatives au lecteur
 
-### Taille du support
+### Taille du lecteur
 
-Consultez le [Guide de compatibilité matérielle](/getting-started/Hardware-Compatibility) pour les exigences système détaillées et les tailles de supports recommandées.
+Consultez le [Guide de compatibilité matérielle](/getting-started/Hardware-Compatibility) pour connaître les exigences système détaillées et les tailles de lecteur recommandées.
 
 ### Exigences techniques
 
 - **Systèmes de fichiers** : FAT32, NTFS, ext2/3/4, Btrfs
-- **Schéma de partition** : MBR
-- **Démarrage EFI** : Lorsque vous utilisez les systèmes de fichiers NTFS, exFAT ou ext2/3/4, le démarrage en mode EFI peut ne pas être disponible. Pour la compatibilité EFI, il est recommandé d'utiliser FAT32.
+- **Schéma de partitionnement** : MBR
+- **Démarrage EFI** : avec les systèmes de fichiers NTFS, exFAT ou ext2/3/4, le démarrage en mode EFI peut ne pas être disponible. Pour prendre en charge EFI, FAT32 est recommandé.
 
-## Création d’une clé USB bootable
+## Créer une clé USB amorçable
 
-### Étape 1 : Préparer le support
+### Étape 1 : préparer la clé
 
 **Windows :**
-1. Ouvrez "Gestion des disques" (`Win+R`, puis `diskmgmt.msc`)
-2. Vérifiez le périphérique USB selon son numéro de disque, son modèle et sa capacité. N’allez pas plus loin si un détail est incertain.
-3. Faites un clic droit sur son volume et sélectionnez "Supprimer le volume"
-4. Faites un clic droit sur l’espace non alloué et sélectionnez "Nouveau volume simple"
+1. Ouvrez « Gestion des disques » (`Win+R`, puis `diskmgmt.msc`)
+2. Vérifiez le périphérique USB à l’aide de son numéro de disque, de son modèle et de sa capacité. Ne continuez pas si vous avez le moindre doute.
+3. Cliquez avec le bouton droit sur son volume et sélectionnez « Supprimer le volume »
+4. Cliquez avec le bouton droit sur l’espace non alloué et sélectionnez « Nouveau volume simple »
 5. Choisissez le système de fichiers : FAT32 (recommandé) ou NTFS
 
 **Linux :**
 
-Définissez `TARGET_DISK` et `TARGET_PARTITION` sur les chemins exacts uniquement après avoir vérifié le modèle et la capacité du périphérique dans `lsblk`. L’écriture `fdisk` remplace la table de partitions sur l’ensemble du disque cible. Exécutez un seul `mkfs` correspondant au système de fichiers souhaité.
+Définissez `TARGET_DISK` et `TARGET_PARTITION` uniquement sur des chemins exacts, après avoir vérifié le modèle et la capacité du périphérique dans `lsblk`. La commande `fdisk` remplace la table de partition de l’intégralité du disque cible. N’exécutez qu’une seule commande `mkfs` correspondant au système de fichiers souhaité.
 
 ```bash
 lsblk -o NAME,PATH,SIZE,FSTYPE,LABEL,MOUNTPOINTS,MODEL
@@ -56,12 +56,12 @@ sudo mkfs.vfat -F 32 "$TARGET_PARTITION"  # For FAT32
 # Or: sudo mkfs.ext4 "$TARGET_PARTITION"  # For ext4
 ```
 
-### Étape 2 : Extraire et copier les fichiers
+### Étape 2 : extraire et copier les fichiers
 
-**Montage de l’ISO :**
+**Monter l’image ISO :**
 
 *Windows :*
-- Faites un clic droit sur le fichier ISO et sélectionnez "Monter"
+- Cliquez avec le bouton droit sur le fichier ISO et sélectionnez « Monter »
 
 *Linux :*
 ```bash
@@ -74,20 +74,20 @@ sudo mount "$TARGET_PARTITION" /mnt/minios-target
 findmnt --mountpoint /mnt/minios-target
 ```
 
-**Copie des fichiers :**
-1. **Trouvez le dossier `/minios/`** dans l’ISO monté
+**Copier les fichiers :**
+1. **Recherchez le dossier `/minios/`** dans l’image ISO montée
 2. **Copiez l’intégralité du dossier `/minios/`** à la racine de la clé USB
 
-Sous Linux, la racine cible dans l’exemple ci-dessus est `/mnt/minios-target`. Vérifiez que `findmnt --mountpoint /mnt/minios-target` indique bien la partition choisie à l’étape 1 avant de copier les fichiers.
+Sous Linux, la racine cible de l’exemple ci-dessus est `/mnt/minios-target`. Vérifiez que `findmnt --mountpoint /mnt/minios-target` indique bien la partition exacte sélectionnée à l’étape 1 avant de copier les fichiers.
 
-### Étape 3 : Installer le chargeur d’amorçage
+### Étape 3 : installer le chargeur d’amorçage
 
-Accédez au dossier `/minios/boot/syslinux/` sur le support et lancez l’installateur :
+Accédez au dossier `/minios/boot/syslinux/` du lecteur et lancez le programme d’installation :
 
-`bootinst` écrit le code de démarrage sur le disque à partir de l’emplacement de l’installateur. Lisez la section [Dépannage](/maintenance-and-recovery/Troubleshooting) avant de modifier le code de démarrage, et ne lancez l’installateur qu’après avoir vérifié le périphérique et le point de montage.
+`bootinst` écrit le code d’amorçage sur le disque déterminé à partir de l’emplacement du programme d’installation. Consultez la section [Dépannage](/maintenance-and-recovery/Troubleshooting) avant de modifier le code d’amorçage. Ne lancez pas le programme d’installation avant d’avoir vérifié son périphérique et son point de montage.
 
 **Windows :**
-- Ouvrez la clé USB vérifiée par sa lettre exacte, accédez à `minios\boot\syslinux` et exécutez `bootinst.bat` **en tant qu’administrateur**.
+- Ouvrez le lecteur USB vérifié en utilisant sa lettre exacte, accédez à `minios\boot\syslinux` et lancez `bootinst.bat` **en tant qu’administrateur**.
 
 **Linux :**
 ```bash
@@ -99,10 +99,10 @@ chmod +x bootinst.sh
 sudo ./bootinst.sh
 ```
 
-N’utilisez pas de caractère générique pour le point de montage. Le script déduit le disque cible à partir de son propre emplacement et écrit le code de démarrage sur ce disque.
+Ne remplacez pas le point de montage par un caractère générique. Le script détermine le disque cible à partir de son propre emplacement et y écrit le code d’amorçage.
 
 ## Résultat et persistance
 
-Cette procédure crée une installation live basée sur des fichiers en plaçant l’arborescence `minios/` et le programme de démarrage sur un système de fichiers classique. Il ne s’agit pas d’une écriture brute d’ISO, d’une configuration multiboot avec un fichier ISO, ni d’un déploiement via le MiniOS.
+Cette procédure crée une installation live basée sur des fichiers en plaçant l’arborescence `minios/` et le chargeur d’amorçage sur un système de fichiers classique. Il ne s’agit ni d’écrire directement une image ISO, ni de configurer un démarrage multiple à partir de fichiers ISO, ni d’un déploiement du Programme d’installation MiniOS.
 
-Le système de fichiers choisi détermine les backends de persistance compatibles, mais n’active pas la persistance et ne garantit pas la création d’une session. La persistance n’est activée que lorsqu’une entrée de démarrage ou une ligne de commande du noyau la demande, et son activation nécessite toujours un support d’écriture adapté. Consultez [Modes de démarrage](/using-minios/Boot-Modes) et [Persistance Initrd](/reference/boot-process/Persistence-Internals) avant de compter sur la sauvegarde des modifications.
+Le système de fichiers choisi influe sur les mécanismes de persistance compatibles, mais n’active pas la persistance et ne garantit pas la création d’une session. La persistance n’est activée que lorsqu’une entrée de démarrage ou une ligne de commande du noyau la demande, et son activation nécessite toujours un espace de stockage inscriptible adapté. Consultez les sections [Modes de démarrage](/using-minios/Boot-Modes) et [Persistance dans l’initrd](/reference/boot-process/Persistence-Internals) avant de compter sur la sauvegarde des modifications.

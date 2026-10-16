@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-28
+updated: 2026-10-15
 ---
 # System discovery
 
@@ -23,7 +23,7 @@ Finding a drive does not prove that the module set is complete, and finding the 
 | `ip=...` | Use early static networking. Without an HTTP `from=`, it selects PXE data download and skips local drives. | PXE deployment or static addressing for an HTTP ISO. |
 | `cache=MB` | Allocate an httpfs cache for an HTTP ISO. It does not guarantee that the complete ISO is downloaded. | Reduce repeated reads from an HTTP source. |
 | `bext=EXTENSION` | Search for module filenames with another extension instead of `.sb`. | Specialized images only; it does not convert modules. |
-| `toram` or `toram=full` | Copy the complete discovered MiniOS data tree into RAM and try to detach the source. The bare form means `full`. | Temporary RAM operation on a machine with enough memory. |
+| `toram` or `toram=full` | Copy the discovered MiniOS system data, including top-level hidden entries but excluding `changes/`, into RAM and try to detach the source. Session copying uses `perchtoram` separately. The bare form means `full`. | RAM operation on a machine with enough memory. |
 
 If a local USB boot stops before the desktop appears, first remove custom `from=` and `ip=` values. An accidental nonempty `ip=` prevents local-drive discovery, while an incorrect `from=` can make MiniOS search for a path that is not present.
 
@@ -45,7 +45,7 @@ This order has two important consequences:
 
 ## Local discovery
 
-Without an HTTP source or nonempty `ip=`, MiniOS makes 45 discovery passes, approximately one per second. Each pass refreshes device nodes, obtains block device candidates from `blkid`, sorts their device names, and tests them in that order. The first candidate containing a qualifying MiniOS source is retained; later devices are not considered.
+Without an HTTP source or nonempty `ip=`, MiniOS makes 45 discovery passes, approximately one per second. Each pass refreshes device nodes and obtains block device candidates from `blkid`. If `/dev/mapper/ventoy` exists, that ISO mapping is tried first; remaining candidates are sorted by device name and duplicates removed. The first qualifying MiniOS source is retained. This prevents replacement modules on the Ventoy data partition from being mistaken for the main ISO source.
 
 If `from=` is empty, the path tested on each filesystem is `minios`. A source qualifies when either that directory or its immediate `modules/` subdirectory contains at least one file whose extension is `.sb` by default. The `bext=` parameter changes the extension used by this test. Discovery does not validate that the found module set is complete or bootable.
 
@@ -134,14 +134,14 @@ MiniOS configures the first detected non-loopback interface without proving it h
 
 ## Copying and detaching with `toram=full`
 
-`toram=full` matters to discovery because it may remove the continuing dependency on the selected source. After discovery, MiniOS copies the data tree to RAM and then tries to unmount the source and move the RAM copy into its place. Only a successful unmount and move detach local media, a loop-mounted ISO, or an HTTP ISO.
+`toram=full` matters to discovery because it may remove the continuing dependency on the selected source. After discovering the source and any external MiniOS tree, it copies system data into RAM and then tries to unmount the source and move the RAM copy into its place. Only a successful unmount and move detach that source; ISO host filesystems and Ventoy mappings also need to be released.
 
 Sharp limitations:
 
 - There is no preflight check that available RAM can hold the copy.
-- When persistence is requested, the top-level `*` copy omits dotfiles.
-- When persistence is not requested, the `changes` entry is deliberately omitted. That branch copies other top-level entries, including dotfiles.
-- A copy, unmount, or move failure can leave the original source mounted. Do not assume that specifying `toram=full` makes media removal or network loss safe; verify that detachment succeeded.
+- Full system copying includes top-level hidden entries and omits `changes/` whether or not persistence was requested. A discovered external MiniOS tree is copied over the source tree, including replacement modules.
+- Supported session containers are copied separately with `perchtoram=trim|full`; `perchtoram=off` retains the storage dependency. Native sessions have a separate limitation described under [Boot modes](/using-minios/Boot-Modes).
+- System-copy errors enter the fatal initramfs path. Unmount or move failure can leave the original source mounted while boot uses the RAM staging path. Do not assume that `toram=full` makes removal or network loss safe; verify detachment.
 
 See [Initrd persistence](/reference/boot-process/Persistence-Internals) before combining `toram` with `perch` or `perchdir`.
 

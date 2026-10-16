@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-31
+updated: 2026-10-15
 ---
 
 # Contenidos del paquete y edición
@@ -23,27 +23,28 @@ Las ediciones mantenidas de Xfce se construyen unas sobre otras: Standard es el 
 
 Otros entornos soportados tienen sus propias cadenas de módulos y deben revisarse por separado. En particular, la disponibilidad de paquetes en una compilación LXQt o de consola no debe inferirse de las tablas de Xfce que aparecen a continuación.
 
-## Paquetes principales de MiniOS y del sistema
+## Paquetes principales MiniOS y del sistema
 
 Estos paquetes proporcionan el entorno de ejecución del sistema en vivo, configuración, localización, gestión de privilegios y el entorno básico de línea de comandos.
 
-| Paquete | Flux | Standard | Toolbox | Ultra | Propósito o condición |
+| Paquete | Flux | Estándar | Toolbox | Ultra | Propósito o condición |
 |---|:---:|:---:|:---:|:---:|---|
 | `minios-tools` | Sí | Sí | Sí | Sí | Creación, conversión, inspección, activación y captura de cambios de módulos |
-| `minios-image-compose` | Sí | Sí | Sí | Sí | Composición de ISO de línea de comandos MiniOS |
+| `minios-image-compose` | - | Sí | Sí | Sí | Composición ISO por línea de comandos MiniOS |
+| `minios-deploy`, `minios-kernel`, `minios-session` | - | Sí | Sí | Sí | Despliegue por línea de comandos, kernel y backends de sesión, independientemente de las aplicaciones gráficas |
 | `minios-live-config` | Sí | Sí | Sí | Sí | Componentes de configuración de la sesión en vivo |
 | `minios-live-config-systemd` / `minios-live-config-sysvinit` | Condicional | Condicional | Condicional | Condicional | Integración con el sistema de inicio; se selecciona una implementación |
-| `minios-live-config-doc` | Sí | Sí | Sí | Sí | Referencia de live-config instalado |
-| `minios-welcome` | Sí | Sí | Sí | Sí | Página de bienvenida y lanzador de MiniOS |
+| `minios-live-config-doc` | Sí | Sí | Sí | Sí | Referencia de live-config instalada |
+| `minios-welcome` | Sí | Sí | Sí | Sí | Página de bienvenida y lanzador MiniOS |
 | `user-setup` | Sí | Sí | Sí | Sí | Configuración de la cuenta de usuario en vivo |
-| `linux-base` | Sí | Sí | Sí | Sí | Scripts comunes de imagen Linux y del sistema |
-| `kbd`, `keyboard-configuration`, `console-setup` | Sí | Sí | Sí | Sí | Configuración de teclado y pantalla en consola |
-| `locales` | Sí | Sí | Sí | Sí | Datos de locale y generación |
+| `linux-base` | Sí | Sí | Sí | Sí | Scripts comunes de imagen y sistema Linux |
+| `kbd`, `keyboard-configuration`, `console-setup` | Sí | Sí | Sí | Sí | Configuración de teclado y pantalla de consola |
+| `locales` | Sí | Sí | Sí | Sí | Datos y generación de locale |
 | `network-manager` | Sí | Sí | Sí | Sí | Gestión de conexiones de red |
-| `netplan.io` | Condicional | Condicional | Condicional | Condicional | Solicitado solo en suites Ubuntu soportadas |
+| `netplan.io` | Condicional | Condicional | Condicional | Condicional | Solicitado solo en suites de Ubuntu compatibles |
 | `dracut-core` | Condicional | Condicional | Condicional | Condicional | Solicitado cuando Dracut es el generador de initramfs |
 | `gpg`, `gnupg` | Sí | Sí | Sí | Sí | Herramientas de firma de paquetes y archivos |
-| `file`, `cpio` | Sí | Sí | Sí | Sí | Identificación de archivos y manejo de archivos comprimidos |
+| `file`, `cpio` | Sí | Sí | Sí | Sí | Identificación de archivos y gestión de archivos comprimidos |
 | `gettext-base` / `gettext` | Condicional | Condicional | Condicional | Condicional | Utilidades de traducción seleccionadas según disponibilidad |
 | `polkitd` / `policykit-1`, `pkexec` | Condicional | Condicional | Condicional | Condicional | Autorización y elevación de privilegios |
 | `bash-completion` | Sí | Sí | Sí | Sí | Autocompletado de comandos en shell |
@@ -51,11 +52,11 @@ Estos paquetes proporcionan el entorno de ejecución del sistema en vivo, config
 | `mc` | Sí | Sí | Sí | Sí | Gestor de archivos Midnight Commander |
 | `gpm` | Sí | Sí | Sí | Sí | Soporte de ratón en consola |
 | `ssh` | Sí | Sí | Sí | Sí | Paquetes cliente y servidor OpenSSH seleccionados por APT |
-| `systemd-timesyncd` / `chrony` | Condicional | Condicional | Condicional | Condicional | Sincronización horaria seleccionada por suite y sistema de inicio |
+| `systemd-timesyncd` / `chrony` | Condicional | Condicional | Condicional | Condicional | Sincronización de hora seleccionada según la suite y el sistema de inicio |
 | `tlp` | Sí | Sí | Sí | Sí | Gestión de energía para portátiles |
 
-Algunos paquetes de paridad para bootstrap se solicitan solo para suites base específicas.
-Son dependencias de implementación más que características de la edición y no se listan aquí de forma individual.
+Algunos paquetes de paridad bootstrap se solicitan solo para suites base específicas.
+Son dependencias de implementación y no características de la edición, por lo que no se listan individualmente aquí.
 
 ## Herramientas de red
 
@@ -81,32 +82,33 @@ Son dependencias de implementación más que características de la edición y n
 
 ## Almacenamiento y sistemas de archivos
 
-| Paquete | Flux | Standard | Toolbox | Ultra | Propósito o condición |
+| Paquete | Flux | Estándar | Toolbox | Ultra | Propósito o condición |
 |---|:---:|:---:|:---:|:---:|---|
 | `hdparm`, `sdparm` | Sí | Sí | Sí | Sí | Inspección y ajuste de dispositivos ATA y SCSI |
 | `mdadm` | Sí | Sí | Sí | Sí | Gestión de RAID por software en Linux |
-| `smartmontools` | Sí | Sí | Sí | Sí | Monitorización y pruebas S.M.A.R.T. |
-| `dosfstools` | Sí | Sí | Sí | Sí | Creación y comprobación de sistemas de archivos FAT |
+| `smartmontools` | Sí | Sí | Sí | Sí | Monitoreo y pruebas S.M.A.R.T. |
+| `dosfstools` | Sí | Sí | Sí | Sí | Creación y verificación de sistemas de archivos FAT |
 | `ntfs-3g` | Sí | Sí | Sí | Sí | Controlador y herramientas NTFS en espacio de usuario |
 | `btrfs-progs` | Sí | Sí | Sí | Sí | Administración de Btrfs |
 | `xfsprogs` | - | Sí | Sí | Sí | Administración de XFS |
-| `exfatprogs` / `exfat-utils` con `exfat-fuse` | - | Condicional | Condicional | Condicional | Implementación exFAT seleccionada según disponibilidad de paquetes |
-| `fuse3` / `fuse`, `libfuse2` | - | Condicional | Condicional | Condicional | Entorno de ejecución FUSE y biblioteca de compatibilidad |
-| `dynfilefs` | - | Condicional | Condicional | Condicional | Almacenamiento persistente segmentado en suites soportadas |
+| `exfatprogs` / `exfat-utils` con `exfat-fuse` | - | Condicional | Condicional | Condicional | Implementación exFAT seleccionada según disponibilidad del paquete |
+| `fuse3` / `fuse`, `libfuse2` | - | Condicional | Condicional | Condicional | Biblioteca de compatibilidad y entorno de ejecución FUSE |
+| `dynfilefs` | - | Condicional | Condicional | Condicional | Almacenamiento persistente segmentado en suites compatibles |
+| `dynblk` | - | Sí | Sí | Sí | CLI para DynBlk respaldado por el kernel y almacenamiento VMDK dividido; para sesiones utilizables también se requiere el controlador y un initrd compatible |
 | `parted` | - | Sí | Sí | Sí | Creación y edición de tablas de particiones |
 | `gpart` | - | - | Sí | Sí | Recuperación de tablas de particiones |
-| `mtools` | - | - | Sí | Sí | Herramientas para FAT y medios DOS |
-| `gddrescue` | - | - | Sí | Sí | Copia tolerante a fallos de dispositivos de bloques |
-| `lvm2` | - | - | Sí | Sí | Gestor de volúmenes lógicos (LVM) |
+| `mtools` | - | - | Sí | Sí | Herramientas para medios FAT y DOS |
+| `gddrescue` | - | - | Sí | Sí | Copia de dispositivos de bloques tolerante a fallos |
+| `lvm2` | - | - | Sí | Sí | Administrador de Volúmenes Lógicos |
 | `cryptsetup` | - | - | Sí | Sí | Gestión de volúmenes LUKS |
 | `zulucrypt-cli`, `zulumount-cli` | - | - | Sí | Sí | Gestión y montaje de volúmenes cifrados |
 | `f2fs-tools` | - | - | Sí | Sí | Administración de F2FS |
-| `hfsutils`, `hfsprogs` | - | - | Sí | Sí | Herramientas HFS y HFS+, donde estén disponibles |
+| `hfsutils`, `hfsprogs` | - | - | Sí | Sí | Herramientas para HFS y HFS+, donde estén disponibles |
 | `jfsutils` | - | - | Sí | Sí | Administración de JFS |
 | `reiserfsprogs`, `reiser4progs` | - | - | Sí | Sí | Herramientas para ReiserFS y Reiser4, donde estén disponibles |
-| `udftools` | - | - | Sí | Sí | Herramientas para sistemas de archivos ópticos UDF |
+| `udftools` | - | - | Sí | Sí | Herramientas para sistemas de archivos UDF en medios ópticos |
 | `nilfs-tools` | - | - | Sí | Sí | Administración de NILFS2 |
-| `zfsutils-linux` | - | - | Condicional | Condicional | Herramientas ZFS en espacio de usuario cuando el kernel soporta ZFS |
+| `zfsutils-linux` | - | - | Condicional | Condicional | Herramientas de usuario ZFS cuando el kernel es compatible con ZFS |
 
 ## Archivos comprimidos y formatos de imagen
 
@@ -128,25 +130,26 @@ Son dependencias de implementación más que características de la edición y n
 
 ## Recuperación, diagnóstico y rendimiento
 
-| Paquete | Flux | Standard | Toolbox | Ultra | Propósito |
+| Paquete | Flux | Estándar | Toolbox | Ultra | Propósito |
 |---|:---:|:---:|:---:|:---:|---|
 | `pciutils`, `usbutils` | Sí | Sí | Sí | Sí | Inspección de dispositivos PCI y USB |
 | `psmisc` | Sí | Sí | Sí | Sí | Herramientas de procesos como `fuser` y `killall` |
 | `htop` | - | Sí | Sí | Sí | Monitor de procesos interactivo |
 | `ncdu` | - | Sí | Sí | Sí | Analizador de uso de disco en terminal |
 | `lsof` | - | Sí | Sí | Sí | Inspección de archivos abiertos y procesos |
-| `clonezilla` | - | - | Sí | Sí | Flujos de trabajo de clonación de discos y particiones |
-| `partclone`, `partimage` | - | - | Sí | Sí | Herramientas de imagen con reconocimiento de sistemas de archivos |
-| `testdisk` | - | - | Sí | Sí | Recuperación de particiones y archivos |
-| `chntpw`, `reglookup` | - | - | Sí | Sí | Herramientas offline para cuentas y registro de Windows |
+| `clonezilla` | - | - | Sí | Sí | Flujos de trabajo para clonado de discos y particiones |
+| `partclone`, `partimage` | - | - | Sí | Sí | Herramientas de imagen compatibles con el sistema de archivos |
+| `testdisk` | - | - | Sí | Recuperación de particiones y archivos | , |
+| `chntpw`-`reglookup` | - | Sí | Sí | Sí | Herramientas offline para cuentas y registro de Windows |
 | `hexedit` | - | - | Sí | Sí | Editor hexadecimal en terminal |
 | `lshw`, `inxi` | - | - | Sí | Sí | Informes detallados de hardware y sistema |
 | `screen` | - | - | Sí | Sí | Multiplexor de terminal |
 | `nmon` | - | - | Sí | Sí | Monitor de rendimiento interactivo |
-| `fio`, `bonnie++`, `iozone3` | - | - | Sí | Sí | Pruebas de rendimiento de almacenamiento y sistemas de archivos |
+| `fio`, `bonnie++`, `iozone3` | - | - | Sí | Sí | Pruebas de almacenamiento y sistemas de archivos |
 | `stress`, `sysbench` | - | - | Sí | Sí | Pruebas de CPU, memoria y sistema |
-| `memtest86+` | - | - | Sí | Sí | Prueba de memoria en arranque |
+| `memtest86+` | - | - | Sí | Sí | Pruebas de memoria al inicio del sistema |
 | `rsync` | - | - | Sí | Sí | Utilidad de sincronización y copia de archivos |
+| `git` | - | - | Sí | Sí | Cliente de control de versiones |
 
 ## Virtualización y contenedores
 
@@ -165,42 +168,47 @@ Son dependencias de implementación más que características de la edición y n
 
 ## Firmware y controladores del kernel
 
-La selección de firmware sigue el perfil de la distribución: las compilaciones de Debian y Devuan utilizan paquetes de firmware divididos, mientras que las compilaciones de Ubuntu usan `linux-firmware`. Los controladores DKMS también se filtran según la arquitectura, el proveedor del kernel, la serie del kernel y las funciones ya incluidas en el kernel seleccionado.
+La selección de firmware sigue el perfil de la distribución: las compilaciones de Debian y Devuan utilizan paquetes de firmware divididos, mientras que las de Ubuntu usan `linux-firmware`. Los controladores DKMS también se filtran según la arquitectura, el proveedor del kernel, la serie del kernel y las funciones ya incluidas en el kernel seleccionado.
 
 | Paquete | Ediciones | Propósito o condición |
 |---|---|---|
-| `firmware-linux-free`, `firmware-linux-nonfree` | Condicional, todas | Colecciones de firmware de Debian y Devuan |
+| `firmware-linux-free`, `firmware-linux-nonfree` | Condicional, todas | Colecciones de firmware para Debian y Devuan |
+| `firmware-intel-graphics` | Condicional, todas | Firmware gráfico Intel en Trixie y Excalibur |
 | `firmware-atheros`, `firmware-iwlwifi`, `firmware-zd1211` | Condicional, todas | Firmware inalámbrico para dispositivos Atheros, Intel y ZyDAS |
-| `firmware-realtek`, `firmware-mediatek` | Condicional, todas | Firmware Realtek y MediaTek; MediaTek depende del suite |
+| `firmware-realtek`, `firmware-mediatek` | Condicional, todas | Firmware Realtek y MediaTek; MediaTek depende de la suite |
 | `firmware-bnx2`, `firmware-brcm80211`, `firmware-cavium` | Condicional, todas | Firmware de red Broadcom y Cavium |
 | `firmware-ipw2x00`, `firmware-libertas`, `firmware-ti-connectivity` | Condicional, todas | Familias adicionales de firmware inalámbrico |
 | `firmware-b43-installer` | Condicional, todas | Instalador de firmware Broadcom B43 heredado |
 | `firmware-sof-signed` | Condicional, todas | Imágenes de Sound Open Firmware |
-| `linux-firmware` | Condicional, todas | Colección de firmware de Ubuntu |
+| `linux-firmware-minimal` / `linux-firmware` y paquetes de firmware del fabricante | Condicional, todas | Alternativa de firmware base de Ubuntu más paquetes específicos de la suite para AMD, Intel, Broadcom, MediaTek, Qualcomm, Marvell y Realtek |
 | `ntfs3-dkms` | Condicional, todas | Controlador NTFS3 cuando no está presente en el kernel seleccionado |
 | `aufs-dkms` / `aufs-ng-dkms` | Condicional, todas | Controlador AUFS seleccionado por suite y kernel |
-| `broadcom-sta-dkms` | Condicional, todas | Controlador inalámbrico Broadcom STA en objetivos soportados |
-| `realtek-rtl8723cs-dkms`, `realtek-rtl8821au-dkms`, `realtek-rtl8821cu-dkms`, `realtek-rtl8814au-dkms` | Condicional, todas | Controladores inalámbricos de fabricante filtrados por capacidades del kernel y plataforma de destino |
-| `realtek-rtl88xxau-dkms`, `realtek-rtl8188eus-dkms`, `realtek-rtl88x2bu-dkms` | Condicional, todas | Controladores de fabricante retenidos en objetivos soportados para dispositivos o funciones adicionales |
-| `zfs-dkms` | Condicional, Toolbox y Ultra | Módulo de kernel ZFS en compilaciones amd64 soportadas |
+| `dynblk-dkms` | Condicional, todas | Controlador DynBlk seleccionado para Linux 6.12 cuando la compilación DKMS está habilitada; no firmado y no disponible con Secure Boot |
+| `broadcom-sta-dkms` | Condicional, todas | Controlador inalámbrico Broadcom STA en objetivos compatibles |
+| `realtek-rtl8723cs-dkms`, `realtek-rtl8821au-dkms`, `realtek-rtl8821cu-dkms`, `realtek-rtl8814au-dkms` | Condicional, todas | Controladores inalámbricos del fabricante filtrados según las capacidades del kernel y la plataforma de destino |
+| `realtek-rtl88xxau-dkms`, `realtek-rtl8188eus-dkms`, `realtek-rtl88x2bu-dkms` | Condicional, todas | Controladores del fabricante mantenidos en objetivos compatibles para dispositivos o funciones adicionales |
+| `zfs-dkms` | Condicional, Toolbox y Ultra | Módulo ZFS para el kernel en compilaciones amd64 compatibles |
+
+Los paquetes de pantalla/cámara para MateBook E están disponibles para instalación por separado, con las limitaciones indicadas en [Compatibilidad de hardware](/getting-started/Hardware-Compatibility). Las listas de paquetes de desarrollo pueden seleccionar estos controladores, pero eso no garantiza que las imágenes finales los incluyan.
 
 ## Base gráfica
 
-Los entornos gráficos comparten la base de Xorg y renderizado que se muestra a continuación. Flux utiliza su propia lista de escritorio; Standard, Toolbox y Ultra utilizan la lista mantenida de Xfce.
+Los entornos gráficos comparten la base de Xorg y de renderizado que se muestra a continuación. Flux utiliza su propia lista de escritorios; Standard, Toolbox y Ultra emplean la lista mantenida de Xfce.
 
 | Paquete | Flux | Standard | Toolbox | Ultra | Propósito o condición |
 |---|:---:|:---:|:---:|:---:|---|
 | `xserver-xorg`, `xinit` | Sí | Sí | Sí | Sí | Servidor X.Org y herramientas de inicio |
-| `xserver-xorg-video-all`, `xserver-xorg-video-intel` | Sí | Sí | Sí | Sí | Controladores de video para X.Org |
+| `xserver-xorg-video-all`, `xserver-xorg-video-intel` | Sí | Sí | Sí | Sí | Controladores de video X.Org |
 | `xserver-xorg-input-all`, `xserver-xorg-legacy` | Sí | Sí | Sí | Sí | Controladores de entrada y soporte de inicio heredado |
-| `xterm` | Sí | Sí | Sí | Sí | Terminal básico para X |
-| `blackbox` / `openbox` | Condicional | Condicional | Condicional | Condicional | Gestor de ventanas ligero de respaldo seleccionado por entorno |
+| `xterm` | Sí | Sí | Sí | Sí | Terminal X básico |
+| `blackbox` / `openbox` | Condicional | Condicional | Condicional | Condicional | Gestor de ventanas ligero de respaldo seleccionado por el entorno |
 | `x11-utils`, `wmctrl`, `xdotool` | Sí | Sí | Sí | Sí | Inspección X11 y automatización de ventanas |
 | `libdrm-intel1`, `libgl1-mesa-dri`, `libglu1-mesa` | Sí | Sí | Sí | Sí | Bibliotecas de renderizado DRM y Mesa |
 | `breeze-cursor-theme`, `adwaita-icon-theme-antix` | Sí | Sí | Sí | Sí | Temas de cursor e iconos |
 | `elementary-minios-icon-theme` | Sí | Sí | Sí | Sí | Tema de iconos MiniOS fuera de LXQt |
 | `librsvg2-common` | Sí | Sí | Sí | Sí | Soporte de renderizado SVG |
-| `policykit-1-gnome` / `mate-polkit` / `xfce-polkit` | Condicional | Condicional | Condicional | Condicional | Agente gráfico de PolicyKit seleccionado por disponibilidad |
+| `fonts-inter-minimal`, `fonts-jetbrains-mono-minimal` | Sí | Sí | Sí | Sí | Fuentes de interfaz y monoespaciadas |
+| `policykit-1-gnome` / `mate-polkit` / `xfce-polkit` | Condicional | Condicional | Condicional | Condicional | Agente gráfico de PolicyKit seleccionado según disponibilidad |
 | `xrdp`, `xorgxrdp` | - | - | Sí | Sí | Inicio de sesión gráfico remoto vía RDP |
 
 ## Escritorio Flux y aplicaciones
@@ -220,73 +228,78 @@ Los entornos gráficos comparten la base de Xorg y renderizado que se muestra a 
 | `network-manager-gnome` | Applet de escritorio de NetworkManager |
 | `firefox` / `firefox-esr` | Navegador seleccionado por suite, con paquetes de idioma seleccionados |
 
-## Escritorio Xfce y aplicaciones MiniOS
+## Entorno de escritorio Xfce y aplicaciones MiniOS
 
-| Paquete | Standard | Toolbox | Ultra | Propósito o condición |
+| Paquete | Estándar | Caja de herramientas | Ultra | Propósito o condición |
 |---|:---:|:---:|:---:|---|
-| `thunar`, `thunar-volman` | Sí | Sí | Sí | Gestor de archivos e integración de medios extraíbles |
-| `xfce4-panel`, `xfce4-session`, `xfce4-settings` | Sí | Sí | Sí | Panel, sesión y servicios de configuración de Xfce |
-| `xfdesktop4`, `xfwm4`, `xfconf` | Sí | Sí | Sí | Escritorio, gestor de ventanas y servicio de configuración |
+| `thunar`, `thunar-volman` | Sí | Sí | Sí | Gestor de archivos e integración con medios extraíbles |
+| `xfce4-panel`, `xfce4-session`, `xfce4-settings` | Sí | Sí | Sí | La configuración utiliza el paquete adaptado a MiniOS con escalado automático de la interfaz en Trixie/Excalibur |
+| `xfdesktop4`, `xfconf` | Sí | Sí | Sí | Servicio de escritorio y configuración; Trixie/Excalibur usan la integración del menú de escritorio MiniOS |
+| `xfwm4-gl` / `xfwm4` | Condicional | Condicional | Condicional | Trixie/Excalibur seleccionan `xfwm4-gl` con OpenGL/XRender, efectos y Peek; otros conjuntos seleccionan `xfwm4` |
+| `xfce4-tasklist-minios-plugin`, `xfce4-showdesktop-minios-plugin` | Condicional | Condicional | Condicional | Barra de tareas anclada MiniOS, vistas previas agrupadas y tira de Mostrar Escritorio en Trixie/Excalibur |
+| `greybird-minios-gtk-theme` / `greybird-gtk-theme` | Condicional | Condicional | Condicional | Tema claro/oscuro MiniOS, con el tema de la distribución como alternativa si no está disponible |
 | `xfce4-appfinder`, `xfce4-xkb-plugin` | Sí | Sí | Sí | Buscador de aplicaciones e indicador de teclado |
 | `mousepad`, `ristretto` | Sí | Sí | Sí | Editor de texto y visor de imágenes |
-| `at-spi2-core`, `dbus-x11` | Sí | Sí | Sí | Soporte de accesibilidad y bus de mensajes de escritorio |
-| `gvfs-backends` | Sí | Sí | Sí | Integración de sistemas de archivos remotos y extraíbles en el gestor de archivos |
+| `at-spi2-core`, `dbus-x11` | Sí | Sí | Sí | Compatibilidad con accesibilidad y message-bus de escritorio |
+| `gvfs-backends` | Sí | Sí | Sí | Integración de sistemas de archivos remotos y extraíbles para el gestor de archivos |
 | `lightdm`, `lightdm-gtk-greeter` | Sí | Sí | Sí | Gestor gráfico de inicio de sesión |
 | `network-manager-gnome`, `blueman` | Sí | Sí | Sí | Controles de red y Bluetooth en el escritorio |
 | `avahi-daemon` | Sí | Sí | Sí | Descubrimiento de servicios en red local |
-| PipeWire stack / PulseAudio stack | Condicional | Condicional | Condicional | Audio de escritorio seleccionado por suite |
+| Stack PipeWire / Stack PulseAudio | Condicional | Condicional | Condicional | Audio de escritorio seleccionado por el conjunto |
 | `pavucontrol` | Sí | Sí | Sí | Mezclador de audio gráfico |
 | `engrampa`, `thunar-archive-plugin` | Sí | Sí | Sí | Gestor de archivos comprimidos e integración con el gestor de archivos |
 | `xfce4-screensaver`, `xfce4-screenshooter` | Sí | Sí | Sí | Bloqueo de pantalla y capturas de pantalla |
 | `xfce4-power-manager-plugins` | Sí | Sí | Sí | Integración de gestión de energía de Xfce |
 | `xfce4-taskmanager`, `xfce4-terminal` | Sí | Sí | Sí | Gestor de tareas y emulador de terminal |
 | `xfce4-whiskermenu-plugin`, `xfce4-notifyd` | Sí | Sí | Sí | Menú de aplicaciones y notificaciones |
-| `minios-configurator` | Sí | Sí | Sí | Editor gráfico de configuración de arranque y sesión de MiniOS |
+| `minios-configurator` | Sí | Sí | Sí | Editor de configuración de arranque y sesión MiniOS |
 | `minios-installer` | Sí | Sí | Sí | Instalador gráfico y `minios-deploy` CLI |
 | `minios-session-manager` | Sí | Sí | Sí | Gestor de sesiones persistentes y `minios-session` CLI |
 | `minios-kernel-manager` | Sí | Sí | Sí | Gestor modular de kernel y `minios-kernel` CLI |
-| `minios-store`, `minios-store-gui` | Sí | Sí | Sí | Catálogo de aplicaciones MiniOS e instalador |
-| `minios-image-builder` | Sí | Sí | Sí | Espacio de trabajo gráfico para remasterización de ISOs |
-| `minios-module-manager` | Sí | Sí | Sí | Gestor gráfico de módulos `.sb` |
-| `minios-help` | Sí | Sí | Sí | Visor de documentación instalada de MiniOS |
+| `minios-store`, `minios-store-gui` | Sí | Sí | Sí | Catálogo e instalador de aplicaciones MiniOS |
+| `minios-image-builder` | Sí | Sí | Sí | Espacio de trabajo gráfico para remasterización de ISO |
+| `minios-module-manager` | Sí | Sí | Sí | Gestor gráfico de `.sb` módulos |
+| `minios-help` | Sí | Sí | Sí | Visor de documentación instalada MiniOS |
 | `driveutility` | Sí | Sí | Sí | Escritura, lectura, formateo y borrado de imágenes de disco |
-| `firefox` / `firefox-esr` | Condicional | Condicional | Condicional | Navegador y localización seleccionados por suite e idioma |
+| `firefox` / `firefox-esr` | Condicional | Condicional | Condicional | Navegador y localización seleccionados según el conjunto y el idioma |
 | `menulibre` | - | Sí | Sí | Editor gráfico de menús |
 | `open-vm-tools-desktop` | - | Sí | Sí | Integración de escritorio VMware |
-| `virtualbox-guest-x11` | - | Condicional | Condicional | Integración de escritorio VirtualBox en suites seleccionadas |
-| Qt GTK platform themes | - | Sí | Sí | Integración de apariencia GTK para aplicaciones Qt |
+| `virtualbox-guest-x11` | - | Condicional | Condicional | Integración de escritorio VirtualBox en conjuntos seleccionados |
+| Temas de plataforma Qt GTK | - | Sí | Sí | Integración de apariencia GTK para aplicaciones Qt |
 
 ## Aplicaciones gráficas de Toolbox
 
-El módulo `05-apps` de Xfce se incluye en Toolbox y Ultra y se omite en Standard.
+El módulo Xfce `05-apps` está incluido en Toolbox y Ultra, y se omite en Standard.
 
 | Paquete | Propósito o condición |
 |---|---|
 | `gparted` | Editor de particiones gráfico |
-| `gsmartcontrol`, `qdiskinfo` | Diagnóstico de discos y obtención de información de dispositivos |
-| `guymager`, `qphotorec` | Imagen forense y recuperación de archivos; `qphotorec` se excluye en Buster y Beowulf |
-| `kdiskmark` | Prueba de rendimiento de discos |
+| `gsmartcontrol`, `qdiskinfo` | Estado del disco e información del dispositivo |
+| `guymager`, `qphotorec` | Imágenes forenses y recuperación de archivos; `qphotorec` se excluye en Buster y Beowulf |
+| `kdiskmark` | Prueba de rendimiento de disco |
 | `isomaster` | Editor de imágenes ISO |
 | `hardinfo`, `mesa-utils`, `vulkan-tools` | Diagnóstico de hardware y gráficos |
 | `baobab` | Analizador gráfico de uso de disco |
 | `doublecmd-gtk` | Gestor de archivos de dos paneles |
-| `grsync` | Interfaz gráfica para `rsync` |
+| `grsync` | Interfaz gráfica de `rsync` |
 | `bleachbit` | Limpieza de caché y archivos temporales |
 | `czkawka` / `czkawka-gui` | Buscador de archivos duplicados y no deseados |
 | `gtkhash` | Calculadora de sumas de verificación |
 | `wxhexeditor` | Editor hexadecimal para archivos grandes |
 | `keepassxc` | Gestor de contraseñas |
-| `veracrypt` | Gestión de contenedores y discos cifrados; excluido en Buster y Beowulf |
+| `veracrypt` | Gestión de contenedores cifrados y discos; excluido en Buster y Beowulf |
 | `zulucrypt-gui`, `zulumount-gui` | Herramientas gráficas para volúmenes cifrados |
-| `virt-manager`, `gir1.2-spiceclientgtk-3.0` | Gestión de máquinas virtuales y soporte de pantalla SPICE |
+| `virt-manager`, `gir1.2-spiceclientgtk-3.0` | Gestión de máquinas virtuales y soporte de visualización SPICE |
 | `remmina`, `remmina-plugin-rdp`, `remmina-plugin-vnc` | Cliente de escritorio remoto |
+| `rescuezilla` | Copia de seguridad, restauración y clonación de discos con interfaz gráfica |
+| `transume` | Copia de seguridad, restauración, clonación y exploración de imágenes basada en Clonezilla; depende de paquetes compatibles del repositorio |
 | `wireshark`, `zenmap`, `gnome-nettool` | Análisis y diagnóstico de red con interfaz gráfica |
 | `x11vnc` | Acceso VNC a la sesión X actual |
 | `uget` | Gestor de descargas gráfico |
 | `android-file-transfer` | Transferencia de archivos MTP de Android |
-| `vlc` y plugins seleccionados | Reproducción multimedia, localización, soporte Samba y BitTorrent |
+| `vlc` y plugins seleccionados | Reproducción multimedia, localización, soporte para Samba y BitTorrent |
 | `pdfarranger` | Organización de páginas PDF |
-| `codium` | Editor de código |
+| `codium` | Editor de código en amd64, instalado desde su repositorio de terceros firmado |
 | `onboard` | Teclado en pantalla |
 | `galculator` | Calculadora |
 

@@ -1,5 +1,5 @@
 ---
-updated: 2026-10-06
+updated: 2026-10-15
 ---
 
 # Boot-Modi
@@ -44,10 +44,12 @@ Für die Erstellung ist kompatibler beschreibbarer Speicher und ausreichend frei
 
 ## Gespeicherte Sitzung auswählen
 
-MiniOS zeigt verfügbare gespeicherte Sitzungen an und lässt Sie eine auswählen. Verwenden Sie dies, wenn ein Gerät mehrere Arbeitsbereiche enthält. Ist der gewählte Persistenzspeicher leer, wird der `ask`Pfad automatisch in die Persistenz-Einrichtung geführt, sodass Sie die erste Sitzung anlegen können.
+MiniOS zeigt verfügbare gespeicherte Sitzungen an und ermöglicht die Auswahl einer Sitzung. Dies ist hilfreich, wenn ein Gerät mehrere Arbeitsbereiche enthält. Ist der ausgewählte Persistenzspeicher leer, wird der `ask` Pfad automatisch in die Persistenz-Einrichtung geleitet, damit Sie die erste Sitzung erstellen können.
 
-Eine Sitzung kann inkompatibel sein, wenn sie aus einer anderen MiniOS-Version oder Edition stammt. Eine andere `union=`Einstellung kann eine Sitzung ebenfalls inkompatibel machen.
+Eine Sitzung kann inkompatibel sein, wenn sie aus einer anderen MiniOS-Version oder Edition stammt. Auch eine andere `union=` Einstellung kann eine Sitzung inkompatibel machen.
 Die interaktive Auswahl macht eine inkompatible Sitzung nicht sicher.
+
+Der Inkompatibilitätsdialog kann vorinstallierte Software zurücksetzen und dabei Daten sowie optional Systemeinstellungen beibehalten. Beide Rücksetzmodi erhalten Home-Verzeichnisse, persönliche Einstellungen, Konten und Passwörter. Für das Zwischenspeichern der beibehaltenen Daten wird freier Speicherplatz benötigt; ein SquashFS-Reset wird erst nach dem Speichern dauerhaft. Siehe [Sitzungsverwaltung](/using-minios/Sessions-and-Persistence) bevor Sie den Reset verwenden.
 
 ## Ohne Speichern starten
 
@@ -63,27 +65,31 @@ Ein Start ohne Speichern bedeutet nicht, dass das Boot-Medium entfernt werden ka
 
 ## Aus dem RAM ausführen
 
-In diesem Modus werden Systemdaten von MiniOS nach RAM kopiert, um Lesezugriffe auf die Quelle zu reduzieren. Es wird ausreichend Arbeitsspeicher für das kopierte System und die laufende Arbeitslast benötigt.
+In diesem Modus werden MiniOS-Systemdaten in RAM kopiert, um Lesezugriffe auf die Quelle zu reduzieren. Dafür wird ausreichend Arbeitsspeicher für das kopierte System und die laufende Arbeitslast benötigt.
 
-Systemkopie und Persistenzkopie sind jetzt getrennt. Bei einer Persistenz-Anforderung `toram`ist die Voreinstellung `perchtoram`auf `trim`gesetzt, sodass die gewählte unterstützte Raw-, DynFileFS-, DynBlk-, VMDK- oder SquashFS-Sitzung nach RAM kopiert wird, während nicht verwandte gespeicherte Sitzungen auf dem ursprünglichen Speicher verbleiben. Verwenden Sie `perchtoram=off`wenn Sie das System in RAM haben möchten, die aktive Persistenzsitzung aber weiterhin direkt auf den Speicher schreiben soll, oder `perchtoram=full`wenn alle unterstützten gespeicherten Sitzungen kopiert werden sollen. Native Verzeichnis-Sitzungen werden von `perchtoram`nicht kopiert.
+Systemkopie und Persistenzkopie sind voneinander unabhängig. Bei einer Persistenzanfrage `toram` ist standardmäßig `perchtoram` aktiviert `trim`, sodass die ausgewählte unterstützte Raw-, DynFileFS-, DynBlk-, VMDK- oder SquashFS-Sitzung nach RAM kopiert wird, während nicht zusammenhängende gespeicherte Sitzungen auf dem ursprünglichen Speicher verbleiben. Verwenden Sie `perchtoram=off` , wenn Sie das System in RAM benötigen, aber die aktive Persistenzsitzung weiterhin direkt auf den Speicher schreiben soll, oder `perchtoram=full` , wenn alle unterstützten gespeicherten Sitzungen kopiert werden sollen. Native Verzeichnisdaten werden nicht kopiert: Eine erfolgreiche native RAM-Anfrage startet stattdessen einen neuen, leeren Container. Während eines Native-Session-Resets ist das Kopieren deaktiviert, um erhaltene Daten zu schützen. Wenn beim Kopieren einer Sitzung nicht genügend Speicher vorhanden ist oder ein Fehler auftritt, meldet MiniOS den Fallback und belässt die Sitzung auf dem Speicher.
 
-Eine RAM-gestützte Persistenzsitzung ist während des Betriebs nicht dauerhaft. Der aktuelle MiniOS-Sitzungsmanager kann unterstützte RAM-gestützte Änderungen explizit mit **Jetzt speichern**zurück auf den ursprünglichen Speicher schreiben oder als neue nummerierte Sitzung speichern, sofern das Original vorhanden, beschreibbar und noch mit der beim Start aufgezeichneten Identität übereinstimmt. Bis ein solches Speichern erfolgreich ist, gehen ungespeicherte RAM-Änderungen beim Herunterfahren verloren. SquashFS-Automatikspeicherregeln verwenden dasselbe Sitzungs-Backend, wenn das Original verfügbar ist.
+Eine RAM-gestützte Persistenzsitzung ist während der Laufzeit nicht dauerhaft. Der aktuelle MiniOS-Sitzungsmanager kann unterstützte Änderungen, die auf RAM basieren, explizit mit **Jetzt speichern** zurück auf den ursprünglichen Speicher schreiben oder sie als neue, nummerierte Sitzung speichern, sofern der ursprüngliche Speicher vorhanden, beschreibbar und noch mit der beim Start aufgezeichneten Identität übereinstimmt. Bis ein solches Speichern erfolgreich ist, gehen nicht gespeicherte RAM-Änderungen beim Herunterfahren verloren. Die automatischen Speicherregeln von SquashFS verwenden dasselbe Sitzungs-Backend, wenn der ursprüngliche Speicher verfügbar ist.
 
-Entfernen Sie das Boot-Gerät nicht nur, weil **Aus dem RAM ausführen**ausgewählt wurde. Sicher ist dies erst, nachdem MiniOS das Quell-Dateisystem, ISO-Loop, Ventoy-Zuordnungen und alle noch benötigten Persistenzabhängigkeiten erfolgreich getrennt hat. Schlägt das Trennen fehl, bleibt die Quelle in Benutzung.
+Entfernen Sie das Boot-Gerät nicht nur deshalb, weil **Aus dem RAM ausführen** ausgewählt wurde. Es ist erst dann sicher, wenn MiniOS das Quell-Dateisystem, den ISO-Loop, Ventoy-Zuordnungen und alle noch benötigten Persistenzabhängigkeiten erfolgreich getrennt hat. Falls das Trennen fehlschlägt, bleibt die Quelle weiterhin in Benutzung.
 
-## Native Installation
+## Ventoy Persistenz-Images
 
-::: warning Die native Installation ändert das Systemmodell
-Eine native Installation bewahrt das gewohnte MiniOS-Desktop-Erlebnis – mit visueller Identität, gewählter Desktop-Umgebung und Standardanwendungen – wandelt das Live-Image jedoch in einen klassischen Debian-Desktop um. MiniOS-spezifische Werkzeuge für Sitzungen, Module, modulare Kernel und andere Live-Workflows werden entfernt, da diese Funktionen nicht mehr benötigt werden.
+Mit einem ausgewählten Ventoy Persistence Plugin-Backend verwendet ein persistenter Bootvorgang eine beschreibbare ext4-Umgebung aus diesem Image anstelle von nummerierten MiniOS Sitzungen.**Neue Sitzung beginnen** und **Gespeicherte Sitzung auswählen** können in diesem Modus keine nummerierten Sitzungen erstellen oder auswählen; wählen Sie stattdessen ein anderes Backend in Ventoy. Sitzungsverwaltung und `perchtoram` sind nicht verfügbar, daher bleibt das Image auch bei einem System-RAM-Boot weiterhin in Benutzung.**Ohne Speichern starten** verwendet weiterhin ein temporäres RAM Upper-Layer. Gewöhnliche Ventoy Boots ohne ausgewähltes Plugin-Image behalten das normale MiniOS Sitzungsverhalten bei. Siehe [Ventoy](/installing-minios/installation-tools/Ventoy).
+
+## Native-Installation
+
+::: warning Die Native-Installation ändert das Systemmodell
+Eine Native-Installation behält die gewohnte MiniOS Desktop-Umgebung bei – mit ihrem Erscheinungsbild, der gewählten Desktop-Umgebung und den üblichen Anwendungen – wandelt das Live-Image jedoch in ein konventionelles Debian-Desktop-System um. MiniOS-spezifische Werkzeuge für Sitzungen, Module, modulare Kernel und andere Live-Workflows werden entfernt, da diese Funktionen nicht mehr benötigt werden.
 :::
 
-Nach der nativen Umwandlung verwenden Sie die normalen Debian-Werkzeuge für Pakete, Kernel, Konfiguration und Bootloader. Das Ergebnis bleibt optisch vertraut und enthält die Standard-Desktop-Anwendungen der gewählten Edition, aber die MiniOS-spezifischen Live-Funktionen sind nicht mehr vorhanden. Die MiniOS-Live-Architektur ist beschrieben unter [Über MiniOS](/getting-started/About-MiniOS).
+Nach der nativen Umstellung nutzen Sie die gewohnten Debian-Werkzeuge für Pakete, Kernel, Konfiguration und Bootloader. Das System bleibt optisch vertraut und enthält weiterhin die Standardanwendungen der gewählten Edition, aber die MiniOS-spezifischen Live-Funktionen stehen nicht mehr zur Verfügung. Die MiniOS Live-Architektur wird erläutert unter [Über MiniOS](/getting-started/About-MiniOS).
 
-Verwenden Sie [MiniOS-Installationsprogramm](/installing-minios/MiniOS-Installer)nur, wenn Sie diese Umwandlung gezielt wünschen und das gewählte Image native Bereitstellung unterstützt.
+Verwenden Sie [MiniOS-Installationsprogramm](/installing-minios/MiniOS-Installer) nur, wenn Sie diese Umwandlung ausdrücklich wünschen und das gewählte Image die native Bereitstellung unterstützt.
 
 ## Wenn Sie mehr Details benötigen
 
-- [Boot-Menüs](/preparing-and-customizing/Customizing-the-Boot-Menu)erklärt die Navigation und das temporäre Bearbeiten eines Menüeintrags.
-- [Sitzungsverwaltung](/using-minios/Sessions-and-Persistence)erläutert Speichermodi, Sitzungsanlage, Größenänderung und Entfernung.
+- [Boot-Menüs](/preparing-and-customizing/Customizing-the-Boot-Menu)erläutert die Navigation und das temporäre Bearbeiten eines Menüeintrags.
+- [Sitzungsverwaltung](/using-minios/Sessions-and-Persistence)beschreibt Speicherarten, das Erstellen, Vergrößern und Entfernen von Sitzungen.
 - [Boot-Parameter](/reference/Boot-Parameters)ist die vollständige Referenz für die Befehlszeile.
 - [Initrd-Systemerkennung](/reference/boot-process/System-Discovery), [Modulladen](/reference/boot-process/Module-Loading), und [Persistenz](/reference/boot-process/Persistence-Internals)erklären, wie die zugehörigen Parametergruppen beim Start verarbeitet werden.

@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-31
+updated: 2026-10-15
 ---
 
 # Inicio rápido
@@ -60,21 +60,21 @@ Esto significa que un primer arranque normal no requiere que crees una sesión p
 
 Consulta [Modos de arranque](/using-minios/Boot-Modes) para conocer otras opciones de inicio. Si el dispositivo no arranca o algún hardware importante no funciona, consulta [Compatibilidad de hardware](/getting-started/Hardware-Compatibility) y [Solución de problemas](/maintenance-and-recovery/Troubleshooting).
 
-## 5. Cambia el comportamiento de la sesión cuando sea necesario
+## 5. Elige otro comportamiento de sesión cuando sea necesario
 
-Para un uso portátil normal, sigue utilizando la opción predeterminada **Iniciar MiniOS**. Elige un modo diferente solo cuando necesites un resultado distinto:
+Para el uso portátil habitual, continúa utilizando la opción predeterminada **Iniciar MiniOS** . Solo selecciona un modo diferente si necesitas un resultado distinto:
 
 | Opción de arranque | Úsalo cuando | Resultado |
 |---|---|---|
-| **Iniciar MiniOS** (predeterminado) | Uso portátil normal | Retoma automáticamente una sesión predeterminada compatible o crea una nueva cuando sea compatible |
-| **Iniciar una nueva sesión** | Quieres un espacio de trabajo adicional y separado | Crea una sesión persistente adicional numerada y mantiene las sesiones existentes sin cambios |
-| **Elegir una sesión guardada** | Quieres seleccionar uno de varios espacios de trabajo existentes | Permite elegir una sesión existente de forma interactiva |
-| **Iniciar sin guardar** | Quieres un arranque temporal limpio sin persistencia | Utiliza una capa temporal de escritura en RAM |
-| **Ejecutar desde RAM** | Quieres copiar MiniOS en RAM para este arranque | Se ejecuta desde una copia en RAM; los cambios se consideran temporales |
+| **Iniciar MiniOS** (predeterminado) | Uso portátil normal | Reanuda automáticamente una sesión predeterminada compatible o crea una nueva cuando sea compatible |
+| **Iniciar nueva sesión** | Quieres un espacio de trabajo adicional independiente | Crea una sesión persistente adicional numerada y mantiene las sesiones existentes sin cambios |
+| **Elegir una sesión guardada** | Quieres seleccionar uno de varios espacios de trabajo existentes | Te permite elegir una sesión existente de forma interactiva |
+| **Iniciar sin guardar** | Quieres un arranque temporal limpio sin persistencia | Utiliza una capa temporal editable en RAM |
+| **Ejecutar desde RAM** | Quieres copiar MiniOS en RAM para este arranque | La opción proporcionada inicia temporalmente sin una sesión guardada. Si se solicita persistencia adicional, las sesiones compatibles pueden copiarse por separado y guardarse de forma explícita; los datos nativos no se copian |
 
-La persistencia automática aún requiere un almacenamiento de escritura adecuado. Una escritura ISO en bruto, por sí sola, no prepara almacenamiento persistente. Las instalaciones basadas en archivos, los esquemas Ventoy y las instalaciones Live realizadas con el [Instalador de MiniOS](/installing-minios/MiniOS-Installer) pueden proporcionar esquemas de escritura para uso persistente de MiniOS. Las sesiones existentes pueden inspeccionarse y gestionarse con [Gestión de sesiones](/using-minios/Sessions-and-Persistence).
+La persistencia automática aún requiere un almacenamiento editable adecuado. Escribir una ISO sin formato no prepara por sí solo un almacenamiento persistente. Las instalaciones basadas en archivos, los esquemas Ventoy y las instalaciones Live creadas por [Instalador de MiniOS](/installing-minios/MiniOS-Installer) pueden proporcionar esquemas editables para el uso persistente de MiniOS. Las sesiones existentes pueden inspeccionarse y gestionarse con [Gestión de sesiones](/using-minios/Sessions-and-Persistence).
 
-Antes de confiar en la persistencia, reinicia una vez y confirma que MiniOS informa que la sesión esperada está activa y que un cambio de prueba persiste tras el reinicio.
+Antes de confiar en la persistencia, reinicia una vez y confirma que MiniOS muestra la sesión esperada como activa y que un cambio de prueba se mantiene tras el reinicio.
 
 ## 6. Preconfigura MiniOS
 

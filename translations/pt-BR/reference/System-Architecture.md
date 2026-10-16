@@ -1,87 +1,87 @@
 ---
-updated: 2026-10-06
+updated: 2026-10-15
 ---
 
 # Arquitetura do sistema
 
-MiniOS inicializa um sistema operacional somente leitura montado a partir de módulos SquashFS e adiciona uma camada gravável para a sessão atual. O initramfs é responsável por localizar a mídia, selecionar módulos e persistência, construir o sistema de arquivos raiz, aplicar configurações iniciais e transferir o controle para o sistema init instalado.
+MiniOS inicializa um sistema operacional somente leitura montado a partir de módulos SquashFS e adiciona uma camada gravável para a sessão atual. O initramfs é responsável por localizar a mídia, selecionar os módulos e a persistência, construir o sistema de arquivos raiz, aplicar a configuração inicial e transferir o controle para o sistema init instalado.
 
-## Descoberta de boot
+## Descoberta na inicialização
 
-O bootloader BIOS ou UEFI carrega um kernel Linux e o initramfs MiniOS de `minios/boot/`. Em seguida, o initramfs descobre a árvore de dados MiniOS que contém os módulos live. A fonte pode ser local, selecionada interativamente ou fornecida por um caminho de rede suportado; uma ISO local é montada em loop antes de sua árvore de dados ser utilizada. A precedência exata e os formatos aceitos `from=` estão documentados em [Descoberta do sistema Initrd](/reference/boot-process/System-Discovery).
+O carregador de inicialização do BIOS ou UEFI carrega um kernel Linux e um initramfs MiniOS de `minios/boot/`. Em seguida, o initramfs localiza a árvore de dados MiniOS que contém os módulos live. A origem pode ser local, selecionada interativamente ou fornecida por uma rota de rede compatível; uma ISO local é montada em loop antes que sua árvore de dados seja usada. A precedência exata e os formatos aceitos`from=` estão documentados em [Descoberta do sistema no Initrd](/reference/boot-process/System-Discovery).
 
-A mesma etapa de descoberta suporta fontes ISO HTTP e PXE. O uso opcional de rede no início do boot serve apenas para **carregar MiniOS pela rede** (PXE / HTTP ISO). Não configura a rede da sessão de forma permanente. Consulte [Boot pela rede](/reference/boot-process/Network-Boot).
+A mesma etapa de descoberta é compatível com origens HTTP ISO e PXE. A rede opcional durante a inicialização serve apenas para **carregar MiniOS pela rede** (PXE / HTTP ISO). Ela não configura uma conexão de rede persistente para a sessão. Consulte [Inicialização pela rede](/reference/boot-process/Network-Boot).
 
-Após a descoberta, MiniOS pode, opcionalmente, preparar uma cópia RAM. Se a fonte original continuará sendo necessária depende do modo de cópia, persistência e do sucesso no desligamento da mídia. Consulte [Modos de boot](/using-minios/Boot-Modes) para o modelo operacional.
+Após a descoberta, MiniOS pode preparar opcionalmente uma cópia RAM. A necessidade de manter a origem original depende do modo de cópia, da persistência e do sucesso da desconexão. Consulte [Modos de inicialização](/using-minios/Boot-Modes) para entender o funcionamento.
 
-## Composição de módulos
+## Composição dos módulos
 
-Cada `.sb` arquivo é um sistema de arquivos SquashFS somente leitura. Os módulos internos são armazenados diretamente em `minios/`; locais adicionais de módulos podem contribuir para a composição ordenada. O initramfs seleciona, ordena e monta as camadas resultantes como somente leitura. Os níveis candidatos, substituição de nome base, filtros, extensões de bundle personalizadas e coordenação com o kernel em execução são definidos em [Carregamento de módulos Initrd](/reference/boot-process/Module-Loading).
+Cada arquivo `.sb` é um sistema de arquivos SquashFS somente leitura. Os módulos integrados são armazenados diretamente em `minios/`; outros locais de módulos podem contribuir para a composição ordenada. O initramfs seleciona, ordena e monta as camadas somente leitura resultantes. Os níveis de candidatos, a substituição por nome de arquivo, os filtros, as extensões personalizadas de pacotes e a coordenação com o kernel em execução estão especificados em [Carregamento de módulos no Initrd](/reference/boot-process/Module-Loading).
 
-Uma imagem típica do Xfce contém os seguintes papéis em ordem, embora os nomes e quantidades exatos dependam da build e dos módulos ignorados para aquele destino:
+Uma imagem Xfce típica contém as seguintes funções ordenadas, embora os nomes e números exatos dependam da compilação e dos módulos ignorados para esse destino:
 
 ```text
 00-core-<arch>.sb
-01-kernel-<version>-<arch>.sb
+01-kernel-<version>.sb
 02-firmware-<arch>.sb
 03-gui-base-<arch>.sb
 04-xfce-desktop-<arch>.sb
 05-apps-<arch>.sb or the next applicable module
 ```
 
-Módulos posteriores têm maior precedência e podem substituir caminhos fornecidos por módulos anteriores. Um módulo pode depender de arquivos em qualquer módulo de número inferior, então um conjunto de arquivos de módulos é uma composição ordenada, não apenas um conjunto de pacotes independentes.
+Os módulos posteriores têm precedência maior e podem substituir caminhos fornecidos por módulos anteriores. Um módulo pode depender de arquivos de qualquer módulo com número inferior; por isso, um conjunto de arquivos de módulo é uma composição ordenada, não uma coleção de pacotes independentes.
 
 ## AUFS e OverlayFS
 
-MiniOS utiliza um sistema de arquivos union para apresentar os módulos e a camada gravável como um único sistema de arquivos raiz. Ele seleciona AUFS quando o kernel em execução oferece suporte e recorre a OverlayFS caso contrário. `union=aufs` solicita AUFS, mas ainda recorre a OverlayFS quando AUFS não está disponível; `union=overlayfs` seleciona OverlayFS. Em UEFI Secure Boot, o initrd não carrega o módulo não assinado `aufs-ng` e utiliza OverlayFS, a menos que outra implementação AUFS utilizável já esteja presente.
+MiniOS usa um sistema de arquivos union para apresentar os módulos e a camada gravável como um único sistema de arquivos raiz. Ele seleciona AUFS quando o kernel em execução oferece suporte a ele e, caso contrário, recorre a OverlayFS. `union=aufs` solicita AUFS, mas ainda recorre a OverlayFS quando AUFS não está disponível; `union=overlayfs` seleciona OverlayFS. Com o Secure Boot UEFI, o initrd não carrega o módulo `aufs-ng` não assinado e usa OverlayFS, a menos que outra implementação utilizável de AUFS já esteja presente.
 
-As duas implementações apresentam uma diferença operacional importante:
+As duas implementações têm uma diferença operacional importante:
 
-- AUFS começa com o ramo gravável e adiciona os módulos montados como ramos somente leitura. MiniOS pode ativar ou desativar um módulo no root em execução quando o ponto de montagem AUFS oferece suporte a essa operação.
-- OverlayFS recebe sua lista completa e ordenada de `lowerdir` ao montar o root, além de um `upperdir` e `workdir`. Seu conjunto de módulos inferiores não pode ser alterado em tempo real por **Gerenciador de módulos MiniOS**.
+- AUFS começa com a ramificação gravável e adiciona os módulos montados como ramificações somente leitura. MiniOS pode ativar ou desativar um módulo na raiz em execução quando a montagem AUFS oferece suporte a essa operação.
+- OverlayFS recebe a lista completa e ordenada de `lowerdir` no momento da montagem da raiz, além de um `upperdir` e `workdir`. O conjunto de módulos inferiores não pode ser alterado no local por **Gerenciador de módulos MiniOS**.
 
-**Gerenciador de módulos MiniOS** portanto, separa **Em execução agora**, o conjunto de módulos montados, de **Próxima inicialização**, os módulos selecionados pela mídia atual e pelas regras de boot. Adicionar ou remover um módulo persistente normalmente altera apenas a próxima inicialização. Criar ou abrir um módulo não o ativa. A ativação e desativação em tempo real estão disponíveis apenas com AUFS.
+**Gerenciador de módulos MiniOS** portanto, separa **Em execução agora**, o conjunto de módulos montados, de **Na próxima inicialização**, os módulos selecionados pela mídia atual e pelas regras de inicialização. Adicionar ou remover um módulo persistente normalmente afeta apenas a próxima inicialização. Criar ou abrir um módulo não o ativa. A ativação e a desativação em tempo de execução estão disponíveis somente com AUFS.
 
-Após a montagem do root e a conclusão da configuração inicial, o initrd do LiveKit utiliza `pivot_root`, mantém o initrd antigo para tarefas de desligamento e executa o init do novo root. O caminho dracut prepara o mesmo root montado, mas deixa a etapa final de `switch_root` para o dracut. Consulte [Carregamento de módulos Initrd](/reference/boot-process/Module-Loading) para detalhes sobre o ponto de transição.
+Depois que a raiz é montada e a configuração inicial é concluída, o initrd do LiveKit usa `pivot_root`, mantém o initrd antigo para as tarefas de desligamento e executa o init da nova raiz. O caminho do dracut prepara a mesma raiz montada, mas deixa o `switch_root` final a cargo do dracut. Consulte [Carregamento de módulos do initrd](/reference/boot-process/Module-Loading) para ver os detalhes do ponto de transferência.
 
 ## Camada gravável e sessões
 
-Sem persistência, a camada gravável é mantida em memória e desaparece ao desligar. Com persistência, é possível ativar uma sessão numerada com um backend de armazenamento compatível. Seleção, compatibilidade, falha de ativação, autoridade do boot atual e durabilidade são definidos em [Persistência Initrd](/reference/boot-process/Persistence-Internals).
+Sem persistência, a camada gravável é baseada em memória e desaparece ao desligar. A persistência pode, em vez disso, ativar uma sessão numerada com um backend de armazenamento compatível. Com um backend do Persistence Plugin Ventoy selecionado, MiniOS usa um único ambiente persistente ext4 direto, em vez de sessões numeradas. A seleção, a compatibilidade, as falhas de ativação, a autoridade do boot atual e a durabilidade são definidas em [Persistência no initrd](/reference/boot-process/Persistence-Internals).
 
 | Modo | Armazenamento gravável | Observações |
 |------|------------------|-------|
 | `native` | Arquivos armazenados diretamente no diretório da sessão | Requer um sistema de arquivos POSIX gravável que preserve os metadados do Linux. |
-| `dynfilefs` | Sistema de arquivos ext4 expansível dividido em arquivos de apoio | Suporta sistemas de arquivos POSIX e mídias FAT32, NTFS ou exFAT. |
-| `dynblk` | Sistema de arquivos ext4 fino em um dispositivo de bloco do kernel respaldado por `volumeNNN.db` arquivos | Requer suporte a userspace, kernel e initrd DynBlk. |
-| `vmdk` | Armazenamento esparso dividido `volume.vmdk` / `volume-sNNN.vmdk` exposto como dispositivo de bloco pelo driver DynBlk | Requer suporte a `vmdk-session-v1` DynBlk/initrd; sem compressão de backend. |
-| `raw` | Arquivo de tamanho fixo `changes.img` contendo ext4 | Suporta sistemas de arquivos POSIX e mídias FAT32, NTFS ou exFAT. |
-| `squashfs` | Snapshot `changes.sb` compactado | Descompactado em RAM para uso; ao salvar, reconstrói e substitui o snapshot de forma atômica. O sistema de arquivos de persistência deve preservar os metadados do Linux durante o salvamento. |
+| `dynfilefs` | Sistema de arquivos ext4 expansível, dividido entre arquivos de suporte | Compatível com sistemas de arquivos POSIX e mídias FAT32, NTFS ou exFAT. |
+| `dynblk` | Sistema de arquivos ext4 thin em um dispositivo de bloco do kernel, com suporte de `volumeNNN.db` arquivos | Requer os recursos de espaço de usuário, kernel e initrd do DynBlk. |
+| `vmdk` | Armazenamento esparso `volume.vmdk` dividido em partes / `volume-sNNN.vmdk` exposto como dispositivo de bloco pelo driver DynBlk | Requer o recurso de `vmdk-session-v1` DynBlk/initrd; sem compactação no backend. |
+| `raw` | Arquivo de tamanho fixo `changes.img` contendo ext4 | Compatível com sistemas de arquivos POSIX e mídias FAT32, NTFS ou exFAT. |
+| `squashfs` | Snapshot `changes.sb`compactado | Descompactado em RAM para uso; ao salvar, é recriado e substituído atomicamente. O sistema de arquivos de persistência deve preservar os metadados do Linux durante o salvamento. |
 
-Raw, DynFileFS, DynBlk e VMDK podem opcionalmente ter uma camada LUKS2. Os metadados registram separadamente o backend de armazenamento e a criptografia. O desligamento libera ext4, o mapeador, qualquer loop proprietário e o backend na ordem de dependência.
+Raw, DynFileFS, DynBlk e VMDK podem incluir opcionalmente uma camada LUKS2. Os metadados registram separadamente o backend de armazenamento e a criptografia. Ao desligar, os recursos ext4, o mapeador, qualquer loop próprio e o backend são liberados na ordem de dependência.
 
-A sessão ativa selecionada para retomada futura e a camada gravável realmente autorizada para o boot atual são estados relacionados, mas distintos. Alterar a seleção futura não substitui a camada gravável em execução.
+A sessão ativa selecionada para uma retomada futura e a camada gravável efetivamente autorizada para o boot atual são estados relacionados, mas distintos. Alterar uma seleção futura não substitui a camada gravável em uso.
 
-Consulte [Gerenciamento de sessões](/using-minios/Sessions-and-Persistence) para comandos de criação, seleção, dimensionamento, criptografia, conversão, exportação e recuperação.
+Consulte [Gerenciamento de sessões](/using-minios/Sessions-and-Persistence) para ver os comandos de criação, seleção, dimensionamento, criptografia, conversão, exportação e recuperação.
 
-## Precedência de configuração
+## Precedência da configuração
 
-A configuração da mídia é `minios/config.conf`, com fragmentos opcionais em `minios/config.conf.d/`. As cópias em tempo de execução são `/etc/live/config.conf` e `/etc/live/config.conf.d/` no root composto.
+A configuração da mídia é `minios/config.conf`, com fragmentos opcionais em `minios/config.conf.d/`. As cópias em tempo de execução são `/etc/live/config.conf` e `/etc/live/config.conf.d/` na raiz composta.
 
-Na inicialização, MiniOS compara os horários de modificação e copia um arquivo de mídia mais recente para o root em tempo de execução. Se a mídia for gravável e a cópia de runtime for mais recente, ela é copiada de volta para a mídia. Fragmentos são sincronizados pelo nome do arquivo em ambas as direções. Se o relógio retrocedeu desde a última sincronização, MiniOS evita substituir timestamps e apenas preenche destinos ausentes.
+No boot, MiniOS compara os horários de modificação e copia um arquivo mais recente da mídia para a raiz de tempo de execução. Se a mídia permitir gravação e a cópia em tempo de execução for mais recente, ela será copiada de volta para a mídia. Os arquivos de fragmento são sincronizados nos dois sentidos pelo nome do arquivo. Se o relógio tiver sido atrasado desde a sincronização anterior, MiniOS evita substituir os horários e apenas preenche os destinos ausentes.
 
-Opções da linha de comando do kernel substituem os valores correspondentes lidos da configuração de runtime para aquele boot. Assim, a ordem efetiva para uma configuração suportada explicitamente é: parâmetro de boot, depois a configuração sincronizada de runtime/mídia, depois o padrão embutido. Edições persistentes de runtime podem se tornar a configuração da mídia se a fonte for gravável; mídias ISO somente leitura não recebem essa atualização.
+As opções da linha de comando do kernel substituem os valores correspondentes lidos da configuração em tempo de execução durante aquele boot. Isso significa que a ordem efetiva para uma configuração explicitamente compatível é: parâmetro de boot, configuração sincronizada de tempo de execução/mídia e, por fim, valor padrão integrado. Edições persistentes em tempo de execução podem se tornar a configuração da mídia quando a origem permite gravação; mídias ISO somente leitura não podem receber essa atualização.
 
-Consulte [Arquivo de configuração](/reference/configuration/config.conf) e [live-config](/reference/configuration/live-config) para as configurações suportadas.
+Consulte [Arquivo de configuração](/reference/configuration/config.conf) e [live-config](/reference/configuration/live-config) para ver as configurações compatíveis.
 
 ## Ciclo de desligamento e salvamento
 
-No desligamento normal, o sistema em execução tem a chance de gravar serviços e dados de sessão. Uma sessão SquashFS com salvamento no desligamento ativado é reconstruída e validada antes da desmontagem do sistema de arquivos. O backend de salvamento grava um marcador de conclusão para a sessão exata em execução; o initramfs de desligamento verifica esse marcador e deixa a sessão suja se o salvamento exigido falhar.
+Durante o desligamento normal, o sistema em execução tem primeiro a oportunidade de liberar os serviços e os dados da sessão. Uma sessão SquashFS com salvamento no desligamento ativado é reconstruída e validada antes da desmontagem do sistema de arquivos. O backend de salvamento grava um marcador de conclusão para a sessão exata em execução; o initramfs de desligamento verifica esse marcador e mantém a sessão como suja se o salvamento obrigatório falhar.
 
-O initramfs de desligamento então desconecta dispositivos de loop não utilizados, desmonta o root antigo e a camada gravável, registra uma sessão bem-sucedida como limpa, desmonta a mídia e fecha um mapeamento LUKS de propriedade MiniOS. Mídias ópticas podem ser ejetadas antes de desligar ou reiniciar. Salvamentos manuais e periódicos SquashFS usam o mesmo backend de snapshot, mas apenas a política de desligamento configurada impede a finalização limpa em caso de falta de salvamento no desligamento.
+Em seguida, o initramfs de desligamento desconecta dispositivos loop não utilizados, desmonta a raiz antiga e a camada gravável, marca como limpa uma sessão salva com sucesso, desmonta a mídia e fecha um mapeamento LUKS pertencente a MiniOS. A mídia óptica pode então ser ejetada antes de desligar ou reiniciar. Os salvamentos manuais e periódicos de SquashFS usam o mesmo backend de snapshot, mas somente a política de desligamento configurada impede a finalização como limpa quando falta um salvamento no desligamento.
 
-## Árvore de mídia
+## Árvore da mídia
 
-Uma imagem atual é organizada da seguinte forma. Diretórios opcionais aparecem apenas quando o recurso relacionado criou conteúdo.
+Uma imagem atual está organizada da seguinte forma. Os diretórios opcionais aparecem somente quando o recurso relacionado cria conteúdo.
 
 ```text
 /
@@ -89,7 +89,7 @@ Uma imagem atual é organizada da seguinte forma. Diretórios opcionais aparecem
 |-- EFI/                           UEFI boot files
 `-- minios/
     |-- 00-core-<arch>.sb          base userspace
-    |-- 01-kernel-<version>-<arch>.sb
+    |-- 01-kernel-<version>.sb
     |-- 02-firmware-<arch>.sb
     |-- NN-<name>-<arch>.sb        ordered system modules
     |-- boot/                      kernels, initramfs, GRUB, and Syslinux data
@@ -102,17 +102,17 @@ Uma imagem atual é organizada da seguinte forma. Diretórios opcionais aparecem
     `-- log/                       optional exported boot logs
 ```
 
-Os caminhos inicializados sob `/run/initramfs/memory/` são pontos de montagem de implementação, não uma segunda cópia persistente desta árvore.
+Os caminhos inicializados em `/run/initramfs/memory/` são pontos de montagem da implementação, não uma segunda cópia persistente desta árvore.
 
 ## Documentação relacionada
 
-- [Modos de boot](/using-minios/Boot-Modes)
-- [Descoberta do sistema Initrd](/reference/boot-process/System-Discovery)
-- [Carregamento de módulos Initrd](/reference/boot-process/Module-Loading)
-- [Persistência Initrd](/reference/boot-process/Persistence-Internals)
-- [Parâmetros de boot](/reference/Boot-Parameters)
-- [Menus de boot](/preparing-and-customizing/Customizing-the-Boot-Menu)
+- [Modos de inicialização](/using-minios/Boot-Modes)
+- [Detecção do sistema pelo initrd](/reference/boot-process/System-Discovery)
+- [Carregamento de módulos pelo initrd](/reference/boot-process/Module-Loading)
+- [Persistência do initrd](/reference/boot-process/Persistence-Internals)
+- [Parâmetros de inicialização](/reference/Boot-Parameters)
+- [Menus de inicialização](/preparing-and-customizing/Customizing-the-Boot-Menu)
 - [Arquivo de configuração](/reference/configuration/config.conf)
-- [Gerenciamento de sessões](/using-minios/Sessions-and-Persistence)
-- [Boot pela rede](/reference/boot-process/Network-Boot)
+- [Gerenciamento de sessão](/using-minios/Sessions-and-Persistence)
+- [Inicialização pela rede](/reference/boot-process/Network-Boot)
 - [Criação de módulos](/preparing-and-customizing/Managing-Modules#creating-modules)

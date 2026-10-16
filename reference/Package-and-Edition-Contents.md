@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-31
+updated: 2026-10-15
 ---
 # Package and edition contents
 
@@ -29,7 +29,8 @@ These packages provide the live-system runtime, configuration, localization, pri
 | Package | Flux | Standard | Toolbox | Ultra | Purpose or condition |
 |---|:---:|:---:|:---:|:---:|---|
 | `minios-tools` | Yes | Yes | Yes | Yes | Module creation, conversion, inspection, activation, and change capture |
-| `minios-image-compose` | Yes | Yes | Yes | Yes | Command-line MiniOS ISO composition |
+| `minios-image-compose` | - | Yes | Yes | Yes | Command-line MiniOS ISO composition |
+| `minios-deploy`, `minios-kernel`, `minios-session` | - | Yes | Yes | Yes | Command-line deployment, kernel, and session backends, independently of graphical apps |
 | `minios-live-config` | Yes | Yes | Yes | Yes | Live-session configuration components |
 | `minios-live-config-systemd` / `minios-live-config-sysvinit` | Conditional | Conditional | Conditional | Conditional | Init-system integration; one implementation is selected |
 | `minios-live-config-doc` | Yes | Yes | Yes | Yes | Installed live-config reference |
@@ -92,6 +93,7 @@ They are implementation dependencies rather than edition features and are not li
 | `exfatprogs` / `exfat-utils` with `exfat-fuse` | - | Conditional | Conditional | Conditional | exFAT implementation selected by package availability |
 | `fuse3` / `fuse`, `libfuse2` | - | Conditional | Conditional | Conditional | FUSE runtime and compatibility library |
 | `dynfilefs` | - | Conditional | Conditional | Conditional | Segmented persistence storage on supported suites |
+| `dynblk` | - | Yes | Yes | Yes | CLI for kernel-backed thin DynBlk and split VMDK storage; usable sessions also require the driver and compatible initrd |
 | `parted` | - | Yes | Yes | Yes | Partition table creation and editing |
 | `gpart` | - | - | Yes | Yes | Partition table recovery |
 | `mtools` | - | - | Yes | Yes | FAT and DOS media tools |
@@ -146,6 +148,7 @@ They are implementation dependencies rather than edition features and are not li
 | `stress`, `sysbench` | - | - | Yes | Yes | CPU, memory, and system benchmarks |
 | `memtest86+` | - | - | Yes | Yes | Boot-time memory testing |
 | `rsync` | - | - | Yes | Yes | File synchronization and copy utility |
+| `git` | - | - | Yes | Yes | Version-control client |
 
 ## Virtualization and containers
 
@@ -169,19 +172,23 @@ Firmware selection follows the distribution profile: Debian and Devuan builds us
 | Package | Editions | Purpose or condition |
 |---|---|---|
 | `firmware-linux-free`, `firmware-linux-nonfree` | Conditional, all | Debian and Devuan firmware collections |
+| `firmware-intel-graphics` | Conditional, all | Intel graphics firmware on Trixie and Excalibur |
 | `firmware-atheros`, `firmware-iwlwifi`, `firmware-zd1211` | Conditional, all | Wireless firmware for Atheros, Intel, and ZyDAS devices |
 | `firmware-realtek`, `firmware-mediatek` | Conditional, all | Realtek and MediaTek firmware; MediaTek depends on suite |
 | `firmware-bnx2`, `firmware-brcm80211`, `firmware-cavium` | Conditional, all | Broadcom and Cavium network firmware |
 | `firmware-ipw2x00`, `firmware-libertas`, `firmware-ti-connectivity` | Conditional, all | Additional wireless firmware families |
 | `firmware-b43-installer` | Conditional, all | Legacy Broadcom B43 firmware installer |
 | `firmware-sof-signed` | Conditional, all | Sound Open Firmware images |
-| `linux-firmware` | Conditional, all | Ubuntu firmware collection |
+| `linux-firmware-minimal` / `linux-firmware` and vendor firmware packages | Conditional, all | Ubuntu base firmware alternative plus suite-specific AMD, Intel, Broadcom, MediaTek, Qualcomm, Marvell, and Realtek packages |
 | `ntfs3-dkms` | Conditional, all | NTFS3 driver when it is absent from the selected kernel |
 | `aufs-dkms` / `aufs-ng-dkms` | Conditional, all | AUFS driver selected by suite and kernel |
+| `dynblk-dkms` | Conditional, all | DynBlk driver selected for Linux 6.12 when DKMS building is enabled; unsigned and unavailable under Secure Boot |
 | `broadcom-sta-dkms` | Conditional, all | Broadcom STA wireless driver on supported targets |
 | `realtek-rtl8723cs-dkms`, `realtek-rtl8821au-dkms`, `realtek-rtl8821cu-dkms`, `realtek-rtl8814au-dkms` | Conditional, all | Vendor wireless drivers filtered by in-tree kernel capabilities and target platform |
 | `realtek-rtl88xxau-dkms`, `realtek-rtl8188eus-dkms`, `realtek-rtl88x2bu-dkms` | Conditional, all | Vendor drivers retained on supported targets for additional devices or features |
 | `zfs-dkms` | Conditional, Toolbox and Ultra | ZFS kernel module on supported amd64 builds |
+
+MateBook E display/camera packages are available for separate installation, with the limitations in [Hardware compatibility](/getting-started/Hardware-Compatibility). Development package lists can select these drivers, but that is not a promise that final release images bundle them.
 
 ## Graphical base
 
@@ -199,6 +206,7 @@ The graphical environments share the Xorg and rendering base below. Flux then us
 | `breeze-cursor-theme`, `adwaita-icon-theme-antix` | Yes | Yes | Yes | Yes | Cursor and icon themes |
 | `elementary-minios-icon-theme` | Yes | Yes | Yes | Yes | MiniOS icon theme outside LXQt |
 | `librsvg2-common` | Yes | Yes | Yes | Yes | SVG rendering support |
+| `fonts-inter-minimal`, `fonts-jetbrains-mono-minimal` | Yes | Yes | Yes | Yes | Interface and monospace fonts |
 | `policykit-1-gnome` / `mate-polkit` / `xfce-polkit` | Conditional | Conditional | Conditional | Conditional | Graphical PolicyKit agent selected by availability |
 | `xrdp`, `xorgxrdp` | - | - | Yes | Yes | Remote graphical login over RDP |
 
@@ -224,8 +232,11 @@ The graphical environments share the Xorg and rendering base below. Flux then us
 | Package | Standard | Toolbox | Ultra | Purpose or condition |
 |---|:---:|:---:|:---:|---|
 | `thunar`, `thunar-volman` | Yes | Yes | Yes | File manager and removable-media integration |
-| `xfce4-panel`, `xfce4-session`, `xfce4-settings` | Yes | Yes | Yes | Xfce panel, session, and settings services |
-| `xfdesktop4`, `xfwm4`, `xfconf` | Yes | Yes | Yes | Desktop, window manager, and configuration service |
+| `xfce4-panel`, `xfce4-session`, `xfce4-settings` | Yes | Yes | Yes | Settings use the MiniOS-adapted package with automatic interface scaling on Trixie/Excalibur |
+| `xfdesktop4`, `xfconf` | Yes | Yes | Yes | Desktop and configuration service; Trixie/Excalibur use the MiniOS desktop-menu integration |
+| `xfwm4-gl` / `xfwm4` | Conditional | Conditional | Conditional | Trixie/Excalibur select `xfwm4-gl` with OpenGL/XRender, effects and Peek; other suites select `xfwm4` |
+| `xfce4-tasklist-minios-plugin`, `xfce4-showdesktop-minios-plugin` | Conditional | Conditional | Conditional | MiniOS pinned taskbar, grouped previews and Show Desktop strip on Trixie/Excalibur |
+| `greybird-minios-gtk-theme` / `greybird-gtk-theme` | Conditional | Conditional | Conditional | MiniOS light/dark theme, with the distribution theme as the availability fallback |
 | `xfce4-appfinder`, `xfce4-xkb-plugin` | Yes | Yes | Yes | Application finder and keyboard indicator |
 | `mousepad`, `ristretto` | Yes | Yes | Yes | Text editor and image viewer |
 | `at-spi2-core`, `dbus-x11` | Yes | Yes | Yes | Accessibility and desktop message-bus support |
@@ -279,13 +290,15 @@ The Xfce `05-apps` module is included for Toolbox and Ultra and is skipped for S
 | `zulucrypt-gui`, `zulumount-gui` | Graphical encrypted-volume tools |
 | `virt-manager`, `gir1.2-spiceclientgtk-3.0` | Virtual machine management and SPICE display support |
 | `remmina`, `remmina-plugin-rdp`, `remmina-plugin-vnc` | Remote desktop client |
+| `rescuezilla` | Graphical disk backup, restore, and cloning |
+| `transume` | Clonezilla-based backup, restore, cloning, and image browsing; depends on compatible repository packages |
 | `wireshark`, `zenmap`, `gnome-nettool` | Graphical network analysis and diagnostics |
 | `x11vnc` | VNC access to the current X session |
 | `uget` | Graphical download manager |
 | `android-file-transfer` | Android MTP file transfer |
 | `vlc` and selected plugins | Media playback, localization, Samba, and BitTorrent support |
 | `pdfarranger` | PDF page arrangement |
-| `codium` | Code editor |
+| `codium` | Code editor on amd64, installed from its signed third-party repository |
 | `onboard` | On-screen keyboard |
 | `galculator` | Calculator |
 

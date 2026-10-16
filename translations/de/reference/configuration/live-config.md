@@ -1,22 +1,22 @@
 ---
-updated: 2026-10-06
+updated: 2026-10-15
 program_commits:
-    minios-live-config: cf3ae490e5df92581483ec6345a5f56bdaa812d8
+    minios-live-config: 2a798c533b2980a40e8457205cabfa24ccad2d10
 ---
 
 # live-config
 
-**live-config** – Systemkonfigurations-Komponenten
+**live-config** - Systemkonfigurations-Komponenten
 
-**live-config** enthält die Komponenten, die ein Live-System während des Bootvorgangs (spätes Userspace) konfigurieren.
+**live-config** enthält die Komponenten, die ein Live-System während des Bootvorgangs (später Userspace) konfigurieren.
 
-Die Richtlinie für persistenten Sitzungs-Cache und Protokollierung wird bereits zuvor durch `minios-boot` festgelegt, nachdem das Live-Root und dessen Konfiguration vorbereitet wurden, aber bevor die regulären Dienste starten. Die `browser-cache` live-config-Komponente richtet die benutzerspezifischen Mounts nach der Benutzererstellung ein. Diese Richtlinien erfordern eine funktionierende, dauerhafte `perch` Sitzung und ein aktuelles initrd mit `perch-storage-v1`; siehe [Leistung](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch) für Auswirkungen und Grenzen.
+Die Richtlinie für den persistenten Sitzungs-Cache und das Log wird vorher von `minios-boot`festgelegt, nachdem das Live-Root und dessen Konfiguration vorbereitet wurden, aber bevor die regulären Dienste starten. Das `browser-cache`-Modul wendet benutzerspezifische Mounts nach der Benutzererstellung an. Diese Richtlinien setzen eine erfolgreiche Aktivierung der Persistenz auf einem dauerhaften Speicher oder als beschreibbare RAM-kopierte Sitzung mit geschützter Ursprungsinformation sowie eine initrd mit Unterstützung für `perch-storage-v1`voraus. RAM-kopierte Sitzungen bleiben nicht dauerhaft, bis sie gespeichert werden; siehe [Leistung](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch).
 
-Netzwerk-Boot im initramfs (`ip=`, PXE, `from=http://…`) ist eine separate LiveKit-Schicht und wird **nicht** von live-config verwaltet. Siehe [Netzwerk-Boot](/reference/boot-process/Network-Boot).
+Netzwerk-Boot im Initramfs (`ip=`, PXE, `from=http://…`) ist eine eigene LiveKit-Schicht und wird **nicht** von live-config verwaltet. Siehe [Netzwerk-Boot](/reference/boot-process/Network-Boot).
 
-**live-config** kann über Boot-Parameter oder Laufzeit-Konfigurationsdateien, die vom initramfs vorbereitet werden, konfiguriert werden. Die tatsächliche Kernel-Befehlszeile wird nach den dateibasierten `LIVE_CONFIG_CMDLINE` Werten angehängt, sodass spätere übereinstimmende Boot-Parameter Vorrang haben. Komponenten, die ihren Status unter `/var/lib/live/config` speichern, werden normalerweise nur einmal ausgeführt; synchronisierende und zustandslose Komponenten können bei jedem Aufruf laufen.
+**live-config** kann über Boot-Parameter oder die vom Initramfs vorbereiteten Laufzeit-Konfigurationsdateien angepasst werden. Die tatsächliche Kernel-Befehlszeile wird nach den dateibasierten `LIVE_CONFIG_CMDLINE`-Werten angehängt, sodass später übereinstimmende Boot-Parameter Vorrang haben. Komponenten, die ihren Status unter `/var/lib/live/config`speichern, laufen normalerweise nur einmal; synchronisierende und zustandslose Komponenten können bei jedem Aufruf ausgeführt werden.
 
-Wenn *live-build*(7) zum Erstellen des Live-Systems verwendet wird, können die standardmäßig genutzten live-config-Parameter über die `--bootappend-live` Option gesetzt werden, siehe *lb_config*(1) Handbuchseite.
+Wenn *live-build*(7) zum Erstellen des Live-Systems verwendet wird, können die standardmäßig genutzten live-config-Parameter über die `--bootappend-live`-Option festgelegt werden, siehe *lb_config*(1) Handbuchseite.
 
 ## Boot-Parameter (Komponenten)
 
@@ -69,11 +69,11 @@ Einige einzelne Komponenten können ihr Verhalten durch einen Boot-Parameter än
 
 ### MiniOS frühe Speicheroptionen
 
-Diese Optionen werden von `minios-boot` gelesen, bevor die regulären Dienste starten. Sie erfordern eine funktionierende, dauerhafte `perch` Sitzung und aktivieren diese nicht eigenständig.
+Diese Optionen werden von `minios-boot` vor dem Start der regulären Dienste eingelesen. Sie erfordern eine erfolgreiche Persistenzaktivierung auf dauerhaftem Speicher oder eine beschreibbare RAM-Sitzung mit geschützten `ram-origin` Informationen. Sie aktivieren die Persistenz nicht selbst und können RAM-Änderungen ohne Speichern nicht dauerhaft machen.
 
-- **live-config.log-storage=persistent|volatile | log-storage=persistent|volatile**: `volatile` legt das systemd-Journal und die regulären `/var/log`-Dateien in einer begrenzten RAM ab; Boot-Diagnosen verbleiben auf dauerhaftem Speicher. Standard: `persistent`.
-- **live-config.apt-cache=persistent|volatile | apt-cache=persistent|volatile**: `volatile` speichert heruntergeladene APT-Archive in einem begrenzten tmpfs, wenn RAM und Swap-Bedingungen dies erlauben. Paketdatenbanken und Repository-Listen bleiben persistent. Standard: `persistent`.
-- **live-config.browser-cache=persistent|volatile | browser-cache=persistent|volatile**: `volatile` fordert native Browser-Caches in RAM an. Die `browser-cache`-Komponente mountet die ausgewählten Cache-Verzeichnisse des Live-Benutzers nach dessen Erstellung. Standard: `persistent`.
+- **live-config.log-storage=persistent|volatile | log-storage=persistent|volatile**: `volatile` legt das systemd-Journal und reguläre `/var/log` Dateien in einem begrenzten RAM ab; Boot-Diagnosen verbleiben auf dauerhaftem Speicher. Standard: `persistent`.
+- **live-config.apt-cache=persistent|volatile | apt-cache=persistent|volatile**: `volatile` speichert heruntergeladene APT-Archive in einem begrenzten tmpfs, sofern RAM und Swap dies zulassen. Paketdatenbanken und Repository-Listen bleiben persistent. Standard: `persistent`.
+- **live-config.browser-cache=persistent|volatile | browser-cache=persistent|volatile**: `volatile` fordert native Browser-Caches in RAM an. Die `browser-cache` Komponente bindet die vom Live-Benutzer ausgewählten Cache-Verzeichnisse ein, sobald das Konto existiert. Standard: `persistent`.
 
 ## Boot-Parameter (Kurzbefehle)
 
@@ -166,13 +166,13 @@ Die Benutzer-Medien-Einrichtung führt niemals automatisch zwei nicht-leere Verz
 - **LIVE_MODULE_MODE=simple|merged**: Diese Variable hält den Zustand, der durch den `live-config.module-mode` (oder `module-mode`)-Parameter festgelegt wurde. Wenn sie auf `merged` gesetzt ist, übernimmt das Live-System Aktualisierungen (über minios-update-users, minios-update-cache und minios-update-dpkg), um benutzerdefinierte Konfigurationen mit der Basisumgebung zu verschmelzen.
 - **LIVE_CONFIG_DEBUG=true|false**: Diese Variable entspricht dem `**live-config.debug**` Parameter.
 
-## MiniOS Cache- und Log-Variablen
+## MiniOS- und Log-Variablen
 
-- **LIVE_LOG_STORAGE=persistent|volatile**, **LIVE_APT_CACHE=persistent|volatile**, und **LIVE_BROWSER_CACHE=persistent|volatile**: Unabhängige MiniOS Boot-Zeit-Richtlinien. Sie funktionieren auch in `config.conf.d` und `LIVE_CONFIG_CMDLINE`. Sie aktivieren die Persistenz nicht eigenständig. Siehe [Konfigurationsdatei](/reference/configuration/config.conf#cache-and-log-policy-for-a-persistent-session).
+- **LIVE_LOG_STORAGE=persistent|volatile**, **LIVE_APT_CACHE=persistent|volatile**, und **LIVE_BROWSER_CACHE=persistent|volatile**: Unabhängige MiniOS-Bootzeit-Richtlinien. Sie funktionieren außerdem in `config.conf.d` und `LIVE_CONFIG_CMDLINE`. Sie aktivieren die Persistenz nicht eigenständig. Siehe [Konfigurationsdatei](/reference/configuration/config.conf#cache-and-log-policy-for-a-persistent-session).
 
-Die `browser-cache`-Komponente liest die dauerhafte `minios-boot`-Richtlinie, nachdem der Live-Benutzer existiert, und bindet Standardverzeichnisse für native Browser-Caches in ein gemeinsames, begrenztes RAM-Dateisystem ein. Eine separat eingerichtete Firefox-Richtlinie deaktiviert dessen Festplatten-Cache, ohne Browser-Profile zu verschieben. Wird diese Komponente durch `components=` oder `nocomponents=` ausgeschlossen, richtet die frühe browser-cache-Anforderung allein die benutzerspezifischen Mounts nicht ein.
+Die `browser-cache`-Komponente liest die validierte `minios-boot`-Richtlinie, nachdem der Live-Benutzer existiert, und bindet Standardverzeichnisse für native Browser-Caches in ein gemeinsames, begrenztes RAM-Dateisystem ein, abhängig von Speicher- und Swap-Prüfungen. Eine separat erstellte Firefox-Richtlinie deaktiviert dessen Festplatten-Cache, ohne die Browser-Profile zu verschieben. Wird diese Komponente durch `components=` oder `nocomponents=` ausgeschlossen, richtet die frühe Browser-Cache-Anfrage allein die benutzerspezifischen Mounts nicht ein.
 
-Helfer im Merged-Modus behalten normale Fehler bei, erzeugen aber detaillierte Befehlsprotokolle und Debug-Kopien nur, wenn `LIVE_CONFIG_DEBUG=true` gesetzt ist.
+Helfer im Merged-Modus behalten normale Fehler bei, erstellen aber detaillierte Befehlsprotokolle und Debug-Kopien nur, wenn `LIVE_CONFIG_DEBUG=true`.
 
 # ANPASSUNG
 
@@ -192,32 +192,32 @@ Die Konfigurationsdateien für das Live-System selbst werden am besten in ein ei
 
 # KOMPONENTEN
 
-**live-config** bietet derzeit die folgenden Komponenten in /usr/lib/live/config an.
+**live-config** enthält derzeit die folgenden Komponenten in /usr/lib/live/config.
 
 - **nss-systemd**: entfernt oder stellt das systemd-NSS-Modul in /etc/nsswitch.conf wieder her, um ein bekanntes systemd-Problem zu umgehen.
-- **debconf**: ermöglicht das Anwenden beliebiger Preseed-Dateien, die auf dem Live-Medium oder einem http/ftp-Server abgelegt sind.
+- **debconf**: ermöglicht das Anwenden beliebiger Preseed-Dateien, die sich auf dem Live-Medium oder auf einem http/ftp-Server befinden.
 - **hostname**: konfiguriert /etc/hostname und /etc/hosts.
 - **issue-setup**: richtet die Datei /etc/issue mit einem Willkommensbanner und Distributionsinformationen ein.
 - **live-debconfig_passwd**: konfiguriert Benutzer- und Root-Passwörter über live-debconfig.
 - **user-setup**: legt ein Live-Benutzerkonto an.
-- **user-groups**: fügt den Live-Benutzer zu zusätzlichen Gruppen hinzu, die von installierten Modulen deklariert werden. Bereits vorhandene Gruppen, die in `/usr/share/live/config/user-default-groups.d/*.groups` aufgeführt sind, werden nach der Benutzererstellung und bei späteren live-config-Läufen angewendet.
+- **user-groups**: fügt den Live-Benutzer zu zusätzlichen Gruppen hinzu, die von installierten Modulen deklariert werden. Vorhandene Gruppen, die in `/usr/share/live/config/user-default-groups.d/*.groups` aufgeführt sind, werden nach der Benutzererstellung und bei späteren live-config-Läufen angewendet.
 - **root-setup**: setzt oder aktualisiert das Root-Passwort und konfiguriert die Root-Umgebung.
-- **sudo**: gewährt dem Live-Benutzer Sudo-Rechte.
-- **user-ssh-keys**: synchronisiert benutzerspezifische `authorized_keys.<username>`-Dateien zwischen dem Live-Medium und den einzelnen Benutzer-Homeverzeichnissen. Unterstützt mehrere Benutzer gleichzeitig (z. B. `authorized_keys.root`, `authorized_keys.live`, `authorized_keys.admin`) und erkennt einfache `toram`, `toram=trim` und `toram=full` als RAM-Boot-Formen, um zu entscheiden, ob das Live-Medium sicher aktualisiert werden kann.
-- **user-media**: verlinkt oder bindet validierte Benutzerverzeichnisse auf dem vorhandenen, beschreibbaren MiniOS-Datenträger ein, mit sicherer Migration und Rückkopieren bei Deaktivierung.
-- **locales**: konfiguriert Locales.
+- **sudo**: gewährt dem Live-Benutzer sudo-Rechte.
+- **user-ssh-keys**: synchronisiert benutzerspezifische `authorized_keys.<username>` Dateien zwischen dem Live-Medium und den jeweiligen Home-Verzeichnissen der Benutzer. Unterstützt mehrere Benutzer gleichzeitig (z. B. `authorized_keys.root`, `authorized_keys.live`, `authorized_keys.admin`) und erkennt einfache `toram`, `toram=trim`, und `toram=full` als RAM-Boot-Formen, um zu entscheiden, ob das Live-Medium sicher aktualisiert werden kann.
+- **user-media**: verlinkt oder bindet validierte Benutzerverzeichnisse auf dem vorhandenen beschreibbaren MiniOS-Datenträger ein, mit sicherer Migration und Rückkopieren beim Deaktivieren.
+- **locales**: konfiguriert die Sprach- und Gebietsschemaeinstellungen.
 - **tzdata**: konfiguriert /etc/timezone.
-- **xorg-service**: konfiguriert den Benutzernamen in xorg.service und setzt X11-Optionen, wenn unterstützt.
-- **gdm3**: konfiguriert Autologin in gdm3.
-- **sddm**: konfiguriert Autologin in sddm.
-- **kdm**: konfiguriert Autologin in kdm.
-- **lightdm**: konfiguriert Autologin in lightdm.
-- **lxdm**: konfiguriert Autologin in lxdm.
-- **nodm**: konfiguriert Autologin in nodm.
-- **slim**: konfiguriert Autologin in slim.
+- **xorg-service**: konfiguriert den Benutzernamen in xorg.service und setzt X11-Einstellungen, sofern unterstützt.
+- **gdm3**: richtet Autologin in gdm3 ein.
+- **sddm**: richtet Autologin in sddm ein.
+- **kdm**: richtet Autologin in kdm ein.
+- **lightdm**: richtet Autologin in lightdm ein.
+- **lxdm**: richtet Autologin in lxdm ein.
+- **nodm**: richtet Autologin in nodm ein.
+- **slim**: richtet Autologin in slim ein.
 - **xinit**: konfiguriert Autologin mit xinit.
 - **keyboard-configuration**: konfiguriert die Tastatur.
-- **sysvinit**: konfiguriert Konsolen-Autologin über `/etc/inittab` wenn sysvinit installiert ist. Die `noautologin` und `nottyautologin` Kurzbefehle unterdrücken diese Einrichtung.
+- **sysvinit**: richtet Konsolen-Autologin über `/etc/inittab` ein, wenn sysvinit installiert ist. Die `noautologin` und `nottyautologin` Tastenkombinationen unterdrücken diese Einrichtung.
 - **sysv-rc**: konfiguriert sysv-rc durch Deaktivieren der aufgeführten Dienste.
 - **apport**: deaktiviert apport.
 - **gnome-panel-data**: deaktiviert die Sperrtaste für den Bildschirm.
@@ -226,20 +226,21 @@ Die Konfigurationsdateien für das Live-System selbst werden am besten in ein ei
 - **kaboom**: deaktiviert den KDE-Migrationsassistenten (ab Squeeze).
 - **kde-services**: deaktiviert einige unerwünschte KDE-Dienste (ab Squeeze).
 - **policykit**: gewährt Benutzerrechte über PolicyKit.
-- **ssl-cert**: erstellt SSL snake-oil-Zertifikate neu.
-- **xrdp**: konfiguriert entspanntes, gehärtetes oder deaktiviertes XRDP-Verhalten, wenn XRDP installiert ist.
+- **ssl-cert**: erstellt SSL Snakeoil-Zertifikate neu.
+- **xrdp**: konfiguriert XRDP auf entspannten, gehärteten oder deaktivierten Modus, wenn XRDP installiert ist.
 - **anacron**: deaktiviert anacron.
 - **util-linux**: deaktiviert den util-linux-hwclock-Dienst.
 - **login**: deaktiviert lastlog.
 - **xserver-xorg**: konfiguriert xserver-xorg.
-- **network**: konfiguriert dauerhafte kabelgebundene IPv4-Richtlinien über eine sichere NetworkManager-Keyfile- oder ifupdown-Stanza. Läuft vor den Netzwerkdiensten, prüft alle Werte und stempelt nur nach erfolgreichem Schreiben.
+- **network**: konfiguriert eine dauerhafte kabelgebundene IPv4-Richtlinie über eine sichere NetworkManager-Keyfile oder ifupdown-Stanza. Läuft vor den Netzwerkdiensten, prüft alle Werte und schreibt erst nach erfolgreicher Validierung.
 - **openssh-server**: erstellt OpenSSH-Hostschlüssel neu und schreibt explizit angeforderte Root-Login- oder Passwort-Authentifizierungsrichtlinien.
-- **xfce4-panel**: konfiguriert xfce4-panel auf Standardeinstellungen.
-- **xscreensaver**: steuert die xscreensaver-Sperre gemäß `LIVE_LOCKSCREEN_MODE`.
+- **xfce4-panel**: setzt das xfce4-panel auf die Standardeinstellungen zurück.
+- **xscreensaver**: steuert die Sperrfunktion von xscreensaver gemäß `LIVE_LOCKSCREEN_MODE`.
 - **broadcom-sta**: konfiguriert broadcom-sta-WLAN-Treiber.
-- **hyperv**: konfiguriert X11-Einstellungen zur Verbesserung der Kompatibilität auf Microsoft Hyper-V-Plattformen.
+- **hyperv**: passt X11-Einstellungen für bessere Kompatibilität auf Microsoft Hyper-V-Plattformen an.
 - **ntfs3**: verwaltet udev-Regeln für NTFS3-Unterstützung.
-- **config-module-mode**: konfiguriert den Systemmodulmodus und aktualisiert Caches, Benutzereinstellungen und dpkg.
+- **config-module-mode**: konfiguriert den Systemmodul-Modus und aktualisiert Caches, Benutzereinstellungen und dpkg.
+- **browser-cache**: wendet die validierte Browser-Cache-Richtlinie nach der Benutzererstellung an, abhängig von verfügbarem Speicher, Swap, sicheren Cache-Pfaden und vorhandenen Firefox-Policy-Dateien.
 - **hooks**: ermöglicht das Ausführen beliebiger Befehle aus einer Datei auf dem Live-Medium oder einem http/ftp-Server.
 
 # DATEIEN

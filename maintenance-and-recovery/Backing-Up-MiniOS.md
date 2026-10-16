@@ -1,5 +1,5 @@
 ---
-updated: 2026-10-06
+updated: 2026-10-15
 ---
 # Backing up MiniOS
 
@@ -22,8 +22,8 @@ Files stored outside the session layer, for example in a separate user-data loca
 MiniOS Session Manager can export a **non-running** `native`, `dynfilefs`, `dynblk`, `vmdk`, or `raw` session, including supported LUKS2-encrypted forms, to a verified `.tar.zst` archive. First identify the session:
 
 ```bash
-minios-session list
-minios-session running
+sudo minios-session list
+sudo minios-session running
 ```
 
 Then boot another session or **Start without saving** and export the inactive session:
@@ -41,6 +41,12 @@ For a session whose Raw, DynFileFS, DynBlk, or VMDK backend is wrapped in LUKS2,
 Current Session Manager does not export or copy SquashFS sessions. Use **Save Now** before shutdown so the current snapshot is complete, then protect the important files separately. If you need a complete restorable copy of the whole MiniOS device, create an offline device image instead.
 
 Do not rely on manually copying a mounted session directory or on reconstructing `session.conf`, DynFileFS segments, DynBlk backing files, or other container metadata as a backup method. A manual byte-for-byte DynBlk backup is safe only while the volume is detached and must preserve all existing `volume*.db` parts, including numbers with four or more digits, exactly as they exist; logical `minios-session export` is preferred.
+
+## RAM sessions and Ventoy persistence images
+
+Before backing up storage used by a `perchtoram` session, explicitly save the RAM state back to its original store or as a new session. An offline copy of the original medium otherwise contains only the last stored state. Saving requires the original writable medium and its recorded identity; see [Sessions and persistence](/using-minios/Sessions-and-Persistence).
+
+A selected Ventoy Persistence Plugin backend is one ext4 environment, not a numbered MiniOS session, and cannot be exported through Session Manager. Shut it down cleanly before copying the complete backend image from another system; preserve its Ventoy configuration as well. Keep separate backups of important personal files.
 
 ## Back up configuration and modules
 

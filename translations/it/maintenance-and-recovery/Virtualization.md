@@ -7,72 +7,72 @@ updated: 2026-08-31
 MiniOS può essere eseguito come guest in VirtualBox, VMware, QEMU/KVM e Hyper-V.
 Toolbox e Ultra includono anche software per eseguire macchine virtuali QEMU/KVM direttamente da MiniOS.
 
-Questa pagina documenta il comportamento di virtualizzazione specifico di MiniOS. Per la creazione ordinaria di VM e le impostazioni dell'hypervisor, fare riferimento alla documentazione dell'hypervisor.
+Questa pagina documenta il comportamento della virtualizzazione specifico di MiniOS. Per la normale creazione di VM e la configurazione degli hypervisor, consulta la documentazione dell'hypervisor.
 
-## Esecuzione di MiniOS come guest
+## Eseguire MiniOS come guest
 
-### Layout VM consigliato
+### Configurazione VM consigliata
 
-Per la massima compatibilità, collega il supporto di avvio di MiniOS e qualsiasi disco virtuale che conterrà un'installazione live di MiniOS tramite un **controller IDE o SATA**. Questa raccomandazione vale per VirtualBox, VMware, QEMU/KVM e Hyper-V ogni volta che tale controller è disponibile.
+Per la massima compatibilità, collega il supporto di avvio di MiniOS e qualsiasi disco virtuale destinato a contenere un'installazione live di MiniOS tramite un controller **IDE o SATA**. Questa raccomandazione vale per VirtualBox, VMware, QEMU/KVM e Hyper-V, quando è disponibile un controller di questo tipo.
 
-Anche altri controller di archiviazione virtuale possono funzionare, ma MiniOS deve poter accedere alla propria sorgente live durante la fase initramfs, prima che l'intero albero dei moduli kernel da `01-kernel-*.sb` sia disponibile.
+Possono funzionare anche altri controller di archiviazione virtuali, ma MiniOS deve poter accedere alla propria sorgente live durante la fase initramfs, prima che sia disponibile l'intero albero dei moduli del kernel di`01-kernel-*.sb`.
 
-### Supporto storage in fase di early-boot
+### Supporto per l'archiviazione nelle prime fasi di avvio
 
-MiniOS include intenzionalmente solo un set selezionato di driver di archiviazione nell'initramfs. Gli attuali builder Dracut e LiveKit adottano la stessa politica:
+MiniOS include intenzionalmente nell'initramfs solo una selezione di driver di archiviazione. Gli attuali strumenti di compilazione Dracut e LiveKit applicano la stessa politica:
 
 | Interfaccia di archiviazione | Flux | Standard / Toolbox / Ultra |
 |---|---|---|
 | IDE / PATA / SATA | Sì | Sì |
 | NVMe | Sì | Sì |
-| USB mass storage / UAS | Sì | Sì |
+| Archiviazione di massa USB / UAS | Sì | Sì |
 | Archiviazione Hyper-V (`hv_storvsc`) | Sì | Sì |
 | VirtIO block / SCSI | No | Sì |
 | VMware PVSCSI | No | Sì |
-| Xen block frontend | No | No |
+| Frontend block Xen | No | No |
 
-I driver SAS/RAID comuni come `mpt3sas`, `mptspi`, `mptsas`, `megaraid_sas` e `aacraid` sono presenti nell'albero completo dei moduli kernel ma non sono inclusi nell'initramfs di MiniOS.
+I driver SAS/RAID più comuni, come `mpt3sas`, `mptspi`, `mptsas`, `megaraid_sas` e `aacraid` sono presenti nell'intero albero dei moduli del kernel, ma non sono inclusi nell'initramfs di MiniOS.
 
-Questa distinzione è rilevante solo prima che venga trovata la sorgente live di MiniOS e che il sistema completo sia avviato. L'hardware che funziona normalmente dopo l'avvio non è necessariamente adatto a ospitare la sorgente live stessa.
+Questa distinzione è rilevante solo prima che venga individuata la sorgente live di MiniOS e che il sistema completo sia avviato. Un hardware che funziona normalmente dopo l'avvio non è necessariamente adatto a ospitare la sorgente live stessa.
 
-Per questo motivo, **IDE o SATA rimane la scelta consigliata per lo storage delle VM**, anche per le edizioni il cui initramfs include anche il supporto VirtIO o VMware PVSCSI.
+Per questo motivo, **IDE o SATA resta la scelta consigliata per l'archiviazione delle VM**, anche per le edizioni il cui initramfs include anche il supporto per VirtIO o VMware PVSCSI.
 
-### Integrazione guest
+### Integrazione con i sistemi guest
 
-Il kernel fornisce già i driver hardware virtuali di base utilizzati dai principali hypervisor. Toolbox e Ultra aggiungono pacchetti guest-service per un'integrazione più avanzata:
+Il kernel fornisce già i driver di base per l'hardware virtuale usati dai principali hypervisor. Toolbox e Ultra aggiungono pacchetti di servizi guest per un'integrazione più completa:
 
 | Piattaforma | Integrazione guest inclusa in Toolbox / Ultra |
 |---|---|
 | VMware | `open-vm-tools`, `open-vm-tools-desktop` |
 | QEMU/KVM | `qemu-guest-agent` |
-| VirtualBox | `virtualbox-guest-utils`, `virtualbox-guest-x11` sulle basi supportate |
+| VirtualBox | `virtualbox-guest-utils`, `virtualbox-guest-x11` sulle versioni base supportate |
 | Hyper-V | `hyperv-daemons` |
 
-L'attuale kernel Debian utilizzato da amd64 MiniOS include anche i driver guest di VirtualBox, i driver grafici/rete di VMware, VirtIO e i driver Hyper-V. I pacchetti di servizio guest aggiungono funzionalità di integrazione; non sono ciò che rende possibile l'avvio di base della VM.
+Il kernel Debian attuale usato da amd64 MiniOS include anche i driver guest di VirtualBox, i driver grafici e di rete di VMware, VirtIO e i driver di Hyper-V. I pacchetti di servizi guest aggiungono funzionalità di integrazione, ma non sono necessari per avviare una VM di base.
 
 ### Gestione della risoluzione in Xfce
 
-MiniOS fornisce `/usr/bin/minios-virtual-resolution` tramite `minios-tools` e lo avvia dalla sessione di avvio automatico di Xfce. Rileva le macchine virtuali più comuni e utilizza XRandR solo quando gli strumenti guest attivi non stanno già gestendo il display.
+MiniOS fornisce `/usr/bin/minios-virtual-resolution` tramite `minios-tools` e lo avvia dalla sessione di avvio automatico di Xfce. Rileva le macchine virtuali più comuni e usa XRandR solo se gli strumenti guest attivi non gestiscono già lo schermo.
 
-Senza un override, la risoluzione richiesta è `1280x800`. Usa `virtres=WIDTHxHEIGHT` per richiedere un'altra risoluzione o `novirtres` per disabilitare questa regolazione di MiniOS.
-Dopo una regolazione riuscita, l'utilità crea `~/.config/minios/virtual-resolution-configured`. In una sessione persistente non applicherà nuovamente la regolazione automatica finché quel marker non viene rimosso.
+Senza un valore personalizzato, la risoluzione richiesta è `1280x800`. Usa `virtres=WIDTHxHEIGHT` per richiedere un'altra risoluzione oppure `novirtres` per disattivare questa regolazione di MiniOS.
+Dopo aver applicato correttamente la regolazione, l'utility crea `~/.config/minios/virtual-resolution-configured`. In una sessione persistente, la regolazione automatica non verrà applicata di nuovo finché questo indicatore non viene rimosso.
 
-## Utilizzo di MiniOS come host di virtualizzazione
+## Usare MiniOS come host di virtualizzazione
 
-Toolbox e Ultra includono lo stack QEMU/KVM utilizzato per le macchine virtuali locali:
+Toolbox e Ultra includono lo stack QEMU/KVM usato per le macchine virtuali locali:
 
 - `qemu-system-x86`;
 - `qemu-utils`;
 - `libvirt-daemon-system`;
 - `virt-manager`.
 
-Ultra include inoltre il proprio stack Docker e `lazydocker` per i carichi di lavoro in container.
+Ultra include inoltre il proprio stack Docker e `lazydocker` per i carichi di lavoro basati su container.
 
-Questa documentazione non descrive l'installazione di prodotti di virtualizzazione che non fanno parte di un'edizione.
+Questa documentazione non descrive l'installazione di prodotti di virtualizzazione non inclusi in un'edizione.
 
 ## Vedi anche
 
 - [Compatibilità hardware](/getting-started/Hardware-Compatibility)
-- [Rilevamento sistema initrd](/reference/boot-process/System-Discovery)
+- [Rilevamento del sistema nell'initrd](/reference/boot-process/System-Discovery)
 - [Parametri di avvio](/reference/Boot-Parameters)
 - [Pacchetti ed edizioni](/reference/Package-and-Edition-Contents)

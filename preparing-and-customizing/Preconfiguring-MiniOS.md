@@ -1,7 +1,7 @@
 ---
-updated: 2026-10-06
+updated: 2026-10-15
 program_commits:
-  minios-configurator: 4d82e44c6ee6f04909e9dd3ef8e31389d3ac8817
+  minios-configurator: 7705e764f152d2d2ae2268ce3ddde7e0adbad8bc
 ---
 # Preconfiguring MiniOS
 
@@ -52,7 +52,7 @@ Hostname, locale, timezone, keyboard, boot target, service selection, module mod
 
 In **Advanced**, **Module mode** accepts `simple` or `merged`. When `LIVE_MODULE_MODE` is absent from the selected configuration, current MiniOS Configurator presents `merged` as the effective default. In merged mode, live-config refreshes users, caches, and package state so configuration from the module stack is integrated into the running live system.
 
-In **Advanced**, **System log storage**, **APT download cache**, and **Browser cache** each offer `persistent` (default) or `volatile`. Their `volatile` choices apply only to a healthy, durable `perch` session. Logs from `minios-boot` and `live-config` stay persistent even when ordinary logs are temporary. APT package state and browser profiles stay persistent; only the selected logs and caches move to bounded RAM. Browser setup runs after the live user is created. Configurator warns if the running initrd lacks the `perch-storage-v1` marker needed for these settings. See [Performance](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch) before choosing RAM sizes for a low-memory machine.
+In **Advanced**, **System log storage**, **APT download cache**, and **Browser cache** each offer `persistent` (default) or `volatile`. They apply after successful persistence activation, including a writable RAM-copied session with protected origin information. With durable persistence, MiniOS boot diagnostics, APT package state, and browser profiles stay on storage; only selected logs and caches move to bounded RAM. With a RAM-copied session, retained state still needs a successful save to storage. APT and browser RAM caches require at least 1 GiB available and no non-zRAM swap. Browser setup runs after user creation. Configurator warns if the initrd lacks the required `perch-storage-v1` marker. See [Performance](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch) for the fixed RAM limits.
 
 ### Used only for a new session
 
@@ -62,7 +62,7 @@ Security profiles are editor presets. The profile name is not saved; the individ
 
 ## User directories and persistence
 
-Linking and bind mounting user directories are mutually exclusive. Both use an existing writable local MiniOS data medium and a safe media-relative path. They are unavailable with `toram`, `toram=full`, or `toram=trim`, and MiniOS does not merge two populated directory trees automatically.
+Linking and bind mounting user directories are mutually exclusive. Both use an existing writable local MiniOS data medium and a safe media-relative path. They are unavailable with `toram`, `toram=full`, or `toram=trim`, or while the active persistence session is LUKS-encrypted. Copy-back is also blocked for an encrypted session. MiniOS does not merge two populated directory trees automatically.
 
 `perchmode` and `perchsize` are initramfs boot parameters, not MiniOS Configurator settings. The new cache/log storage controls do not select or create a `perch` session. MiniOS Configurator does not create, unlock, resize, or repair a persistence container. For encrypted persistence it reports whether the initramfs encryption marker is present.
 

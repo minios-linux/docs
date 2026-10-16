@@ -1,5 +1,5 @@
 ---
-updated: 2026-10-06
+updated: 2026-10-15
 ---
 # Troubleshooting
 
@@ -74,6 +74,8 @@ For a black screen, unusable resolution, or a display-manager loop:
 
 For virtual machines, see [Virtualization](/maintenance-and-recovery/Virtualization).
 
+On Debian 13 / Devuan Excalibur XFCE images, **Display Settings** has an **Interface scale** control with Automatic and manual percentages. Automatic follows the primary display; a saved explicit percentage overrides it. Use the timed preview and confirmation rather than treating output resolution and interface scale as the same setting. Window effects and the renderer are configured separately in **Window Manager Tweaks → Compositor**. `xfwm4-gl` falls back to XRender when OpenGL cannot be used; blur and Magic Lamp require OpenGL, while fade/scaling animations and Peek also work with XRender.
+
 ## Network problems
 
 Normal wired and Wi-Fi connections are managed through NetworkManager; see [Networking](/using-minios/Networking).
@@ -119,6 +121,10 @@ If Session Manager cannot read or export the session, stop writing to the source
 
 See [Backing up MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS) for supported backup and session-import workflows.
 
+### Ventoy Persistence Plugin
+
+If Session Manager reports that it is unavailable with the Ventoy Persistence Plugin, this is the expected single-image model, not missing session metadata. Select another backend in Ventoy or boot without a selected plugin image to use numbered MiniOS sessions. An unavailable or non-ext4 backend, a different recorded union format, or failed writable activation makes MiniOS warn and continue in RAM. Inspect `/run/initramfs/minios-persistence/boot-state` and startup warnings; do not create `session.conf` manually inside the plugin image. See [Ventoy](/installing-minios/installation-tools/Ventoy).
+
 ## Storage and free-space problems
 
 Inspect devices and mounts without changing them:
@@ -139,6 +145,8 @@ Filesystem repair is not a generic MiniOS operation. If the filesystem itself is
 ## Package changes and system updates
 
 If problems started after APT package changes, remember that a live persistent session can override files from the read-only MiniOS modules. Test **Start without saving** to compare against the original module set. See [Updating MiniOS](/maintenance-and-recovery/Updating-MiniOS) for the distinction between APT maintenance and changing MiniOS releases.
+
+<a id="collecting-logs"></a>
 
 ## Collecting logs
 

@@ -360,6 +360,27 @@ export default withMermaid(defineConfig({
   },
   markdown: {
     config(md) {
+      // Lokit preserves these source-owned IDs while translating headings.
+      // Attach them to the heading before markdown-it-anchor runs, so links
+      // work in every locale without duplicate HTML IDs on English pages.
+      md.core.ruler.after('inline', 'stable-section-anchors', (state) => {
+        for (let i = 0; i + 1 < state.tokens.length; i++) {
+          const token = state.tokens[i]
+          // An empty <a> is inline HTML inside a paragraph in MarkdownIt.
+          const count = token.type === 'html_block' ? 1 : 3
+          const inline = state.tokens[i + 1]
+          const content = token.type === 'html_block' ? token.content
+            : token.type === 'paragraph_open' && inline?.type === 'inline'
+              ? inline.content : ''
+          const anchor = content.trim().match(/^<a id="([a-z0-9-]+)"><\/a>$/)
+          const heading = state.tokens[i + count]
+          if (anchor && heading?.type === 'heading_open') {
+            heading.attrSet('id', anchor[1])
+            state.tokens.splice(i, count)
+            i--
+          }
+        }
+      })
       const defaultRender = md.renderer.rules.link_open || ((tokens, idx, options, _env, self) => self.renderToken(tokens, idx, options))
       md.renderer.rules.link_open = (tokens, idx, options, env, self) => {
         const locale = typeof env.relativePath === 'string' ? localeFromPath(env.relativePath) : ''
@@ -417,6 +438,10 @@ export default withMermaid(defineConfig({
     }
   },
   transformHtml(code, _id, ctx) {
+    // The default language switcher treats the .conf suffix as a static file
+    // and omits base. Fix its generated links on English and localized pages.
+    code = code.replace(/href="(\/(?:[A-Za-z-]+\/)?reference\/configuration\/config\.conf(?:[?#][^"]*)?)"/g,
+      (match, href) => href.startsWith(base) ? match : `href="${basePrefix}${href}"`)
     const locale = localeFromPath(ctx.page)
     if (!localeCodes.includes(locale)) return code
     return localizeHtmlLinks(code, locale)

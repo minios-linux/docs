@@ -4,54 +4,54 @@ program_commits:
     minios-kernel-manager: 77ec4226a5abf53fe85e34d6dcf3e09af76f0dad
 ---
 
-# Gerenciamento de kernels
+# Gerenciando kernels
 
-O Gerenciador de kernels MiniOS empacota, inspeciona, ativa e remove conjuntos de kernels para o sistema live modular MiniOS. Um kernel MiniOS é um conjunto coordenado: a imagem do kernel, seu initramfs e o módulo correspondente`01-kernel-<version>.sb` devem permanecer juntos.
+O Gerenciador de kernels MiniOS empacota, inspeciona, ativa e remove bundles de kernel para o sistema modular MiniOS live. Um kernel MiniOS é um conjunto coordenado: a imagem do kernel, seu initramfs e o`01-kernel-<version>.sb` módulo correspondente devem permanecer juntos.
 
-Este fluxo de trabalho se aplica apenas à arquitetura live. Uma instalação nativa utiliza os pacotes de kernel padrão do Debian ou Ubuntu, as ferramentas normais de initramfs e o bootloader instalado.
+Este fluxo de trabalho se aplica somente à arquitetura live. Uma instalação nativa usa pacotes de kernel comuns do Debian ou Ubuntu, as ferramentas padrão de initramfs e o bootloader instalado.
 
-## O que o Gerenciador de kernels faz
+## O que o Kernel Manager faz
 
-A interface gráfica**Gerenciador de kernels MiniOS** e a`minios-kernel` CLI utilizam o mesmo backend. Elas podem:
+A interface gráfica **Gerenciador de kernels MiniOS** e a `minios-kernel` CLI usam o mesmo backend. Elas permitem:
 
-- listar os kernels empacotados e identificar as versões em execução, ativas e inativas;
-- empacotar um kernel versionado real a partir dos repositórios APT configurados;
-- empacotar um conjunto coerente de arquivos locais de kernel`.deb`;
-- adicionar opcionalmente drivers selecionados do catálogo MiniOS DKMS ao empacotar um kernel de repositório;
-- gerar o initramfs correspondente MiniOS e o módulo de kernel SquashFS;
-- preparar bundles concluídos no repositório de kernels MiniOS;
-- ativar um bundle completo para o próximo boot e atualizar a configuração do bootloader suportado;
+- listar os kernels empacotados e diferenciar as versões em execução, ativas e inativas;
+- empacotar um kernel de versão específica disponível nos repositórios APT configurados;
+- empacotar um conjunto coerente de arquivos locais de kernel `.deb`;
+- opcionalmente, adicionar drivers selecionados do catálogo DKMS MiniOS curado ao empacotar um kernel do repositório;
+- criar o initramfs MiniOS e o módulo de kernel SquashFS correspondentes;
+- preparar os bundles concluídos no repositório de kernel MiniOS;
+- ativar um bundle completo para a próxima inicialização e atualizar a configuração do bootloader compatível;
 - remover um kernel empacotado inativo.
 
-O Gerenciador de kernels não compila qualquer árvore de código-fonte de kernel. Se você precisar alterar os próprios insumos de build do kernel MiniOS, utilize o fluxo de trabalho de build a partir do código-fonte MiniOS.
+O Kernel Manager não compila uma árvore de código-fonte de kernel arbitrária. Se precisar alterar os próprios parâmetros de compilação do kernel MiniOS, use o fluxo de compilação a partir do código-fonte MiniOS.
 
 ## Iniciar o gerenciador gráfico
 
-Abra pelo menu de aplicativos MiniOS ou execute:
+Abra-o pelo menu de aplicativos MiniOS ou execute:
 
 ```bash
 minios-kernel-manager
 ```
 
-O aplicativo separa o gerenciamento de kernels instalados do empacotamento. É possível buscar kernels de repositório pelo nome do pacote ou pela versão exibida do kernel. Os controles de pacote ficam indisponíveis quando a raiz MiniOS detectada não é gravável.
+O aplicativo separa o gerenciamento dos kernels instalados do empacotamento. É possível pesquisar kernels dos repositórios pelo nome do pacote ou pela versão exibida do kernel. Os controles de pacote ficam indisponíveis quando a raiz MiniOS detectada não permite gravação.
 
-Operações privilegiadas de backend utilizam o PolicyKit. O`minios-kernel` CLI independente requer root para todos os comandos, exceto ajuda.
+As operações privilegiadas do backend usam PolicyKit. A `minios-kernel` CLI independente exige acesso root para todos os comandos, exceto help.
 
-## Empacotar um kernel de repositório
+## Empacotar um kernel do repositório
 
-Escolha**Repositório** na visualização de empacotamento e selecione um pacote de kernel versionado real, por exemplo:
+Selecione **Repositório** na tela de empacotamento e escolha um pacote de kernel de versão específica, por exemplo:
 
 ```text
 linux-image-6.12.107+deb13-amd64
 ```
 
-Metapacotes de rastreamento como`linux-image-amd64` não são aceitos como fonte do pacote. O modo repositório utiliza as fontes APT configuradas do sistema em execução, configuração de confiança e listas de pacotes. Dependências divididas de kernel versionado são resolvidas automaticamente quando a distribuição as utiliza.
+Metapacotes de acompanhamento, como `linux-image-amd64`, não são aceitos como origem do pacote. O modo de repositório usa as fontes APT, a configuração de confiança e as listas de pacotes configuradas no sistema em execução. As dependências correspondentes de kernel dividido em pacotes com versões específicas são resolvidas automaticamente quando a distribuição as utiliza.
 
-A interface gráfica não executa`apt update` apenas porque as listas de pacotes estão desatualizadas. Atualize-as manualmente quando necessário ou use`--force-update` com a CLI.
+A interface gráfica não executa `apt update` apenas porque as listas de pacotes estão desatualizadas. Atualize-as explicitamente quando necessário ou use `--force-update` com a CLI.
 
 ### Adicionar drivers DKMS selecionados
 
-O empacotamento de repositório pode adicionar drivers selecionados do catálogo MiniOS`01-kernel` DKMS. A interface gráfica mostra as opções compatíveis para o kernel selecionado; a CLI aceita a opção`--dkms-driver` repetidamente:
+O empacotamento do repositório pode adicionar drivers selecionados do MiniOS `01-kernel` catálogo DKMS. A interface gráfica mostra opções compatíveis com o kernel selecionado; a CLI aceita uma opção `--dkms-driver` repetível:
 
 ```bash
 sudo minios-kernel package \
@@ -60,13 +60,13 @@ sudo minios-kernel package \
   -o /tmp/kernel-output
 ```
 
-Os drivers selecionados são compilados em um overlay/chroot isolado com headers correspondentes. O backend verifica se os módulos gerados correspondem ao kernel de destino antes de incluí-los e registra a procedência do driver dentro do bundle em`/usr/share/minios/kernel-dkms/`.
+Os drivers selecionados são compilados em um overlay/chroot isolado, com os headers correspondentes. O backend verifica se os módulos produzidos correspondem ao kernel de destino antes de incluí-los e registra a proveniência dos drivers no bundle, em `/usr/share/minios/kernel-dkms/`.
 
-Este é um recurso de compatibilidade selecionada, não uma interface genérica para DKMS. Pacotes de kernel locais criados manualmente não permitem seleção de drivers porque não é possível inferir headers de repositório compatíveis de forma confiável.
+Este é um recurso de compatibilidade com opções selecionadas, não uma interface genérica para DKMS. Pacotes de kernel locais instalados manualmente não oferecem seleção de drivers porque não é possível inferir com segurança quais headers do repositório correspondem a eles.
 
-## Empacotar kernels locais
+## Empacotar pacotes de kernel locais
 
-Para um kernel local, forneça todos os arquivos necessários de`.deb` do mesmo build de kernel:
+Para um kernel local, forneça todos os arquivos `.deb` necessários da mesma compilação do kernel:
 
 ```bash
 sudo minios-kernel package \
@@ -74,45 +74,47 @@ sudo minios-kernel package \
   -o /tmp/kernel-output
 ```
 
-Debian e Ubuntu podem dividir um kernel em vários pacotes. O backend verifica se a imagem, módulos, base e pacotes opcionais modules-extra fornecidos formam uma versão coerente, em vez de combinar revisões não relacionadas.
+No Debian e no Ubuntu, um kernel pode ser dividido em vários pacotes. O backend verifica se os pacotes de imagem, módulos, base e módulos extras opcionais fornecidos formam uma versão coerente, em vez de combinar silenciosamente revisões não relacionadas.
 
-## Saída e compressão do empacotamento
+## Saída do empacotamento e compressão
 
-O empacotamento gera a imagem do kernel, o initramfs e o módulo de kernel SquashFS. Alguns metadados do pacote selecionado são mantidos dentro do módulo em`/usr/share/minios/kernel-dpkg/`.
+O empacotamento gera a imagem do kernel, o initramfs e o módulo de kernel SquashFS. Os metadados dos pacotes selecionados são mantidos dentro do módulo, em `/usr/share/minios/kernel-dpkg/`.
 
-A compressão padrão SquashFS é`zstd`. Outros métodos são oferecidos apenas quando as ferramentas necessárias estão disponíveis; atualmente há suporte para`lz4`,`lzo`,`gzip`,`lzma`,`xz`, e`bzip2`.
+A compressão SquashFS padrão é `zstd`. Outros métodos são oferecidos somente quando as ferramentas necessárias estão disponíveis; o suporte atual inclui `lz4`, `lzo`, `gzip`, `lzma`, `xz` e `bzip2`.
 
-Quando uma raiz MiniOS gravável é detectada e a saída solicitada está em outro local, o bundle concluído é movido de forma atômica para:
+Quando uma raiz MiniOS gravável é detectada e o destino solicitado está em outro local, o bundle concluído é transferido atomicamente para:
 
 ```text
 <MiniOS-root>/kernels/<version>/
 ```
 
-Downloads de repositório são insumos temporários de build e são removidos após uma operação de empacotamento concluída ou falha tratada. Entradas locais de`.deb` permanecem sob responsabilidade do usuário.
+Os downloads do repositório são entradas temporárias da compilação e são removidos após uma operação de empacotamento concluída ou com falha tratada. As entradas `.deb` locais permanecem sob responsabilidade de quem as forneceu.
 
 ## Compatibilidade com persistência criptografada
 
-Se o initramfs MiniOS em execução anunciar persistência LUKS em camadas, um kernel de substituição deve preservar o caminho de boot dm-crypt. O initramfs gerado é verificado quanto ao suporte necessário ao cryptsetup, módulo dm-crypt e marcador de capacidade cripto MiniOS.
+Se o initramfs MiniOS em execução anunciar suporte à persistência LUKS em camadas, o kernel substituto deverá preservar o caminho de inicialização dm-crypt. O initramfs gerado é verificado para confirmar o suporte necessário ao cryptsetup, o módulo dm-crypt e o marcador de capacidade criptográfica MiniOS.
 
-O empacotamento falha em vez de gerar um bundle de kernel que tornaria a sessão de persistência criptografada ininicializável.
+O empacotamento falha em vez de gerar um bundle de kernel que impediria a inicialização de uma sessão com persistência criptografada.
 
 ## Ativar e remover kernels
 
-A visualização de gerenciamento diferencia:
+A tela de gerenciamento diferencia:
 
-- **EM EXECUÇÃO** — o kernel em execução no boot atual;
-- **ATIVO** — o bundle completo selecionado para o próximo boot;
-- **DISPONÍVEL** — outro bundle empacotado no repositório MiniOS.
+- **EM EXECUÇÃO** — o kernel em execução na inicialização atual;
+- **ATIVO** — o pacote completo selecionado para a próxima inicialização;
+- **DISPONÍVEL** — outro pacote disponível no repositório MiniOS.
 
-A ativação requer uma entrada completa no repositório. Ela prepara a imagem do kernel, o initramfs, o módulo ativo SquashFS, o marcador de versão ativa e as alterações no bootloader como uma única operação coordenada. A configuração do GRUB é obrigatória; a configuração nativa do SYSLINUX é atualizada quando presente. Se a ativação falhar, os arquivos de boot preparados são revertidos.
+A ativação exige uma entrada completa no repositório. Ela prepara a imagem do kernel, o initramfs, o módulo SquashFS ativo, o marcador da versão ativa e as alterações no bootloader como uma única operação coordenada. A configuração do GRUB é obrigatória; a configuração nativa do SYSLINUX é atualizada quando presente. Se a ativação falhar, os arquivos de inicialização preparados serão revertidos.
 
-A ativação altera apenas o próximo boot; não reinicia o sistema atual. Mantenha pelo menos um bundle completo conhecido e funcional até que o novo tenha inicializado com sucesso.
+A ativação altera apenas a próxima inicialização; ela não reinicia o sistema atual. Mantenha pelo menos um pacote completo que você saiba que funciona até que o substituto tenha iniciado com sucesso.
 
-Exclua apenas um kernel empacotado inativo que não seja mais necessário. Não misture manualmente imagem de kernel, initramfs ou`01-kernel-*.sb` de bundles diferentes.
+Exclua somente um kernel empacotado inativo de que você não precisa mais. Não misture manualmente uma imagem de kernel, um initramfs ou `01-kernel-*.sb` de pacotes diferentes.
 
-## Referência de linha de comando
+<a id="command-line-reference"></a>
 
-Comandos típicos incluem:
+## Referência da linha de comando
+
+Os comandos mais comuns são:
 
 ```bash
 sudo minios-kernel list
@@ -122,7 +124,7 @@ sudo minios-kernel status
 sudo minios-kernel activate <version>
 sudo minios-kernel delete <version>
 ```
-Empacotar a partir de um repositório ou arquivos locais:
+Pacote de um repositório ou de arquivos locais:
 
 ```bash
 sudo minios-kernel package --repo <versioned-package> -o /tmp/kernel-output
@@ -131,7 +133,7 @@ sudo minios-kernel package --deb /path/to/kernel-image.deb /path/to/kernel-modul
 sudo minios-kernel package --repo <versioned-package> --sqfs-comp lz4 -o /tmp/kernel-output
 ```
 
-Adicione`--json` para saída estruturada. Utilize a ajuda e o manual instalados para ver as opções exatas fornecidas pela versão em execução:
+Adicione `--json` para obter uma saída estruturada. Consulte a ajuda e o manual instalados para ver as opções exatas disponíveis na versão em execução:
 
 ```bash
 minios-kernel --help
@@ -139,9 +141,9 @@ sudo minios-kernel package --help
 man minios-kernel
 ```
 
-## Layout de armazenamento
+## Organização do armazenamento
 
-O Gerenciador de kernels descobre a raiz de conteúdo MiniOS em vez de assumir um nome específico de dispositivo de bloco. Os caminhos gerenciados são relativos a essa raiz:
+O Kernel Manager localiza a raiz de conteúdo MiniOS, sem presumir um nome específico de dispositivo de bloco. Os caminhos gerenciados são relativos a essa raiz:
 
 ```text
 <MiniOS-root>/
@@ -156,17 +158,17 @@ O Gerenciador de kernels descobre a raiz de conteúdo MiniOS em vez de assumir u
         ├── vmlinuz-<version>
         └── initrfs-<version>.img
 ```
-O caminho canônico do módulo em tempo de execução é`/lib/modules/<version>`. Em sistemas usrmerged, isso resolve para`/usr/lib/modules/<version>`; layouts antigos podem armazená-lo fisicamente em`/lib`. O empacotamento recusa uma árvore de módulos da mesma versão já existente em vez de misturá-la com uma revisão diferente do pacote.
+O caminho canônico do módulo em tempo de execução é `/lib/modules/<version>`. Em sistemas com usrmerge, esse caminho aponta para `/usr/lib/modules/<version>`; em organizações mais antigas, ele pode estar armazenado fisicamente em `/lib`. O empacotamento não permite que uma árvore de módulos da mesma versão já existente seja combinada com uma revisão de pacote diferente.
 
-## Recuperação após kernel com falha
+## Recuperação após falha do kernel
 
-Se um kernel recém-ativado falhar, inicialize um conjunto de kernel completo e conhecido MiniOS se ainda estiver disponível. Não tente reparar a instalação copiando arquivos individuais de kernel, initramfs ou SquashFS de outra imagem: esses arquivos formam um bundle coordenado.
+Se um kernel recém-ativado falhar, inicialize com um conjunto completo e confiável do kernel MiniOS, caso ainda haja um disponível. Não tente reparar a instalação copiando arquivos individuais de kernel, initramfs ou SquashFS de outra imagem: esses arquivos formam um único pacote coordenado.
 
-Se não restar nenhum bundle completo conhecido, inicialize uma mídia de resgate confiável, salve os dados importantes e reinstale ou restaure a instalação MiniOS afetada. Veja[Solução de problemas](/maintenance-and-recovery/Troubleshooting) e[Backup do MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS).
+Se não houver mais nenhum pacote completo e confiável, inicialize por uma mídia de recuperação confiável, preserve os dados importantes e reinstale ou restaure a instalação MiniOS afetada. Consulte [Solução de problemas](/maintenance-and-recovery/Troubleshooting) e [Como fazer backup de MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS).
 
 ## Documentação relacionada
 
-- [Arquitetura do sistema MiniOS](/reference/System-Architecture)
-- [Carregamento de módulos Initrd](/reference/boot-process/Module-Loading)
-- [Compilando MiniOS](/development/Building-MiniOS)
+- [Arquitetura do MiniOS](/reference/System-Architecture)
+- [Carregamento de módulos initrd](/reference/boot-process/Module-Loading)
+- [Como compilar MiniOS](/development/Building-MiniOS)
 - [Solução de problemas](/maintenance-and-recovery/Troubleshooting)

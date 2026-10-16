@@ -1,5 +1,5 @@
 ---
-updated: 2026-10-06
+updated: 2026-10-15
 ---
 # Boot modes
 
@@ -48,6 +48,8 @@ MiniOS displays available saved sessions and lets you select one. Use this when 
 A session can be incompatible when it comes from another MiniOS release or edition. A different `union=` setting can also make a session incompatible.
 Interactive selection does not make an incompatible session safe.
 
+The incompatibility dialog can reset system-installed software while keeping data and, optionally, system settings. Both reset modes preserve home folders, personal settings, accounts, and passwords. They need free space to stage retained data; a SquashFS reset becomes permanent only after saving. See [Session management](/using-minios/Sessions-and-Persistence) before using reset.
+
 ## Start without saving
 
 This mode deliberately disables persistence for the current boot. MiniOS uses a temporary writable area in RAM, so files created in the live system, installed packages, and changed settings disappear at shutdown.
@@ -64,11 +66,15 @@ Starting without saving does not mean that the boot medium can be removed. The r
 
 This mode copies MiniOS system data into RAM to reduce reads from the source. It needs enough memory for the copied system and the running workload.
 
-System copying and persistence copying are now separate. With a persistence request, `toram` defaults `perchtoram` to `trim`, so the selected supported Raw, DynFileFS, DynBlk, VMDK, or SquashFS session is copied into RAM while unrelated saved sessions stay on the original store. Use `perchtoram=off` when you want the system in RAM but the active persistence session to keep writing directly to storage, or `perchtoram=full` when all supported stored sessions should be copied. Native directory sessions are not copied by `perchtoram`.
+System copying and persistence copying are separate. With a persistence request, `toram` defaults `perchtoram` to `trim`, so the selected supported Raw, DynFileFS, DynBlk, VMDK, or SquashFS session is copied into RAM while unrelated saved sessions stay on the original store. Use `perchtoram=off` when you want the system in RAM but the active persistence session to keep writing directly to storage, or `perchtoram=full` when all supported stored sessions should be copied. Native directory data is not copied: a successful native RAM request starts a new empty container instead. During a native-session reset, copying is disabled to preserve retained data. If a session copy lacks memory or fails, MiniOS reports the fallback and keeps the session on storage.
 
 A RAM-backed persistence session is non-durable while it is running. Current MiniOS Session Manager can explicitly write supported RAM-backed changes back to the original store with **Save Now**, or save them as a new numbered session, provided the original store is present, writable, and still matches the identity recorded at boot. Until such a save succeeds, unsaved RAM changes are lost at shutdown. SquashFS automatic save policies use the same session backend when the original store is available.
 
 Do not remove the boot device merely because **Run from RAM** was selected. It is safe only after MiniOS has successfully detached the source filesystem, ISO loop, Ventoy mappings, and any persistence dependency you still need. If detachment fails, the source remains in use.
+
+## Ventoy persistence images
+
+With a selected Ventoy Persistence Plugin backend, a persistent boot uses one writable ext4 environment from that image instead of numbered MiniOS sessions. **Start a new session** and **Choose a saved session** cannot create or select numbered sessions in this mode; select another backend in Ventoy instead. Session Manager and `perchtoram` are unavailable, so even a system RAM boot keeps the image in use. **Start without saving** still uses a temporary RAM upper. Ordinary Ventoy boots without a selected plugin image keep normal MiniOS session behavior. See [Ventoy](/installing-minios/installation-tools/Ventoy).
 
 ## Native installation
 

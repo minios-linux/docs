@@ -1,7 +1,7 @@
 ---
-updated: 2026-08-31
+updated: 2026-10-15
 program_commits:
-    minios-live: f59faa38c0667fbeefdc6dbe899a2db6e131e462
+    minios-live: a70af61230d2891ed9ca2447019bd7210a670694
 ---
 
 # Build von MiniOS
@@ -152,17 +152,18 @@ Falls `REMOVE_SOURCES=true`, löscht und erstellt die abschließende `remove-sou
 
 ## Konfiguration
 
-`linux-live/build.conf` steuert die Zielidentität, Kernel, Locale, Bootloader, Live-Benutzer, Dienste, Caches, Snapshots, Bereinigung und Veröffentlichung. Wichtige Gruppen sind:
+`linux-live/build.conf` steuert Zielidentität, Kernel, Spracheinstellungen, Bootloader, Live-Benutzer, Dienste, Caches, Snapshots, Bereinigung und Veröffentlichung. Wichtige Gruppen sind:
 
-- `DISTRIBUTION`, `DISTRIBUTION_ARCH`, `DESKTOP_ENVIRONMENT` und `PACKAGE_VARIANT` wählen das Ziel und die Modulkette.
-- `COMP_TYPE` steuert SquashFS-Kompression.
-- `KERNEL_*` und `MINIOS_KERNEL_SERIES` steuern Kernel-Beschaffung und -Payload.
-- `INITRAMFS_BUILDER`, `INITRAMFS_CRYPT`, `BOOTLOADER`, `MENU_LANG` und `SERIAL_CONSOLE` steuern Boot-Artefakte.
-- `USE_ROOTFS`, `USE_APT_CACHE`, `USE_SHARED_APT_CACHE`, `USE_APT_CACHE_REPO` und `USE_APT_CACHER` steuern wiederverwendbare Eingaben.
-- `VERBOSITY_LEVEL` akzeptiert `0`, `1` oder `2`.
-- `REMOVE_OLD_ISO`, `REMOVE_SOURCES` und `BUILD_TEST_ISO` steuern Veröffentlichung und Bereinigung.
+- `DISTRIBUTION`, `DISTRIBUTION_ARCH`, `DESKTOP_ENVIRONMENT`, und `PACKAGE_VARIANT` wählen das Ziel und die Modulkette aus.
+- `COMP_TYPE` steuert SquashFS-Komprimierung.
+- `LIVE_MODULE_MODE` wählt `merged` (der aktuelle Standard für jede Variante) oder `simple` Live-Config-Integration; dies wird nicht mehr nur anhand der Editionsgröße bestimmt.
+- `KERNEL_*` und `MINIOS_KERNEL_SERIES` steuern Kernel-Beschaffung und Nutzlast.
+- `INITRAMFS_BUILDER`, `INITRAMFS_CRYPT`, `BOOTLOADER`, `MENU_LANG`, und `SERIAL_CONSOLE` steuern Boot-Artefakte.
+- `USE_ROOTFS`, `USE_APT_CACHE`, `USE_SHARED_APT_CACHE`, `USE_APT_CACHE_REPO`, und `USE_APT_CACHER` steuern wiederverwendbare Eingaben.
+- `VERBOSITY_LEVEL` akzeptiert `0`, `1`, oder `2`.
+- `REMOVE_OLD_ISO`, `REMOVE_SOURCES`, und `BUILD_TEST_ISO` steuern Veröffentlichung und Bereinigung.
 
-Bearbeiten Sie keine generierte `build/<target>/build.conf` als Ersatz für die Pflege der gewählten Quellkonfiguration.
+Bearbeiten Sie keine generierte `build/<target>/build.conf` anstelle der Pflege der gewählten Quellkonfiguration.
 
 ### Kernel-Auswahl
 
@@ -176,16 +177,16 @@ Im aktuellen Code wird `MINIOS_KERNEL_SERIES=auto` zu `6.12` aufgelöst; verwend
 
 ## Modulsystem
 
-Modulquellen befinden sich unter `linux-live/scripts/`. Eine Umgebung unter `linux-live/environments/<desktop>/` enthält geordnete Symlinks zu den verwendeten Quellen. Der umgebungslokale Name steuert die Build-Reihenfolge und kann eine gemeinsame Quelle umnummerieren, zum Beispiel:
+Modulquellen befinden sich unter `linux-live/scripts/`. Eine Umgebung unter `linux-live/environments/<desktop>/` enthält geordnete Symlinks zu den verwendeten Quellen. Der umgebungsspezifische Name steuert die Build-Reihenfolge und kann eine gemeinsame Quelle neu nummerieren, zum Beispiel:
 
 ```text
 linux-live/environments/xfce/06-firefox -> ../../scripts/10-firefox
 ```
 
-`00-core` wird von `build-live` erzeugt und ist kein gewöhnlicher Umgebungslink.
-Module ab `01` sind kumulativ: Jedes wird über den zutreffenden niedrigeren Modulen gebaut. `skip_conditions.conf` kann Einträge für ein Ziel auslassen, daher prüfen Sie die gewählte Umgebung, statt eine universelle Kette anzunehmen.
+`00-core` wird erzeugt von `build-live` und ist kein gewöhnlicher Umgebungslink.
+Module `01` und höher sind kumulativ: Jedes baut auf den jeweils darunterliegenden Modulen auf. `skip_conditions.conf` kann Einträge für ein Ziel auslassen. Prüfen Sie daher die gewählte Umgebung, anstatt von einer universellen Kette auszugehen.
 
-Verwenden Sie `linux-live/scripts/10-example/` als aktuelle Vorlage für die Erstellung. Ein Modul kann enthalten:
+Verwenden Sie `linux-live/scripts/10-example/` als aktuelles Authoring-Template. Ein Modul kann enthalten:
 
 ```text
 NN-module-name/
@@ -199,19 +200,19 @@ NN-module-name/
 └── rootcopy-postinstall/
 ```
 
-Nur die für das Modul benötigten Dateien sind erforderlich. `build`, `postinstall`, Skip-Bedingungen, Patches und Rootcopy-Bäume sind optional. `build` und `patches/` stehen `00-core` nicht zur Verfügung.
+Nur die für das Modul benötigten Dateien sind erforderlich. `build`, `postinstall`, Skip-Bedingungen, Patches und Rootcopy-Bäume sind optional. `build` und `patches/` stehen für `00-core` nicht zur Verfügung.
 
-Besitzrechte des Hosts in Rootcopy-Bäumen werden nicht beibehalten; kopierte Dateien werden normalerweise `root:root`. Ein `.minios-ownership`-Manifest innerhalb eines Rootcopy-Baums verwendet:
+Die Besitzrechte des Hosts in Rootcopy-Bäumen bleiben nicht erhalten; kopierte Dateien werden normalerweise zu `root:root`. Eine `.minios-ownership`-Manifestdatei innerhalb eines Rootcopy-Baums verwendet:
 
 ```text
 owner:group relative/path
 ```
 
-Pfade müssen innerhalb des Baums bleiben. Das Host-System wendet das Manifest sofort an und löst Namen über die Host-Account-Datenbank auf. Verwenden Sie numerische `UID:GID`-Werte für Ziel-Only-Accounts oder setzen Sie Besitzrechte aus `install` oder `postinstall` innerhalb des Chroots. Das Verschieben des Manifests nach `rootcopy-postinstall/` ändert die Namensauflösung nicht.
+Pfade müssen im Baum bleiben. Der Host wendet das Manifest sofort an und löst Namen über die Host-Account-Datenbank auf. Verwenden Sie numerische `UID:GID`-Werte für reine Zielkonten oder setzen Sie Besitzrechte aus `install` oder `postinstall` innerhalb des Chroots. Das Verschieben des Manifests nach `rootcopy-postinstall/` ändert nichts an der Namensauflösung.
 
-Da die aktuelle Containment-Prüfung den Zielpfad nicht kanonisiert, verwenden Sie niemals `..`-Komponenten oder Symlink-Komponenten in Manifestpfaden. Prüfen Sie Rootcopy-Bäume vor einem privilegierten Build; ein manipulierter Pfad kann dazu führen, dass `chown` des Hosts aus dem kopierten Baum entkommt.
+Da die aktuelle Containment-Prüfung den Zielpfad nicht kanonisiert, verwenden Sie niemals `..`-Komponenten oder Symlink-Komponenten in Manifestpfaden. Überprüfen Sie Rootcopy-Bäume vor einem privilegierten Build; ein manipulierte Pfad kann dazu führen, dass hostseitige `chown` aus dem kopierten Baum entkommen.
 
-Für Pakete verwenden gewöhnliche Modul-Installationsskripte die von `build-modules` in das Chroot kopierten Dateien:
+Für Pakete verwenden gewöhnliche Modul-Installationsskripte die durch `build-modules` ins Chroot kopierten Dateien:
 
 ```bash
 #!/bin/bash
@@ -220,6 +221,7 @@ set -o pipefail
 set -u
 
 . /minioslib || exit 1
+console_colors
 . /minios_build.conf || exit 1
 
 SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"

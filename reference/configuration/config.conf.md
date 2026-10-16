@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-26
+updated: 2026-10-15
 ---
 
 # config.conf
@@ -128,6 +128,8 @@ minios/log/YYYYMMDD_HHMMSS/
 
 The corresponding runtime logs are `/var/log/minios/minios-boot.log` and `/var/log/live/config.log`.
 
+<a id="cache-and-log-policy-for-a-persistent-session"></a>
+
 ## Cache and log policy for a persistent session
 
 To reduce writes during a `perch` session, add the settings independently:
@@ -140,7 +142,7 @@ LIVE_BROWSER_CACHE="volatile"
 
 They also accept `persistent`, the default. `minios-boot` accepts the same settings from `/etc/live/config.conf.d/*.conf`, `LIVE_CONFIG_CMDLINE` (`log-storage=volatile`, `apt-cache=volatile`, `browser-cache=volatile`), or kernel parameters. Later fragments replace earlier ones, the parameter blob wins over file keys, and actual kernel parameters win last. The three options are independent and do not themselves request persistence. A compatible initrd advertises `perch-storage-v1` at `/run/initramfs/etc/minios-initramfs-storage`; MiniOS Configurator warns when the current initrd does not advertise it.
 
-The policies apply on a later boot only if persistence actually activated on durable writable storage. With `toram`, failed persistence, or **Start without saving**, the requested volatile policy is not treated as evidence that anything will be saved. The browser-cache component runs later than `minios-boot`, after the live user has been created. See [Performance](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch) for the exact RAM limits, supported browser paths, fallback conditions, and logs that remain on the medium.
+The policies require successful persistence activation, either on durable writable storage or as a writable RAM session with protected `ram-origin` information. System `toram` alone does not determine session durability: `perchtoram=off` can retain an on-storage session, while a copied session still requires saving. Failed persistence and **Start without saving** do not qualify. Boot diagnostics are retained separately from ordinary volatile logs, but remain memory-backed in a RAM-copied session until saved. The browser-cache component runs after the live user has been created. See [Performance](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch) for RAM limits, supported paths, and admission conditions.
 
 ## Source, runtime copy, and precedence
 The selected MiniOS data directory normally contains these source files:

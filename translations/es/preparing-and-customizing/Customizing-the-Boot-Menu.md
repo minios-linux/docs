@@ -1,5 +1,5 @@
 ---
-updated: 2026-10-06
+updated: 2026-10-15
 ---
 
 # Personalización del menú de arranque
@@ -33,15 +33,11 @@ Estas son opciones de selección, no garantías de que el almacenamiento sea esc
 - Pulsa **Esc** para volver al menú anterior (en GRUB)
 - La selección automática y la duración del tiempo de espera dependen de la configuración activa del menú; algunos menús pueden esperar indefinidamente
 
-### Selección de idioma (GRUB)
+### Ayuda y selección de idioma
 
-Si tu unidad USB de MiniOS admite varios idiomas:
-1. La primera pantalla mostrará las opciones de idioma
-2. Selecciona tu idioma preferido
-3. El menú de arranque aparecerá en el idioma seleccionado
-4. La selección también puede pasar la configuración regional al siguiente inicio, pero no garantiza que todos los mensajes de arranque o de aplicaciones estén traducidos
+Los menús multilingües actuales de GRUB y los menús nativos de SYSLINUX inician mostrando los modos de arranque, no una pantalla de selección de idioma. **F1** abre la ayuda de arranque y **F2** abre la selección de idioma. Al elegir un idioma, se regresa al menú de modos traducido. Los medios de un solo idioma mantienen la ayuda, pero no ofrecen navegación por idiomas no disponibles.
 
-**Importante:** El menú multilingüe sobrescribe cualquier configuración regional especificada en `config.conf`. El idioma seleccionado en el menú de arranque tiene prioridad sobre las configuraciones regionales predefinidas. Consulta **[Archivo de configuración](/reference/configuration/config.conf)** y **[live-config](/reference/configuration/live-config)** para más detalles sobre los archivos de configuración del sistema.
+El menú multilingüe inicial mantiene la configuración regional del sistema establecida. Solo una selección de idioma explícita añade ajustes regionales que reemplazan `config.conf` para ese arranque. No se garantiza que todos los mensajes de inicio o de las aplicaciones estén traducidos. Consulta [Archivo de configuración](/reference/configuration/config.conf) y [live-config](/reference/configuration/live-config).
 
 ## Personalización de las opciones de arranque
 
@@ -62,22 +58,23 @@ Puedes modificar las opciones de arranque para una sola sesión:
 3. Agrega parámetros a la línea de comandos que aparece
 4. Pulsa **Enter** para arrancar
 
-### Modificaciones comunes de los parámetros de arranque
+### Modificaciones comunes de parámetros de arranque
 
-- `debug` - Mostrar mensajes detallados de arranque (útil para diagnóstico)
+- `debug` - Mostrar mensajes detallados de arranque (útil para la resolución de problemas)
 - `toram=trim` - Copiar el conjunto de módulos filtrados y los datos requeridos limitados a RAM
-- `perchsize=2000` - Establecer el tamaño de almacenamiento de la sesión en 2GB (ajustar según necesidad)
+- `perchsize=2000` - Solicitar 2000 MiB para un contenedor compatible nuevo o en expansión; esto no afecta sesiones nativas ni de SquashFS
 - `locales=ru_RU.UTF-8` - Solicitar un idioma o configuración regional específica
 
 Para ver la lista completa de parámetros de arranque disponibles, consulta **[Parámetros de arranque](/reference/Boot-Parameters)**.
 
 ## Ubicación de los archivos de configuración
 
-### En tu unidad USB de MiniOS
+### En tu unidad USB MiniOS
 
 - **Configuración de GRUB:** `/minios/boot/grub/grub.cfg`
+- **Menús de modo y de idioma de GRUB:** `/minios/boot/grub/main.cfg` y `/minios/boot/grub/languages.cfg`; las compilaciones localizadas pueden seleccionar otros archivos generados
 - **Configuración de SYSLINUX:** `/minios/boot/syslinux/syslinux.cfg`
-- **Imágenes de arranque:** `/minios/boot/bootlogo.png`
+- **Arte gráfico de arranque:** inspecciona la configuración activa de SYSLINUX `MENU BACKGROUND` o del tema de GRUB; las rutas dependen del gestor de arranque seleccionado
 - **Archivos de idioma:** `/minios/boot/grub/locale/`
 
 ### En el sistema en ejecución

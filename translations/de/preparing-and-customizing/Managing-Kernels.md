@@ -98,17 +98,19 @@ Die Paketierung schlägt fehl, anstatt ein Kernel-Bundle zu erzeugen, das eine v
 
 ## Kernel aktivieren und entfernen
 
-In der Verwaltungsansicht werden unterschieden:
+In der Verwaltungsansicht wird unterschieden:
 
-- **RUNNING** — der Kernel, der im aktuellen Boot ausgeführt wird;
-- **ACTIVE** — das vollständige Bundle, das für den nächsten Start ausgewählt ist;
-- **AVAILABLE** — ein weiteres gepacktes Bundle im MiniOS-Repository.
+- **AKTIV** — der Kernel, der beim aktuellen Systemstart ausgeführt wird;
+- **VORGEMERKT** — das vollständige Bundle, das für den nächsten Start ausgewählt ist;
+- **VERFÜGBAR** — ein weiteres paketiertes Bundle im MiniOS-Repository.
 
-Die Aktivierung erfordert einen vollständigen Repository-Eintrag. Dabei werden Kernel-Image, initramfs, aktives SquashFS-Modul, Active-Version-Marker und Bootloader-Anpassungen als eine koordinierte Aktion bereitgestellt. Die GRUB-Konfiguration ist erforderlich; native SYSLINUX-Konfiguration wird aktualisiert, wenn vorhanden. Bei Fehlschlag werden die bereitgestellten Bootdateien zurückgesetzt.
+Die Aktivierung erfordert einen vollständigen Repository-Eintrag. Dabei werden Kernel-Image, initramfs, aktives SquashFS-Modul, Marker für die aktive Version und Bootloader-Änderungen als koordinierter Vorgang bereitgestellt. Die GRUB-Konfiguration ist erforderlich; eine vorhandene native SYSLINUX-Konfiguration wird aktualisiert. Schlägt die Aktivierung fehl, werden die vorbereiteten Boot-Dateien zurückgesetzt.
 
-Die Aktivierung betrifft nur den nächsten Bootvorgang; das aktuelle System wird nicht neu gestartet. Behalten Sie mindestens ein bekannt funktionierendes vollständiges Bundle, bis das neue erfolgreich gebootet wurde.
+Die Aktivierung betrifft nur den nächsten Systemstart; das aktuelle System wird nicht neu gestartet. Behalten Sie mindestens ein als funktionsfähig bekanntes vollständiges Bundle, bis der Ersatz erfolgreich gebootet wurde.
 
-Löschen Sie nur einen inaktiven gepackten Kernel, den Sie nicht mehr benötigen. Mischen Sie Kernel-Image, initramfs oder `01-kernel-*.sb` nicht manuell aus verschiedenen Bundles.
+Löschen Sie nur einen inaktiven paketierten Kernel, den Sie nicht mehr benötigen. Mischen Sie Kernel-Image, initramfs oder `01-kernel-*.sb` nicht manuell aus verschiedenen Bundles.
+
+<a id="command-line-reference"></a>
 
 ## Kommandozeilenreferenz
 

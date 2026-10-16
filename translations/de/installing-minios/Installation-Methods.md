@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-31
+updated: 2026-10-15
 ---
 
 # Installationsmethoden
@@ -40,17 +40,17 @@ Firmware-Einstellungen variieren je nach Computer. Ein MiniOS-Abbild kann über 
 
 Verwenden Sie [Bootmodi](/using-minios/Boot-Modes) als maßgebliche Anleitung für das Live-Boot-Verhalten. Wenn beim frühen Booten das Abbild oder seine Module nicht gefunden werden, siehe [Initrd-Systemerkennung](/reference/boot-process/System-Discovery).
 
-## Installationslayout wählen
+## Wählen Sie ein installiertes Layout
 
-Starten Sie aus der Live-Sitzung das [MiniOS-Installationsprogramm](/installing-minios/MiniOS-Installer), wenn Sie das System auf einen anderen USB-Stick, eine SSD oder Festplatte installieren möchten.
+Starten Sie aus der Live-Sitzung [MiniOS-Installationsprogramm](/installing-minios/MiniOS-Installer) wenn Sie das System auf einem anderen USB-Laufwerk, einer SSD oder Festplatte installieren möchten.
 
-- **Live-Modus** bewahrt den komprimierten Modulstapel, das MiniOS-Bootlayout, MiniOS-Verwaltungstools und optionale Sitzungs-Persistenz. Wählen Sie dies, wenn Sie MiniOS selbst auf dem Zielmedium haben möchten.
-- **Native Modus** entpackt das gewählte Abbild zu einem konventionellen, beschreibbaren Debian-Desktop. Das Ziel behält die Desktop-Umgebung, das visuelle Erscheinungsbild und die Standardanwendungen der gewählten Edition, während die MiniOS-Live-Laufzeitumgebung und live-spezifische Verwaltungssoftware entfernt werden. Das installierte System verwendet ein konventionelles Debian-initramfs, Bootloader, Kernel-Pakete und den üblichen Paketverwaltungs-Workflow.
+- **Live-Modus** bewahrt den komprimierten Modul-Stack, das MiniOS-Boot-Layout, MiniOS-Verwaltungstools und optional die Sitzungs-Persistenz. Wählen Sie diese Option, wenn Sie MiniOS selbst auf dem Ziellaufwerk haben möchten.
+- **Native Modus** entpackt das gewählte Abbild in ein herkömmliches, beschreibbares Debian-Desktop-System. Das Zielsystem behält die Desktop-Umgebung, das visuelle Erscheinungsbild und die Standardanwendungen der gewählten Edition, während die MiniOS Live-Laufzeitumgebung und die live-spezifische Verwaltungssoftware entfernt werden. Das installierte System verwendet ein klassisches Debian-initramfs, einen Bootloader, Kernel-Pakete und den üblichen Paketverwaltungs-Workflow.
 
-::: warning Native Installation verwendet ein anderes Systemmodell
-Die prägende MiniOS-Architektur ist das modulare Live-System, wie in [Über MiniOS](/getting-started/About-MiniOS) beschrieben. Der Native Modus erhält das gewohnte MiniOS-Desktop-Erlebnis, einschließlich Erscheinungsbild, Desktop-Umgebung und Standardanwendungen, wandelt das System jedoch in eine konventionelle Debian-Installation um. MiniOS-spezifische Tools für Sitzungen, Module, modulare Kernel und andere Live-Workflows werden entfernt, da diese Funktionen nicht mehr benötigt werden. Wählen Sie eine Live-Installation, wenn Sie den vollständigen MiniOS-Funktionsumfang wünschen.
+::: warning Die native Installation verwendet ein anderes Systemmodell
+Die prägende MiniOS-Architektur ist das modulare Live-System, das in [Über MiniOS](/getting-started/About-MiniOS). Der Native Modus erhält das gewohnte MiniOS-Desktop-Erlebnis, einschließlich des visuellen Erscheinungsbilds, der Desktop-Umgebung und der Standardanwendungen, wandelt das System jedoch in eine klassische Debian-Installation um. MiniOS-spezifische Tools für Sitzungen, Module, modulare Kernel und andere Live-Workflows werden entfernt, da diese Funktionen nicht mehr benötigt werden. Wählen Sie eine Live-Installation, wenn Sie den vollständigen Funktionsumfang von MiniOS wünschen.
 :::
 
-Live-Persistenz wird während des frühen Bootvorgangs vorbereitet; das detaillierte Verhalten finden Sie unter [Initrd-Persistenz](/reference/boot-process/Persistence-Internals). Nach der nativen Umwandlung gilt dies nicht mehr.
+Live-Persistenz kann auf dem Ziel entweder durch das MiniOS-Installationsprogramm vorab erstellt oder während des frühen Bootvorgangs vorbereitet werden. Details zum Verhalten finden Sie in [Initrd-Persistenz](/reference/boot-process/Persistence-Internals). Nach der nativen Umwandlung ist dies nicht mehr anwendbar.
 
-Das Installationsprogramm unterstützt automatische BIOS/MBR-, UEFI/MBR- und UEFI/GPT-Layouts. BIOS auf GPT wird vom aktuellen Installationsprogramm nicht unterstützt. Siehe [Verwendung des MiniOS-Installationsprogramms](/installing-minios/MiniOS-Installer) für Hinweise zu Platzierung, Dateisystem, Persistenz und Partitionsgrenzen.
+Der Installer unterstützt BIOS/MBR-, UEFI/MBR- und UEFI/GPT-Layouts. Die automatische Live-Installation auf die gesamte Festplatte verwendet MBR mit BIOS- und UEFI-Boot-Unterstützung; Festplatten ab 2 TiB erfordern ausdrücklich die Auswahl von UEFI/GPT. BIOS auf GPT wird nicht unterstützt. Native und bestehende Tabellen-Workflows haben eigene Richtlinien. Siehe [Verwendung des MiniOS-Installationsprogramms](/installing-minios/MiniOS-Installer) für Hinweise zu Platzierung, Dateisystem, Persistenz und Partitionsgrenzen.

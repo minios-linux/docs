@@ -1,5 +1,5 @@
 ---
-updated: 2026-10-06
+updated: 2026-10-15
 ---
 # Security
 
@@ -62,11 +62,11 @@ Unencrypted native, DynFileFS, DynBlk, VMDK, raw, and SquashFS persistence can b
 
 The encryption boundary differs by backend. Raw encrypts the logical block image inside `changes.img`; DynFileFS encrypts the exposed `virtual.dat`; DynBlk and VMDK encrypt the block device exposed by the DynBlk driver. Session metadata, boot files, backend metadata and VMDK descriptors outside the encrypted block device, and unrelated files on the medium remain visible. DynBlk backend compression is disabled when LUKS2 is selected; VMDK does not provide backend compression.
 
-The initrd creates the encrypted filesystem on first use and asks for its passphrase; the installer does not receive or store that passphrase. At boot, three rejected unlock attempts stop the boot path rather than falling back to plaintext, another backend, or an in-memory replacement under the same persistence request.
+Boot-time creation asks for the passphrase twice in the initrd. When Installer pre-creates an encrypted session on the target, its wizard collects and confirms the passphrase and passes it to `minios-session` through standard input. It is not stored in configuration, logs, or process arguments. Existing encrypted sessions ask for their passphrase at boot; three rejected unlock attempts stop the boot path rather than falling back to plaintext, another backend, or an in-memory replacement under the same persistence request.
 
 The MiniOS LUKS2 persistence layer protects filesystem contents while the mapper is closed. It does not protect data after unlock, the unencrypted boot files, copied files outside the encrypted backend, or a native root filesystem. Layered persistence encryption is not native root encryption. Logical exports contain decrypted session files, so protect backup archives separately. Use a strong passphrase and keep a tested backup.
 
-Temporary cache or journal storage is a write-reduction choice, not encryption. Even with `LIVE_LOG_STORAGE=volatile`, MiniOS keeps `minios-boot` and `live-config` diagnostics on the durable session store. For SquashFS these files are outside `changes.sb`, under the session's `boot-logs/` directory. An unencrypted backing device exposes them along with its other files. `LIVE_CONFIG_DEBUG=true` additionally enables detailed traces and copies of user-account merge inputs; keep debug disabled in ordinary use and review those logs before sharing them. See [Performance](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch).
+Temporary cache or journal storage is a write-reduction choice, not encryption. With durable persistence, MiniOS keeps `minios-boot` and `live-config` diagnostics on the session store even when `LIVE_LOG_STORAGE=volatile`. For durable SquashFS these files are outside `changes.sb`, under the session's `boot-logs/` directory. With `perchtoram`, the session and its diagnostics are memory-backed; persistence requires a successful save to storage. An unencrypted backing device exposes its logs along with its other files. `LIVE_CONFIG_DEBUG=true` additionally enables detailed traces and copies of user-account merge inputs; keep debug disabled in ordinary use and review those logs before sharing them. See [Performance](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch).
 
 See [MiniOS Installer](/installing-minios/MiniOS-Installer) and [Session management](/using-minios/Sessions-and-Persistence).
 

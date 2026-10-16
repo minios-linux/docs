@@ -1,7 +1,7 @@
 ---
-updated: 2026-10-06
+updated: 2026-10-15
 program_commits:
-  minios-store: eec5785dd7eb547961c2799f1907496a33be2e8c
+  minios-store: c3d0d31db7966cd7809f0f4ba1ca642133c8f07a
 ---
 # Installing software
 
@@ -47,7 +47,7 @@ Module mode runs `apt2sb` or `script2sb` in an isolated module-building environm
 1. `/run/initramfs/memory/data/minios/modules`
 2. `/var/lib/minios-store/modules`
 
-The first path is the modules directory on the current MiniOS boot storage. A module created there is not activated in the current session by MiniOS Store. Leave the module in that directory and reboot to load it on the next boot. The result remains available only if the underlying boot storage is writable and retains the file.
+The first path is the effective MiniOS data tree's modules directory. In a normal writable boot it is on storage, but after system `toram` copying it can be RAM-backed; Store checks writability, not durability. A created module is not activated in the current session. It loads at a later boot only if copied to durable `minios/modules/` storage and allowed by the boot filters. Use Module Manager's **Add to Next Boot** or `sudo sb next-boot add /path/to/module.sb` when suitable durable storage is available.
 
 The second path is a fallback used when the normal modules directory is not writable. A module in the fallback directory is not automatically part of the next live boot. Use `Open folder`, then copy the finished module to the `minios/modules` directory on writable MiniOS boot media before rebooting.
 

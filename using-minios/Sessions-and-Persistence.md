@@ -1,8 +1,8 @@
 ---
-updated: 2026-10-06
+updated: 2026-10-15
 program_commits:
-  minios-session-manager: 3ec8b706ff661eb7f8f3fa5306a14f7fd7bc5cd3
-  minios-tools: be508248395979c27cb8036a7d8cc69bdfc82c42
+  minios-session-manager: 120fdba6a6fe1838f1aaa3c153aafc080829798d
+  minios-tools: bc6de2e7649ef7629fe6491b906de2290e394fd0
 ---
 # Sessions and persistence
 
@@ -15,7 +15,9 @@ Use MiniOS Session Manager from a running MiniOS system:
 minios-session-manager
 ```
 
-The equivalent command-line tool is `minios-session`. Its modifying commands require administrative privileges, so the examples below use `sudo`.
+The equivalent command-line tool is `minios-session`. All commands except help require administrative privileges; run the examples with `sudo`.
+
+These numbered-session workflows are unavailable with a selected **Ventoy Persistence Plugin** image. That image supplies one persistent environment selected in Ventoy, without MiniOS session metadata. Ordinary Ventoy boots without a selected plugin backend retain MiniOS sessions; see [Ventoy](/installing-minios/installation-tools/Ventoy).
 
 ## Session modes
 
@@ -62,7 +64,7 @@ Any recognized persistence parameter enables persistence handling. MiniOS boot m
 | `perchcomp=<codec>` | Select DynBlk backend compression for a new DynBlk session. Compression is forced to `none` when DynBlk is wrapped in LUKS2. |
 | `perchsize=<size>` | Set a new or larger container size; plain values are allocated in MiB and `MB`, `GB`, and `TB` suffixes are accepted. |
 
-If no mode is specified for a new session, boot uses native mode. On FAT32/NTFS/exFAT, native boot creation falls back to DynFileFS. A new raw container defaults to 4000 MiB. New DynFileFS, DynBlk, and VMDK boot sessions without `perchsize` use up to 16 GiB; when less backing space remains after the safety reserve, the automatic size is reduced. DynFileFS also accounts for its index overhead and RAM limit. Explicit DynBlk growth follows the installed backend limit, queried with `dynblk limits --format dynblk`. Under Secure Boot, initrd does not offer DynBlk/VMDK and treats an explicit or resumed DynBlk/VMDK session as unavailable rather than attempting to load the unsigned module.
+If no mode is specified for a new session, boot uses native mode. On FAT32/NTFS/exFAT, or when native filesystem checks fail, startup prefers DynBlk when its helper is available and Secure Boot permits it; otherwise it falls back to DynFileFS. An activation failure does not silently convert an existing session. A new raw container defaults to 4000 MiB. New DynFileFS, DynBlk, and VMDK boot sessions without `perchsize` use up to 16 GiB; when less backing space remains after the safety reserve, the automatic size is reduced. DynFileFS also accounts for its index overhead and RAM limit. Explicit DynBlk growth follows the installed backend limit, queried with `dynblk limits --format dynblk`. Under Secure Boot, initrd does not offer DynBlk/VMDK and treats an explicit or resumed DynBlk/VMDK session as unavailable rather than attempting to load the unsigned module.
 SquashFS sessions can be captured from the running system with MiniOS Session Manager or `minios-session create squashfs`. Initrd setup creates only generation-zero session metadata and keeps the writable upper layer in RAM. The running system creates the first `changes.sb` snapshot on demand or at shutdown.
 
 When resuming, MiniOS checks the recorded version, edition, union filesystem, and mode. Literal `perchdir=resume` can create a new session instead of using an absent or incompatible default. Bare `perch`, direct numeric selection, and other legacy resume requests do not automatically create that replacement.
@@ -99,6 +101,8 @@ sudo minios-session activate <id>
 ```
 
 The active session cannot be deleted or converted in place. A running session cannot normally be deleted, exported, copied, resized, or converted. Cleanup also protects both IDs.
+
+<a id="command-reference"></a>
 
 ## Command reference
 
@@ -198,7 +202,13 @@ When initrd copies a supported persistence session into RAM with `perchtoram`, t
 
 If the original store is present, writable, and unchanged, **Save Now** writes the RAM state back to the original session. **Save to Storage as New Session** keeps the stored source untouched and publishes the RAM state as a new numbered session. The CLI equivalents are `minios-session save <id>` and `minios-session save <id> --as-new`. Saving reports copy progress and can be cancelled before the publication phase; publication itself is completed atomically once it starts.
 
-If the original medium is missing, read-only, no longer matches the boot-time identity, or the original session changed independently, write-back is refused rather than targeting another device by name. Reattach the original medium and retry, or use save-as-new when the original session has diverged. Native directory sessions are not copied by the current `perchtoram` implementation, so this write-back path applies to Raw, DynFileFS, DynBlk, VMDK, and SquashFS sessions.
+If the original medium is missing, read-only, no longer matches the boot-time identity, or the original session changed independently, write-back is refused rather than targeting another device by name. Reattach the original medium and retry, or use save-as-new when the original session has diverged. Native directory sessions are not copied by `perchtoram`: a successful RAM request starts a new empty container instead, without importing native data. Use `perchtoram=off` to retain that native session. During a native-session reset, copying is disabled for that boot to preserve the retained data.
+
+## Reset an incompatible session
+
+The boot-time **Choose a saved session** menu can reset an incompatible session before activation. **Reset, keep settings** removes system-installed software while retaining system settings and data. **Reset, keep data** also resets ordinary system configuration. Both preserve `/home` and `/root`, including personal settings and home-installed applications, accounts, passwords, and keys. Unlisted manually installed files elsewhere can also remain; this is not a complete software purge.
+
+Reset needs free space for a second copy of retained data. Failed or interrupted directory replacement is rolled back or recovered on the next mount. Automatic resume never resets a session silently. For SquashFS, reset affects only the restored RAM layer until a successful save publishes the new snapshot and its compatibility information. Back up important data before resetting; see [Persistence internals](/reference/boot-process/Persistence-Internals).
 
 ## SquashFS save behavior
 

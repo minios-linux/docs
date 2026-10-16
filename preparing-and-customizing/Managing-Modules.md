@@ -1,8 +1,8 @@
 ---
-updated: 2026-10-06
+updated: 2026-10-15
 program_commits:
-  minios-module-manager: fbe617f2955ddbef97f9ee3e5856b7d58439a565
-  minios-tools: be508248395979c27cb8036a7d8cc69bdfc82c42
+  minios-module-manager: 356c7582cf81884d606da388c93c674bf32049ba
+  minios-tools: bc6de2e7649ef7629fe6491b906de2290e394fd0
 ---
 # Managing modules
 
@@ -30,7 +30,7 @@ For the authoritative boot-time rules, including candidate source tiers, exact-b
 
 Runtime activation and deactivation are available only when the root filesystem is currently using AUFS. They are not available on an OverlayFS root, even if the kernel supports AUFS. Base modules cannot be deactivated through the application.
 
-Next-boot changes are available only when MiniOS finds suitable durable, writable module storage. Base modules and modules on read-only or volatile storage cannot be removed. Boot filters such as `load`, `noload`, and `bext` still determine which modules are selected.
+Next-boot changes are available only with suitable durable, writable module storage. Disabling a user module moves it to sibling `modules-disabled/` storage rather than deleting it; it can be restored later. Permanent deletion is a separate action for disabled modules. Base modules and modules on read-only or volatile storage cannot be disabled. Boot filters such as `load`, `noload`, and `bext` still determine which modules are selected.
 
 ## Inspecting a module
 
@@ -77,6 +77,8 @@ Dropping an item does not execute code or change Running Now or Next Boot.
 - [Composing ISO images from the command line](/preparing-and-customizing/Creating-Custom-MiniOS-Images#composing-minios-iso-images-from-the-command-line)
 - [Boot parameters](/reference/Boot-Parameters)
 
+<a id="creating-modules"></a>
+
 ## Creating modules
 
 
@@ -114,6 +116,8 @@ For the exact candidate source tiers, basename-collision behavior, numeric order
 
 The `--level LEVEL` option on `apt2sb`, `script2sb`, and `chroot2sb` limits the base layers used to construct the build union. With `--level 3`, numbered layers through `03` are used and higher-numbered layers are filtered out. This can make a module less dependent on optional higher layers, at the cost of including more dependencies in the result.
 
+<a id="create-a-module-from-packages"></a>
+
 ### Create a module from packages
 
 `apt2sb` installs repository packages or readable local `.deb` files into a private build union and captures the result. It requires a supported MiniOS live session and root.
@@ -131,6 +135,8 @@ To capture upgrades to already installed packages:
 ```bash
 sudo apt2sb upgrade -y -n upgrades.sb
 ```
+
+<a id="create-a-module-from-a-script"></a>
 
 ### Create a module from a script
 
@@ -153,6 +159,8 @@ seed-root/
 
 Review the script before running it. It executes with administrator privileges and can run arbitrary commands. Use `chroot2sb` instead if installation requires prompts or manual work.
 
+<a id="create-a-module-interactively"></a>
+
 ### Create a module interactively
 
 `chroot2sb` creates a private build union and opens a root shell inside it. Install packages or edit files, then exit the shell to capture the changes:
@@ -166,6 +174,8 @@ Commands entered in the shell are not replayed when the module loads; the module
 
 The split `prepare`, `shell`, `finish`, and `cancel` lifecycle exists for protected graphical frontends. For normal terminal use, use the single interactive command shown above.
 
+<a id="create-a-module-from-a-directory"></a>
+
 ### Create a module from a directory
 
 `dir2sb` packages the contents of a prepared directory into a new module. Both operands are required:
@@ -178,6 +188,8 @@ dir2sb --comp xz my-app-root 06-my-app-xz.sb
 Ordinary conversion is rootless. It leaves the source unchanged, changes ordinary user and group IDs (1000–60000) to root outside `/home` and `/opt`, keeps system IDs, and makes standard top-level directories root-owned. It rejects device nodes, sockets, and FIFOs, and never overwrites the target. `--keep-ownership` retains all source owners and `--allow-special` permits special files; both require root.
 
 `sb2dir` writes `.minios-module-origin.json` in the extracted directory. If extraction preserved ownership, `dir2sb` recognizes this record and automatically preserves owners and special files when repackaging; the record itself is not included in the new module. A directory extracted without ownership preservation cannot be repackaged, because its original owners are no longer known. Extract the original module again with the privileged options instead.
+
+<a id="capture-current-session-changes"></a>
 
 ### Capture current-session changes
 
@@ -220,6 +232,8 @@ Paths are normalized, nonempty paths relative to the changes root. Generate and 
 
 Session capture can retain supported file deletions and directory opacity for the active AUFS or OverlayFS backend. It excludes runtime mounts, nested filesystems, union bookkeeping, and the output itself. An existing target is never replaced.
 
+<a id="inspect-and-extract-modules"></a>
+
 ### Inspect and extract modules
 
 Inspect a module without mounting or extracting it:
@@ -249,6 +263,8 @@ Extraction records the module's origin in `.minios-module-origin.json` inside th
 
 Directories produced by current `sb2dir` are ordinary directories. `rmsbdir`, `sb rm`, and `sb rmdir` are retired compatibility commands that always refuse removal; they do not unmount or recursively delete anything. Review an extracted path and its contents before removing it with standard filesystem tools.
 
+<a id="manage-running-and-next-boot-modules"></a>
+
 ### Manage running and next-boot modules
 
 Running Now and Next Boot are independent compositions. See [union construction and runtime activation](/reference/boot-process/Module-Loading#union-construction) for the boot/runtime boundary and why the two lists can differ.
@@ -275,13 +291,22 @@ To make a user module available at the next boot:
 sudo sb next-boot add 50-extra.sb
 ```
 
-MiniOS uses suitable durable writable storage, stages and validates the copy, and publishes it atomically without replacing an existing module. The filename must satisfy current boot filters. Remove a selected user module by its exact basename:
+MiniOS uses suitable durable writable storage, stages and validates the copy, and publishes it atomically without replacing an existing module. The filename must satisfy current boot filters. Disable a selected user module by its exact basename:
 
 ```bash
-sudo sb next-boot remove 50-extra.sb
+sudo sb next-boot disable 50-extra.sb
 ```
 
-Removal is refused for base modules and modules on read-only or volatile sources.
+Disabling preserves the file in `modules-disabled/`. The older `next-boot remove` command is an alias for disable, not permanent deletion. Restore it or permanently delete it with:
+
+```bash
+sudo sb next-boot enable 50-extra.sb
+# To delete it permanently, disable it first:
+sudo sb next-boot disable 50-extra.sb
+sudo sb next-boot delete 50-extra.sb
+```
+
+Base modules and modules on read-only or volatile sources cannot be disabled. Permanent deletion also refuses an active module. Review `sb next-boot` and its disabled-module list before deleting the retained file.
 
 Runtime activation is a separate, session-only operation:
 

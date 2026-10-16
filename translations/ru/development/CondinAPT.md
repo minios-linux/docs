@@ -1,7 +1,7 @@
 ---
-updated: 2026-08-31
+updated: 2026-10-15
 program_commits:
-    minios-live: f59faa38c0667fbeefdc6dbe899a2db6e131e462
+    minios-live: a70af61230d2891ed9ca2447019bd7210a670694
 ---
 
 # CondinAPT
@@ -249,7 +249,7 @@ bash linux-live/condinapt \
 
 ### Вызов модуля
 
-Для обычного модуля `build-modules` копирует скрипт установки в `/install`, CondinAPT — в `/condinapt`, сгенерированную конфигурацию — в `/minios_build.conf`, а карту — в `/condinapt.map`. Обычный скрипт установки выглядит так:
+Для обычного модуля `build-modules` копирует скрипт установки в `/install`, CondinAPT в `/condinapt`, сгенерированную конфигурацию — в `/minios_build.conf`, а карту — в `/condinapt.map`. Обычный скрипт установки выглядит так:
 
 ```bash
 #!/bin/bash
@@ -258,6 +258,7 @@ set -o pipefail
 set -u
 
 . /minioslib || exit 1
+console_colors
 . /minios_build.conf || exit 1
 
 SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
@@ -267,8 +268,8 @@ SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
   -m "${SCRIPT_DIR}/condinapt.map"
 ```
 
-Используйте `SCRIPT_DIR`; `$CWD` не входит в стандартный контракт обычного модуля.
-`00-core` — это специальный этап ранней сборки, который вызывает копию из исходного дерева через `/linux-live` вместо этого.
+Используйте `SCRIPT_DIR`; `$CWD` не является частью стандартного контракта модуля.
+`00-core` — это специальный ранний этап сборки, который запускает копию исходного дерева в каталоге `/linux-live` вместо этого.
 
 Текущий сборщик обычных модулей автоматически копирует только файл с именем `packages.list`. Модули, использующие дополнительные имена файлов списков, должны явно указывать эти входные данные; не предполагается, что каждый файл рядом с `install` окажется в корне chroot.
 

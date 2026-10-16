@@ -43,8 +43,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build with VitePress
-        run: npm run docs:build
+      - name: Build and check documentation links
+        run: npm run docs:check
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

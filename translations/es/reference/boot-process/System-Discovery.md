@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-28
+updated: 2026-10-15
 ---
 
 # Descubrimiento del sistema
@@ -16,17 +16,17 @@ Encontrar una unidad no garantiza que el conjunto de módulos esté completo, y 
 
 ## Parámetros explicados
 
-| Parámetro | Qué indica a MiniOS | Uso típico |
+| Parámetro | Qué indica MiniOS | Uso típico |
 |---|---|---|
-| `from=PATH` | Busca MiniOS en un directorio específico o en una ISO en vez de aceptar la primera fuente local que coincida. | Iniciar desde una ISO almacenada en un disco o usar un directorio no estándar. |
+| `from=PATH` | Busca MiniOS en un directorio específico o en una ISO en lugar de aceptar la primera fuente local coincidente. | Arrancar una ISO almacenada en un disco o usar un directorio no estándar. |
 | `from=askdisk` | Abre un selector interactivo para la partición que contiene MiniOS. | Hay varias unidades conectadas que contienen posibles fuentes. |
-| `from=http://...` | Monta una ISO desde un servidor HTTP simple. | Arranque controlado por red donde el sistema en ejecución puede seguir dependiendo del servidor. |
-| `ip=...` | Usa red estática temprana. Sin un HTTP `from=`, selecciona la descarga de datos vía PXE y omite los discos locales. | Despliegue por PXE o direccionamiento estático para una ISO HTTP. |
-| `cache=MB` | Asigna una caché httpfs para una ISO HTTP. No garantiza que la ISO completa se descargue. | Reduce lecturas repetidas desde una fuente HTTP. |
-| `bext=EXTENSION` | Busca nombres de archivos de módulos con otra extensión en vez de `.sb`. | Solo para imágenes especializadas; no convierte módulos. |
-| `toram` o `toram=full` | Copia todo el árbol de datos MiniOS descubierto en RAM e intenta desmontar la fuente. El uso simple significa `full`. | Operación temporal de RAM en una máquina con suficiente memoria. |
+| `from=http://...` | Monta una ISO desde un servidor HTTP simple. | Arranque de red controlado donde el sistema en ejecución puede seguir dependiendo del servidor. |
+| `ip=...` | Usa red estática temprana. Sin un HTTP `from=`, selecciona la descarga de datos PXE y omite las unidades locales. | Despliegue PXE o direccionamiento estático para una ISO HTTP. |
+| `cache=MB` | Asigna una caché httpfs para una ISO HTTP. No garantiza que la ISO completa se descargue. | Reduce las lecturas repetidas desde una fuente HTTP. |
+| `bext=EXTENSION` | Busca nombres de archivos de módulos con otra extensión en lugar de `.sb`. | Solo para imágenes especializadas; no convierte módulos. |
+| `toram` o `toram=full` | Copia los datos del sistema MiniOS detectados, incluyendo entradas ocultas de nivel superior pero excluyendo `changes/`, en RAM e intenta desmontar la fuente. La copia de sesión utiliza `perchtoram` por separado. La forma simple significa `full`. | Operación RAM en una máquina con suficiente memoria. |
 
-Si un arranque local por USB se detiene antes de que aparezca el escritorio, primero elimina los valores personalizados de `from=` y `ip=`. Un `ip=` accidentalmente no vacío impide la detección de discos locales, mientras que un `from=` incorrecto puede hacer que MiniOS busque una ruta que no existe.
+Si el arranque local por USB se detiene antes de que aparezca el escritorio, primero elimina los valores personalizados de `from=` y `ip=`. Un valor no vacío accidental de `ip=` impide el descubrimiento de la unidad local, mientras que un valor incorrecto de `from=` puede hacer que MiniOS busque una ruta que no existe.
 
 ## Precedencia de fuentes
 
@@ -46,11 +46,11 @@ Este orden tiene dos consecuencias importantes:
 
 ## Descubrimiento local
 
-Sin una fuente HTTP ni un `ip=` no vacío, MiniOS realiza 45 pasadas de descubrimiento, aproximadamente una por segundo. Cada pasada actualiza los nodos de dispositivos, obtiene candidatos de dispositivos de bloque desde `blkid`, ordena sus nombres y los prueba en ese orden. El primer candidato que contenga una fuente MiniOS válida se conserva; los dispositivos posteriores no se consideran.
+Sin una fuente HTTP ni un `ip=` no vacío, MiniOS realiza 45 pasadas de descubrimiento, aproximadamente una por segundo. Cada pasada actualiza los nodos de dispositivos y obtiene candidatos de dispositivos de bloque desde `blkid`. Si `/dev/mapper/ventoy` existe, primero se prueba ese mapeo ISO; los candidatos restantes se ordenan por nombre de dispositivo y se eliminan los duplicados. Se conserva la primera fuente MiniOS que cumpla los requisitos. Esto evita que los módulos de reemplazo en la partición de datos Ventoy sean confundidos con la fuente ISO principal.
 
-Si `from=` está vacío, la ruta probada en cada sistema de archivos es `minios`. Una fuente es válida cuando ese directorio o su subdirectorio inmediato `modules/` contiene al menos un archivo cuya extensión es `.sb` por defecto. El parámetro `bext=` cambia la extensión usada en esta prueba. El descubrimiento no valida que el conjunto de módulos encontrado esté completo o sea arrancable.
+Si `from=` está vacío, la ruta que se prueba en cada sistema de archivos es `minios`. Una fuente es válida cuando ese directorio o su subdirectorio inmediato `modules/` contiene al menos un archivo cuya extensión sea `.sb` por defecto. El parámetro `bext=` permite cambiar la extensión utilizada en esta prueba. El descubrimiento no valida que el conjunto de módulos encontrado esté completo o sea arrancable.
 
-Cada candidato se monta inicialmente en modo solo lectura. Tras calificar, MiniOS intenta hacer que ese montaje de datos sea escribible, pero la imposibilidad de hacerlo no descarta una fuente válida.
+Cada candidato se monta inicialmente en modo solo lectura. Una vez validado, MiniOS intenta que ese punto de montaje de datos sea escribible, pero si no es posible, esto no descarta una fuente válida.
 
 ### Formatos locales de `from=`
 
@@ -133,18 +133,18 @@ No se admiten formatos genéricos de kernel o dracut como `ip=dhcp` y `ip=:::::e
 
 MiniOS configura la primera interfaz detectada que no sea loopback sin comprobar si tiene enlace activo. Primero solicita `PXEFILELIST` y los archivos MiniOS listados vía HTTP desde el servidor. TFTP es un recurso limitado de respaldo: solo se selecciona cuando la solicitud HTTP inicial de `PXEFILELIST` falla. No es conmutación general de interfaz, ni recurso local, ni recuperación ante cualquier fallo parcial de descarga HTTP.
 
-## Copiar y separar con `toram=full`
+## Copiar y desvincular con `toram=full`
 
-`toram=full` es relevante para el descubrimiento porque puede eliminar la dependencia continua de la fuente seleccionada. Tras el descubrimiento, MiniOS copia el árbol de datos a RAM e intenta desmontar la fuente y mover la copia RAM en su lugar. Solo un desmontaje y movimiento exitosos separan medios locales, un ISO montado en loop o un ISO HTTP.
+`toram=full` es relevante para el descubrimiento porque puede eliminar la dependencia continua de la fuente seleccionada. Después de detectar la fuente y cualquier árbol externo MiniOS, se copian los datos del sistema en RAM y luego se intenta desmontar la fuente y mover la copia RAM a su lugar. Solo un desmontaje y traslado exitosos desvinculan esa fuente; los sistemas de archivos ISO host y los mapeos Ventoy también deben ser liberados.
 
 Limitaciones importantes:
 
-- No hay comprobación previa de que el RAM disponible pueda albergar la copia.
-- Cuando se solicita persistencia, la copia de nivel superior `*` omite archivos ocultos.
-- Cuando no se solicita persistencia, la entrada `changes` se omite deliberadamente. Esa rama copia otras entradas de nivel superior, incluidos archivos ocultos.
-- Un fallo al copiar, desmontar o mover puede dejar la fuente original montada. No asumas que especificar `toram=full` hace segura la extracción de medios o la pérdida de red; verifica que la separación se haya realizado correctamente.
+- No hay una comprobación previa que verifique si el espacio disponible en RAM puede alojar la copia.
+- La copia completa del sistema incluye entradas ocultas de nivel superior y omite `changes/` independientemente de si se solicitó persistencia. Un árbol externo MiniOS detectado se copia sobre el árbol de origen, incluyendo los módulos de reemplazo.
+- Los contenedores de sesión compatibles se copian por separado con `perchtoram=trim|full`; `perchtoram=off` mantiene la dependencia de almacenamiento. Las sesiones nativas tienen una limitación adicional descrita en [Modos de arranque](/using-minios/Boot-Modes).
+- Los errores durante la copia del sistema llevan al proceso fatal de initramfs. Si falla el desmontaje o el traslado, la fuente original puede quedar montada mientras el arranque utiliza la ruta de staging RAM. No asuma que `toram=full` hace segura la extracción o la pérdida de red; verifique que la desvinculación se haya realizado.
 
-Consulta [Persistencia en Initrd](/reference/boot-process/Persistence-Internals) antes de combinar `toram` con `perch` o `perchdir`.
+Consulte [Persistencia de initrd](/reference/boot-process/Persistence-Internals) antes de combinar `toram` con `perch` o `perchdir`.
 
 ## Fallos y diagnóstico
 

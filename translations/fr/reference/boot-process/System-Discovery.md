@@ -1,73 +1,73 @@
 ---
-updated: 2026-08-28
+updated: 2026-10-15
 ---
 
 # Découverte du système
 
-Cette page explique ce que modifient les paramètres de démarrage `from`, `ip`, `cache`, `bext`, `toram` et `toram=full`. Elle s’adresse aux entrées de démarrage personnalisées, au démarrage réseau et au dépannage. La plupart des utilisateurs peuvent simplement choisir une entrée standard dans le menu de démarrage sans avoir à définir ces paramètres manuellement.
+Cette page explique comment les paramètres `from`, `ip`, `cache`, `bext`, `toram` et `toram=full` changent le démarrage. Cette page s’adresse aux entrées de démarrage personnalisées, au démarrage réseau et au dépannage. La plupart des utilisateurs peuvent sélectionner une entrée standard dans le menu de démarrage sans définir ces paramètres manuellement.
 
-Après le chargement du noyau et de l’initramfs par le bootloader, l’initramfs doit localiser l’arborescence de données MiniOS qui fournit les modules système `.sb`. Cette étape intervient avant l’activation du réseau utilisateur standard, du bureau et de la session persistante.
+Une fois que le chargeur d’amorçage a chargé le noyau et l’initramfs, ce dernier doit localiser l’arborescence de données MiniOS qui fournit les modules système `.sb`. Cela se produit avant que la pile réseau de l’espace utilisateur, l’environnement de bureau et la session persistante soient actifs.
 
-## En termes simples
+## En clair
 
-MiniOS doit trouver le répertoire contenant ses modules système. Normalement, il recherche sur les disques connectés un répertoire `minios/`. Le paramètre `from=` permet d’indiquer un autre répertoire ou une image ISO. Les paramètres réseau remplacent cette recherche locale par un téléchargement HTTP d’une ISO ou via PXE.
+MiniOS doit trouver le répertoire qui contient ses modules système. En général, il recherche sur les lecteurs connectés un répertoire `minios/`. Le paramètre `from=` indique un autre répertoire ou fichier ISO. Les paramètres réseau remplacent cette recherche locale par le téléchargement d’un fichier ISO via HTTP ou par PXE.
 
-Trouver un disque ne garantit pas que l’ensemble des modules est complet, et trouver les fichiers système n’active pas la persistance. Ce sont des étapes de démarrage distinctes.
+Trouver un lecteur ne garantit pas que l’ensemble des modules est complet, et trouver les fichiers système n’active pas la persistance. Il s’agit d’étapes de démarrage distinctes.
 
 ## Explication des paramètres
 
-| Paramètre | Ce qu’il indique à MiniOS | Utilisation typique |
+| Paramètre | Indication pour MiniOS | Utilisation courante |
 |---|---|---|
-| `from=PATH` | Chercher MiniOS dans un répertoire ou une ISO spécifique au lieu d’accepter la première source locale correspondante. | Démarrer une ISO stockée sur un disque ou utiliser un répertoire non standard. |
-| `from=askdisk` | Ouvrir un sélecteur interactif pour la partition contenant MiniOS. | Plusieurs disques connectés contiennent des sources potentielles. |
-| `from=http://...` | Monter une ISO depuis un serveur HTTP classique. | Démarrage réseau contrôlé où le système en cours d’exécution peut continuer à dépendre du serveur. |
-| `ip=...` | Utiliser un réseau statique précoce. Sans HTTP `from=`, cela sélectionne le téléchargement de données PXE et ignore les disques locaux. | Déploiement PXE ou adressage statique pour une ISO HTTP. |
-| `cache=MB` | Allouer un cache httpfs pour une ISO HTTP. Cela ne garantit pas que l’ISO complète soit téléchargée. | Réduire les lectures répétées depuis une source HTTP. |
-| `bext=EXTENSION` | Chercher les fichiers de modules avec une autre extension que `.sb`. | Images spécialisées uniquement ; cela ne convertit pas les modules. |
-| `toram` ou `toram=full` | Copier l’arborescence de données MiniOS découverte dans RAM et tenter de détacher la source. La forme simple signifie `full`. | Opération temporaire en RAM sur une machine disposant de suffisamment de mémoire. |
+| `from=PATH` | Rechercher MiniOS dans un répertoire ou un fichier ISO précis plutôt que d’accepter la première source locale correspondante. | Démarrer depuis un fichier ISO stocké sur un disque ou utiliser un répertoire non standard. |
+| `from=askdisk` | Ouvrir un sélecteur interactif pour la partition qui contient MiniOS. | Plusieurs lecteurs connectés contiennent des sources possibles. |
+| `from=http://...` | Monter un fichier ISO depuis un serveur HTTP standard. | Démarrage réseau contrôlé où le système en cours d’exécution peut continuer à dépendre du serveur. |
+| `ip=...` | Utiliser une configuration réseau statique précoce. Sans `from=` HTTP, le téléchargement des données PXE est sélectionné et les lecteurs locaux sont ignorés. | Déploiement PXE ou adressage statique pour un fichier ISO HTTP. |
+| `cache=MB` | Allouer un cache httpfs pour un fichier ISO HTTP. Cela ne garantit pas le téléchargement complet du fichier ISO. | Réduire les lectures répétées depuis une source HTTP. |
+| `bext=EXTENSION` | Rechercher les noms de fichiers de modules avec une autre extension que `.sb`. | Images spécialisées uniquement ; ne convertit pas les modules. |
+| `toram` ou `toram=full` | Copier les données système MiniOS découvertes, y compris les éléments masqués à la racine, mais à l’exclusion de `changes/`, dans RAM et tenter de détacher la source. La copie de la session utilise séparément `perchtoram`. La forme sans argument signifie `full`. | Opération RAM sur une machine disposant de suffisamment de mémoire. |
 
-Si un démarrage local USB s’arrête avant l’apparition du bureau, commencez par retirer les valeurs personnalisées de `from=` et `ip=`. Un `ip=` non vide par erreur empêche la découverte sur les disques locaux, tandis qu’une valeur incorrecte de `from=` peut faire chercher à MiniOS un chemin inexistant.
+Si un démarrage local depuis une clé USB s’arrête avant l’affichage du bureau, commencez par supprimer les valeurs personnalisées `from=` et `ip=`. Une valeur `ip=` non vide par erreur empêche la détection des lecteurs locaux, tandis qu’une valeur `from=` incorrecte peut amener MiniOS à rechercher un chemin inexistant.
 
-## Priorité des sources
+## Ordre de priorité des sources
 
-La sélection de la source suit une priorité fixe :
+La sélection de la source suit un ordre de priorité fixe :
 
-1. Une valeur explicite de `from=http://...` sélectionne une ISO HTTP.
-2. Sinon, toute valeur non vide de `ip=` sélectionne un téléchargement PXE.
+1. Une valeur `from=http://...` littérale sélectionne un fichier ISO HTTP.
+2. Sinon, toute valeur non vide de `ip=` sélectionne le téléchargement PXE.
 3. Sinon, `from=askdisk` ou `from=askdisk:...` ouvre le sélecteur de disque.
-4. Sinon, l’initramfs analyse les périphériques de stockage locaux.
+4. Sinon, l’initramfs analyse les périphériques de bloc locaux.
 
-Les deux chemins réseau ne basculent pas sur les supports locaux. Après une tentative HTTP ISO ou PXE, la découverte retourne ce résultat réseau au lieu d’essayer les disques ; un résultat inutilisable ou incomplet échoue à la validation ou lors de l’installation ultérieure.
+Les deux options réseau ne basculent pas vers les supports locaux. Après une tentative HTTP ISO ou PXE, la découverte renvoie le résultat réseau au lieu d’essayer les disques ; un résultat inutilisable ou incomplet échoue à la validation ou à une étape ultérieure de la configuration.
 
 Cet ordre a deux conséquences importantes :
 
-- `from=http://...` l’emporte sur `ip=`. L’optionnel `ip=` fournit alors l’adressage statique pour la connexion ISO HTTP.
-- Une valeur non vide de `ip=` l’emporte sur toute valeur locale de `from=`, y compris un périphérique, un répertoire, un chemin ISO ou `askdisk`. N’utilisez pas `ip=` uniquement pour configurer le réseau d’un système démarré localement.
+- `from=http://...`a priorité sur `ip=`. Le paramètre facultatif `ip=` fournit alors l’adressage statique pour la connexion HTTP ISO.
+- Une valeur non vide de `ip=` est prioritaire sur toutes les valeurs locales de `from=`, y compris un périphérique, un répertoire, un chemin ISO ou `askdisk`. N’utilisez pas `ip=` dans le seul but de configurer le réseau d’un système démarré localement.
 
 ## Découverte locale
 
-En l’absence de source HTTP ou de `ip=` non vide, MiniOS effectue 45 passes de découverte, à raison d’environ une par seconde. Chaque passe actualise les nœuds de périphériques, récupère les candidats de périphériques blocs depuis `blkid`, trie leurs noms de périphériques et les teste dans cet ordre. Le premier candidat contenant une source MiniOS valide est retenu ; les périphériques suivants ne sont pas pris en compte.
+Sans source HTTP ni `ip=`, MiniOS effectue 45 cycles de découverte, à raison d’environ un par seconde. Chaque cycle actualise les nœuds de périphériques et récupère les périphériques de bloc candidats depuis `blkid`. Si `/dev/mapper/ventoy` existe, ce mappage ISO est essayé en premier ; les autres candidats sont triés par nom de périphérique et les doublons sont supprimés. La première source MiniOS admissible est conservée. Cela évite de confondre les modules de remplacement présents sur la partition de données Ventoy avec la source ISO principale.
 
-Si `from=` est vide, le chemin testé sur chaque système de fichiers est `minios`. Une source est considérée comme valide lorsque ce répertoire ou son sous-répertoire immédiat `modules/` contient au moins un fichier dont l’extension est `.sb` par défaut. Le paramètre `bext=` modifie l’extension utilisée pour ce test. La découverte ne vérifie pas que l’ensemble de modules trouvé est complet ou amorçable.
+Si `from=` est vide, le chemin testé sur chaque système de fichiers est `minios`. Une source est admissible si ce répertoire ou son sous-répertoire immédiat `modules/` contient au moins un fichier dont l’extension est `.sb` par défaut. Le paramètre `bext=` modifie l’extension utilisée pour ce test. La découverte ne vérifie pas que l’ensemble de modules trouvé est complet ou amorçable.
 
-Chaque candidat est monté initialement en lecture seule. Après validation, MiniOS tente de rendre ce point de montage en écriture, mais l’impossibilité de le faire n’exclut pas une source par ailleurs valide.
+Chaque candidat est d’abord monté en lecture seule. Une fois qu’il est admissible, MiniOS tente de rendre inscriptible le montage de données sélectionné, mais l’impossibilité de le faire n’invalide pas une source par ailleurs valide.
 
-### Formes locales de `from=`
+### Chemins locaux`from=` pris en charge
 
-Un chemin relatif ou absolu classique est interprété dans chaque système de fichiers candidat. Les barres obliques en début de chemin sont normalisées lors de la construction du chemin, ainsi ces deux exemples recherchent le même répertoire :
+Un chemin relatif ordinaire ou ressemblant à un chemin absolu est interprété à l’intérieur de chaque système de fichiers candidat. Les barres obliques initiales sont normalisées lors de la construction du chemin ; les deux formes suivantes désignent donc le même répertoire :
 
 ```text
 from=minios
 from=/minios
 ```
 
-Si le chemin demandé est un fichier régulier sur un système de fichiers candidat, MiniOS le considère comme une ISO, le monte en boucle en lecture seule et teste le répertoire `minios` à l’intérieur de l’ISO :
+Si le chemin demandé correspond à un fichier ordinaire sur un système de fichiers candidat, MiniOS le traite comme une image ISO, la monte en boucle en lecture seule et teste le répertoire `minios` à l’intérieur de l’ISO :
 
 ```text
 from=/images/minios.iso
 ```
 
-Les chemins qualifiés par périphérique ne prennent en charge que ces formes :
+Les chemins qualifiés par périphérique acceptent uniquement les formes suivantes :
 
 ```text
 from=/dev/sdb1/minios
@@ -75,9 +75,9 @@ from=/dev/sr0/minios
 from=/dev/disk/by-label/MINIOS/minios
 ```
 
-`/dev/<name>/path` accepte un nom de périphérique simple suivi d’un chemin. La forme par label doit être exactement `/dev/disk/by-label/LABEL/path` ; le label est résolu avec `blkid`, puis le chemin restant est testé sur ce système de fichiers.
+`/dev/<name>/path` accepte un nom de périphérique simple suivi d’un chemin. La forme avec étiquette doit être exactement `/dev/disk/by-label/LABEL/path` ; l’étiquette est résolue avec `blkid`, puis le chemin restant est testé sur ce système de fichiers.
 
-Il n’existe pas de parseur équivalent pour les chemins UUID, PARTUUID ou by-id. Les formes suivantes ne sont donc pas prises en charge :
+Il n’existe pas d’analyseur correspondant pour les chemins UUID, PARTUUID ou by-id. Les formes suivantes, par exemple, ne sont pas prises en charge :
 
 ```text
 from=/dev/disk/by-uuid/UUID/minios
@@ -87,76 +87,76 @@ from=/dev/disk/by-id/ID/minios
 
 ### Sélection interactive
 
-Utilisez `askdisk` pour sélectionner une partition puis tester un chemin dessus :
+Utilisez `askdisk` pour sélectionner une partition, puis tester un chemin sur celle-ci :
 
 ```text
 from=askdisk
 from=askdisk:custom:dir
 ```
 
-La première forme teste `minios` sur la partition sélectionnée. Dans la seconde forme, les deux-points deviennent des séparateurs de chemin, donc `askdisk:custom:dir` teste `custom/dir`.
-La syntaxe avec slash comme `from=askdisk/custom/dir` ouvre également le sélecteur mais ignore silencieusement le chemin personnalisé et teste `minios` ; il est donc déconseillé de l’utiliser.
+La première forme teste `minios` sur la partition sélectionnée. Dans la deuxième forme, les deux-points sont convertis en séparateurs de chemin ; `askdisk:custom:dir` teste `custom/dir`.
+La syntaxe avec barre oblique, comme `from=askdisk/custom/dir` ouvre tout de même le sélecteur, mais ignore silencieusement le chemin personnalisé et teste `minios` ; ne l’utilisez pas.
 
-La liste des périphériques affichée est actualisée tant que le sélecteur est ouvert et exclut les systèmes de fichiers swap. La sélection effectue tout de même le test de présence des modules ; le choix d’une partition seule n’est pas suffisant.
+La liste des périphériques affichée est actualisée pendant que le sélecteur est ouvert et exclut les systèmes de fichiers d’échange. La sélection effectue toujours le test normal de présence des modules ; choisir une partition ne suffit pas.
 
 ## ISO HTTP
 
-Une source ISO HTTP a cette forme :
+Une source ISO HTTP prend la forme suivante :
 
 ```text
 from=http://server.example/path/minios.iso
 ```
 
-Seul le protocole HTTP simple est reconnu. HTTPS et les autres schémas d’URL ne sont pas pris en charge.
-L’initramfs détecte la première interface réseau non loopback, initialise le réseau et monte l’ISO distante via `httpfs2`. La sélection de l’interface ne vérifie ni la liaison, ni l’accessibilité, ni si cette interface est la bonne sur un système multi-NIC.
+Seul le protocole HTTP non chiffré est reconnu. HTTPS et les autres schémas d’URL ne sont pas pris en charge.
+L’initramfs détecte la première interface réseau non loopback, active le réseau et monte l’ISO distante via `httpfs2`. La sélection de l’interface ne vérifie ni l’état de la liaison, ni l’accessibilité, ni si cette interface est utilisable sur un système doté de plusieurs cartes réseau.
 
-Quand `ip=` est absent, le démarrage ISO HTTP demande une adresse DHCP avec `udhcpc`. Lorsque `ip=` est présent, il utilise les champs statiques attendus par le parseur PXE :
-
-```text
-ip=<client-ip>:<server-ip>:<gateway-ip>:<netmask>[:<port>]
-```
-
-Pour le démarrage ISO HTTP, l’URL détermine toujours le serveur HTTP. Les champs statiques configurent l’adresse client, le masque réseau, la passerelle par défaut et les premières entrées DNS ; le champ de port optionnel concerne le téléchargement de fichiers PXE et ne remplace pas le port de l’URL ISO.
-
-`cache=<MB>` active un cache httpfs de la taille demandée dans `/tmp`. Il s’agit d’un cache, pas d’un téléchargement complet garanti. Le système en cours d’exécution continue de dépendre de l’ISO distante et du réseau sauf si une copie RAM réussie détache la source.
-
-## Téléchargement de données PXE
-
-Toute valeur non vide de `ip=` sélectionne le téléchargement de données PXE, sauf si `from=http://...` a été sélectionné en premier. La syntaxe prise en charge est :
+Lorsque `ip=` est absent, le démarrage depuis une ISO HTTP demande une configuration DHCP avec `udhcpc`. Lorsque `ip=` est présent, il utilise les champs statiques attendus par l’analyseur PXE :
 
 ```text
 ip=<client-ip>:<server-ip>:<gateway-ip>:<netmask>[:<port>]
 ```
 
-Le masque réseau est en notation IPv4 pointée. Le port HTTP optionnel est par défaut `7529`.
-Les formes génériques du noyau ou de dracut telles que `ip=dhcp` et `ip=:::::eth0:dhcp` ne sont pas prises en charge. Le téléchargement PXE lui-même ne propose pas de forme DHCP dans ce parseur.
+Pour démarrer depuis une ISO HTTP, l’URL détermine toujours le serveur HTTP. Les champs statiques définissent l’adresse du client, le masque réseau, la passerelle par défaut et les premières entrées DNS ; le champ de port facultatif concerne le téléchargement des fichiers PXE et ne remplace pas le port indiqué dans l’URL de l’ISO.
 
-MiniOS configure la première interface non loopback détectée sans vérifier qu’elle dispose d’une liaison fonctionnelle. Il demande d’abord `PXEFILELIST` et les fichiers MiniOS listés via HTTP auprès du serveur indiqué. TFTP est un repli limité : il n’est sélectionné que si la requête HTTP initiale pour `PXEFILELIST` échoue. Il ne s’agit pas d’un basculement général d’interface, ni d’un repli sur média local, ni d’une récupération après tout échec partiel de téléchargement HTTP.
+`cache=<MB>` active un cache httpfs de la taille demandée dans `/tmp`. Il s’agit d’un cache, pas d’un téléchargement complet garanti. Le système en cours d’exécution continue de dépendre de l’ISO distante et du réseau, sauf si une copie RAM réussie détache la source.
 
-## Copie et détachement avec `toram=full`
+## Téléchargement des données PXE
 
-`toram=full` est important pour la découverte car il peut supprimer la dépendance continue à la source sélectionnée. Après la découverte, MiniOS copie l’arborescence de données vers RAM puis tente de démonter la source et de déplacer la copie RAM à sa place. Seul un démontage et un déplacement réussis détachent le support local, une ISO montée en boucle ou une ISO HTTP.
+Toute valeur non vide `ip=` sélectionne le téléchargement des données PXE, sauf si `from=http://...` a été sélectionné en premier. La syntaxe prise en charge est la suivante :
 
-Limitations importantes :
+```text
+ip=<client-ip>:<server-ip>:<gateway-ip>:<netmask>[:<port>]
+```
 
-- Aucun contrôle préalable ne vérifie que la RAM disponible peut accueillir la copie.
-- Lorsque la persistance est demandée, la copie de niveau supérieur `*` omet les fichiers cachés.
-- Sans persistance, l’entrée `changes` est volontairement omise. Cette branche copie les autres entrées de niveau supérieur, y compris les fichiers cachés.
-- Un échec de copie, de démontage ou de déplacement peut laisser la source d’origine montée. Ne supposez pas que la spécification de `toram=full` rend le retrait du support ou la perte réseau sans risque ; vérifiez que le détachement a bien réussi.
+Le masque de réseau doit être au format IPv4 décimal pointé. Par défaut, le port HTTP facultatif est `7529`.
+Les formats génériques de kernel ou de dracut, tels que `ip=dhcp` et `ip=:::::eth0:dhcp`, ne sont pas pris en charge. Dans cet analyseur, le téléchargement des données PXE ne dispose pas de format DHCP.
 
-Consultez [Persistance Initrd](/reference/boot-process/Persistence-Internals) avant de combiner `toram` avec `perch` ou `perchdir`.
+MiniOS configure la première interface détectée qui n'est pas de bouclage, sans vérifier qu'elle dispose d'une connexion fonctionnelle. Il demande d'abord `PXEFILELIST` et les fichiers MiniOS répertoriés via HTTP auprès du serveur indiqué dans le champ correspondant. TFTP est un recours limité : il est utilisé uniquement si la requête HTTP initiale pour `PXEFILELIST` échoue. Il ne s'agit ni d'un basculement général entre interfaces, ni d'un recours à un support local, ni d'un mécanisme de récupération après tout échec partiel du téléchargement HTTP.
 
-## Échec et diagnostic
+## Copier et détacher avec `toram=full`
 
-Si les 45 passes locales échouent, MiniOS entre dans son mode d’erreur fatale et ouvre un shell initramfs au lieu de démarrer le système live. Les chemins réseau ne réalisent pas la recherche locale en 45 passes et ne basculent pas sur les supports locaux ; selon le résultat partiel, ils peuvent échouer lors de la vérification des données ou de l’installation ultérieure. Quitter un shell fatal ne répare pas la source manquante et peut simplement rendre l’échec ultérieur moins explicite.
+`toram=full` est important pour la détection, car cela peut supprimer la dépendance persistante envers la source sélectionnée. Après avoir détecté la source et tout arbre MiniOS externe, le système copie les données système dans RAM, puis tente de démonter la source et de déplacer la copie RAM à sa place. Seuls le démontage et le déplacement réussis détachent cette source ; les systèmes de fichiers hôtes ISO et les mappages Ventoy doivent également être libérés.
 
-Les paramètres de diagnostic utiles sont :
+Limites importantes :
 
-- `debug` active le traçage du shell, des diagnostics supplémentaires et des shells interactifs à plusieurs points de contrôle de l’initramfs. Quittez un shell de point de contrôle pour continuer.
-- `timing` affiche le temps écoulé entre les étapes de l’initramfs et un total final.
-- `rd.break` demande un shell initramfs près du passage à la racine réelle ; quittez-le pour poursuivre le démarrage.
+- Aucune vérification préalable ne garantit que l'espace RAM disponible est suffisant pour accueillir la copie.
+- La copie complète du système inclut les entrées masquées de premier niveau, mais exclut `changes/`, que la persistance soit demandée ou non. Tout arbre MiniOS externe détecté est copié par-dessus l'arbre source, y compris les modules de remplacement.
+- Les conteneurs de session pris en charge sont copiés séparément avec `perchtoram=trim|full` ; `perchtoram=off` maintient la dépendance envers le stockage. Les sessions natives ont une autre limite, décrite dans la section [Modes de démarrage](/using-minios/Boot-Modes).
+- Les erreurs de copie du système déclenchent le chemin d'erreur fatale de l'initramfs. Un échec du démontage ou du déplacement peut laisser la source d'origine montée alors que le démarrage utilise le chemin de préparation RAM. Ne supposez pas que `toram=full` permet de retirer la source ou de perdre la connexion réseau sans risque ; vérifiez qu'elle est bien détachée.
 
-Dans un shell, examinez `/proc/cmdline`, `/proc/net/dev`, `blkid`, les systèmes de fichiers montés et `/var/log/livedbg`. Commencez par les valeurs exactes de `from=`, `ip=` et `bext=` affichées dans `/proc/cmdline`.
+Consultez [Persistance dans l'initrd](/reference/boot-process/Persistence-Internals) avant de combiner `toram` avec `perch` ou `perchdir`.
+
+## Échecs et diagnostics
+
+Si les 45 tentatives locales échouent, MiniOS déclenche son chemin d'erreur fatale et ouvre un shell initramfs au lieu de démarrer le système live. Les chemins réseau n'effectuent pas les 45 tentatives de recherche locale et ne basculent pas vers un support local ; selon le résultat partiel, la vérification des données ou une étape ultérieure de la configuration peut échouer. Quitter un shell ouvert après une erreur fatale ne répare pas l'absence de la source et peut simplement laisser échouer une étape ultérieure de manière moins explicite.
+
+Paramètres de diagnostic utiles :
+
+- `debug` active le traçage du shell, fournit des diagnostics supplémentaires et ouvre des shells interactifs à plusieurs points de contrôle de l'initramfs. Quittez le shell d'un point de contrôle pour continuer.
+- `timing` affiche le temps écoulé entre les étapes de l'initramfs ainsi que la durée totale.
+- `rd.break` demande l'ouverture d'un shell initramfs juste avant le passage à la vraie racine ; quittez-le pour poursuivre le démarrage.
+
+Dans un shell, examinez `/proc/cmdline`, `/proc/net/dev`, `blkid`, les systèmes de fichiers montés et `/var/log/livedbg`. Commencez par relever exactement les valeurs `from=`, `ip=` et `bext=` indiquées dans `/proc/cmdline`.
 
 ## Documentation associée
 

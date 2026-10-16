@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-31
+updated: 2026-10-15
 ---
 
 # Schnellstart
@@ -62,19 +62,19 @@ Siehe [Boot-Modi](/using-minios/Boot-Modes) für weitere Startoptionen. Wenn das
 
 ## 5. Wählen Sie bei Bedarf ein anderes Sitzungsverhalten
 
-Für den normalen portablen Einsatz verwenden Sie weiterhin den Standard-Eintrag **Start MiniOS**. Wählen Sie einen anderen Modus nur, wenn Sie ein anderes Ergebnis benötigen:
+Für den normalen portablen Einsatz verwenden Sie weiterhin die Standardeinstellung **MiniOS starten**-Eintrag. Wählen Sie nur dann einen anderen Modus, wenn Sie ein anderes Ergebnis benötigen:
 
-| Boot-Option | Verwenden, wenn | Ergebnis |
+| Startoption | Verwenden Sie dies, wenn | Ergebnis |
 |---|---|---|
-| **Start MiniOS** (Standard) | Normaler portabler Einsatz | Setzt eine kompatible Standardsitzung automatisch fort oder erstellt eine, sofern unterstützt |
-| **Neue Sitzung starten** | Sie möchten einen separaten zusätzlichen Arbeitsbereich | Erstellt eine zusätzliche nummerierte persistente Sitzung und lässt bestehende Sitzungen unverändert |
-| **Gespeicherte Sitzung wählen** | Sie möchten eine von mehreren vorhandenen Arbeitsumgebungen auswählen | Ermöglicht die interaktive Auswahl einer bestehenden Sitzung |
-| **Ohne Speicherung starten** | Sie möchten einen sauberen temporären Start ohne Persistenz | Verwendet eine temporäre beschreibbare Ebene im RAM |
-| **Aus RAM ausführen** | Sie möchten MiniOS für diesen Start in RAM kopieren | Läuft von einer RAM-Kopie; Änderungen sind als temporär zu betrachten |
+| **MiniOS starten** (Standard) | Normaler portabler Einsatz | Startet automatisch eine kompatible Standardsitzung oder erstellt eine, sofern unterstützt |
+| **Neue Sitzung beginnen** | Sie einen separaten zusätzlichen Arbeitsbereich möchten | Erstellt eine zusätzliche nummerierte persistente Sitzung und lässt bestehende Sitzungen unverändert |
+| **Gespeicherte Sitzung auswählen** | Sie eine der vorhandenen Arbeitsumgebungen auswählen möchten | Ermöglicht die interaktive Auswahl einer bestehenden Sitzung |
+| **Ohne Speichern starten** | Sie einen sauberen temporären Start ohne Persistenz wünschen | Verwendet eine temporär beschreibbare Ebene in RAM |
+| **Aus dem RAM ausführen** | Sie MiniOS für diesen Start nach RAM kopieren möchten | Der bereitgestellte Eintrag startet temporär ohne gespeicherte Sitzung. Mit einer zusätzlichen Persistenz-Anforderung können unterstützte Sitzungen separat kopiert und explizit wieder gespeichert werden; native Daten werden nicht kopiert. |
 
-Automatische Persistenz erfordert weiterhin geeigneten beschreibbaren Speicher. Ein reines ISO-Write bereitet keinen persistenten Speicher vor. Dateibasierte Installationen, Ventoy-Layouts und Live-Installationen mit dem [MiniOS-Installationsprogramm](/installing-minios/MiniOS-Installer) können beschreibbare Layouts für die persistente MiniOS-Nutzung bereitstellen. Bestehende Sitzungen können mit der [Sitzungsverwaltung](/using-minios/Sessions-and-Persistence) eingesehen und verwaltet werden.
+Für automatische Persistenz wird weiterhin ein geeignetes beschreibbares Speichermedium benötigt. Ein reines ISO-Abbild bereitet allein noch keinen persistenten Speicher vor. Dateibasierte Installationen, Ventoy-Layouts und Live-Installationen, die von [MiniOS-Installationsprogramm](/installing-minios/MiniOS-Installer) erstellt wurden, können beschreibbare Layouts für die persistente Nutzung von MiniOS bereitstellen. Bestehende Sitzungen lassen sich mit [Sitzungsverwaltung](/using-minios/Sessions-and-Persistence) einsehen und verwalten.
 
-Bevor Sie sich auf Persistenz verlassen, starten Sie einmal neu und prüfen Sie, ob MiniOS die erwartete Sitzung als aktiv meldet und eine Teständerung den Neustart übersteht.
+Bevor Sie sich auf die Persistenz verlassen, starten Sie einmal neu und prüfen Sie, ob MiniOS die erwartete Sitzung als aktiv anzeigt und eine Teständerung den Neustart übersteht.
 
 ## 6. MiniOS vorkonfigurieren
 

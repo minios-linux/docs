@@ -1,7 +1,7 @@
 ---
-updated: 2026-08-31
+updated: 2026-10-15
 program_commits:
-    minios-live: f59faa38c0667fbeefdc6dbe899a2db6e131e462
+    minios-live: a70af61230d2891ed9ca2447019bd7210a670694
 ---
 
 # CondinAPT
@@ -247,9 +247,9 @@ La implementación tiene un nombre de paquete especial: `qemu-kvm`. Se acepta cu
 
 ## Integración de MiniOS
 
-### Invocación de módulos
+### Invocación de módulo
 
-Para un módulo ordinario, `build-modules` copia el script de instalación a `/install`, CondinAPT a `/condinapt`, la configuración generada a `/minios_build.conf` y el mapeo a `/condinapt.map`. Un script de instalación convencional es:
+Para un módulo ordinario, `build-modules` copia el script de instalación en `/install`, CondinAPT en `/condinapt`, la configuración generada en `/minios_build.conf`, y el mapa en `/condinapt.map`. Un script de instalación convencional es:
 
 ```bash
 #!/bin/bash
@@ -258,6 +258,7 @@ set -o pipefail
 set -u
 
 . /minioslib || exit 1
+console_colors
 . /minios_build.conf || exit 1
 
 SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
@@ -267,10 +268,10 @@ SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
   -m "${SCRIPT_DIR}/condinapt.map"
 ```
 
-Use `SCRIPT_DIR`; `$CWD` no forma parte del contrato de módulo ordinario.
-`00-core` es una etapa especial de construcción anterior e invoca la copia del árbol fuente bajo `/linux-live` en su lugar.
+Utiliza `SCRIPT_DIR`; `$CWD` no forma parte del contrato estándar del módulo.
+`00-core` es una etapa especial de compilación previa y ejecuta la copia del árbol fuente en `/linux-live` en su lugar.
 
-El generador actual de módulos ordinarios solo copia automáticamente un archivo llamado `packages.list`. Los módulos que usen nombres de lista adicionales deben gestionar esos archivos explícitamente; no asuma que cada archivo junto a `install` aparece en la raíz del chroot.
+El generador actual de módulos ordinarios copia automáticamente solo un archivo llamado `packages.list`. Los módulos que utilicen nombres de archivos adicionales en la lista deben gestionar esas entradas explícitamente; no asumas que cada archivo junto a `install` aparece en la raíz del chroot.
 
 ### Mapa de filtros MiniOS
 

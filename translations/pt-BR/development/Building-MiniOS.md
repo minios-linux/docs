@@ -1,21 +1,21 @@
 ---
-updated: 2026-08-31
+updated: 2026-10-15
 program_commits:
-    minios-live: f59faa38c0667fbeefdc6dbe899a2db6e131e462
+    minios-live: a70af61230d2891ed9ca2447019bd7210a670694
 ---
 
-# Compilando MiniOS
+# Criando MiniOS
 
-MiniOS é montado a partir de uma imagem base SquashFS, módulos de extensão ordenados, arquivos de kernel e boot, e configuração gerada. Esta página descreve as interfaces de build do source tree atual e as dependências entre suas saídas.
+MiniOS é montada a partir de uma imagem SquashFS principal, módulos de extensão ordenados, arquivos do kernel e de inicialização e configurações geradas. Esta página descreve as interfaces de build da árvore de código-fonte atual e as dependências entre as saídas.
 
-Execute `./minios-cmd --help`, `./minios-live --help` e inspecione o `build.conf` selecionado antes de compilar. Esses arquivos são a referência para a versão em uso.
+Execute `./minios-cmd --help`, `./minios-live --help` e confira o `build.conf` selecionado antes de iniciar o build. Esses arquivos são a fonte oficial para a versão em uso.
 
 ## Requisitos
 
-Compile no Debian ou Ubuntu com espaço livre suficiente abaixo de `BUILD_DIR` e `/tmp`.
-Um desktop típico precisa de pelo menos 20 GiB. As operações de build requerem root para debootstrap, chroots, montagens, dispositivos de loop e criação de imagens; exibir a ajuda não requer.
+Faça o build no Debian ou Ubuntu, com espaço livre suficiente abaixo de `BUILD_DIR` e `/tmp`.
+Um sistema desktop típico precisa de pelo menos 20 GiB. As operações de build exigem root para usar o debootstrap, chroots, montagens, dispositivos de loop e criar imagens; a exibição da ajuda não exige.
 
-A lista oficial de pacotes do host está em `linux-live/prerequisites.list`. Para o checkout atual, ela pode ser instalada com:
+A lista oficial de pacotes do host está em `linux-live/prerequisites.list`. No checkout atual, ela pode ser instalada com:
 
 ```bash
 sudo apt-get update
@@ -24,17 +24,17 @@ sudo apt-get install \
   grub-common gpg curl openssl sbsigntool
 ```
 
-Em um checkout do código-fonte, `minios-live` verifica essa lista antes de compilar, a menos que `SKIP_SETUP_HOST=true`. Em um host normal, ele relata pacotes ausentes e interrompe; a instalação automática é usada apenas no caminho de build por container.
+Em um checkout do código-fonte, `minios-live` verifica essa lista antes do build, a menos que `SKIP_SETUP_HOST=true`. Em um host comum, ele informa quais pacotes estão faltando e encerra; a instalação automática é usada somente no fluxo de build do contêiner.
 
-A configuração padrão verifica a conectividade com a Internet. A verificação pode ser desativada com `CHECK_INTERNET_CONNECTION=false` e é ignorada para um repositório de cache APT preparado, mas todos os pacotes e arquivos de boot necessários ainda devem estar disponíveis nos repositórios ou caches configurados.
+A configuração padrão verifica a conectividade com a Internet. É possível desativar essa verificação com `CHECK_INTERNET_CONNECTION=false` e ela é ignorada quando há um repositório de cache do APT preparado. Ainda assim, todas as entradas necessárias de pacotes e arquivos de inicialização devem estar disponíveis nos repositórios ou caches configurados.
 
-Se `USE_APT_CACHER=true`, um serviço apt-cacher-ng acessível já deve estar configurado em `APT_CACHER_ADDRESS`; caso contrário, defina a opção para `false` antes de compilar.
+Se `USE_APT_CACHER=true`, um serviço apt-cacher-ng acessível já precisa estar configurado em `APT_CACHER_ADDRESS`; caso contrário, defina a opção como `false` antes de iniciar o build.
 
-::: danger Bootstrap trust
-O caminho de bootstrap atual chama o debootstrap com `--no-check-gpg` e busca a chave de arquivo MiniOS via HTTP não autenticado. Não utilize a imagem resultante como artefato confiável de release até que esses caminhos de origem exijam verificação autenticada de chave e bootstrap.
+::: danger Confiança no bootstrap
+O fluxo de bootstrap atual chama o debootstrap com `--no-check-gpg` e baixa a chave de arquivo MiniOS por HTTP sem autenticação. Não use a imagem resultante como artefato de lançamento confiável até que esses caminhos do código-fonte implementem a verificação autenticada da chave e do bootstrap.
 :::
 
-## Compilação rápida
+## Build rápido
 
 Clone o repositório e execute o frontend a partir da raiz:
 
@@ -48,35 +48,35 @@ As quatro opções de destino são obrigatórias quando nenhum arquivo de config
 
 | Opção | Configuração |
 | --- | --- |
-| `-d`, `--distribution` | Suite de distribuição alvo |
-| `-a`, `--architecture` | Arquitetura alvo |
+| `-d`, `--distribution` | Suite da distribuição de destino |
+| `-a`, `--architecture` | Arquitetura de destino |
 | `-de`, `--desktop-environment` | Ambiente do módulo |
-| `-pv`, `--package-variant` | `minimum`, `standard`, `toolbox` ou `ultra` |
+| `-pv`, `--package-variant` | `minimum`, `standard`, `toolbox`, ou `ultra` |
 
-Os valores atualmente suportados de distribuição, arquitetura, desktop, compressão e variante estão listados em `linux-live/build.conf`. Não infira suporte a partir de exemplos antigos de comandos.
+Os valores de distribuição, arquitetura, desktop, compactação e variante atualmente compatíveis estão listados em `linux-live/build.conf`. Não presuma compatibilidade com base em um exemplo de comando antigo.
 
 ## Interfaces de build
 
 ### `minios-cmd`
 
-`minios-cmd` copia o template de configuração para o diretório de trabalho de destino, grava as configurações do frontend nessa cópia e inicia o pipeline completo `minios-live -`. Opções comuns incluem:
+`minios-cmd` copia o modelo de configuração para o diretório de trabalho de destino, grava as configurações do frontend nessa cópia e inicia o pipeline completo`minios-live -` As opções comuns incluem:
 
 | Opção | Efeito |
 | --- | --- |
-| `-b`, `--build-dir` | Seleciona o diretório raiz de saída do build |
-| `-c`, `--compression-type` | Seleciona compressão SquashFS |
+| `-b`, `--build-dir` | Seleciona a raiz de saída do build |
+| `-c`, `--compression-type` | Seleciona a compactação SquashFS |
 | `-kp`, `--kernel-provider` | Seleciona `distribution` ou `minios` |
-| `-kf`, `--kernel-flavour` | Seleciona um flavor de kernel da distribuição |
+| `-kf`, `--kernel-flavour` | Seleciona uma variante do kernel de distribuição |
 | `-mk`, `--minios-kernel` | Seleciona o provedor de kernel MiniOS |
-| `-mks`, `--minios-kernel-series` | Seleciona `auto`, `6.1` ou `6.12` e implica o provedor MiniOS |
+| `-mks`, `--minios-kernel-series` | Seleciona `auto`, `6.1`, ou `6.12` e implica o provedor MiniOS |
 | `-kpm`, `--kernel-payload-mode` | Seleciona `runtime` ou `full` |
 | `-dkms`, `--kernel-build-dkms` | Compila drivers opcionais para o kernel selecionado |
-| `-l`, `--locale` | Define o locale do sistema |
-| `-ml`, `--multilingual` | Gera múltiplos locales |
-| `-kl`, `--keep-locales` | Mantém os locales disponíveis |
+| `-l`, `--locale` | Define a localidade do sistema |
+| `-ml`, `--multilingual` | Gera várias localidades |
+| `-kl`, `--keep-locales` | Mantém as localidades disponíveis |
 | `-tz`, `--timezone` | Define o fuso horário do sistema live |
 | `-ib`, `--initramfs-builder` | Seleciona `livekit` ou `dracut` |
-| `-mln`, `--menu-language` | Seleciona o idioma do menu de boot |
+| `-mln`, `--menu-language` | Seleciona o idioma do menu de inicialização |
 
 Por exemplo:
 
@@ -85,23 +85,23 @@ sudo ./minios-cmd -d bookworm -a amd64 -de xfce -pv toolbox \
   -c zstd -mks 6.1 -kpm runtime -dkms
 ```
 
-Gere uma configuração sem iniciar o build:
+Gera uma configuração sem iniciar o build:
 
 ```bash
 sudo ./minios-cmd --config-only \
   -d trixie -a amd64 -de xfce -pv standard
 ```
 
-Sem outro destino, isso grava `build/build.conf`. O frontend ainda requer root neste modo.
+Sem outro destino, isso grava `build/build.conf`. Nesse modo, o frontend ainda exige root.
 
-`--config-file FILE` seleciona uma configuração para copiar. A implementação atual então grava valores analisados da linha de comando e padrões não vazios do frontend na cópia de trabalho, apesar da redação resumida em `--help`. Para uma configuração exata e mantida manualmente, invoque `minios-live` diretamente e inspecione o arquivo ativo em vez de confiar na mesclagem do frontend.
+`--config-file FILE` seleciona uma configuração para copiar. A implementação atual então grava os valores analisados da linha de comando e os valores padrão não vazios do frontend na cópia de trabalho, apesar da descrição mais curta em `--help`. Para usar uma configuração exata, mantida manualmente, execute `minios-live` diretamente e verifique o arquivo ativo, em vez de confiar na mesclagem do frontend.
 
-Não combine `--config-only` com `--config-file` apontando para uma configuração existente: o modo apenas-configuração copia o template padrão sobre esse caminho.
+Não combine `--config-only` com `--config-file` apontando para uma configuração existente: o modo somente configuração copia o modelo padrão para esse caminho.
 Use `-b DIR --config-only` para escolher um destino gerado separado.
 
 ### `minios-live`
 
-`minios-live` é o backend em estágio. Em um checkout do código-fonte, ele lê `linux-live/build.conf` por padrão; uma cópia instalada lê `/etc/minios-live/build.conf`. Selecione um arquivo diferente e o diretório de saída via variáveis de ambiente:
+`minios-live` é o backend preparado. Em um checkout do código-fonte, ele lê `linux-live/build.conf` por padrão; uma cópia instalada lê `/etc/minios-live/build.conf`. Selecione outro arquivo e outra raiz de saída usando variáveis de ambiente:
 
 ```bash
 sudo env \
@@ -110,22 +110,22 @@ sudo env \
   ./minios-live -
 ```
 
-Use um caminho absoluto `BUILD_CONF` entre `sudo`. Arquivos de configuração são interpretados como Bash, então utilize apenas arquivos confiáveis. O backend não possui flags para sobrescrever variáveis individuais de configuração.
+Use um caminho `BUILD_CONF` absoluto em `sudo`. Os arquivos de configuração são executados como Bash; use apenas arquivos confiáveis. O backend não tem flags para substituir variáveis de configuração individuais.
 
-## Estágios do build
+## Etapas do build
 
-O pipeline executa nesta ordem:
+O pipeline é executado nesta ordem:
 
-1. `build-bootstrap` cria o root mínimo de destino com debootstrap.
+1. `build-bootstrap` cria a raiz mínima de destino com o debootstrap.
 2. `build-chroot` instala e configura o sistema principal.
 3. `build-live` cria o módulo `00-core` SquashFS.
 4. `build-modules` compila os módulos ordenados do ambiente selecionado.
-5. `build-boot` gera initramfs, kernel, EFI e arquivos de bootloader.
-6. `build-config` gera MiniOS e configuração de boot.
-7. `build-iso` publica o ISO bootável e o checksum.
-8. `remove-sources` apaga o diretório de trabalho selecionado quando configurado.
+5. `build-boot` gera initramfs, kernel, EFI e arquivos do bootloader.
+6. `build-config` gera MiniOS e a configuração de inicialização.
+7. `build-iso` publica a ISO inicializável e o checksum.
+8. `remove-sources` exclui o diretório de trabalho selecionado, se configurado.
 
-Nomes com hífen mostrados acima e formas com underline são aceitos.
+Os nomes com hífen mostrados acima e as formas com sublinhado são aceitos.
 
 ```bash
 # Complete pipeline
@@ -144,48 +144,49 @@ sudo ./minios-live - build-live
 sudo ./minios-live build-modules -
 ```
 
-Um comando parcial não recria entradas omitidas. `build-iso` apenas empacota a árvore de imagem preparada, e `build-modules` não pode recriar `00-core`. Recompile até o último estágio dependente após alterar um produtor anterior.
+Um comando parcial não recria as entradas omitidas. `build-iso` apenas empacota a árvore de imagem preparada, e `build-modules` não consegue recriar `00-core`. Após alterar um estágio produtor anterior, refaça o build até o último estágio dependente.
 
-Um pipeline completo começa com `build-bootstrap`, que remove os diretórios `core/` e `image/` existentes do destino selecionado. Preserve qualquer conteúdo não regenerável antes de iniciar; árvores de destino geradas são saídas do build, não armazenamento fonte durável.
+Um pipeline completo começa com `build-bootstrap`, que remove os diretórios `core/` e `image/` existentes no destino selecionado. Preserve qualquer conteúdo que não possa ser regenerado antes de começar; árvores de destino geradas são saídas do build, não armazenamento permanente de código-fonte.
 
-Se `REMOVE_SOURCES=true`, o estágio final `remove-sources` apaga e recria todo o diretório de trabalho `build/<distribution>-<variant>-<architecture>/`, não apenas os arquivos fonte baixados. ISOs publicados, caches compartilhados e logs fora desse diretório permanecem.
+Se `REMOVE_SOURCES=true`, o estágio final `remove-sources` exclui e recria todo o diretório de trabalho `build/<distribution>-<variant>-<architecture>/`, não apenas os arquivos-fonte baixados. ISOs publicadas, caches compartilhados e logs fora desse diretório permanecem.
 
 ## Configuração
 
-`linux-live/build.conf` controla a identidade do destino, kernel, locale, bootloader, usuário live, serviços, caches, snapshots, limpeza e publicação. Grupos importantes incluem:
+`linux-live/build.conf` controla a identidade do destino, o kernel, a localidade, o bootloader, o usuário live, os serviços, os caches, os snapshots, a limpeza e a publicação. Entre os grupos importantes estão:
 
-- `DISTRIBUTION`, `DISTRIBUTION_ARCH`, `DESKTOP_ENVIRONMENT` e `PACKAGE_VARIANT` selecionam o destino e a cadeia de módulos.
-- `COMP_TYPE` controla a compressão SquashFS.
-- `KERNEL_*` e `MINIOS_KERNEL_SERIES` controlam aquisição e payload do kernel.
-- `INITRAMFS_BUILDER`, `INITRAMFS_CRYPT`, `BOOTLOADER`, `MENU_LANG` e `SERIAL_CONSOLE` controlam artefatos de boot.
-- `USE_ROOTFS`, `USE_APT_CACHE`, `USE_SHARED_APT_CACHE`, `USE_APT_CACHE_REPO` e `USE_APT_CACHER` controlam entradas reutilizáveis.
-- `VERBOSITY_LEVEL` aceita `0`, `1` ou `2`.
-- `REMOVE_OLD_ISO`, `REMOVE_SOURCES` e `BUILD_TEST_ISO` controlam publicação e limpeza.
+- `DISTRIBUTION`, `DISTRIBUTION_ARCH`, `DESKTOP_ENVIRONMENT`, e `PACKAGE_VARIANT` selecionam o destino e a cadeia de módulos.
+- `COMP_TYPE` controla a compactação SquashFS.
+- `LIVE_MODULE_MODE` seleciona `merged` (o padrão atual para todas as variantes) ou `simple` a integração de live-config; agora ela não é mais inferida apenas com base no tamanho da edição.
+- `KERNEL_*` e `MINIOS_KERNEL_SERIES` controlam a obtenção do kernel e o payload.
+- `INITRAMFS_BUILDER`, `INITRAMFS_CRYPT`, `BOOTLOADER`, `MENU_LANG`, e `SERIAL_CONSOLE` controlam os artefatos de inicialização.
+- `USE_ROOTFS`, `USE_APT_CACHE`, `USE_SHARED_APT_CACHE`, `USE_APT_CACHE_REPO`, e `USE_APT_CACHER` controlam as entradas reutilizáveis.
+- `VERBOSITY_LEVEL` aceita `0`, `1`, ou `2`.
+- `REMOVE_OLD_ISO`, `REMOVE_SOURCES`, e `BUILD_TEST_ISO` controlam a publicação e a limpeza.
 
-Não edite um `build/<target>/build.conf` gerado como substituto para manter a configuração fonte selecionada.
+Não edite um `build/<target>/build.conf` gerado como substituto da manutenção da configuração de origem selecionada.
 
-### Seleção de kernel
+### Seleção do kernel
 
-O provedor `distribution` resolve o kernel Debian ou Ubuntu selecionado e, quando DKMS está ativado, os headers correspondentes em um estado APT assinado e isolado.
-`KERNEL_AUTO_SELECT=true` deriva sua suite e arquitetura de origem do destino do userspace. Defina como `false` para usar os campos manuais de distribuição, arquitetura, versão, snapshot e política de atualização em `build.conf`.
+O `distribution` provider resolve o kernel Debian ou Ubuntu selecionado e, quando o DKMS está habilitado, os headers correspondentes em um estado APT isolado e assinado.
+`KERNEL_AUTO_SELECT=true` obtém a suite de origem e a arquitetura do destino do userspace. Defina como `false` para usar os campos manuais de distribuição, arquitetura, versão, snapshot e política de atualização em `build.conf`.
 
-O provedor `minios` instala `linux-image-SERIES-mos-ARCH`, verifica suporte a AUFS e usa os headers MiniOS correspondentes para DKMS. Requer `KERNEL_FLAVOUR=none` e arquiteturas de pacote de userspace e kernel compatíveis.
+O `minios` provider instala `linux-image-SERIES-mos-ARCH`, verifica o suporte a AUFS e usa os headers MiniOS correspondentes para o DKMS. Ele requer `KERNEL_FLAVOUR=none` e arquiteturas correspondentes para os pacotes do userspace e do kernel.
 No código atual, `MINIOS_KERNEL_SERIES=auto` resolve para `6.12`; use `6.1` explicitamente quando essa série for necessária.
 
-`KERNEL_PAYLOAD_MODE=runtime` mantém a árvore de módulos do kernel, configuração do kernel, `System.map`, metadados de implantação e integração em tempo de execução em `modprobe.d`, `modules-load.d` e `udev/rules.d`. Remove estado de pacote apenas de build, headers, fontes DKMS, ferramentas de compilação e pacotes initramfs. Firmware permanece sob propriedade de `02-firmware`. `full` mantém um payload de diagnóstico mais amplo.
+`KERNEL_PAYLOAD_MODE=runtime` mantém a árvore de módulos do kernel, a configuração do kernel, `System.map`, os metadados de implantação e a integração em tempo de execução em `modprobe.d`, `modules-load.d` e `udev/rules.d`. Remove o estado de pacotes usado apenas na compilação, headers, fontes do DKMS, ferramentas de compilação e pacotes do initramfs. O firmware continua sob responsabilidade de `02-firmware`. `full` mantém um conjunto de diagnóstico mais abrangente.
 
 ## Sistema de módulos
 
-Os fontes dos módulos ficam em `linux-live/scripts/`. Um ambiente em `linux-live/environments/<desktop>/` contém links simbólicos ordenados para os fontes que utiliza. O nome local do ambiente controla a ordem de build e pode renumerar um fonte compartilhado, por exemplo:
+As fontes dos módulos ficam em `linux-live/scripts/`. Um ambiente em `linux-live/environments/<desktop>/` contém links simbólicos ordenados para as fontes que utiliza. O nome local do ambiente controla a ordem de compilação e pode renumerar uma fonte compartilhada, por exemplo:
 
 ```text
 linux-live/environments/xfce/06-firefox -> ../../scripts/10-firefox
 ```
 
-`00-core` é produzido por `build-live` e não é um link de ambiente comum.
-Módulos `01` e acima são cumulativos: cada um é construído sobre os módulos inferiores aplicáveis. `skip_conditions.conf` pode omitir entradas para um alvo, então inspecione o ambiente selecionado em vez de assumir uma cadeia universal.
+`00-core` é gerado por `build-live` e não é um link de ambiente comum.
+Os módulos `01` e superiores são cumulativos: cada um é compilado sobre os módulos inferiores aplicáveis. `skip_conditions.conf` pode omitir entradas para um destino; portanto, inspecione o ambiente selecionado em vez de presumir que existe uma sequência universal.
 
-Use `linux-live/scripts/10-example/` como template de autoria atual. Um módulo pode conter:
+Use `linux-live/scripts/10-example/` como modelo de criação atual. Um módulo pode conter:
 
 ```text
 NN-module-name/
@@ -199,19 +200,19 @@ NN-module-name/
 └── rootcopy-postinstall/
 ```
 
-Somente os arquivos necessários para o módulo são obrigatórios. `build`, `postinstall`, condições de skip, patches e árvores rootcopy são opcionais. `build` e `patches/` não estão disponíveis para `00-core`.
+São necessários apenas os arquivos usados pelo módulo. `build`, `postinstall`, condições de ignorar, patches e árvores rootcopy são opcionais. `build` e `patches/` não estão disponíveis para `00-core`.
 
-A propriedade do host em árvores rootcopy não é preservada; arquivos copiados normalmente se tornam `root:root`. Um manifesto `.minios-ownership` dentro de uma árvore rootcopy usa:
+A propriedade do host nas árvores rootcopy não é preservada; os arquivos copiados normalmente passam a pertencer a `root:root`. Um manifesto `.minios-ownership` dentro de uma árvore rootcopy usa:
 
 ```text
 owner:group relative/path
 ```
 
-Os caminhos devem permanecer dentro da árvore. O host aplica o manifesto imediatamente e resolve nomes usando o banco de dados de contas do host. Use valores numéricos `UID:GID` para contas apenas do destino, ou defina a propriedade a partir de `install` ou `postinstall` dentro do chroot. Mover o manifesto para `rootcopy-postinstall/` não altera a resolução de nomes.
+Os caminhos devem permanecer dentro da árvore. O host aplica o manifesto imediatamente e resolve os nomes usando o banco de contas do host. Use valores numéricos de `UID:GID` para contas existentes apenas no destino ou defina a propriedade a partir de `install` ou `postinstall` dentro do chroot. Mover o manifesto para `rootcopy-postinstall/` não altera a resolução de nomes.
 
-Como a verificação de contenção atual não canonicaliza o caminho de destino, nunca use componentes `..` ou componentes de symlink em caminhos de manifesto. Inspecione árvores rootcopy antes de um build privilegiado; um caminho manipulado pode fazer o `chown` do host escapar da árvore copiada.
+Como a verificação de contenção atual não canonicaliza o caminho de destino, nunca use componentes `..` nem componentes de links simbólicos nos caminhos do manifesto. Inspecione as árvores rootcopy antes de uma compilação com privilégios; um caminho malicioso pode fazer com que `chown` do lado do host escape da árvore copiada.
 
-Para pacotes, scripts de instalação comuns do módulo usam os arquivos copiados para o chroot por `build-modules`:
+Para pacotes, os scripts comuns de instalação de módulos usam os arquivos copiados para o chroot por `build-modules`:
 
 ```bash
 #!/bin/bash
@@ -220,6 +221,7 @@ set -o pipefail
 set -u
 
 . /minioslib || exit 1
+console_colors
 . /minios_build.conf || exit 1
 
 SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
@@ -229,11 +231,11 @@ SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
   -m "${SCRIPT_DIR}/condinapt.map"
 ```
 
-Veja [CondinAPT](/development/CondinAPT) para sintaxe de lista de pacotes e o mapa de filtros MiniOS atual.
+Consulte [CondinAPT](/development/CondinAPT) para ver a sintaxe da lista de pacotes e o mapa de filtros MiniOS atual.
 
-### Adicionando um módulo
+### Adicionar um módulo
 
-Copie o template e então faça o link em cada ambiente desejado na posição local do ambiente:
+Copie o modelo e, em seguida, crie um link para ele em cada ambiente desejado, usando a posição local pretendida no ambiente:
 
 ```bash
 cp -a linux-live/scripts/10-example linux-live/scripts/10-my-module
@@ -241,33 +243,33 @@ ln -s ../../scripts/10-my-module \
   linux-live/environments/xfce/07-my-module
 ```
 
-Adapte `packages.list`, scripts, metadados e conteúdo rootcopy antes de compilar.
+Adapte `packages.list`, os scripts, os metadados e o conteúdo rootcopy antes de compilar.
 Valide cada desktop, variante, distribuição e arquitetura declarados.
 
-## Reconstruindo com segurança
+## Reconstrução segura
 
-Artefatos de módulos já existentes são ignorados. Quando um módulo cumulativo inferior é alterado, remova seu artefato e toda a cadeia superior de módulos antes de executar `build-modules`; manter módulos superiores preservaria conteúdo compilado sobre a camada antiga. Identifique artefatos pela ordem do ambiente selecionado e nome do módulo, pois condições de skip podem criar lacunas na numeração.
+Os artefatos de módulos existentes são ignorados. Quando um módulo cumulativo inferior muda, remova o artefato dele e todos os módulos posteriores antes de executar `build-modules`; manter os módulos posteriores preservaria conteúdo compilado com base na camada inferior antiga. Identifique os artefatos pela ordem do ambiente selecionado e pelo nome do módulo, pois as condições de ignorar podem criar lacunas na numeração.
 
-A camada do kernel é um caso especial. Para reconstruir apenas `01-kernel`, remova seu artefato para o destino selecionado e reconstrua dos módulos até a publicação:
+A camada do kernel é um caso especial. Para reconstruir apenas `01-kernel`, remova o artefato correspondente ao destino selecionado e reconstrua desde os módulos até a publicação:
 
 ```bash
 rm build/trixie-standard-amd64/image/minios/01-kernel-*.sb
 sudo ./minios-live build-modules -
 ```
 
-Confirme o caminho de destino antes de remover. Não aplique este atalho para `00-core` nem assuma que é seguro para módulos `02` e superiores.
+Confirme o caminho do destino antes de remover. Não aplique este atalho a `00-core` nem suponha que seja seguro para os módulos `02` e superiores.
 
-Para um módulo comum como `03-gui-base`, remova seu artefato e todos os artefatos de módulos aplicáveis posteriores, depois execute o mesmo intervalo `build-modules -`. Para alterações apenas em initramfs, EFI ou boot, mantenha os módulos SquashFS e execute:
+Para um módulo comum, como `03-gui-base`, remova o artefato dele e todos os artefatos dos módulos aplicáveis posteriores e, em seguida, execute o mesmo intervalo de `build-modules -`. Para alterações apenas no initramfs, EFI ou boot, mantenha os módulos SquashFS no lugar e execute:
 
 ```bash
 sudo ./minios-live build-boot -
 ```
 
-Use um build completo após alterações em `00-core`, configuração de bootstrap/chroot, identidade do destino, política de repositório ou outra entrada que não possa ser isolada para um estágio posterior.
+Faça uma compilação completa após alterações em `00-core`, na configuração de bootstrap/chroot, na identidade do destino, na política do repositório ou em qualquer outra entrada que não possa ser isolada em uma etapa posterior.
 
 ## Saídas e logs
 
-Com o padrão `BUILD_DIR`, os caminhos importantes são:
+Com a configuração padrão, `BUILD_DIR`, os caminhos importantes são:
 
 - `build/rootfs/<distribution>-<architecture>-rootfs.tar.gz`
 - `build/aptcache/<distribution>/`
@@ -279,34 +281,34 @@ Com o padrão `BUILD_DIR`, os caminhos importantes são:
 - `build/iso/*.iso` e `build/iso/*.iso.sha256`
 - `build/log/build-*.log`
 
-Os nomes dos ISOs dependem das configurações de build, modo de release e timestamps. Use o caminho impresso pelo build bem-sucedido em vez de prever o nome base completo.
+Os nomes ISO dependem das configurações de compilação, do modo de lançamento e dos timestamps. Use o caminho exibido pela compilação bem-sucedida em vez de tentar prever o nome completo do arquivo.
 
-## Segredos e artefatos de debug
+## Segredos e artefatos de depuração
 
-Não coloque um token do Ubuntu Pro em controle de versão, documentação, histórico do shell ou logs compartilhados. Prefira uma configuração privada fora do repositório:
+Não inclua um token do Ubuntu Pro no controle de versão, na documentação, no histórico do shell ou em logs compartilhados. Prefira um arquivo de configuração privado fora do repositório:
 
 ```bash
 install -m 600 linux-live/build.conf /private/path/build-trixie.conf
 sudo env BUILD_CONF=/private/path/build-trixie.conf ./minios-live -
 ```
 
-Defina `USE_UBUNTU_PRO=true` e `UBUNTU_PRO_TOKEN=...` apenas nesse arquivo. O build remove o estado Pro da imagem, mas o arquivo do host ainda contém o segredo.
+Defina `USE_UBUNTU_PRO=true` e `UBUNTU_PRO_TOKEN=...` somente nesse arquivo. A compilação remove o estado do Pro da imagem, mas o arquivo no host ainda contém o segredo.
 
-`DEBUG_SSH_KEYS=true` gera material de chave privada para debug. Trate a imagem resultante como descartável e nunca publique sem verificar se a chave está ausente.
+`DEBUG_SSH_KEYS=true` gera material de chave privada para depuração. Considere a imagem resultante descartável e nunca a publique sem verificar se a chave foi removida.
 
-Alterar a opção de volta para `false` não remove chaves já geradas em `build/<target>/image/minios/debug_ssh_key`, arquivos `authorized_keys.*` adjacentes ou `build/<target>/debug_ssh_key`. Use um destino limpo ou remova esses arquivos explicitamente, depois inspecione a árvore ISO antes de publicar.
+Alterar a opção de volta para `false` não remove as chaves já geradas em `build/<target>/image/minios/debug_ssh_key`, nos arquivos `authorized_keys.*` adjacentes ou em `build/<target>/debug_ssh_key`. Use um destino limpo ou remova esses arquivos explicitamente e, em seguida, inspecione a estrutura da ISO antes de publicar.
 
 ## Solução de problemas
 
-- Falhas no bootstrap geralmente envolvem acessibilidade do repositório, suporte do debootstrap, arquitetura, snapshots ou pré-requisitos ausentes no host.
-- Falhas no core e nos módulos geralmente envolvem disponibilidade de pacotes, filtros CondinAPT, scripts de mantenedor, conteúdo rootcopy ou um módulo inferior desatualizado.
-- Falhas no boot geralmente envolvem o kernel selecionado, builder do initramfs, aquisição de EFI, geração do GRUB/SYSLINUX ou entradas de boot ausentes.
-- Falhas no ISO geralmente envolvem a árvore de imagem preparada, xorriso, espaço de saída ou configurações de limpeza.
+- Falhas de bootstrap geralmente estão relacionadas à acessibilidade dos repositórios, ao suporte do debootstrap, à arquitetura, aos snapshots ou à ausência de pré-requisitos no host.
+- Falhas no Core e nos módulos geralmente estão relacionadas à disponibilidade de pacotes, aos filtros CondinAPT, aos scripts do mantenedor, ao conteúdo do rootcopy ou a um módulo inferior desatualizado.
+- Falhas de inicialização geralmente estão relacionadas ao kernel selecionado, ao criador do initramfs, à obtenção do EFI, à geração do GRUB/SYSLINUX ou à ausência de arquivos necessários para a inicialização.
+- Falhas na ISO geralmente estão relacionadas à estrutura preparada da imagem, ao xorriso, ao espaço de saída ou às configurações de limpeza.
 
-Após uma build privilegiada interrompida, inspecione os pontos de montagem abaixo do diretório de trabalho de destino antes de tentar novamente. Leia o respectivo `build/log/build-*.log`; não repare overlays gerados ou arquivos `.sb` no local.
+Após uma compilação privilegiada interrompida, inspecione as montagens abaixo do diretório de trabalho de destino antes de tentar novamente. Leia o `build/log/build-*.log` correspondente; não tente corrigir sobreposições geradas nem arquivos `.sb` no local.
 
 ## Documentação relacionada
 
-- [Gerenciando módulos](/preparing-and-customizing/Managing-Modules)
-- [Compondo imagens personalizadas](/preparing-and-customizing/Creating-Custom-MiniOS-Images)
+- [Gerenciar módulos](/preparing-and-customizing/Managing-Modules)
+- [Criar imagens personalizadas](/preparing-and-customizing/Creating-Custom-MiniOS-Images)
 - [CondinAPT](/development/CondinAPT)

@@ -1,7 +1,7 @@
 ---
-updated: 2026-10-06
+updated: 2026-10-15
 program_commits:
-    minios-store: eec5785dd7eb547961c2799f1907496a33be2e8c
+    minios-store: c3d0d31db7966cd7809f0f4ba1ca642133c8f07a
 ---
 
 # Software installieren
@@ -42,16 +42,16 @@ Es kann immer nur ein Daemon-Installationsvorgang gleichzeitig laufen. Das Schli
 
 ### Modulmodus
 
-Im Modulmodus werden `apt2sb` oder `script2sb` in einer isolierten Modulbau-Umgebung ausgeführt. Die erzeugten `.sb`-Dateien werden im ersten beschreibbaren Verzeichnis unterhalb gespeichert:
+Im Modulmodus werden `apt2sb` oder `script2sb` in einer isolierten Modul-Bauumgebung ausgeführt. Die erzeugten `.sb`-Dateien werden im ersten beschreibbaren Speicherort unten abgelegt:
 
 1. `/run/initramfs/memory/data/minios/modules`
 2. `/var/lib/minios-store/modules`
 
-Der erste Pfad ist das Modulverzeichnis auf dem aktuellen MiniOS-Bootspeicher. Ein dort erstelltes Modul wird in der aktuellen Sitzung nicht durch den MiniOS-App-Store aktiviert. Lassen Sie das Modul in diesem Verzeichnis und starten Sie das System neu, um es beim nächsten Boot zu laden. Das Ergebnis bleibt nur verfügbar, wenn der zugrunde liegende Bootspeicher beschreibbar ist und die Datei erhalten bleibt.
+Der erste Pfad ist das effektive Module-Verzeichnis des MiniOS-Datenbaums. Bei einem normalen, beschreibbaren Start befindet es sich auf dem Speicher, nach System-`toram`-Kopieren kann es jedoch RAM-gestützt sein; Store prüft die Schreibbarkeit, nicht die Dauerhaftigkeit. Ein erstelltes Modul wird in der aktuellen Sitzung nicht aktiviert. Es wird erst bei einem späteren Start geladen, wenn es auf dauerhaften `minios/modules/`-Speicher kopiert wurde und von den Boot-Filtern zugelassen ist. Nutzen Sie im Modul-Manager die Option **Zum nächsten Start hinzufügen** oder `sudo sb next-boot add /path/to/module.sb`wenn geeigneter, dauerhafter Speicher verfügbar ist.
 
-Der zweite Pfad ist ein Fallback, wenn das normale Modulverzeichnis nicht beschreibbar ist. Ein Modul im Fallback-Verzeichnis wird beim nächsten Live-Boot nicht automatisch geladen. Verwenden Sie `Open folder`, und kopieren Sie das fertige Modul anschließend in das `minios/modules`-Verzeichnis auf einem beschreibbaren MiniOS-Bootmedium, bevor Sie neu starten.
+Der zweite Pfad ist ein Fallback, der verwendet wird, wenn das normale Module-Verzeichnis nicht beschreibbar ist. Ein Modul im Fallback-Verzeichnis ist nicht automatisch Teil des nächsten Live-Starts. Verwenden Sie `Open folder`, und kopieren Sie das fertige Modul anschließend in das `minios/modules`-Verzeichnis auf einem beschreibbaren MiniOS-Bootmedium, bevor Sie neu starten.
 
-Ein gemeinsames Modul enthält alle ausgewählten Rezepte. Bei getrennter Paketierung kann ein Fehler ein Rezept betreffen, während Module, die vorher im Batch fertiggestellt wurden, im Zielverzeichnis verbleiben.
+Ein kombiniertes Modul enthält alle ausgewählten Rezepte. Bei getrennter Paketierung kann ein Fehler ein einzelnes Rezept betreffen, während zuvor erfolgreich erstellte Module weiterhin im Zielverzeichnis verbleiben.
 
 ### Systemmodus
 

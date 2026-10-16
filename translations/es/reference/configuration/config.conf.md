@@ -1,5 +1,5 @@
 ---
-updated: 2026-09-26
+updated: 2026-10-15
 ---
 
 # config.conf
@@ -111,15 +111,15 @@ Cambiar los valores no sobrescribe una sesión persistente ya configurada a meno
 
 Esta función no configura Wi-Fi. Tras el arranque, la gestión normal de redes cableadas e inalámbricas la realiza NetworkManager. Consulte [Redes](/using-minios/Networking) para el uso de red en tiempo de ejecución y [live-config](/reference/configuration/live-config) para todas las variables de red.
 
-## MiniOS configuraciones de early-userspace
+## Configuraciones de MiniOS early-userspace
 
-`DEFAULT_TARGET`, `ENABLE_SERVICES`, `DISABLE_SERVICES`, `EXPORT_LOGS`, y las tres `LIVE_*` políticas de almacenamiento anteriores son configuraciones de arranque MiniOS en lugar de variables del componente late live-config. MiniOS las aplica antes de que el sistema init normal tome el control; `minios-boot` es responsable de las tres políticas de almacenamiento. Todas son **Reconfigurable: Sí**.
+`DEFAULT_TARGET`, `ENABLE_SERVICES`, `DISABLE_SERVICES`, `EXPORT_LOGS`, y las tres `LIVE_*` políticas de almacenamiento anteriores son configuraciones de arranque de MiniOS en lugar de variables del componente live-config tardío. MiniOS las aplica antes de que el sistema init normal tome el control; `minios-boot` es responsable de las tres políticas de almacenamiento. Todas ellas son **Reconfigurable: Sí**.
 
 Los parámetros de arranque correspondientes `default-target=`, `enable-services=`, y `disable-services=` tienen prioridad para el arranque actual. El parámetro `text` fuerza `multi-user.target`.
 
-Las versiones actuales de Toolbox y Ultra añaden `ssh` a `ENABLE_SERVICES`. Para desactivar explícitamente SSH, inclúyelo en `DISABLE_SERVICES`; simplemente eliminarlo de `ENABLE_SERVICES` no solicita una operación de desactivación.
+Las versiones actuales de Toolbox y Ultra añaden `ssh` a `ENABLE_SERVICES`. Para desactivar SSH explícitamente, inclúyelo en `DISABLE_SERVICES`; simplemente eliminarlo de `ENABLE_SERVICES` no solicita una operación de desactivación.
 
-Con `EXPORT_LOGS="true"`, los medios MiniOS regrabables reciben los registros de inicio a continuación:
+Con `EXPORT_LOGS="true"`, el medio MiniOS regrabable recibe los registros de inicio a continuación:
 
 ```text
 minios/log/YYYYMMDD_HHMMSS/
@@ -127,11 +127,13 @@ minios/log/YYYYMMDD_HHMMSS/
 └── live/
 ```
 
-Los registros de ejecución correspondientes son `/var/log/minios/minios-boot.log` y `/var/log/live/config.log`.
+Los registros correspondientes en tiempo de ejecución son `/var/log/minios/minios-boot.log` y `/var/log/live/config.log`.
+
+<a id="cache-and-log-policy-for-a-persistent-session"></a>
 
 ## Política de caché y registro para una sesión persistente
 
-Para reducir las escrituras durante una `perch` sesión, añade los ajustes de forma independiente:
+Para reducir las escrituras durante una `perch` sesión, agrega la configuración de forma independiente:
 
 ```bash
 LIVE_LOG_STORAGE="volatile"
@@ -139,9 +141,9 @@ LIVE_APT_CACHE="volatile"
 LIVE_BROWSER_CACHE="volatile"
 ```
 
-También aceptan `persistent`, que es el valor predeterminado. `minios-boot` acepta los mismos ajustes desde `/etc/live/config.conf.d/*.conf`, `LIVE_CONFIG_CMDLINE` (`log-storage=volatile`, `apt-cache=volatile`, `browser-cache=volatile`), o parámetros del kernel. Los fragmentos posteriores reemplazan a los anteriores, el blob de parámetros tiene prioridad sobre las claves de archivo, y los parámetros reales del kernel prevalecen al final. Las tres opciones son independientes y no solicitan persistencia por sí mismas. Un initrd compatible anuncia `perch-storage-v1` en `/run/initramfs/etc/minios-initramfs-storage`; el Configurador de MiniOS advierte cuando el initrd actual no lo anuncia.
+También aceptan `persistent`, que es el valor predeterminado. `minios-boot` acepta la misma configuración desde `/etc/live/config.conf.d/*.conf`, `LIVE_CONFIG_CMDLINE` (`log-storage=volatile`, `apt-cache=volatile`, `browser-cache=volatile`), o parámetros del kernel. Los fragmentos posteriores reemplazan a los anteriores, el blob de parámetros tiene prioridad sobre las claves de archivo, y los parámetros reales del kernel prevalecen al final. Las tres opciones son independientes y no solicitan persistencia por sí mismas. Un initrd compatible anuncia `perch-storage-v1` en `/run/initramfs/etc/minios-initramfs-storage`; el Configurador de MiniOS advierte cuando el initrd actual no lo anuncia.
 
-Las políticas se aplican en un arranque posterior solo si la persistencia realmente se activa en un almacenamiento duradero y escribible. Con `toram`, persistencia fallida, o **Iniciar sin guardar**, la política volátil solicitada no se considera evidencia de que algo se guardará. El componente browser-cache se ejecuta después de `minios-boot`, una vez creado el usuario en vivo. Consulta [Rendimiento](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch) para conocer los límites exactos de RAM, rutas de navegador compatibles, condiciones de respaldo y registros que permanecen en el medio.
+Las políticas requieren la activación exitosa de la persistencia, ya sea en un almacenamiento duradero y escribible o como una sesión RAM escribible con `ram-origin` información protegida. El sistema `toram` por sí solo no determina la durabilidad de la sesión: `perchtoram=off` puede conservar una sesión almacenada, mientras que una sesión copiada aún requiere guardado. La persistencia fallida y **Iniciar sin guardar** no califican. Los diagnósticos de arranque se conservan por separado de los registros volátiles normales, pero permanecen en memoria en una sesión copiada por RAM hasta que se guarden. El componente browser-cache se ejecuta después de que el usuario en vivo ha sido creado. Consulta [Rendimiento](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch) para límites de RAM, rutas compatibles y condiciones de admisión.
 
 ## Origen, copia en tiempo de ejecución y prioridad
 

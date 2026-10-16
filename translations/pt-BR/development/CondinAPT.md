@@ -1,14 +1,14 @@
 ---
-updated: 2026-08-31
+updated: 2026-10-15
 program_commits:
-    minios-live: f59faa38c0667fbeefdc6dbe899a2db6e131e462
+    minios-live: a70af61230d2891ed9ca2447019bd7210a670694
 ---
 
 # CondinAPT
 
-CondinAPT seleciona e instala pacotes APT a partir de uma lista cujas entradas podem depender de variáveis de configuração do Bash. MiniOS o utiliza para verificações de pré-requisitos do host, conjunto principal de pacotes e módulos comuns de SquashFS.
+CondinAPT seleciona e instala pacotes APT de uma lista cujas entradas podem depender de variáveis de configuração do Bash. MiniOS usa esse recurso para verificar pré-requisitos do host, o conjunto básico de pacotes e módulos comuns de SquashFS.
 
-Esta página documenta a implementação em `linux-live/condinapt`. CondinAPT não é um solucionador de dependências geral: ele avalia primeiro os filtros e a disponibilidade dos repositórios, monta as filas do APT e, em seguida, instala cada fila selecionada em uma única chamada de `apt-get`.
+Esta página documenta a implementação em `linux-live/condinapt`. CondinAPT não é um resolvedor de dependências genérico: primeiro avalia os filtros e a disponibilidade dos repositórios, monta filas do APT e, em seguida, instala cada fila selecionada em uma única `apt-get` chamada.
 
 ## Sinopse
 
@@ -19,31 +19,31 @@ sudo bash linux-live/condinapt \
   -m filters.map
 ```
 
-A lista de pacotes e a configuração devem ser arquivos regulares e legíveis. Os arquivos de mapeamento e prioridade são opcionais.
+A lista de pacotes e o arquivo de configuração devem ser arquivos regulares e legíveis. Os arquivos de mapeamento e de prioridade são opcionais.
 
-| Opção | Significado |
+| Opção | Descrição |
 | --- | --- |
-| `-l`, `--package-list PATH` | Arquivo de lista de pacotes |
+| `-l`, `--package-list PATH` | Arquivo da lista de pacotes |
 | `-c`, `--config PATH` | Configuração Bash confiável |
-| `-m`, `--filter-mapping PATH` | Mapeamento de prefixo para variável |
-| `-P`, `--priority-list PATH` | Expressões regulares Bash para extração de prioridade |
+| `-m`, `--filter-mapping PATH` | Mapeamento de prefixos para variáveis |
+| `-P`, `--priority-list PATH` | Expressões regulares do Bash para extrair prioridades |
 | `-s`, `--simulation` | Seleciona e exibe pacotes sem instalá-los |
-| `-C`, `--check-only` | Verifica nomes de pacotes instalados sem instalação |
+| `-C`, `--check-only` | Verifica os nomes dos pacotes instalados sem instalar nada |
 | `-v`, `--verbose` | Diagnóstico de filtros e filas |
-| `-vv`, `--very-verbose` | Diagnóstico adicional de filas de prioridade |
-| `-x`, `--xtrace` | Ativa rastreamento do shell |
+| `-vv`, `--very-verbose` | Diagnóstico adicional das filas de prioridade |
+| `-x`, `--xtrace` | Ativa o rastreamento do shell |
 | `-f`, `--force` | Executa `apt-get update` mesmo quando `pkgcache.bin` existe |
-| `-h`, `--help` | Exibe ajuda |
+| `-h`, `--help` | Exibe a ajuda |
 
-CondinAPT executa `apt-get update` quando não está no modo apenas de verificação e quando `-f` foi usado ou `/var/cache/apt/pkgcache.bin` não existe. Isso inclui simulação, então `-s` não é uma execução a seco sem efeitos colaterais.
+CondinAPT é executado `apt-get update` quando não está no modo de verificação e quando `-f` foi usado ou `/var/cache/apt/pkgcache.bin` não existe. Isso inclui a simulação; portanto, `-s` não é uma execução de teste sem efeitos colaterais.
 
-A instalação normal requer root. O modo apenas de verificação pode ser executado sem privilégios; a simulação também exige root quando aciona uma atualização do APT. A implementação atual não propaga uma falha em `apt-get update` de forma confiável, portanto, trate um erro de atualização como uma execução falha mesmo que CondinAPT retorne `0` posteriormente.
+A instalação normal exige privilégios de root. O modo de verificação pode ser executado sem privilégios; a simulação também exige root quando aciona uma atualização do APT. A implementação atual não propaga corretamente falhas de `apt-get update`; portanto, considere um erro de atualização como uma execução com falha, mesmo que CondinAPT retorne `0` depois.
 
 ## Arquivos de entrada
 
 ### Configuração
 
-O arquivo `-c` é carregado via Bash. Ele contém código executável, não é um formato de dados inerte, então utilize apenas arquivos confiáveis.
+O arquivo `-c` é carregado pelo Bash. Ele contém código executável, não dados inertes; use apenas arquivos confiáveis.
 
 ```bash
 DISTRIBUTION="bookworm"
@@ -51,10 +51,10 @@ SYSTEM_TYPE="server"
 FEATURES=(web database monitoring)
 ```
 
-Arrays indexados fornecem filtros de associação. Um escalar contendo vírgulas ainda é uma única string exata: `FEATURES="web,database"` não corresponde a `+feat=web`.
+Arrays indexados definem filtros de associação. Um escalar contendo vírgulas continua sendo uma única string exata: `FEATURES="web,database"` não corresponde a `+feat=web`.
 
 A implementação atual analisa as opções da CLI antes de carregar este arquivo.
-Variáveis de configuração que reutilizam nomes internos do CondinAPT, como `VERBOSITY_LEVEL`, podem sobrescrever o estado da CLI. Evite esses nomes em configurações genéricas.
+Variáveis de configuração que reutilizam nomes internos de CondinAPT, como `VERBOSITY_LEVEL`, podem, portanto, substituir o estado da CLI. Evite esses nomes em configurações genéricas.
 
 ### Mapeamento de filtros
 
@@ -66,14 +66,14 @@ st=SYSTEM_TYPE
 feat=FEATURES
 ```
 
-O formato é exatamente `prefix=VariableName`; espaços em branco ao redor não são removidos. Linhas vazias e linhas cujo primeiro campo começa com `#` são ignoradas.
-Prefixos duplicados usam o último valor.
+O formato deve ser exatamente `prefix=VariableName`; espaços em branco ao redor não são removidos. Linhas vazias e linhas cujo primeiro campo começa com `#` são ignoradas.
+Em caso de prefixos duplicados, prevalece o último valor.
 
-Sem uma entrada de mapeamento, o próprio prefixo é tratado como nome da variável. Um escalar não definido se comporta como uma string vazia. Portanto, um filtro negativo digitado incorretamente pode incluir silenciosamente um pacote; prefira um mapeamento e utilize simulação detalhada ao adicionar filtros.
+Sem uma entrada de mapeamento, o próprio prefixo é tratado como nome da variável. Uma variável escalar não definida se comporta como uma string vazia. Portanto, um filtro negativo com erro de digitação pode incluir um pacote sem aviso; por isso, prefira usar um mapeamento e simular no modo detalhado ao adicionar filtros.
 
 ### Lista de pacotes
 
-A gramática segura para linhas é:
+A sintaxe segura para cada linha é:
 
 ```text
 [!] package[=version|==version] filters... [&& ...] [|| ...] [@release] [# comment]
@@ -93,22 +93,22 @@ package==strict-version
 systemd-timesyncd +d=buster @buster-backports
 ```
 
-Tudo a partir do primeiro `#` até o final da linha é removido. Espaços em branco restantes são normalizados. Não há suporte para aspas, escape, parênteses, grupos aninhados ou espaços dentro de um único token de filtro. Tokens desconhecidos ao final da linha não são rejeitados, então trate a gramática acima como uma restrição, não confiando em uma análise permissiva.
+Tudo a partir do primeiro `#` até o fim da linha é removido. Os espaços em branco restantes são normalizados. Aspas, caracteres de escape, parênteses, grupos aninhados e espaços em branco dentro de um único token de filtro não são aceitos. Tokens extras no fim da linha não são rejeitados; portanto, considere a sintaxe acima uma restrição, em vez de confiar na análise permissiva.
 
-Use um alvo de release por linha física e coloque-o ao final. CondinAPT extrai o alvo antes de avaliar alternativas de pacotes, então valores diferentes de `@release` não podem ser atribuídos a alternativas na mesma linha.
+Use um destino de lançamento por linha física e coloque-o no final. CondinAPT extrai o destino antes de avaliar as alternativas de pacotes; por isso, valores diferentes de `@release` não podem ser atribuídos a alternativas na mesma linha.
 
 ## Filtros
 
-Um filtro compara um valor de configuração usando igualdade exata de strings, sensível a maiúsculas e minúsculas. Se a variável mapeada for um array indexado, a igualdade com qualquer elemento do array é considerada válida. Arrays associativos não são conjuntos de associação.
+Um filtro compara um valor de configuração usando igualdade exata de strings, que diferencia maiúsculas de minúsculas. Se a variável mapeada for um array indexado, a igualdade com qualquer elemento do array é suficiente. Arrays associativos não são conjuntos de associação.
 
-| Forma | Efeito |
+| Formato | Efeito |
 | --- | --- |
-| `+x=value` | Inclui apenas quando `x` corresponde |
-| `-x=value` | Exclui quando `x` corresponde |
-| `+{a|b}` | Requer pelo menos um membro correspondente |
-| `+{a&b}` | Requer que todos os membros correspondam |
-| `-{a|b}` | Exclui quando qualquer membro corresponde |
-| `-{a&b}` | Exclui apenas quando todos os membros correspondem |
+| `+x=value` | Incluir somente quando `x` corresponder |
+| `-x=value` | Excluir quando `x` corresponder |
+| `+{a|b}` | Require at least one member to match |
+| `+{a&b}` | Exigir que todos os membros correspondam |
+| `-{a|b}` | Exclude when any member matches |
+| `-{a&b}` | Excluir somente quando todos os membros corresponderem |
 
 Filtros positivos simples repetidos com o mesmo prefixo são alternativas:
 
@@ -116,13 +116,13 @@ Filtros positivos simples repetidos com o mesmo prefixo são alternativas:
 audacity +pv=toolbox +pv=ultra
 ```
 
-Filtros positivos com prefixos diferentes devem passar todos. Cada filtro negativo simples é um veto independente:
+Todos os filtros positivos com prefixos diferentes devem ser aprovados. Cada filtro negativo simples funciona como um veto independente:
 
 ```text
 driver +da=amd64 -d=bookworm -d=bullseye
 ```
 
-Os membros de um grupo devem usar apenas um tipo de operador. Não misture `|` e `&` em um mesmo grupo; não há precedência ou aninhamento dentro dos grupos. Expresse "excluir Flux, ou mínimo Xfce" como dois filtros:
+Os membros de um grupo devem usar apenas um tipo de operador. Não misture `|` e `&` no mesmo grupo; não há precedência nem aninhamento dentro dos grupos. Expresse "excluir Flux ou exigir no mínimo Xfce" como dois filtros:
 
 ```text
 htop -de=flux -{pv=minimum&de=xfce}
@@ -130,7 +130,7 @@ htop -de=flux -{pv=minimum&de=xfce}
 
 ## Alternativas e conjunções
 
-`&&` tem precedência maior que `||`. CondinAPT divide as alternativas primeiro e depois avalia cada membro de uma conjunção, então:
+`&&` tem precedência maior que `||`. CondinAPT separa primeiro as alternativas e, em seguida, avalia todos os membros de uma conjunção. Portanto:
 
 ```text
 A || B && C
@@ -138,9 +138,9 @@ A || B && C
 
 significa `A || (B && C)`.
 
-CondinAPT seleciona a primeira alternativa cujos filtros e verificações de disponibilidade de pacotes passam todos. Se um membro de uma conjunção falhar, os pacotes já selecionados dessa conjunção são revertidos e a próxima alternativa é avaliada.
+CondinAPT seleciona a primeira alternativa cujos filtros e verificações de disponibilidade de pacotes são todos aprovados. Se um membro de uma conjunção falhar, os pacotes já selecionados para essa conjunção são revertidos e a próxima alternativa é avaliada.
 
-Esta é uma seleção prévia, não uma repetição de instalação ou transação. Se a verificação posterior de fila em `apt-get install` falhar para a alternativa escolhida, CondinAPT não retorna para um ramo posterior de `||`.
+Essa é uma seleção prévia, não uma nova tentativa de instalação nem uma transação. Se a etapa posterior de `apt-get install` na fila falhar para a alternativa escolhida, CondinAPT não volta para uma `||` alternativa posterior.
 
 Cada alternativa deve repetir seus próprios filtros:
 
@@ -150,32 +150,32 @@ firefox-esr +dp=debian || firefox +dp=ubuntu
 
 ## Pacotes obrigatórios
 
-`!` é reconhecido apenas no início da expressão física completa e se aplica a todas as suas alternativas:
+`!` é reconhecido apenas no início da expressão física completa e se aplica a todas as alternativas:
 
 ```text
 !preferred-package || fallback-package
 ```
 
-A expressão é fatal no modo normal apenas quando nenhuma alternativa tem sucesso e um pacote ativo ou versão estrita está indisponível. Filtros podem desabilitar uma linha obrigatória sem falha. Uma falha de instalação normal do APT aborta sua fila independentemente de `!`.
+A expressão só causa falha no modo normal quando nenhuma alternativa é válida e um pacote ativo ou uma versão estrita não está disponível. Os filtros podem desativar uma linha obrigatória sem causar falha. Uma falha normal de instalação do APT interrompe a fila, independentemente de `!`.
 
-Na simulação, um erro de disponibilidade obrigatória é relatado, mas não interrompe o processamento das filas; a simulação ainda termina com o status documentado diferente de zero.
+Na simulação, um erro de disponibilidade de pacote obrigatório é informado, mas não interrompe o processamento da fila; a simulação ainda termina com o status diferente de zero documentado.
 
 ## Versões
 
 | Sintaxe | Comportamento |
 | --- | --- |
-| `package=VERSION` | Prefere a versão exata; recorre a um candidato sem versão |
+| `package=VERSION` | Prefere a versão exata; recorre a uma versão candidata sem especificação de versão |
 | `package==VERSION` | Aceita apenas a versão exata do repositório |
 
-A disponibilidade exata é verificada contra o campo completo de versão de `apt-cache madison`. Se uma versão estrita não obrigatória estiver indisponível, essa condição falha; uma alternativa posterior em `||` ainda pode passar, caso contrário a linha é ignorada. Prefixe a expressão com `!` para tornar fatal a falha de disponibilidade ativa.
+A disponibilidade exata é comparada com o campo de versão completo de `apt-cache madison`. Se uma versão estrita não obrigatória não estiver disponível, essa condição falha; uma alternativa `||` posterior ainda pode ser válida; caso contrário, a linha é ignorada. Prefixe a expressão com `!` para que uma falha de disponibilidade ativa seja fatal.
 
-Quando CondinAPT instala a versão exata solicitada, ele agenda `apt-mark hold` após toda a fila do APT ser concluída com sucesso. Uma versão exata já instalada é considerada satisfeita e não é retida novamente. Falhas ao reter não são propagadas como status de saída do CondinAPT.
+Quando CondinAPT instala a versão exata solicitada, ele agenda `apt-mark hold` após o sucesso de toda a fila do APT. Uma versão exata já instalada é considerada satisfeita e não é marcada como retida novamente. Falhas ao marcar pacotes como retidos não são propagadas como status de saída do CondinAPT.
 
-Para um pacote instalado sem versão definida, CondinAPT compara a versão instalada com o candidato do repositório. Se houver diferença, o candidato é enfileirado novamente; o APT é chamado com `--allow-downgrades`.
+Para um pacote instalado sem versão especificada, CondinAPT compara a versão instalada com a versão candidata do repositório. Uma versão candidata diferente é enfileirada novamente; o APT é chamado com `--allow-downgrades`.
 
 ## Filas
 
-`---` encerra a fila normal atual. Cada pacote selecionado em uma fila é passado para uma chamada não interativa de `apt-get install` com `--force-confdef`, `--force-confold`, `--allow-downgrades` e `--no-install-suggests`.
+`---` encerra a fila normal atual. Todos os pacotes selecionados em uma fila são passados em uma única chamada não interativa de `apt-get install` com `--force-confdef`, `--force-confold`, `--allow-downgrades` e `--no-install-suggests`.
 
 ```text
 build-essential
@@ -184,32 +184,32 @@ pkg-config
 application
 ```
 
-Linhas direcionadas para releases são removidas do fluxo normal das filas e agrupadas globalmente por release. Linhas para o mesmo release são mescladas mesmo quando separadas por `---`.
+As linhas direcionadas a uma versão de destino são removidas do fluxo normal das filas e agrupadas globalmente por versão. As linhas para a mesma versão são combinadas mesmo quando separadas por `---`.
 A ordem efetiva de execução é:
 
-1. Fila de prioridade sem alvo.
-2. Filas de prioridade para release alvo.
-3. Filas normais na ordem do arquivo fonte.
-4. Demais filas de release alvo na ordem do primeiro release encontrado.
+1. Fila prioritária sem destino.
+2. Filas prioritárias para versões de destino.
+3. Filas normais na ordem de origem.
+4. Filas restantes para versões de destino, na ordem em que cada versão apareceu pela primeira vez.
 
-Assim, uma linha de alvo escrita entre duas linhas normais não forma uma barreira, e filas de alvo são executadas após todas as filas normais, a menos que sejam extraídas como prioridade.
+Assim, uma linha direcionada a uma versão de destino escrita entre duas linhas normais não cria uma barreira, e as filas direcionadas a versões de destino são processadas após todas as filas normais, a menos que sejam extraídas como trabalho prioritário.
 
-A verificação prévia de disponibilidade do repositório não é sensível ao alvo; apenas o `apt-get install` final recebe `-t RELEASE`. Verifique os pacotes direcionados em relação aos repositórios configurados.
+A verificação prévia de disponibilidade nos repositórios não considera a versão de destino; apenas a `apt-get install` recebe `-t RELEASE`. Verifique se os pacotes direcionados estão disponíveis nos repositórios configurados.
 
-## Lista de prioridade
+## Lista de prioridades
 
-`-P` lê uma expressão regular estendida do Bash por linha. Um padrão é comparado com o primeiro nome de pacote em cada expressão da lista de pacotes. Se houver correspondência, a expressão completa, incluindo filtros, alternativas, estado obrigatório e alvo de release, é movida para uma fila de prioridade.
+`-P` lê uma expressão regular estendida do Bash por linha. Um padrão é comparado com o primeiro nome de pacote em cada expressão de lista de pacotes. Se houver correspondência, a expressão completa, incluindo filtros, alternativas, estado obrigatório e versão de destino, é movida para uma fila prioritária.
 
 ```text
 ^dkms$
 ^linux-.*
 ```
 
-Os padrões não são ancorados, a menos que contenham âncoras. A correspondência com um pacote posterior `&&` ou `||` não faz nada; apenas o primeiro token de pacote é inspecionado. A extração de prioridade também mescla correspondências de filas normais separadas, portanto, não a utilize para entradas cuja separação original de `---` seja necessária para o encadeamento de dependências.
+Os padrões não são ancorados, a menos que contenham âncoras. Uma correspondência com um pacote `&&` ou `||` posterior não tem efeito; apenas o primeiro token de pacote é verificado. A extração prioritária também combina correspondências de filas normais separadas. Portanto, não a use para entradas que dependam dos limites originais de `---` para organizar dependências em etapas.
 
-Prioridade significa avaliação e instalação antecipadas, não instalação garantida. Filtros e verificações de disponibilidade ainda se aplicam.
+Prioridade significa avaliação e instalação antecipadas, não instalação garantida. Os filtros e as verificações de disponibilidade continuam sendo aplicados.
 
-## Modos de operação e status de saída
+## Modos de operação e código de saída
 
 ### Simulação
 
@@ -218,34 +218,34 @@ bash linux-live/condinapt \
   -l packages.list -c system.conf -m filters.map -s -v
 ```
 
-A simulação avalia filtros, versões, alternativas e filas, depois imprime os pacotes que seriam passados ao APT. Não garante que a instalação posterior terá sucesso. Uma simulação válida encerra intencionalmente com status `1`, mesmo quando a seleção de pacotes é bem-sucedida.
+A simulação avalia filtros, versões, alternativas e filas e, em seguida, exibe os pacotes que seriam passados para o APT. Ela não comprova que a instalação posterior seria bem-sucedida. Uma simulação válida termina intencionalmente com o status `1`, mesmo quando a seleção de pacotes é bem-sucedida.
 
-### Apenas verificação
+### Somente verificação
 
 ```bash
 bash linux-live/condinapt \
   -l packages.list -c system.conf -m filters.map -C
 ```
 
-Apenas verificação avalia filtros e operadores, mas verifica apenas se os nomes dos pacotes estão instalados via `dpkg-query`. Não valida versões solicitadas, candidatos de repositório ou alvos de release. Retorna `0` quando toda expressão ativa está satisfeita e `1` caso contrário.
+O modo somente verificação avalia filtros e operadores, mas verifica apenas se os nomes dos pacotes estão instalados por meio de `dpkg-query`. Ele não valida as versões solicitadas, os pacotes candidatos nos repositórios nem os destinos de lançamento. Retorna `0` quando todas as expressões ativas são atendidas e `1` caso contrário.
 
-O comando `sudo apt install ...` impresso é apenas um diagnóstico aproximado. Ele perde versões e alvos de release, pode incluir várias alternativas falhas e não garante a reprodução da expressão original.
+O comando `sudo apt install ...` exibido é um diagnóstico aproximado. Ele não mantém as versões nem os lançamentos de destino, pode incluir várias alternativas não atendidas e não há garantia de que reproduza a expressão original.
 
-### Resumo de status
+### Resumo dos status
 
 | Caso | Status |
 | --- | --- |
 | Ajuda | `0` |
 | Execução normal bem-sucedida | `0` |
-| Entrada inválida, falha de disponibilidade obrigatória ou falha na fila do APT | `1` |
+| Entrada inválida, falha na disponibilidade obrigatória ou falha na fila do APT | `1` |
 | Simulação válida | `1` |
-| Apenas verificação com pacotes ativos ausentes | `1` |
+| Somente verificação com pacotes ativos ausentes | `1` |
 
 ## Tratamento especial de pacotes
 
-A implementação possui um nome de pacote especial: `qemu-kvm`. Ele é aceito quando `apt-cache show qemu-kvm` o relata como puramente virtual. Outros pacotes virtuais não têm resolução genérica de provedor. Prefira alternativas de provedores explícitos quando a portabilidade for importante.
+A implementação tem um nome de pacote especial: `qemu-kvm`. Ele é aceito quando `apt-cache show qemu-kvm` informa que ele é puramente virtual. Outros pacotes virtuais não têm resolução genérica de provedores. Quando a portabilidade for importante, prefira alternativas explícitas de provedores.
 
-## Integração com MiniOS
+## MiniOS integração
 
 ### Invocação de módulo
 
@@ -258,6 +258,7 @@ set -o pipefail
 set -u
 
 . /minioslib || exit 1
+console_colors
 . /minios_build.conf || exit 1
 
 SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
@@ -268,37 +269,37 @@ SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
 ```
 
 Use `SCRIPT_DIR`; `$CWD` não faz parte do contrato de módulos comuns.
-`00-core` é um estágio especial de build anterior e invoca a cópia da árvore-fonte sob `/linux-live` em vez disso.
+`00-core` é uma etapa de compilação especial, executada antes, e invoca a cópia da árvore de código-fonte em `/linux-live` em vez disso.
 
-O construtor atual de módulos comuns copia automaticamente apenas um arquivo chamado `packages.list`. Módulos que utilizam nomes de arquivos de listas adicionais devem organizar essas entradas explicitamente; não assuma que todo arquivo ao lado de `install` estará presente na raiz do chroot.
+O compilador atual de módulos comuns copia automaticamente apenas um arquivo chamado `packages.list`. Módulos que usam nomes de arquivos de listas adicionais devem providenciar explicitamente essas entradas; não presuma que todos os arquivos junto de `install` aparecem na raiz do chroot.
 
 ### Mapa de filtros MiniOS
 
-Atualmente, `linux-live/condinapt.map` define:
+`linux-live/condinapt.map` define atualmente:
 
 | Prefixo | Variável | Significado |
 | --- | --- | --- |
 | `d` | `DISTRIBUTION` | Suite de destino |
 | `da` | `DISTRIBUTION_ARCH` | Arquitetura de destino |
-| `dp` | `DISTRIBUTION_PROFILE` | Família de pacotes `debian` ou `ubuntu` |
+| `dp` | `DISTRIBUTION_PROFILE` | `debian` ou `ubuntu`família de pacotes |
 | `is` | `INIT_SYSTEM` | Sistema init selecionado |
 | `de` | `DESKTOP_ENVIRONMENT` | Ambiente do módulo |
 | `pv` | `PACKAGE_VARIANT` | Variante do pacote |
-| `ik` | `INSTALL_KERNEL` | Alternância de instalação do kernel |
-| `kf` | `KERNEL_FLAVOUR` | Flavor do kernel |
+| `ik` | `INSTALL_KERNEL` | Alternância da instalação do kernel |
+| `kf` | `KERNEL_FLAVOUR` | Variante do kernel |
 | `kp` | `KERNEL_PROVIDER` | `distribution` ou `minios` |
-| `ks` | `KERNEL_SERIES` | Série real do kernel durante seleção DKMS em `01-kernel` |
-| `kc` | `KERNEL_CAPABILITIES` | Array de capacidades detectadas durante seleção DKMS em `01-kernel` |
-| `kbd` | `KERNEL_BUILD_DKMS` | Alternância de build DKMS |
+| `ks` | `KERNEL_SERIES` | Série real do kernel durante a `01-kernel` seleção do DKMS |
+| `kc` | `KERNEL_CAPABILITIES` | Matriz de recursos detectados durante a `01-kernel` seleção do DKMS |
+| `kbd` | `KERNEL_BUILD_DKMS` | Alternância da compilação do DKMS |
 | `ib` | `INITRAMFS_BUILDER` | Implementação do initramfs |
 | `lo` | `LOCALE` | Localidade do sistema |
-| `ml` | `MULTILINGUAL` | Alternância multilíngue |
-| `kl` | `KEEP_LOCALES` | Alternância de retenção de localidade |
+| `ml` | `MULTILINGUAL` | Alternância de vários idiomas |
+| `kl` | `KEEP_LOCALES` | Alternância da retenção de localidades |
 
-`ks` e `kc` são filtros especiais `01-kernel`. Quando a compilação DKMS está ativada, esse módulo detecta `KERNEL_SERIES` do kernel instalado e cria o array indexado `KERNEL_CAPABILITIES` em uma configuração temporária usada para seleção de pacotes DKMS. Eles não estão presentes em configurações de módulos comuns; usá-los nesses casos faz com que filtros positivos falhem e filtros negativos possam passar.
-`KERNEL_SERIES` não é a preferência `MINIOS_KERNEL_SERIES`. Capacidades detectadas atualmente incluem `aufs`, `ntfs3`, `btf_modules` e drivers in-tree suportados `rtw88_*`.
+`ks` e `kc` são filtros `01-kernel` especiais. Quando a compilação do DKMS está habilitada, esse módulo detecta `KERNEL_SERIES` do kernel instalado e cria a matriz indexada `KERNEL_CAPABILITIES` em uma configuração temporária usada para selecionar pacotes DKMS. Esses filtros não estão presentes nas configurações de módulos comuns; usá-los nesses casos faz com que os filtros positivos falhem e pode fazer com que os negativos sejam aprovados.
+`KERNEL_SERIES` não é a preferência `MINIOS_KERNEL_SERIES`. Os recursos detectados atualmente incluem `aufs`, `ntfs3`, `btf_modules` e drivers `rtw88_*` integrados ao kernel com suporte.
 
-Exemplos da lista de pacotes do kernel atual:
+Exemplos da lista atual de pacotes do kernel:
 
 ```text
 pahole +kc=btf_modules || dwarves +kc=btf_modules
@@ -319,12 +320,12 @@ bash linux-live/condinapt \
 rm -f "$tmp_list"
 ```
 
-Não utilize `/dev/stdin`; `-l` requer um arquivo regular.
+Não use `/dev/stdin`; `-l` requer um arquivo regular.
 
-- Se um filtro passar inesperadamente, verifique o mapeamento exato do prefixo, tipo de variável, maiúsculas/minúsculas e valor. Confira se há variável não definida ou digitada incorretamente.
-- Se um fallback não for selecionado, lembre-se de que o fallback ocorre durante a pré-seleção, não após uma falha de fila do APT.
-- Se um pacote direcionado falhar, inspecione as fontes configuradas e execute `apt-cache policy PACKAGE`; a pré-seleção não aplica `-t RELEASE`.
+- Se um filtro for aplicado inesperadamente, verifique o mapeamento exato do prefixo, o tipo da variável, as maiúsculas e minúsculas e o valor. Confira se a variável não está definida ou se o nome está escrito incorretamente.
+- Se um fallback não for selecionado, lembre-se de que ele ocorre durante a verificação prévia, e não após uma falha do APT na fila.
+- Se a instalação de um pacote específico falhar, inspecione as fontes configuradas e execute `apt-cache policy PACKAGE`; a verificação prévia não se aplica a `-t RELEASE`.
 - Se uma versão estrita for ignorada, compare o campo de versão exato com `apt-cache madison PACKAGE`.
-- Se a ordem das filas surpreender, leve em conta o agrupamento global de alvos e a extração de prioridade antes das filas normais.
+- Se a ordem da fila parecer inesperada, leve em conta o agrupamento global por destino e a extração de prioridades antes das filas normais.
 
-Para o fluxo de build mais amplo, veja [Building MiniOS](/development/Building-MiniOS).
+Para saber mais sobre o fluxo de trabalho de build, consulte [Building MiniOS](/development/Building-MiniOS).

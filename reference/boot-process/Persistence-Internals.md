@@ -1,5 +1,5 @@
 ---
-updated: 2026-10-06
+updated: 2026-10-15
 ---
 # Persistence internals
 
@@ -58,7 +58,7 @@ The selectors are not all equivalent:
 | `perchdir=ask` | Offers existing sessions when present; an incompatible existing session requires confirmation. If there is no default/session on the store, it switches to `setup` so the first session can be created interactively. |
 | `perchdir=NUMBER` | Uses that directory when it exists. If it does not exist, selection can fall back to the default recorded in metadata; it does not reserve the requested number. |
 
-Other recognized persistence parameters without a selector enter the same legacy resume path as bare `perch`: they request persistence, but do not enable automatic creation. If selection or activation cannot produce a usable upper, boot normally continues with the RAM upper and publishes a failure warning.
+Other recognized persistence parameters without a selector enter the same legacy resume path as bare `perch`: they request persistence, but do not enable automatic creation. `perchtoram` alone is not a persistence request. If selection or activation cannot produce a usable upper, boot normally continues with the RAM upper and publishes a failure warning.
 
 ## Session store and location
 
@@ -83,7 +83,15 @@ Missing legacy compatibility fields are not treated as mismatches.
 
 Literal `perchdir=resume` creates a new numbered session when its default is absent or when a recorded mode, version, edition, or union mismatch makes that default unsuitable. Bare `perch`, a direct numeric selection, and other legacy resume requests refuse automatic replacement and continue in RAM after a selection failure. `perchdir=ask` shows compatibility information and permits an explicit override. A new session defaults to `native` unless another mode was requested.
 
-The storage mode is part of compatibility. If selection reaches backend dispatch, an unknown requested mode falls back to `native`, whose probe may then select DynFileFS on unsuitable storage. An existing session with a different recorded mode can fail the earlier compatibility check instead; a legacy resume request then continues in RAM rather than reaching that fallback.
+The storage mode is part of compatibility. If selection reaches backend dispatch, an unknown requested mode falls back to `native`, whose probe may select DynBlk or DynFileFS on unsuitable storage. An existing session with a different recorded mode can fail the earlier compatibility check instead; a legacy resume request then continues in RAM rather than reaching that fallback.
+
+### Resetting an incompatible session
+
+Interactive selection offers **Reset, keep settings** and **Reset, keep data** in addition to returning to the list or explicitly continuing without a reset. Reset runs before union activation. It removes system program/library trees, system package-manager state, system-wide Flatpak/Snap software, and caches. Package file lists help identify installed software elsewhere; unlisted files are retained conservatively.
+
+Both modes retain `/home` and `/root`, including hidden configuration, caches, browser profiles, and home-installed programs. They also keep accounts, UID/GID mappings, passwords, SSH host keys, private TLS keys, and retained data outside home trees. The settings-preserving mode retains ordinary `/etc` and package configuration; the data-only mode resets those system settings while keeping personal configuration in home trees. This does not identify every program installed manually in arbitrary locations.
+
+A replacement upper is staged beside the original, requiring free space for a second retained-data copy. Failed copying or replacement rolls back; interrupted transactions are recovered on the next mount. SquashFS reset modifies only its reconstructed RAM upper: the old snapshot and compatibility metadata remain authoritative until a successful save of that reset upper. A native-session reset disables `perchtoram` for that boot to avoid replacing retained data with an empty RAM container. Automatic resume never resets a session silently.
 
 ## Space reserve and sizes
 
@@ -119,7 +127,7 @@ All successful backends must supply the writable upper expected by the selected 
 
 Native mode stores the writable union contents directly in the numbered session directory. There is no inner image, loop device, FUSE container, or separate block filesystem, so capacity simply follows free space on the backing filesystem and `perchsize` does not apply. This has the least container overhead and preserves ordinary file visibility for recovery and backup.
 
-MiniOS first excludes known non-POSIX filesystems such as FAT, exFAT, and NTFS. It then probes real filesystem behavior by creating a file and symlink and checking executable-mode changes. If the probe succeeds, the numbered session directory is bind-mounted directly as the writable area. If the filesystem is known to be unsuitable, or the POSIX probe fails, native mode falls back to DynFileFS. A failure after native activation is unwound; a new empty candidate is removed when it can be removed safely.
+MiniOS first excludes known non-POSIX filesystems such as FAT, exFAT, and NTFS. It then probes real filesystem behavior by creating a file and symlink and checking executable-mode changes. If the probe succeeds, the numbered session directory is bind-mounted directly as the writable area. On unsuitable storage or a failed probe, native creation prefers DynBlk when its CLI exists and Secure Boot permits it, otherwise DynFileFS. This initial fallback does not guarantee that the selected driver can attach or that every backing filesystem is supported. A failure after native activation is unwound; a new empty candidate is removed when it can be removed safely.
 
 The MiniOS LUKS2 persistence layer does not wrap native mode because native has no container or block-device boundary to encrypt. Native persistence can still reside on storage that is encrypted outside this persistence layer.
 
@@ -150,7 +158,7 @@ images. Its primary is `volume.vmdk`, with `volume-s001.vmdk` and subsequent
 parts; each part covers up to 2 GiB of logical space. The descriptor is limited
 to less than 1 MiB, so filename length and extent count restrict capacity.
 Session Manager, Installer and initramfs query `dynblk limits --format vmdk`.
-Native mode continues to use `volume000.db`; neither mode reinterprets the other's
+The native DynBlk format continues to use `volume000.db`; neither format reinterprets the other's
 files. Managed sessions do not import an arbitrary externally partitioned VMDK
 as session metadata.
 
@@ -163,6 +171,8 @@ their actual session mode and the owning `dynblk_device` in protected boot-state
 and both shutdown implementations close that device after its users exit.
 
 Both driver formats support `writeback`, `writethrough`, `none`, `directsync` and explicit `unsafe` attachment policies. Direct modes currently require ext2/ext4 underneath. `mount -t dynblk /path/to/image /mnt -o inner-fstype=ext4,cache=writeback` attaches an existing filesystem; `umount` releases the helper-owned device after its last user closes. Manual `dynblk load` has explicit lifetime. This does not create a filesystem or unlock LUKS.
+
+Tmpfs backing is supported for both formats with `writeback`, `writethrough`, and `unsafe`; direct-I/O modes are rejected rather than silently changed. Flush ordering does not make a tmpfs-backed session durable across shutdown. This support underlies DynBlk/VMDK RAM sessions, whose changes must be explicitly saved to the original store.
 
 ### Raw
 
@@ -208,6 +218,16 @@ If a persistence backend, metadata update, or this verification fails, its mount
 Container check failures deliberately avoid mounting a suspect session writable.
 Do not replace or reconstruct session files during boot. Preserve the affected storage first; see [Backing up MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS) and [Troubleshooting](/maintenance-and-recovery/Troubleshooting).
 
+## Ventoy Persistence Plugin
+
+A backend selected by Ventoy's Persistence Plugin bypasses numbered-session discovery. MiniOS resolves Ventoy's `vtoy_persistent` device mapping, requires an ext4 image mounted writable, and uses a `changes/` directory as the AUFS upper or `changes/` plus `workdir/` for OverlayFS. It does not create `minios/changes/`, `session.conf`, or numbered sessions inside that image. Persistence still requires a recognized persistence request; **Start without saving** stays temporary.
+
+The first use records the union format in `.minios-union`. A different union backend, missing device, wrong filesystem, unwritable image, or failed union activation produces a warning and a fresh RAM upper. It never substitutes another image merely because its filesystem has a matching label.
+
+`perchdir` session selection and `perchtoram` are ignored for a selected plugin image; changes remain on that image even with system `toram`. Session Manager and `minios-session` refuse operations, including custom session directories. Select a different image in Ventoy to change environments. Without a selected plugin backend, ordinary Ventoy boots use the normal MiniOS numbered-session model. See [Ventoy](/installing-minios/installation-tools/Ventoy).
+
+<a id="active-running-and-current-boot-state"></a>
+
 ## Active, running, and current-boot state
 
 In durable session metadata, `default=` is the **active** session selected for the next resume, while `running=` is the session recorded as supplying the current boot. Activation writes both fields and marks that session `dirty`.
@@ -215,7 +235,7 @@ After persistence mounts have disappeared during a clean shutdown, MiniOS remove
 
 Those metadata fields can be stale after a crash, failed metadata write, failed union construction, copied store, or interrupted shutdown. Runtime components that allow saving do not trust `running=` alone. They use the initrd's protected current-boot state, bound to the boot ID, numeric session, mode, actual store identity, writable status, durability, verified active generation, and, for DynBlk, the exact attached `/dev/dynblkN` device. A failed or missing current-boot record means persistence must not be treated as an approved save target.
 
-With `perchtoram=trim` or `full`, supported session containers are copied into a dedicated tmpfs before activation. The copied session can be writable and can supply the running upper, but protected current-boot state marks it non-durable and records a separate `ram-origin` identity for the original store. `trim` copies only the selected supported session and matching metadata; `full` copies every supported Raw, DynFileFS, DynBlk, VMDK, or SquashFS session in the store. Native directory sessions are excluded. Current Session Manager uses `ram-origin` to resolve the original store by filesystem UUID and can explicitly save the RAM-backed session back or as a new numbered session. Unsaved RAM changes are still lost when no successful write-back occurs.
+With `perchtoram=trim` or `full`, supported session containers are copied into a dedicated tmpfs before activation. The copy is admitted only when both available memory and tmpfs free space cover the backing-file lengths plus a reserve; a failed copy retains on-storage operation with a warning. The copied session can supply the writable upper, but protected current-boot state marks it non-durable and records a separate `ram-origin` identity for the original store. `trim` copies only the selected supported session and matching metadata; `full` copies every supported Raw, DynFileFS, DynBlk, VMDK, or SquashFS session in the store. Native directory data is not copied: a successful native RAM request starts a new empty DynBlk or DynFileFS container, except during a reset, which disables copying. Current Session Manager resolves the original store by filesystem UUID and can explicitly save the RAM-backed session back or as a new numbered session. Unsaved RAM changes are lost when no successful write-back occurs.
 
 For related operational guidance, see [Boot modes](/using-minios/Boot-Modes), [Boot parameters](/reference/Boot-Parameters), [Sessions and persistence](/using-minios/Sessions-and-Persistence), [Backing up MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS), [Security](/maintenance-and-recovery/Security), and [Troubleshooting](/maintenance-and-recovery/Troubleshooting).
 

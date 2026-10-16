@@ -4,29 +4,29 @@ updated: 2026-08-26
 
 # dd
 
-`dd` est un utilitaire en ligne de commande polyvalent permettant de copier les données bit à bit entre des fichiers et des périphériques. Il est le plus souvent utilisé pour écrire des images ISO sur des clés USB, créer des sauvegardes et effectuer de la récupération de données.
+`dd` est un utilitaire polyvalent en ligne de commande permettant de copier des données bit à bit entre des fichiers et des périphériques. Il sert le plus souvent à écrire des images ISO sur des clés USB, à créer des sauvegardes et à récupérer des données.
 
 ## Important
 
-**Avertissement :** Une mauvaise sélection du périphérique entraînera une perte de données ! Vérifiez toujours attentivement le lecteur sélectionné et sauvegardez vos données importantes.
+**Avertissement :** Une sélection incorrecte du périphérique entraînera une perte de données ! Vérifiez toujours deux fois le lecteur sélectionné et sauvegardez vos données importantes.
 
-## Exigences relatives au lecteur
+## Configuration requise pour le lecteur
 
 ### Taille du lecteur
 
-Consultez le [Guide de compatibilité matérielle](/getting-started/Hardware-Compatibility) pour connaître les exigences système détaillées et les tailles de lecteurs recommandées.
+Consultez [le guide de compatibilité matérielle](/getting-started/Hardware-Compatibility) pour connaître les exigences système et les tailles de lecteur requises.
 
 ## Préparation
 
-1. Identifiez votre clé USB :
+1. Identifier votre clé USB :
    - **Linux :** `lsblk` ou `sudo fdisk -l`
    - **macOS :** `diskutil list`
 
-2. Démontez le lecteur :
+2. Démonter le lecteur :
    - **Linux :** `sudo umount /dev/sdX*`
    - **macOS :** `sudo diskutil unmountDisk /dev/diskX`
 
-## Création d'une clé USB amorçable
+## Créer une clé USB bootable
 
 **Linux :**
 ```bash
@@ -39,11 +39,11 @@ sudo dd if=MiniOS.iso of=/dev/diskX bs=4m
 ```
 
 **Remplacez :**
-- `MiniOS.iso` - chemin vers votre fichier ISO
-- `/dev/sdX` - votre clé USB (par exemple `/dev/sdb`)
+- `MiniOS.iso` - le chemin d’accès à votre fichier ISO
+- `/dev/sdX` - votre clé USB (par exemple, `/dev/sdb`)
 
 ## Résultat et persistance
 
-`dd` effectue une écriture brute de l’image : il copie la structure ISO sur l’ensemble du périphérique cible. Il ne crée pas de partition ext4 dans l’espace inutilisé, ne crée pas de session de persistance, et n’effectue pas de déploiement du Programme d’installation MiniOS.
+`dd` effectue une écriture brute de l’image : la disposition de l’ISO est copiée sur l’ensemble du périphérique cible. Cela ne crée pas de partition ext4 dans l’espace inutilisé, ne crée pas de session de persistance et ne permet pas de lancer le Programme d’installation MiniOS.
 
-La persistance n’est activée que lorsqu’une entrée de démarrage ou une ligne de commande du noyau la demande, et elle nécessite toujours un support d’écriture adapté. Consultez [Modes de démarrage](/using-minios/Boot-Modes) et [Persistance Initrd](/reference/boot-process/Persistence-Internals) avant de compter sur la sauvegarde des modifications.
+La persistance n’est activée que si une entrée de démarrage ou une ligne de commande du noyau la demande, et elle nécessite toujours un espace de stockage inscriptible adapté. Consultez [Modes de démarrage](/using-minios/Boot-Modes) et [Persistance de l’initrd](/reference/boot-process/Persistence-Internals) avant de compter sur l’enregistrement des modifications.

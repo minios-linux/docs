@@ -1,7 +1,7 @@
 ---
-updated: 2026-10-06
+updated: 2026-10-15
 program_commits:
-    minios-configurator: 4d82e44c6ee6f04909e9dd3ef8e31389d3ac8817
+    minios-configurator: 7705e764f152d2d2ae2268ce3ddde7e0adbad8bc
 ---
 
 # Preconfigurando MiniOS
@@ -46,13 +46,13 @@ El archivo seleccionado sigue siendo el destino al guardar. Los parámetros del 
 
 Cada control indica cuándo se utiliza. Guardar nunca aplica un ajuste a la sesión actual.
 
-### Aplicados tras reiniciar
+### Aplicado después de reiniciar
 
-El nombre de host, el idioma, la zona horaria, el teclado, el destino de arranque, la selección de servicios, el modo de módulos, el manejo de medios de directorios de usuario, los ajustes de depuración, la exportación de registros y las tres opciones avanzadas de almacenamiento se leen en un arranque posterior. Reinicia después de guardar para aplicarlos.
+El nombre de host, la configuración regional, la zona horaria, el teclado, el objetivo de arranque, la selección de servicios, el modo de módulo, el manejo de medios en el directorio de usuario, la configuración de depuración, la exportación de registros y las tres opciones avanzadas de almacenamiento se leen en un arranque posterior. Reinicie después de guardar para aplicarlas.
 
-En **Avanzado**, **Modo de módulos** acepta `simple` o `merged`. Si `LIVE_MODULE_MODE` no está presente en la configuración seleccionada, el Configurador de MiniOS muestra `merged` como valor predeterminado efectivo. En modo combinado, live-config actualiza usuarios, cachés y estado de paquetes para que la configuración de la pila de módulos se integre en el sistema en vivo en ejecución.
+En **Avanzado**, **Modo de módulo** acepta `simple` o `merged`. Cuando `LIVE_MODULE_MODE` no está presente en la configuración seleccionada, el Configurador de MiniOS muestra `merged` como valor predeterminado efectivo. En modo combinado, live-config actualiza usuarios, cachés y el estado de los paquetes para que la configuración de la pila de módulos se integre en el sistema en vivo en ejecución.
 
-En **Avanzado**, **Almacenamiento de registros del sistema**, **Caché de descargas de APT**, y **Caché del navegador** ofrecen `persistent` (predeterminado) o `volatile`. Sus opciones de `volatile` solo se aplican a una sesión saludable y duradera de `perch`. Los registros de `minios-boot` y `live-config` permanecen persistentes incluso si los registros normales son temporales. El estado de los paquetes APT y los perfiles del navegador siguen siendo persistentes; solo los registros y cachés seleccionados se trasladan a RAM con límite. La configuración del navegador se aplica después de crear el usuario en vivo. El configurador avisa si el initrd en ejecución no tiene el marcador `perch-storage-v1` necesario para estos ajustes. Consulta [Rendimiento](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch) antes de elegir tamaños de RAM para una máquina con poca memoria.
+En **Avanzado**, **Almacenamiento de registros del sistema**, **Caché de descargas de APT**, y **Caché del navegador** ofrecen cada uno `persistent` (predeterminado) o `volatile`. Se aplican después de activar la persistencia correctamente, incluyendo una sesión copiada en RAM con información de origen protegida. Con persistencia duradera, los diagnósticos de arranque de MiniOS, el estado de los paquetes APT y los perfiles del navegador permanecen en el almacenamiento; solo los registros y cachés seleccionados se mueven a RAM con límite. En una sesión copiada en RAM, el estado retenido aún requiere un guardado exitoso en el almacenamiento. Las cachés de APT y del navegador RAM requieren al menos 1 GiB disponible y que no haya swap fuera de zRAM. La configuración del navegador se ejecuta después de crear el usuario. El Configurador advierte si el initrd no contiene el marcador requerido `perch-storage-v1` . Consulte [Rendimiento](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch) para conocer los límites fijos de RAM.
 
 ### Solo se usan para una nueva sesión
 
@@ -62,9 +62,9 @@ Los perfiles de seguridad son preajustes del editor. El nombre del perfil no se 
 
 ## Directorios de usuario y persistencia
 
-El enlace y el montaje bind de directorios de usuario son excluyentes. Ambos utilizan un medio de datos local MiniOS existente y escribible, y una ruta segura relativa al medio. No están disponibles con `toram`, `toram=full`, o `toram=trim`, y MiniOS no fusiona automáticamente dos árboles de directorios ya poblados.
+El enlace y el montaje bind de directorios de usuario son opciones excluyentes. Ambos utilizan un medio de datos local existente, grabable, MiniOS y una ruta segura relativa al medio. No están disponibles con `toram`, `toram=full`, o `toram=trim`, ni mientras la sesión de persistencia activa esté cifrada con LUKS. La función de copia inversa también se bloquea en una sesión cifrada. MiniOS no fusiona automáticamente dos árboles de directorios ya poblados.
 
-`perchmode` y `perchsize` son parámetros de arranque de initramfs, no opciones del Configurador de MiniOS. Los nuevos controles de almacenamiento de caché/registros no seleccionan ni crean una sesión de `perch`. El Configurador de MiniOS no crea, desbloquea, redimensiona ni repara un contenedor de persistencia. Para la persistencia cifrada, informa si el marcador de cifrado de initramfs está presente.
+`perchmode` y `perchsize` son parámetros de arranque de initramfs, no configuraciones del Configurador de MiniOS. Los nuevos controles de almacenamiento de caché y registro no seleccionan ni crean una `perch` sesión. El Configurador de MiniOS no crea, desbloquea, redimensiona ni repara un contenedor de persistencia. Para la persistencia cifrada, informa si el marcador de cifrado de initramfs está presente.
 
 ## Comportamiento al guardar
 

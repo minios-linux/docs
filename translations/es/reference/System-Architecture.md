@@ -1,5 +1,5 @@
 ---
-updated: 2026-10-06
+updated: 2026-10-15
 ---
 
 # Arquitectura del sistema
@@ -16,20 +16,20 @@ Tras el descubrimiento, MiniOS puede preparar opcionalmente una copia RAM. Si la
 
 ## Composición de módulos
 
-Cada `.sb` archivo es un sistema de archivos SquashFS de solo lectura. Los módulos integrados se almacenan directamente en `minios/`; ubicaciones adicionales de módulos pueden contribuir a la composición ordenada. El initramfs selecciona, ordena y monta las capas resultantes de solo lectura. Los niveles candidatos, reemplazo de nombre base, filtros, extensiones personalizadas de paquetes y la coordinación con el kernel en ejecución se definen en [Carga de módulos Initrd](/reference/boot-process/Module-Loading).
+Cada `.sb` archivo es un sistema de archivos SquashFS de solo lectura. Los módulos integrados se almacenan directamente en `minios/`; se pueden añadir ubicaciones de módulos adicionales para contribuir a la composición ordenada. El initramfs selecciona, ordena y monta las capas resultantes de solo lectura. Los niveles candidatos, el reemplazo de basename, los filtros, las extensiones personalizadas de bundles y la coordinación con el kernel en ejecución se definen en [Carga de módulos Initrd](/reference/boot-process/Module-Loading).
 
 Una imagen típica de Xfce contiene los siguientes roles ordenados, aunque los nombres y cantidades exactos dependen de la compilación y de los módulos omitidos para ese destino:
 
 ```text
 00-core-<arch>.sb
-01-kernel-<version>-<arch>.sb
+01-kernel-<version>.sb
 02-firmware-<arch>.sb
 03-gui-base-<arch>.sb
 04-xfce-desktop-<arch>.sb
 05-apps-<arch>.sb or the next applicable module
 ```
 
-Los módulos posteriores tienen mayor precedencia y pueden reemplazar rutas proporcionadas por módulos anteriores. Un módulo puede depender de archivos en cualquier módulo de número inferior, por lo que un conjunto de archivos de módulos es una composición ordenada y no solo una colección de paquetes independientes.
+Los módulos posteriores tienen mayor prioridad y pueden reemplazar rutas proporcionadas por módulos anteriores. Un módulo puede depender de archivos en cualquier módulo con un número menor, por lo que el conjunto de archivos de módulos constituye una composición ordenada y no solo un conjunto de paquetes independientes.
 
 ## AUFS y OverlayFS
 
@@ -46,20 +46,20 @@ Una vez ensamblada la raíz y completada la configuración inicial, el initrd de
 
 ## Capa editable y sesiones
 
-Sin persistencia, la capa editable se almacena en memoria y desaparece al apagar el sistema. La persistencia puede activar una sesión numerada con un backend de almacenamiento compatible. La selección, compatibilidad, fallos de activación, autoridad del arranque actual y durabilidad se definen en [Persistencia de Initrd](/reference/boot-process/Persistence-Internals).
+Sin persistencia, la capa editable se almacena en memoria y desaparece al apagar el sistema. Al activar la persistencia, se puede iniciar una sesión numerada con un backend de almacenamiento compatible. Con un backend seleccionado del complemento de persistencia Ventoy, MiniOS utiliza un entorno persistente ext4 directo en lugar de sesiones numeradas. La selección, compatibilidad, fallos de activación, autoridad en el arranque actual y durabilidad se definen en [Persistencia en initrd](/reference/boot-process/Persistence-Internals).
 
 | Modo | Almacenamiento editable | Notas |
 |------|------------------|-------|
-| `native` | Archivos almacenados directamente en el directorio de la sesión | Requiere un sistema de archivos POSIX editable que preserve los metadatos de Linux. |
+| `native` | Archivos almacenados directamente en el directorio de la sesión | Requiere un sistema de archivos POSIX editable que conserve los metadatos de Linux. |
 | `dynfilefs` | Sistema de archivos ext4 expandible dividido en archivos de respaldo | Compatible con sistemas de archivos POSIX y medios FAT32, NTFS o exFAT. |
-| `dynblk` | Sistema de archivos ext4 ligero sobre un dispositivo de bloque del kernel respaldado por `volumeNNN.db` archivos | Requiere la capacidad de userspace, kernel e initrd de DynBlk. |
-| `vmdk` | Almacenamiento disperso dividido `volume.vmdk` / `volume-sNNN.vmdk` expuesto como dispositivo de bloque por el controlador DynBlk | Requiere la capacidad de `vmdk-session-v1` DynBlk/initrd; sin compresión de backend. |
+| `dynblk` | Sistema de archivos ext4 ligero en un dispositivo de bloques del kernel respaldado por `volumeNNN.db` archivos | Requiere la capacidad de userspace, kernel e initrd de DynBlk. |
+| `vmdk` | Almacenamiento dividido y disperso en `volume.vmdk` / `volume-sNNN.vmdk` expuesto como dispositivo de bloques por el controlador DynBlk | Requiere la capacidad de `vmdk-session-v1` DynBlk/initrd; sin compresión en el backend. |
 | `raw` | Archivo de tamaño fijo `changes.img` con ext4 | Compatible con sistemas de archivos POSIX y medios FAT32, NTFS o exFAT. |
-| `squashfs` | Instantánea comprimida `changes.sb` | Se desempaqueta en RAM para su uso; al guardar, se reconstruye y reemplaza atómicamente la instantánea. El sistema de archivos de persistencia debe preservar los metadatos de Linux durante el guardado. |
+| `squashfs` | Instantánea comprimida de `changes.sb` | Se desempaqueta en RAM para su uso; al guardar, se reconstruye y reemplaza atómicamente la instantánea. El sistema de archivos de persistencia debe conservar los metadatos de Linux durante el guardado. |
 
-Los formatos raw, DynFileFS, DynBlk y VMDK pueden llevar opcionalmente una capa LUKS2. Los metadatos registran el backend de almacenamiento y el cifrado por separado. Al apagar, se liberan ext4, el mapper, cualquier loop propio y el backend en orden de dependencia.
+Los formatos raw, DynFileFS, DynBlk y VMDK pueden incluir opcionalmente una capa LUKS2. Los metadatos registran por separado el backend de almacenamiento y el cifrado. Al apagar, se liberan ext4, el mapeador, cualquier loop asignado y el backend en orden de dependencia.
 
-La sesión activa seleccionada para una reanudación futura y la capa editable realmente autorizada para el arranque actual son estados relacionados pero distintos. Cambiar la selección futura no reemplaza la capa editable en ejecución.
+La sesión activa seleccionada para una futura reanudación y la capa editable realmente autorizada para el arranque actual son estados relacionados pero distintos. Cambiar la selección futura no reemplaza la capa editable en ejecución.
 
 Consulte [Gestión de sesiones](/using-minios/Sessions-and-Persistence) para los comandos de creación, selección, dimensionamiento, cifrado, conversión, exportación y recuperación.
 
@@ -89,7 +89,7 @@ Una imagen actual se organiza de la siguiente manera. Los directorios opcionales
 |-- EFI/                           UEFI boot files
 `-- minios/
     |-- 00-core-<arch>.sb          base userspace
-    |-- 01-kernel-<version>-<arch>.sb
+    |-- 01-kernel-<version>.sb
     |-- 02-firmware-<arch>.sb
     |-- NN-<name>-<arch>.sb        ordered system modules
     |-- boot/                      kernels, initramfs, GRUB, and Syslinux data
@@ -102,7 +102,7 @@ Una imagen actual se organiza de la siguiente manera. Los directorios opcionales
     `-- log/                       optional exported boot logs
 ```
 
-Las rutas arrancadas bajo `/run/initramfs/memory/` son montajes de implementación, no una segunda copia persistente de este árbol.
+Las rutas arrancadas bajo `/run/initramfs/memory/` son puntos de montaje de implementación, no una segunda copia persistente de este árbol.
 
 ## Documentación relacionada
 

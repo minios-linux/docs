@@ -1,5 +1,5 @@
 ---
-updated: 2026-10-06
+updated: 2026-10-15
 ---
 
 # Respaldo de MiniOS
@@ -20,22 +20,22 @@ Los archivos almacenados fuera de la capa de sesión, por ejemplo en una ubicaci
 
 ## Exportar sesiones persistentes
 
-El Gestor de sesiones de MiniOS puede exportar una sesión **inactiva** `native`, `dynfilefs`, `dynblk`, `vmdk`, o `raw` sesión, incluidas las formas cifradas compatibles con LUKS2, a un `.tar.zst` archivo verificado. Primero identifica la sesión:
+El Gestor de sesiones de MiniOS puede exportar una sesión**inactiva** `native`, `dynfilefs`, `dynblk`, `vmdk`, o `raw` incluyendo las formas compatibles cifradas con LUKS2, a un `.tar.zst`archivo verificado. Primero identifique la sesión:
 
 ```bash
-minios-session list
-minios-session running
+sudo minios-session list
+sudo minios-session running
 ```
 
-Luego inicia otra sesión o **Iniciar sin guardar** y exporta la sesión inactiva:
+Luego inicie otra sesión o **Iniciar sin guardar** y exporte la sesión inactiva:
 
 ```bash
 sudo minios-session export <id> /path/to/session.tar.zst
 ```
 
-La exportación es una copia lógica del contenido de la sesión, no una copia bit a bit de su contenedor de almacenamiento. Guárdala en otro dispositivo.
+La exportación es una copia lógica del contenido de la sesión, no una copia exacta byte a byte de su contenedor de almacenamiento. Guárdela en otro dispositivo.
 
-Para una sesión cuyo backend Raw, DynFileFS, DynBlk o VMDK esté envuelto en LUKS2, el archivo contiene los archivos lógicos ya descifrados. Protege el archivo por separado si los datos deben permanecer cifrados.
+Para una sesión cuyo backend Raw, DynFileFS, DynBlk o VMDK esté protegido con LUKS2, el archivo contendrá los archivos lógicos ya descifrados. Proteja el archivo por separado si los datos deben permanecer cifrados.
 
 ### Sesiones SquashFS
 
@@ -43,32 +43,38 @@ El Gestor de sesiones actual no exporta ni copia sesiones SquashFS. Utiliza **Gu
 
 No confíes en copiar manualmente el directorio de una sesión montada ni en reconstruir `session.conf`, los segmentos DynFileFS, los archivos de respaldo DynBlk u otros metadatos del contenedor como método de copia de seguridad. Un respaldo manual bit a bit de DynBlk es seguro solo si el volumen está desmontado y debe conservar todas las partes existentes,`volume*.db` incluidas las numeraciones de cuatro o más dígitos, exactamente como están; se prefiere la copia lógica`minios-session export`.
 
-## Respalda configuración y módulos
+## Imágenes de persistencia y sesiones RAM y Ventoy
 
-En medios MiniOS con escritura, conserva `minios/config.conf`, `minios/config.conf.d/`, y los módulos creados por el usuario almacenados en `minios/modules/`.
-También anota los parámetros personalizados de arranque o cambios en el menú de arranque que no sean evidentes en esos archivos.
+Antes de hacer una copia de seguridad del almacenamiento utilizado por una `perchtoram` sesión, guarda explícitamente el estado de RAM en su almacenamiento original o como una nueva sesión. De lo contrario, una copia sin conexión del medio original solo contendrá el último estado guardado. Para guardar, se requiere el medio original con permisos de escritura y su identidad registrada; consulta [Sesiones y persistencia](/using-minios/Sessions-and-Persistence).
 
-Un módulo compilado para una versión de MiniOS no es automáticamente válido para otra.
-Guarda el código fuente o la receta necesaria para reconstruir los módulos personalizados importantes.
+Un backend de Plugin de Persistencia Ventoy seleccionado es un único entorno ext4, no una sesión numerada MiniOS, y no puede exportarse mediante el Gestor de Sesiones. Apágalo correctamente antes de copiar la imagen completa del backend desde otro sistema; también conserva su configuración Ventoy. Mantén copias de seguridad separadas de tus archivos personales importantes.
 
-## Crear una imagen de dispositivo completo
+## Respalda la configuración y los módulos
 
-Una imagen de dispositivo completo es útil cuando deseas conservar la tabla de particiones, archivos de arranque, módulos, configuración, sesiones y otros datos juntos. Créala en modo offline: apaga MiniOS e imagen el dispositivo desde otro sistema en ejecución.
+En medios MiniOS regrabables, guarda `minios/config.conf`, `minios/config.conf.d/`, y los módulos creados por el usuario almacenados en `minios/modules/`.
+También registra los parámetros personalizados de arranque o los cambios en el menú de arranque que no sean evidentes en esos archivos.
 
-[Utilidad de disco](/installing-minios/installation-tools/Drive-Utility) ofrece las operaciones **Crear imagen** y **Escribir imagen**. Guarda la imagen en un dispositivo físico diferente. Restaurar una imagen de dispositivo completo sobrescribe el destino seleccionado, así que verifica el modelo y la capacidad antes de escribir.
+Un módulo creado para una versión de MiniOS no es automáticamente compatible con otra.
+Conserva el código fuente o la receta necesaria para reconstruir los módulos personalizados importantes.
 
-Una imagen de dispositivo es un complemento, no un sustituto, de una copia de seguridad independiente de tus archivos personales importantes.
+## Crear una imagen de todo el dispositivo
+
+Una imagen de todo el dispositivo es útil cuando deseas conservar la tabla de particiones, archivos de arranque, módulos, configuración, sesiones y otros datos juntos. Créala en modo offline: apaga MiniOS e imagen el dispositivo desde otro sistema en funcionamiento.
+
+[Utilidad de disco](/installing-minios/installation-tools/Drive-Utility) ofrece las operaciones de **Crear imagen** y **Escribir imagen**. Guarda la imagen en un dispositivo físico diferente. Restaurar una imagen de todo el dispositivo sobrescribe el destino seleccionado, así que verifica el modelo y la capacidad antes de escribir.
+
+Una imagen de dispositivo complementa, pero no reemplaza, una copia de seguridad independiente de tus archivos personales importantes.
 
 ## Restaurar un archivo de sesión
 
-Importar un archivo del Gestor de sesiones crea una nueva sesión numerada; no sobrescribe la existente:
+Importar un archivo de Session Manager crea una nueva sesión numerada; no sobrescribe la existente:
 
 ```bash
 sudo minios-session import /path/to/session.tar.zst --auto-convert
 ```
 
-Durante la importación se realizan comprobaciones de compatibilidad. Revisa la sesión importada antes de activarla y conserva la sesión que sabes que funciona hasta que hayas probado la copia restaurada.
+Durante la importación se realizan comprobaciones de compatibilidad. Revisa la sesión importada antes de activarla y conserva la sesión que ya funciona correctamente hasta que hayas probado la copia restaurada.
 
-Al migrar a otra versión de MiniOS, es preferible migrar solo los datos personales y la configuración seleccionados. No asumas que una sesión completa antigua o un módulo personalizado serán compatibles con la nueva versión solo porque puedan copiarse allí.
+Al cambiar a otra versión de MiniOS, es preferible migrar solo los datos personales y la configuración seleccionados. No asumas que una sesión completa antigua o un módulo personalizado serán compatibles con la nueva versión solo porque se puedan copiar allí.
 
-Consulta [Sesiones y persistencia](/using-minios/Sessions-and-Persistence) para la gestión de sesiones y [Actualización de MiniOS](/maintenance-and-recovery/Updating-MiniOS) para moverse entre versiones de MiniOS.
+Consulta [Sesiones y persistencia](/using-minios/Sessions-and-Persistence) para la gestión de sesiones y [Actualización de MiniOS](/maintenance-and-recovery/Updating-MiniOS) para cambiar entre versiones de MiniOS.

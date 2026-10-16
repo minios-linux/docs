@@ -1,74 +1,74 @@
 ---
-updated: 2026-10-06
+updated: 2026-10-15
 program_commits:
-    minios-store: eec5785dd7eb547961c2799f1907496a33be2e8c
+    minios-store: c3d0d31db7966cd7809f0f4ba1ca642133c8f07a
 ---
 
 # Menginstal perangkat lunak
 
-Toko Aplikasi MiniOS menyediakan katalog resep aplikasi di [store.minios.dev](https://store.minios.dev). Pada lingkungan live MiniOS, resep-resep tersebut dapat langsung diinstal ke sistem yang sedang berjalan atau digunakan untuk membangun satu atau beberapa SquashFS (`.sb`) modul.
+Toko Aplikasi MiniOS menyediakan katalog resep aplikasi di [store.minios.dev](https://store.minios.dev). Di lingkungan live MiniOS, resep tersebut dapat langsung diinstal ke sistem yang sedang berjalan atau digunakan untuk membuat satu atau beberapa modul SquashFS (`.sb`)
 
-Halaman ini menjelaskan alur kerja perangkat lunak live MiniOS. Instalasi native akan mempertahankan desktop dan aplikasi pilihan Anda, namun menghapus perangkat lunak khusus MiniOS yang ditujukan untuk operasi live. Gunakan alur kerja manajemen paket Debian seperti biasa pada sistem yang sudah terinstal.
+Halaman ini menjelaskan alur kerja perangkat lunak live MiniOS. Instalasi native mempertahankan desktop dan aplikasi biasa yang dipilih, tetapi menghapus perangkat lunak khusus MiniOS yang ditujukan untuk operasi live. Sebagai gantinya, gunakan alur pengelolaan paket Debian biasa pada sistem yang telah diinstal tersebut.
 
-Menjelajah katalog tidak memerlukan server lokal. Instalasi memerlukan: antarmuka web akan terhubung ke daemon Toko Aplikasi MiniOS lokal atau membuka `minios-store://` penangan URI yang sudah terpasang.
+Menjelajahi katalog tidak memerlukan server lokal. Namun, untuk menginstal diperlukan server: antarmuka web akan terhubung ke daemon Toko Aplikasi MiniOS lokal atau membuka `minios-store://` handler URI yang terinstal.
 
 ## Sebelum menginstal
 
-Buka detail aplikasi dan tinjau informasi berikut sebelum menambahkannya ke keranjang:
+Buka detail aplikasi dan periksa informasi berikut sebelum menambahkannya ke keranjang:
 
 - Nama paket dan metode instalasi.
-- Skrip instalasi, jika tersedia.
-- Halaman utama aplikasi dan informasi pengembang.
-- Tangkapan layar dan artwork aplikasi, jika tersedia. Ini adalah metadata presentasi, bukan bukti bahwa resep tersebut dapat dipercaya.
-- Apakah resep akan mengunduh paket Debian terpisah.
-- Lisensi perangkat lunak tambahan yang ditampilkan oleh resep. Resep yang menandai persyaratan persetujuan lisensi tidak dapat diinstal sebelum Anda menyetujui lisensi tersebut secara eksplisit.
+- Skrip instalasi, jika ditampilkan.
+- Beranda aplikasi dan informasi pengembang.
+- Screenshot dan artwork aplikasi, jika tersedia. Ini adalah metadata tampilan, bukan bukti bahwa resep tepercaya.
+- Apakah resep mengunduh paket Debian terpisah.
+- Lisensi perangkat lunak tambahan yang ditampilkan oleh resep. Resep yang memerlukan persetujuan tidak dapat diinstal sampai Anda menyetujui lisensi tersebut secara eksplisit.
 
-Resep dapat menginstal paket APT, mengunduh paket Debian, atau menjalankan skrip shell. Proses instalasi berjalan dengan hak akses root. Perlakukan resep dan setiap unduhan atau repository yang digunakan sebagai kode yang memiliki hak istimewa.
+Resep dapat menginstal paket APT, mengunduh paket Debian, atau menjalankan skrip shell. Operasi instalasi berjalan dengan hak akses root. Perlakukan resep serta setiap unduhan atau repositori yang digunakannya sebagai kode dengan hak istimewa.
 
-## Instal aplikasi
+## Menginstal aplikasi
 
 1. Buka Toko Aplikasi MiniOS dari menu aplikasi. Peluncur akan memeriksa `https://store.minios.dev` dan membukanya di browser default.
-2. Cari atau jelajahi berdasarkan kategori, buka detail aplikasi, dan periksa paket atau skripnya.
+2. Cari atau telusuri berdasarkan kategori, buka detail aplikasi, lalu periksa paket atau skripnya.
 3. Tambahkan satu atau beberapa aplikasi ke keranjang.
-4. Pada sesi live MiniOS, pilih `Module` atau `System`.
-5. Pada mode modul, pilih level build bila diperlukan. **Default resep** mempertahankan level yang dikonfigurasi pada setiap resep; **Otomatis** menggunakan semua modul yang sedang dimuat sebagai basis build dan menghasilkan nama modul tanpa nomor; level numerik dari `01` hingga `09` hanya menggunakan modul yang dimuat hingga level tersebut. Sebaiknya gunakan Default resep kecuali Anda memang perlu menghindari dependensi pada lapisan opsional yang lebih tinggi.
-6. Untuk beberapa aplikasi pada mode modul, pilih satu modul gabungan atau modul terpisah. Modul gabungan juga dapat diberi nama khusus.
-7. Setujui lisensi resep yang memang memerlukan persetujuan secara eksplisit.
-8. Pilih `Install` dan ikuti proses serta keluaran perintahnya. Halaman ini menggunakan daemon lokal jika statusnya `Connected`; jika tidak, akan mencoba menggunakan penangan URI dan mungkin menampilkan permintaan autentikasi PolicyKit.
+4. Dalam sesi live MiniOS, pilih `Module` atau `System`.
+5. Dalam mode modul, pilih tingkat build jika diperlukan. **Default resep** mempertahankan tingkat yang dikonfigurasi untuk setiap resep; **Otomatis** menggunakan semua modul yang sedang dimuat sebagai basis build dan menghasilkan nama modul tanpa nomor; tingkat numerik dari `01` hingga `09` hanya menggunakan modul yang dimuat sampai tingkat tersebut. Sebaiknya gunakan Default resep, kecuali jika Anda memang perlu menghindari dependensi pada lapisan opsional yang lebih tinggi.
+6. Untuk beberapa aplikasi dalam mode modul, pilih satu modul gabungan atau modul terpisah. Anda juga dapat memberi nama khusus pada modul gabungan.
+7. Setujui lisensi resep yang secara eksplisit memerlukan persetujuan.
+8. Pilih `Install` lalu ikuti progres dan output perintah. Halaman ini menggunakan daemon lokal jika statusnya `Connected`; jika tidak, halaman akan mencoba handler URI dan mungkin menampilkan permintaan autentikasi PolicyKit.
 
-Hanya satu batch instalasi daemon yang dapat berjalan dalam satu waktu. Menutup dialog progres tidak selalu menghentikan instalasi daemon; buka kembali indikator instalasi untuk melihat atau membatalkannya secara eksplisit.
+Hanya satu batch instalasi daemon yang dapat berjalan pada satu waktu. Menutup dialog progres belum tentu menghentikan instalasi daemon; buka kembali indikator instalasi untuk melihatnya atau membatalkannya secara eksplisit.
 
 ## Mode modul dan sistem
 
-### Mode modul
+### Mode Modul
 
-Mode modul menjalankan `apt2sb` atau `script2sb` pada lingkungan pembuatan modul yang terisolasi. Hasilnya akan ditulis ke file `.sb` di lokasi yang dapat ditulis pertama berikut:
+Mode Modul menjalankan `apt2sb` atau `script2sb` dalam lingkungan pembuatan modul yang terisolasi. File `.sb` yang dihasilkan ditulis ke lokasi pertama yang dapat ditulisi di bawah ini:
 
 1. `/run/initramfs/memory/data/minios/modules`
 2. `/var/lib/minios-store/modules`
 
-Path pertama adalah direktori modul pada media boot MiniOS saat ini. Modul yang dibuat di sana tidak akan diaktifkan pada sesi saat ini oleh Toko Aplikasi MiniOS. Biarkan modul di direktori tersebut dan reboot untuk memuatnya pada boot berikutnya. Hasil hanya akan tersedia jika media boot yang digunakan dapat ditulis dan file tetap ada.
+Path pertama adalah direktori modul pada pohon data MiniOS yang aktif. Dalam proses boot normal yang dapat ditulisi, lokasinya ada di penyimpanan, tetapi setelah sistem `toram` disalin, lokasinya bisa menggunakan RAM sebagai backing; Store memeriksa apakah lokasi dapat ditulisi, bukan apakah datanya tahan lama. Modul yang dibuat tidak diaktifkan pada sesi saat ini. Modul akan dimuat saat boot berikutnya hanya jika disalin ke penyimpanan permanen `minios/modules/` dan diizinkan oleh filter boot. Gunakan opsi **Tambahkan ke Boot Berikutnya** atau `sudo sb next-boot add /path/to/module.sb` jika tersedia penyimpanan permanen yang sesuai.
 
-Path kedua adalah fallback yang digunakan jika direktori modul utama tidak dapat ditulis. Modul di direktori fallback tidak otomatis menjadi bagian dari live boot berikutnya. Gunakan `Open folder`, lalu salin modul yang sudah selesai ke direktori `minios/modules` pada media boot MiniOS yang dapat ditulis sebelum reboot.
+Path kedua adalah lokasi cadangan yang digunakan saat direktori modul biasa tidak dapat ditulisi. Modul di direktori cadangan tidak otomatis disertakan pada boot aktif berikutnya. Gunakan `Open folder`, lalu salin modul yang sudah selesai ke direktori `minios/modules` pada media boot MiniOS yang dapat ditulisi sebelum melakukan boot ulang.
 
-Modul gabungan berisi semua resep yang dipilih. Jika dikemas terpisah, kegagalan pada salah satu resep hanya memengaruhi resep tersebut, sedangkan modul yang sudah selesai sebelumnya tetap ada di direktori target.
+Modul gabungan berisi semua resep yang dipilih. Dengan pengemasan terpisah, kegagalan dapat memengaruhi satu resep, sementara modul yang selesai lebih dulu dalam batch tetap berada di direktori tujuan.
 
-### Mode sistem
+### Mode Sistem
 
-Mode sistem menggunakan APT atau skrip resep secara langsung pada root filesystem yang sedang berjalan. Perubahan langsung berlaku pada sistem live saat ini, bukan menghasilkan modul. Apakah perubahan tersebut bertahan setelah reboot tergantung pada konfigurasi persistensi sesi.
+Mode Sistem menggunakan APT atau skrip resep secara langsung pada root filesystem yang sedang berjalan. Perubahan langsung berlaku pada sistem aktif saat ini, bukan menghasilkan modul. Apakah perubahan tersebut tetap ada setelah boot ulang bergantung pada konfigurasi persistensi sesi.
 
-Mode sistem tidak bersifat transaksional. Operasi yang gagal atau dibatalkan dapat meninggalkan paket, status repository, atau file yang sudah diubah oleh perintah sebelumnya.
+Mode Sistem tidak bersifat transaksional. Operasi yang gagal atau dibatalkan dapat meninggalkan perubahan pada paket, status repositori, atau file akibat perintah yang dijalankan sebelumnya.
 
 ## Layanan lokal dan batas kepercayaan
 
-Layanan `minios-store` berjalan sebagai root karena proses pembuatan modul dan instalasi paket langsung memerlukan operasi mount, overlay, chroot, APT, dan dpkg. Secara default, layanan ini hanya mendengarkan di `ws://127.0.0.1:8765`. Antarmuka web yang dihosting akan mengirimkan data resep lengkap, termasuk skrip dan URL unduhan, ke layanan lokal ini.
+Layanan `minios-store` berjalan sebagai root karena pembuatan modul dan instalasi paket langsung memerlukan operasi mount, overlay, chroot, APT, dan dpkg. Secara default, layanan ini hanya mendengarkan di `ws://127.0.0.1:8765`. Antarmuka web yang di-host mengirimkan data resep lengkap, termasuk skrip dan URL unduhan, ke layanan lokal ini.
 
-Daemon memvalidasi bentuk permintaan dan metode instalasi yang didukung, namun tidak melakukan autentikasi atau penandatanganan payload resep secara independen. Halaman yang dapat mengakses endpoint WebSocket lokal dapat meminta pekerjaan instalasi dengan hak istimewa. Oleh karena itu:
+Daemon memvalidasi struktur permintaan dan metode instalasi yang didukung, tetapi tidak mengautentikasi atau menandatangani payload resep secara mandiri. Halaman yang dapat mengakses endpoint WebSocket lokal bisa meminta operasi instalasi dengan hak istimewa. Karena itu:
 
-- Biarkan daemon terikat pada `127.0.0.1` saja. Jangan buka port `8765` ke LAN atau internet.
-- Jangan atur `MINIOS_STORE_HOST` ke alamat non-loopback kecuali ada batas keamanan tambahan yang sudah ditinjau.
-- Akses Toko Aplikasi MiniOS hanya melalui situs resmi HTTPS dan periksa resep sebelum instalasi.
-- Hentikan atau nonaktifkan layanan jika instalasi berbasis browser tidak diperlukan.
+- Pastikan daemon hanya terikat ke `127.0.0.1`. Jangan buka port `8765` ke LAN atau internet.
+- Jangan atur `MINIOS_STORE_HOST` ke alamat non-loopback kecuali ada batas keamanan tambahan yang telah ditinjau.
+- Akses Toko Aplikasi MiniOS hanya melalui situs web HTTPS resminya, dan periksa resep sebelum instalasi.
+- Hentikan atau nonaktifkan layanan jika instalasi melalui browser tidak diperlukan.
 
 Kelola layanan systemd dengan:
 
@@ -80,24 +80,24 @@ sudo systemctl enable minios-store
 sudo systemctl disable minios-store
 ```
 
-Penangan URI merupakan jalur terpisah. Penangan ini akan menjalankan installer GTK melalui PolicyKit dan tidak memerlukan daemon WebSocket. Tautan Store saat ini menyertakan payload resep yang sudah dienkode lengkap sehingga resep APT, skrip, dan unduhan-DEB dapat menggunakan jalur fallback yang sama; persetujuan lisensi eksplisit dikirim terpisah dan divalidasi ulang oleh installer lokal. Format lama `recipes=id:level:compression` tetap menjadi fallback kompatibilitas dan diinterpretasikan sebagai resep APT. Installer akan berjalan setelah otorisasi, jadi periksa permintaan browser sebelum menyetujui permintaan autentikasi.
+Handler URI menggunakan jalur terpisah. Handler ini menjalankan installer GTK melalui PolicyKit dan tidak memerlukan daemon WebSocket. Tautan Store saat ini menyertakan payload resep berkode lengkap sehingga resep APT, skrip, dan DEB yang diunduh dapat menggunakan jalur alternatif yang sama; persetujuan lisensi eksplisit disertakan secara terpisah dan divalidasi ulang oleh installer lokal. Format lama `recipes=id:level:compression` tetap tersedia sebagai jalur alternatif untuk kompatibilitas dan ditafsirkan sebagai resep APT. Installer berjalan setelah otorisasi, jadi periksa permintaan browser sebelum menyetujui permintaan autentikasi.
 
 ## Pembatalan
 
-Pilih `Cancel` di dialog progres web atau `Cancel installation` di installer GTK. Pembatalan akan menandai batch sebagai dibatalkan dan menghentikan proses anak yang sedang berjalan. Resep yang tersisa tidak akan dijalankan.
+Pilih `Cancel` pada dialog progres web atau `Cancel installation` pada installer GTK. Pembatalan menandai batch sebagai dibatalkan dan menghentikan proses anak yang sedang dilacak. Resep yang tersisa tidak akan dijalankan.
 
-Pembatalan bukanlah rollback. Paket atau modul yang sudah selesai sebelumnya tetap ada, dan perintah yang terputus saat proses APT, dpkg, skrip, unduhan, atau pembuatan modul dapat meninggalkan status sebagian atau file output yang tidak lengkap. Setelah membatalkan:
+Pembatalan bukanlah rollback. Paket atau modul yang selesai lebih dulu akan tetap ada, dan perintah yang dihentikan saat APT, dpkg, skrip, unduhan, atau pembuatan modul berjalan mungkin meninggalkan status parsial atau file output yang tidak lengkap. Setelah membatalkan:
 
 1. Baca log instalasi akhir.
-2. Periksa direktori modul target untuk file yang tidak terduga atau berukuran nol.
-3. Untuk mode sistem, jalankan `sudo dpkg --audit` dan perbaiki konfigurasi paket jika diperlukan.
-4. Hapus hanya artefak yang telah Anda identifikasi sebagai milik operasi yang dibatalkan.
+2. Periksa direktori modul tujuan untuk mencari file yang tidak terduga atau berukuran nol.
+3. Untuk mode sistem, jalankan `sudo dpkg --audit` dan perbaiki konfigurasi paket jika perlu.
+4. Hapus hanya artefak yang telah Anda pastikan berasal dari operasi yang dibatalkan.
 
-## Pemecahan masalah
+## Pemecahan Masalah
 
 ### Toko Aplikasi MiniOS sedang offline
 
-Periksa akses jaringan ke `https://store.minios.dev`. Status `Offline` juga berarti browser tidak terhubung ke daemon WebSocket lokal; instalasi masih dapat dilakukan melalui penangan URI jika `minios-store-gui` sudah terpasang.
+Periksa akses jaringan ke `https://store.minios.dev`. Status `Offline` juga berarti browser tidak terhubung ke daemon WebSocket lokal; instalasi mungkin tetap dapat dilanjutkan melalui URI handler jika `minios-store-gui` terpasang.
 
 ### Browser tidak dapat terhubung ke daemon
 
@@ -108,23 +108,23 @@ sudo systemctl status minios-store
 sudo journalctl -u minios-store
 ```
 
-Endpoint normal adalah `ws://127.0.0.1:8765`. Konflik port, layanan yang berhenti, tidak adanya `python3-websockets`, atau pembatasan browser dapat mencegah koneksi. Merestart browser tidak memperbaiki daemon yang berhenti.
+Endpoint yang biasanya digunakan adalah `ws://127.0.0.1:8765`. Konflik port, layanan yang berhenti, `python3-websockets` yang tidak tersedia, atau pembatasan browser dapat menghalangi koneksi. Memulai ulang browser tidak akan memperbaiki daemon yang berhenti.
 
 ### Autentikasi gagal atau tidak ada prompt yang muncul
 
-Installer URI memerlukan PolicyKit, `pkexec`, dan agen autentikasi desktop yang aktif. Jalankan installer dari sesi grafis yang aktif dan pastikan bahwa `minios-store-gui` sudah terpasang. Jangan mengakali prompt dengan membuka daemon root ke jaringan.
+Penginstal URI memerlukan PolicyKit, `pkexec`, dan agen autentikasi desktop yang aktif. Jalankan penginstal dari sesi grafis yang aktif dan pastikan `minios-store-gui` terpasang. Jangan mengakali prompt dengan mengekspos daemon root ke jaringan.
 
 ### Pembuatan modul gagal
 
-Perluas log instalasi dan gunakan pesan error perintah terakhir, bukan hanya ringkasannya. Penyebab umum meliputi paket yang tidak tersedia, kegagalan repository atau DNS, ruang kosong tidak cukup, alat kompresi yang tidak didukung, dan direktori modul hanya-baca. Daemon akan melaporkan jika telah beralih ke `/var/lib/minios-store/modules`.
+Perluas log instalasi dan periksa error perintah terakhir, bukan hanya ringkasannya. Penyebab umum meliputi paket yang tidak tersedia, masalah repositori atau DNS, ruang kosong yang tidak mencukupi, alat kompresi yang tidak didukung, dan direktori modul yang bersifat hanya-baca. Daemon akan memberi tahu jika telah beralih ke `/var/lib/minios-store/modules`.
 
-### Aplikasi tidak muncul setelah instalasi
+### Aplikasi tidak ada setelah instalasi
 
-Untuk mode modul, reboot setelah memastikan bahwa file `.sb` ada di direktori `minios/modules` pada media boot. File yang tertinggal di direktori fallback tidak akan dimuat secara otomatis. Untuk mode sistem pada sesi live, pastikan sesi bersifat persisten jika aplikasi hilang setelah reboot.
+Untuk mode modul, lakukan boot ulang setelah memastikan bahwa file `.sb` berada di direktori `minios/modules` pada media boot. File yang tersimpan di direktori fallback tidak akan dimuat secara otomatis. Untuk mode sistem pada sesi live, pastikan sesi tersebut persisten jika aplikasi hilang setelah boot ulang.
 
-### Instalasi sistem yang dibatalkan membuat dpkg belum selesai
+### Instalasi sistem yang dibatalkan menyebabkan dpkg tidak selesai
 
-Periksa status paket sebelum mencoba ulang:
+Periksa status paket sebelum mencoba lagi:
 
 ```bash
 sudo dpkg --audit
@@ -132,7 +132,7 @@ sudo dpkg --configure -a
 sudo apt-get -f install
 ```
 
-Tinjau perubahan APT yang diusulkan sebelum mengonfirmasi operasi perbaikan tambahan apa pun.
+Tinjau perubahan APT yang diusulkan sebelum mengonfirmasi operasi perbaikan tambahan.
 
 ## Dokumentasi terkait
 

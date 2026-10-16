@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-28
+updated: 2026-10-15
 ---
 
 # Modul-Ladevorgang
@@ -16,39 +16,41 @@ Die Parameter `load=` und `noload=` filtern Modulpfade vor der Zusammenstellung.
 
 ## Parameter erklärt
 
-| Parameter | Was es MiniOS mitteilt | Hauptrisiko |
+| Parameter | Was es über MiniOS aussagt | Haupt­risiko |
 |---|---|---|
-| `load=PATTERN` | Nur Modulkandidaten behalten, deren Pfade dem Muster entsprechen. | Ein unvollständiges Muster kann benötigte Module ausschließen. |
-| `noload=PATTERN` | Passende Kandidaten nach Anwendung von `load=` ausschließen. | Benötigte Kern-, Kernel-, Firmware- oder Desktop-Module können beim Start fehlen. |
-| `bext=EXTENSION` | Eine weitere Dateiendung als Modulkandidatensuffix behandeln. | Wandelt keine Dateien um und koordiniert Kernel-Module nicht vollständig. |
-| `union=aufs` oder `union=overlayfs` | Das Dateisystem anfordern, das zur Kombination der Module mit der schreibbaren Ebene verwendet wird. | Die Laufzeitaktivierung von Modulen unterscheidet sich zwischen AUFS und OverlayFS. |
-| `toram=trim` | Nur ausgewählte Module und begrenzte erforderliche Daten nach RAM kopieren. | Ausgelassene Module und Verzeichnisse stehen nach der Trennung der Quelle nicht mehr zur Verfügung. |
+| `load=PATTERN` | Nur Modul-Kandidaten behalten, deren Pfade dem Muster entsprechen. | Ein unvollständiges Muster kann erforderliche Module ausschließen. |
+| `noload=PATTERN` | Passende Kandidaten werden nach `load=` ausgeschlossen. | Erforderliche Core-, Kernel-, Firmware- oder Desktop-Module könnten beim Systemstart fehlen. |
+| `bext=EXTENSION` | Eine weitere Dateinamenerweiterung als Modul-Kandidatensuffix behandeln. | Dateien werden nicht konvertiert und Kernel-Module nicht vollständig koordiniert. |
+| `union=aufs` oder `union=overlayfs` | Das Dateisystem anfordern, das zur Kombination der Module mit der beschreibbaren Ebene verwendet wird. | Die Aktivierung von Modulen zur Laufzeit unterscheidet sich zwischen AUFS und OverlayFS. |
+| `toram=trim` | Nur ausgewählte Module und begrenzte erforderliche Daten nach RAM kopieren. | Ausgelassene Module und Verzeichnisse stehen nach dem Trennen der Quelle nicht mehr zur Verfügung. |
 
-Bevor Sie Filter ändern, notieren Sie die aktuelle Befehlszeile und das Modulpaket. Testen Sie immer nur eine Änderung und halten Sie einen bekannten, funktionierenden Boot-Eintrag bereit.
+Bevor Sie Filter ändern, speichern Sie die aktuelle Befehlszeile und die Modulliste. Testen Sie jeweils nur eine Änderung und halten Sie einen funktionierenden Boot-Eintrag bereit.
 
-## Kandidaten-Tiers
+<a id="candidate-tiers"></a>
 
-Nachdem das MiniOS-Datenverzeichnis gefunden wurde, wird normalerweise `minios/` die Initrd-Umgebung die Modulkandidaten in folgender Reihenfolge durchsuchen:
+## Kandidaten-Stufen
 
-1. Einträge direkt im Verzeichnis `minios/`. Dieser Scan ist nicht rekursiv.
-2. Einträge rekursiv unterhalb von `minios/modules/`.
-3. Einträge rekursiv unterhalb von `minios/modules/` auf der von Initrd erkannten beschreibbaren Persistenzquelle.
+Nachdem das MiniOS Datenverzeichnis gefunden wurde, wird normalerweise `minios/`, vom initrd ein optionaler externer MiniOS-Baum erkannt, bevor RAM kopiert oder eine Sitzung aktiviert wird. Eine Persistenz-Partition auf demselben Laufwerk oder ein beschreibbares Ventoy Datenlayout kann diesen Baum auch bei einem Start ohne gespeicherte Sitzung bereitstellen. Das gewählte Ventoy Persistence Plugin-Backend ist ein separates Modell und stellt diesen externen Modulbaum nicht bereit.
 
-Die dritte Stufe ist getrennt vom Verzeichnis `minios/modules/` im ausgewählten schreibgeschützten Datenbaum. Sie ermöglicht es, dauerhafte Benutzermodule zu verwenden, um Dateien von einem ISO-Image oder einer anderen schreibgeschützten Quelle zu überschreiben. Diese Option steht nur zur Verfügung, wenn die Persistenz-Erkennung ein beschreibbares Root mit diesem Verzeichnis bereitgestellt hat.
+Kandidaten bilden zwei Gruppen:
 
-Kandidatenpfade werden beim Einbinden auf ihren exakten Basenamen reduziert. Zum Beispiel verwenden `modules/work/50-extra.sb` und `modules/test/50-extra.sb` beide den Mountpoint mit dem Namen `50-extra.sb`. Sie werden nicht zu zwei unabhängig adressierbaren Layern. Ein Kandidat in einer späteren Stufe mit demselben Basenamen wird auf demselben Mountpoint eingebunden und ersetzt den vorherigen Kandidaten, der für die Union-Assembly sichtbar war.
-Der gleiche Basename sollte daher als ein Ersetzungs-Slot betrachtet werden und nicht als Möglichkeit, mehrere Module aus verschiedenen Verzeichnissen zu laden.
+1. Modulnamen auf oberster Ebene aus dem gewählten Datenbaum und dem externen `minios/`-Baum, sortiert und nach relativen Namen zusammengefasst.
+2. Dateien und symbolische Links rekursiv unterhalb von `modules/` in beiden Bäumen, sortiert und nach relativem Pfad zusammengefasst.
 
-Das übliche Modulformat ist ein reguläres SquashFS-Dateisystem-Image. Der Initrd-Scan selbst ist dateinamenbasiert: Es werden Pfade mit der konfigurierten Dateiendung ausgewählt, ohne vorher zu prüfen, ob es sich um eine reguläre Datei oder ein gültiges SquashFS handelt. Bei rekursiven Scans kann daher auch ein anderes Dateisystemobjekt mit passendem Namen gefunden werden. Ein fehlgeschlagener Loop- oder SquashFS-Mount wird von `mount` gemeldet, aber der betreffende Kandidat führt nicht automatisch zu einem kritischen Fehler, sodass der Bootvorgang mit einer fehlenden Schicht fortgesetzt werden kann. Überprüfen Sie fragwürdige Dateien mit dem Ablauf in [Module inspizieren und extrahieren](/preparing-and-customizing/Managing-Modules#inspect-and-extract-modules).
+Für denselben relativen Pfad hat eine externe reguläre Datei Vorrang vor der ISO oder einer anderen gewählten Quelle. Dies gilt sowohl für ersetzende Systemmodule als auch für zusätzliche Module. Filter werden auf die zusammengeführten relativen Pfade angewendet, bevor gemountet oder ein gekürztes RAM kopiert wird. Das Wurzelverzeichnis der Persistenzpartition bleibt vom nummerierten Sitzungs-Store getrennt.
+
+Mountpunkte werden weiterhin auf exakte Basisnamen reduziert. Zum Beispiel `modules/work/50-extra.sb` und `modules/test/50-extra.sb` verweisen beide auf `50-extra.sb`; sie sind keine unabhängigen Union-Layer. Verwenden Sie unterschiedliche Basisnamen, sofern kein exakter Pfadersatz beabsichtigt ist. Verlassen Sie sich nicht auf doppelte Basisnamen in verschiedenen Verzeichnissen als Ersatzmechanismus.
+
+Das übliche Modulformat ist ein SquashFS-Dateisystem-Image. Ein passender Dateiname bestätigt nicht den Inhalt. Rekursive Scans berücksichtigen Dateien und symbolische Links, während der Scan auf oberster Ebene weiterhin dateinamenbasiert bleibt. Das Nicht-Binden eines externen Ersatzes oder das Nicht-Mounten eines gewählten Moduls führt nun zum fatalen initramfs-Pfad, anstatt diese Ebene stillschweigend zu überspringen. Überprüfen Sie fragliche Dateien mit [Module inspizieren und extrahieren](/preparing-and-customizing/Managing-Modules#inspect-and-extract-modules).
 
 ## Reihenfolge und Priorität
 
-Innerhalb der Erkennung werden Pfade numerisch nach Basename sortiert. Die führende Zahl in Namen wie `00-core.sb`, `01-kernel-VERSION.sb` und `50-extra.sb` bestimmt die Modulreihenfolge. Ein Basename ohne führende Zahl wird numerisch als Null eingeordnet.
-Verwenden Sie explizite, unterschiedliche numerische Präfixe anstatt sich auf die Sortierung bei Gleichstand zu verlassen.
+Beim Discovery-Prozess werden Pfade numerisch nach ihrem Basename sortiert. Die führende Zahl in Namen wie `00-core.sb`, `01-kernel-VERSION.sb` und `50-extra.sb` gibt die Modulreihenfolge an. Ein Basename ohne führende Zahl wird numerisch wie Null einsortiert.
+Verwenden Sie eindeutige, explizite Zahlenpräfixe, anstatt sich auf die Reihenfolge bei Gleichstand zu verlassen.
 
-Die finale Union gibt späteren, höher nummerierten Modulen Vorrang vor früheren, niedriger nummerierten Modulen. Wenn zwei ausgewählte Module denselben root-relativen Pfad enthalten, ist die Datei aus dem Modul mit der höheren Priorität sichtbar. Die schreibbare Änderungsebene hat Vorrang vor allen schreibgeschützten Modulen.
+Im finalen Union haben später geladene, höher nummerierte Module Vorrang vor früheren, niedriger nummerierten Modulen. Wenn zwei ausgewählte Module denselben pfadrelativen Ursprung enthalten, ist die Datei aus dem Modul mit höherer Priorität sichtbar. Die beschreibbare Änderungsschicht hat Vorrang vor allen schreibgeschützten Modulen.
 
-Der Ebenenersatz erfolgt vor dieser effektiven Modulreihenfolge. Ein `50-extra.sb` aus einer späteren Ebene ersetzt eine Datei aus einer früheren Ebene mit genau diesem Basenamen, dann bestimmt sein `50`-Präfix, wo dieser verbleibende Mount in die Union gehört.
+Ein externer Ersatz nach relativem Pfad erfolgt vor dieser effektiven Modulreihenfolge. Ein Ersatz `modules/50-extra.sb` belegt denselben ausgewählten Slot wie die Quelldatei, und sein `50` Präfix bestimmt seine Priorität im Union.
 
 ## Bundle-Erweiterung
 
@@ -62,8 +64,8 @@ Das Ändern von `bext` ändert nur das gewählte Dateisuffix; es konvertiert kei
 
 ## Load- und Noload-Filter
 
-`load=` und `noload=` sind nicht verankerte, erweiterte reguläre Ausdrücke, die auf die von jeder Ebene erzeugten Kandidatenpfad-Strings angewendet werden. Es handelt sich nicht um exakte Namenslisten. Ein einfacher Wert wie `kernel` passt an jeder Stelle im Pfad, während Anker explizit angegeben werden müssen, wenn eine genaue Position erforderlich ist.
-Pfade unterscheiden sich je nach Ebene: Top-Level-Kandidaten sind Basenames, rekursive Datenkandidaten enthalten `modules/`, und Persistenzkandidaten sind absolute Pfade.
+`load=` und `noload=` sind nicht verankerte, erweiterte reguläre Ausdrücke, die auf die von jeder Stufe erzeugten Kandidaten-Pfadzeichenfolgen angewendet werden. Es handelt sich nicht um exakte Namenslisten. Ein einfacher Wert wie `kernel` trifft diesen Text an beliebiger Stelle in einem Pfad; Soll eine genaue Position gefordert werden, müssen Anker explizit angegeben werden.
+Bei Top-Level-Kandidaten handelt es sich um Dateinamen, rekursive Kandidaten umfassen `modules/`. Externe Kandidaten verwenden ebenfalls die relative Pfadangabe, nicht absolute Persistenz-Mount-Pfade.
 
 Kommas werden in reguläre Ausdrucks-Alternativen umgewandelt. Zum Beispiel:
 
@@ -71,15 +73,15 @@ Kommas werden in reguläre Ausdrucks-Alternativen umgewandelt. Zum Beispiel:
 load=core,kernel,firmware
 ```
 
-wird als `core|kernel|firmware` ausgewertet. Andere reguläre Ausdruckszeichen werden nicht maskiert.
+wird ausgewertet als `core|kernel|firmware`. Andere Zeichen regulärer Ausdrücke werden nicht maskiert.
 
-Ein numerischer Bereich wird nur dann erweitert, wenn der gesamte Filter ein aufsteigender Bereich ist, der `^[0-9]+-[0-9]+$` entspricht. Zum Beispiel wird aus `load=04-06` die Alternative `04|05|06`, wobei jeder erzeugte Wert auf mindestens zwei Ziffern aufgefüllt wird. Ein Bereich, der in einer Kommaliste oder einem anderen Ausdruck eingebettet ist, wird nicht erweitert und behält seine normale ERE-Bedeutung.
+Ein numerischer Bereich wird nur dann erweitert, wenn der gesamte Filter ein aufsteigender Bereich ist, der `^[0-9]+-[0-9]+$` entspricht. Zum Beispiel wird `load=04-06` zu den Alternativen `04|05|06`, wobei jeder generierte Wert mindestens zweistellig aufgefüllt wird. Ein Bereich, der in einer Kommaliste oder einem anderen Ausdruck eingebettet ist, wird nicht erweitert und behält seine normale ERE-Bedeutung.
 
-Wenn beide Parameter vorhanden sind, wendet das initrd zuerst `load=` an und entfernt dann Übereinstimmungen mit `noload=`. Somit gewinnt `noload=`. Es gibt kein geschütztes Kern- oder Kernelmodul-Set: Filter können `00-core`, das koordinierte `01-kernel` oder jeden anderen Kandidaten ausschließen. Eine solche Auswahl kann ein unvollständiges Root erzeugen oder den Bootvorgang verhindern.
+Wenn beide Parameter vorhanden sind, wendet das initrd zuerst `load=` an und entfernt anschließend Treffer mit `noload=`. Somit hat `noload=` Vorrang. Es gibt keinen geschützten Kern- oder Kernelmodul-Satz: Filter können `00-core`, das koordinierte `01-kernel` oder jeden anderen Kandidaten ausschließen. Eine solche Auswahl kann zu einer unvollständigen Root führen oder den Systemstart verhindern.
 
-## Laufende Kernel-Koordination
+## Koordination des laufenden Kernels
 
-Die laufende Kernel-Version wird von einem `vmlinuz-VERSION`-Token auf der Kernel-Befehlszeile übernommen, sofern verfügbar, mit `uname -r` als Fallback. Vor dem Mounten der Module koordiniert das initrd dieses Top-Level-Triplet:
+Die aktuell laufende Kernel-Version wird, sofern verfügbar, über ein `vmlinuz-VERSION`-Token auf der Kernel-Befehlszeile übernommen; andernfalls wird `uname -r` als Fallback verwendet. Bevor Module eingebunden werden, koordiniert das initrd dieses Top-Level-Triplet:
 
 ```text
 minios/01-kernel-VERSION.sb
@@ -87,15 +89,17 @@ minios/boot/vmlinuz-VERSION
 minios/boot/initrfs-VERSION.img
 ```
 
-Fehlt ein Mitglied, sucht das initrd nach allen drei Dateien in:
+Fehlt ein Element, sucht das initrd nach allen drei Dateien in:
 
 ```text
 minios/kernels/VERSION/
 ```
 
-Wenn das Repository-Triplet vollständig ist, kopiert es das Modul nach `minios/` und die Bootdateien nach `minios/boot/`. Ein teilweiser Kopiervorgang wird bereinigt. Ist das Triplet nicht vollständig, gibt die Kernel-Einrichtung einen Fehler zurück, aber der Aufrufer fährt mit der normalen Modul-Mount-Phase fort. Das resultierende System kann später dennoch fehlschlagen, weil dem Root-Dateisystem die Support-Dateien für den laufenden Kernel fehlen.
+Sobald das Repository-Triplet vollständig ist, kopiert es das Modul nach `minios/` und die Boot-Dateien nach `minios/boot/`. Eine unvollständige Kopie wird bereinigt. Ist das Triplet nicht vollständig, schlägt die Kernel-Einrichtung fehl, aber der Aufrufer fährt mit dem normalen Modul-Einbinden fort. Das resultierende System kann später dennoch fehlschlagen, da dem Root-Dateisystem die Support-Dateien für den laufenden Kernel fehlen.
 
-Andere Top-Level-Dateien, die `01-kernel-*.sb` entsprechen, werden als inaktiv behandelt. Das initrd versucht, jedes inaktive Modul und die zugehörigen `vmlinuz`- und `initrfs`-Dateien nach `minios/kernels/VERSION/` zu verschieben. Diese Fallback- und Verschiebeoperationen im Repository erfordern einen schreibbaren Datenbaum; einzelne Verschiebefehler sind nicht fatal. Sie verwenden immer `.sb`, unabhängig von `bext=`. Siehe [Kernel-Verwaltung](/preparing-and-customizing/Managing-Kernels) für unterstützte Kernel-Installations- und Aktivierungs-Workflows.
+Andere Top-Level-Dateien, die mit `01-kernel-*.sb` übereinstimmen, werden als inaktiv behandelt. Das initrd versucht, jedes inaktive Modul und die zugehörigen `vmlinuz`- und `initrfs`-Dateien nach `minios/kernels/VERSION/` zu verschieben. Diese Fallback- und Verschiebeoperationen im Repository erfordern einen beschreibbaren Datenbaum; einzelne Fehler beim Verschieben sind nicht kritisch. Es wird immer `.sb` verwendet, unabhängig von `bext=`. Der zusammengeführte Kandidaten-Scan schließt außerdem `01-kernel-*`-Module aus, die nicht zum laufenden Kernel passen, einschließlich externer Kandidaten. Siehe [Kernel-Verwaltung](/preparing-and-customizing/Managing-Kernels) für unterstützte Workflows zur Kernel-Installation und -Aktivierung.
+
+<a id="union-construction"></a>
 
 ## Union-Konstruktion
 
@@ -107,23 +111,22 @@ Mit OverlayFS wird die vollständige Modulliste als eine umgekehrte `lowerdir` L
 
 Diese Komposition zur Bootzeit unterscheidet sich von der Aktivierung zur Laufzeit. Nach dem Start können `sb activate` und `sb deactivate` nur ein aktuell als `AUFS` gemountetes Root verändern. OverlayFS-Untere Ebenen können nicht im laufenden Betrieb geändert werden. Die Aktivierung zur Laufzeit beeinflusst die Auswahl für den nächsten Bootvorgang nicht, und das Hinzufügen eines Next Boot-Moduls aktiviert dieses nicht im aktuellen Root. Siehe [MiniOS-Modulmanager](/preparing-and-customizing/Managing-Modules).
 
-## Toram-Trim
+## Toram trim
 
-`toram=trim` erstellt einen RAM-Datenbaum vor Persistenz und Kernel-Koordination.
-Es kopiert genau diese Elemente aus dem gewählten MiniOS-Datenbaum:
+`toram=trim` erstellt einen RAM Systemdaten-Baum nach der Erkennung von externen Modulen und vor der Sitzungsaktivierung sowie Kernel-Koordination. Es kopiert:
 
-- `config.conf`, der für diesen Kopierpfad erforderlich ist.
-- `authorized_keys`, sofern als reguläre Datei vorhanden.
-- Top-Level-Kandidaten mit passender Erweiterung, ausgewählt durch `load=` und `noload=`.
-- Ausgewählte Kandidaten mit passender Erweiterung rekursiv unterhalb von `modules/`, wobei ihre relativen Verzeichnisse erhalten bleiben.
-- Den vollständigen `changes/`-Baum, wenn die Befehlszeile Persistenz anfordert.
+- `config.conf`, was für diesen Kopierpfad erforderlich ist.
+- `authorized_keys` sofern es als reguläre Datei existiert.
+- Top-Level-Kandidaten für Erweiterungsabgleich, ausgewählt durch `load=`, `noload=` und den Running-Kernel-Filter.
+- Ausgewählte Erweiterungs-Kandidaten werden rekursiv unterhalb von `modules/` kopiert, wobei ihre relativen Verzeichnisse erhalten bleiben.
+- Externe Ersetzungen und Ergänzungen werden nach denselben Regeln ausgewählt und in ihre entsprechenden relativen Pfade kopiert.
 
-Es werden keine `boot/`, `kernels/`, `rootcopy/`, `config.conf.d/`, Logs, andere Nichtmoduldaten, nicht ausgewählte Module oder die separate schreibbare Persistenzmodul-Ebene kopiert. Insbesondere kann das Repository-Fallback kein `kernels/`-Verzeichnis verwenden, das im getrimmten RAM-Baum fehlt. Das kopierte Modulpaket wird gefiltert, bevor die Persistenzmodul-Ebene erkannt wird.
+Es wird ein leeres `changes/` Verzeichnis erstellt; das Kopieren der Sitzung erfolgt separat durch `perchtoram`. Es kopiert nicht `boot/`, `kernels/`, `rootcopy/`, `config.conf.d/`, Logs, andere Nicht-Modul-Daten oder nicht ausgewählte Module. Insbesondere kann ein Repository-Fallback kein `kernels/` Verzeichnis verwenden, das im getrimmten RAM Baum fehlt. Externe Module sind bereits enthalten, daher öffnet der RAM Boot ihre Originaldateien nach dem Kopieren nicht erneut.
 
-Es gibt keinen RAM-Kapazitäts-Preflight. Ein Fehler beim Kopieren von `config.conf` oder angeforderten `changes/` beendet den Ausführungskontext der Kopierfunktion, aber deren Aufrufer wandeln diesen Status nicht zuverlässig in einen sauberen Boot-Abbruch um. Ein Fehler beim Kopieren von `authorized_keys` wird gemeldet, führt aber nicht zum Abbruch des Kopiervorgangs. Ausgewählte Module werden per Pipeline kopiert; ein Fehler beim Kopieren eines einzelnen Moduls wird gemeldet, aber sein Status wird nicht zuverlässig nach außen weitergegeben, um den Bootpfad zu stoppen. Es gibt kein transaktionales Rollback eines teilweise befüllten RAM-Baums.
+Beim Systemkopieren gibt es kein RAM-Kapazitäts-Preflight. Ein Fehler beim Kopieren von `config.conf` oder eines ausgewählten Moduls wird an den Init-Eintrag weitergegeben und führt zum fatalen Pfad. Ein Fehler beim Kopieren optionaler `authorized_keys` wird gemeldet, ohne abzubrechen. Es gibt kein transaktionales Rollback eines teilweise befüllten Systemdaten-Baums. Das Sitzungs-Kopieren hat sein eigenes Speicher-Preflight und fällt auf die ursprüngliche gespeicherte Sitzung zurück, falls die Kopie nicht vorbereitet werden kann; siehe [Persistence internals](/reference/boot-process/Persistence-Internals).
 
-Nach dem Kopieren versucht das initrd, das Quell-Mount zu unmounten, dessen alten Datenpfad zu entfernen und den RAM-Baum an diesen Pfad zu verschieben. Nur der Erfolg dieser gesamten Kette markiert die Quelle als getrennt. Scheitert die Kette, wird der Bootvorgang mit dem RAM-Staging-Pfad fortgesetzt. Verwandte ISO- und Ventoy-Trennoperationen werden bestmöglich durchgeführt.
-Daher ist `toram=trim` kein Beweis dafür, dass das Boot-Gerät entfernt werden kann. Ziehen Sie es nur ab, wenn Diagnosen bestätigen, dass sein Dateisystem, Loop-Device und Device-Mapper-Zuordnungen nicht mehr gemountet oder in Benutzung sind.
+Nach dem Kopieren versucht das Initrd, das Quell-Mount auszuhängen, dessen alten Datenpfad zu entfernen und den RAM Baum an diesen Pfad zu verschieben. Nur wenn diese gesamte Kette erfolgreich ist, gilt die Quelle als getrennt. Scheitert die Kette, läuft der Bootvorgang mit dem RAM Staging-Pfad weiter. Zugehörige ISO- und Ventoy-Detach-Operationen erfolgen nach dem Best-Effort-Prinzip.
+Daher ist `toram=trim` kein Beweis dafür, dass das Boot-Gerät entfernbar ist. Ziehen Sie es nicht ab, es sei denn, Diagnosen bestätigen, dass dessen Dateisystem, Loop-Device und Device-Mapper-Zuordnungen nicht mehr gemountet oder in Benutzung sind.
 
 ## Rootcopy und Root-Übergabe
 

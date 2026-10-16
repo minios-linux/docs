@@ -1,71 +1,73 @@
 ---
-updated: 2026-08-28
+updated: 2026-10-15
 ---
 
 # Chargement des modules
 
-Cette page explique ce que modifient les paramètres de démarrage `load`, `noload`, `bext`, `union` et `toram=trim`. Ce sont des options avancées. Un démarrage classique charge automatiquement l’ensemble de modules fourni par l’image MiniOS sélectionnée.
+Cette page explique ce que `load`, `noload`, `bext`, `union` et `toram=trim` changent dans les paramètres de démarrage. Ce sont des options avancées. Lors d’un démarrage normal, le jeu de modules fourni par l’image MiniOS est chargé automatiquement.
 
-MiniOS sélectionne et monte son ensemble de modules dans l’initrd, avant que la racine unifiée ne soit transmise au système d’initialisation installé. Utilisez cette page si un module présent sur le support de démarrage n’apparaît pas dans le système en cours d’exécution ou si un filtre modifie le démarrage de façon inattendue.
+MiniOS sélectionne et monte son jeu de modules dans l’initrd, avant que la racine union ne soit transmise au système d’initialisation installé. Consultez cette page si un module présent sur le support de démarrage n’apparaît pas dans le système en cours d’exécution ou si un filtre modifie le démarrage de manière inattendue.
 
-## En termes simples
+## En clair
 
-MiniOS est assemblé à partir de modules `.sb` numérotés en lecture seule. Les numéros les plus bas sont chargés en premier ; les numéros plus élevés peuvent remplacer les fichiers des modules de numéro inférieur. Une session en écriture, lorsqu’elle est active, est placée au-dessus de tous les modules en lecture seule.
+MiniOS est constitué de `.sb`modules en lecture seule numérotés. Les numéros les plus bas sont chargés en premier ; les modules portant un numéro plus élevé peuvent remplacer les fichiers des modules précédents. Lorsqu’une session avec accès en écriture est active, elle se superpose à tous les modules en lecture seule.
 
-Les paramètres `load=` et `noload=` filtrent les chemins des modules avant l’assemblage. Ils utilisent une correspondance par expressions régulières plutôt qu’une liste de noms exacts, donc un filtre trop large peut exclure des modules essentiels du noyau ou du système de base du jeu de démarrage.
+Les paramètres `load=` et `noload=` filtrent les chemins des modules avant leur assemblage. Ils utilisent la correspondance par expression régulière, et non une liste sûre de noms exacts. Un filtre trop large peut donc exclure du jeu de démarrage des modules essentiels, du noyau ou du système.
 
 ## Explication des paramètres
 
-| Paramètre | Ce qu’il indique à MiniOS | Risque principal |
+| Paramètre | Fonction de MiniOS | Risque principal |
 |---|---|---|
-| `load=PATTERN` | Ne conserver que les modules dont le chemin correspond au motif. | Un motif incomplet peut omettre des modules nécessaires. |
-| `noload=PATTERN` | Exclure les candidats correspondants après application de `load=`. | Des modules essentiels du noyau, du firmware ou du bureau peuvent être exclus au démarrage. |
-| `bext=EXTENSION` | Considérer une autre extension de fichier comme suffixe de module. | Ne convertit pas les fichiers ni ne coordonne complètement les modules du noyau. |
-| `union=aufs` ou `union=overlayfs` | Demander le système de fichiers utilisé pour combiner les modules avec la couche en écriture. | L’activation des modules à l’exécution diffère entre AUFS et OverlayFS. |
-| `toram=trim` | Copier uniquement les modules sélectionnés et les données requises vers RAM. | Les modules et dossiers omis ne sont plus accessibles après le détachement de la source. |
+| `load=PATTERN` | Ne conserver que les modules candidats dont le chemin correspond au motif. | Un motif incomplet peut exclure des modules nécessaires. |
+| `noload=PATTERN` | Exclure les modules candidats correspondants après l’application de `load=`. | Des modules essentiels, du noyau, du firmware ou du bureau peuvent être exclus du démarrage. |
+| `bext=EXTENSION` | Traiter une autre extension de fichier comme suffixe de module candidat. | Ne convertit pas les fichiers et ne coordonne pas entièrement les modules du noyau. |
+| `union=aufs` ou `union=overlayfs` | Demander le système de fichiers utilisé pour combiner les modules avec la couche accessible en écriture. | L’activation des modules à l’exécution diffère entre AUFS et OverlayFS. |
+| `toram=trim` | Copier uniquement les modules sélectionnés et les données nécessaires limitées vers RAM. | Les modules et répertoires exclus ne sont plus disponibles une fois la source détachée. |
 
-Avant de modifier les filtres, enregistrez la ligne de commande et l’ensemble de modules actuels. Testez une modification à la fois et gardez une entrée de démarrage fonctionnelle à disposition.
+Avant de modifier les filtres, notez la ligne de commande et le jeu de modules actuels. Testez une modification à la fois et gardez une entrée de démarrage fonctionnelle à portée de main.
+
+<a id="candidate-tiers"></a>
 
 ## Niveaux de candidats
 
-Après avoir localisé le répertoire de données MiniOS, en général `minios/`, l'initrd analyse les modules candidats dans cet ordre :
+Après avoir localisé le répertoire de données MiniOS, généralement `minios/`, l’initrd recherche une arborescence externe facultative MiniOS avant la copie de RAM ou l’activation de session. Une partition de persistance sur le même lecteur ou une organisation des données Ventoy accessible en écriture peut fournir cette arborescence, même lors d’un démarrage sans session enregistrée. Le backend Persistence Plugin sélectionné Ventoy repose sur un modèle distinct et ne fournit pas cette arborescence de modules externe.
 
-1. Entrées situées directement dans `minios/`. Cette analyse n'est pas récursive.
-2. Entrées situées de façon récursive sous `minios/modules/`.
-3. Entrées situées de façon récursive sous `minios/modules/` sur la source de persistance en écriture enregistrée par l'initrd.
+Les candidats se répartissent en deux groupes :
 
-Le troisième niveau est distinct du répertoire `minios/modules/` dans l’arborescence de données en lecture seule sélectionnée. Il permet aux modules utilisateur persistants d’écraser les fichiers provenant d’un ISO ou d’une autre source en lecture seule. Il n’est disponible que si la découverte de la persistance a publié une racine en écriture contenant ce répertoire.
+1. Noms de modules de premier niveau issus de l’arborescence de données sélectionnée et de l’arborescence externe `minios/` , triés et dédupliqués par nom relatif.
+2. Fichiers et liens symboliques situés récursivement sous `modules/` dans les deux arborescences, triés et dédupliqués par chemin relatif.
 
-Les chemins candidats sont réduits à leur nom de base exact lors du montage. Par exemple, `modules/work/50-extra.sb` et `modules/test/50-extra.sb` utilisent tous deux le point de montage nommé `50-extra.sb`. Ils ne deviennent pas deux couches adressables indépendamment. Un candidat d’un niveau ultérieur portant le même nom de base est monté sur le même point de montage et remplace le candidat précédent visible lors de l’assemblage de l’union.
-Le même nom de base doit donc être considéré comme un emplacement de remplacement unique, et non comme un moyen de charger plusieurs modules depuis différents répertoires.
+Pour un même chemin relatif, un fichier ordinaire externe est prioritaire sur l’ISO ou toute autre source sélectionnée. Cela s’applique aussi bien aux modules système de remplacement qu’aux modules supplémentaires. Les filtres s’appliquent aux chemins relatifs fusionnés avant le montage ou la copie allégée RAM. La racine de la partition de persistance reste distincte de son espace de stockage des sessions numérotées.
 
-Le format de module habituel est une image de système de fichiers SquashFS classique. L’analyse de l’initrd est basée sur le nom de fichier : elle sélectionne les chemins se terminant par l’extension configurée et ne vérifie pas d’abord que chaque chemin est bien un fichier régulier ou une SquashFS valide. Les analyses récursives peuvent donc rencontrer un autre type d’objet de système de fichiers portant un nom correspondant. Un échec de montage en boucle ou de SquashFS est signalé par `mount`, mais la boucle du candidat ne rend pas cet échec fatal en soi et le démarrage peut se poursuivre avec une couche manquante. Validez les fichiers douteux avec la procédure décrite dans [Inspecter et extraire les modules](/preparing-and-customizing/Managing-Modules#inspect-and-extract-modules).
+Les points de montage sont toujours aplatis en noms de base exacts. Par exemple, `modules/work/50-extra.sb` et `modules/test/50-extra.sb` désignent tous deux `50-extra.sb` ; il ne s’agit pas de couches union indépendantes. Utilisez des noms de base distincts, sauf si vous souhaitez remplacer un chemin exact. Ne vous fiez pas à des noms de base identiques dans des répertoires différents pour effectuer un remplacement.
 
-## Ordonnancement et priorité
+Le format normal des modules est une image de système de fichiers SquashFS. Un nom de fichier correspondant ne garantit pas la validité de son contenu. Les analyses récursives prennent en compte les fichiers et les liens symboliques, tandis que l’analyse de premier niveau se base sur les noms de fichiers. Si le montage d’un remplacement externe ou d’un module sélectionné échoue, le processus suit désormais le chemin fatal d’initramfs au lieu d’omettre silencieusement cette couche. Vérifiez les fichiers douteux avec [Inspecter et extraire les modules](/preparing-and-customizing/Managing-Modules#inspect-and-extract-modules).
 
-Lors de la découverte, les chemins sont triés numériquement selon leur nom de base. Le numéro en tête des noms comme `00-core.sb`, `01-kernel-VERSION.sb` et `50-extra.sb` détermine l’ordre des modules. Un nom de base sans numéro en tête est classé numériquement comme zéro.
-Utilisez des préfixes numériques explicites et distincts plutôt que de compter sur l’ordre d’égalité.
+## Ordre et priorité
 
-L’union finale donne la priorité aux modules de numéro le plus élevé sur les modules de numéro inférieur. Si deux modules sélectionnés contiennent le même chemin relatif à la racine, le fichier du module prioritaire sera visible. La couche de modifications en écriture a priorité sur tous les modules en lecture seule.
+Lors de la découverte, les chemins sont triés numériquement selon leur nom de base. Le nombre initial dans les noms tels que `00-core.sb`, `01-kernel-VERSION.sb` et `50-extra.sb` détermine l’ordre des modules. Un nom de base sans nombre initial est traité comme zéro pour le tri numérique.
+Utilisez des préfixes numériques explicites et distincts plutôt que de vous fier à l’ordre en cas d’égalité.
 
-Le remplacement par niveau intervient avant cet ordonnancement effectif des modules. Un `50-extra.sb` d’un niveau ultérieur remplace un fichier d’un niveau antérieur portant exactement le même nom de base, puis son préfixe `50` détermine où ce montage survivant sera placé dans l’union.
+Dans l’union finale, les modules portant les numéros les plus élevés sont prioritaires sur les modules précédents, dont les numéros sont plus faibles. Si deux modules sélectionnés contiennent le même chemin relatif à la racine, le fichier du module le plus prioritaire est celui qui est visible. La couche de modifications inscriptible est prioritaire sur tous les modules en lecture seule.
 
-## Extension de bundle
+Le remplacement externe par chemin relatif a lieu avant l’application de cet ordre effectif des modules. Un remplacement `modules/50-extra.sb` occupe le même emplacement sélectionné que le fichier source, et son préfixe `50` détermine sa priorité dans l’union.
 
-Le paramètre de démarrage `bext=` sélectionne l’extension de fichier utilisée pour la découverte des données, le filtrage des candidats et le montage des modules. Sa valeur par défaut est `sb`, donc le suffixe candidat habituel est `.sb` :
+## Extension des bundles
+
+Le paramètre de démarrage `bext=` sélectionne l’extension de fichier utilisée pour la découverte des données, le filtrage des candidats et le montage des modules. Sa valeur par défaut est `sb`, le suffixe habituel des candidats est donc `.sb` :
 
 ```text
 bext=sb
 ```
 
-Modifier `bext` change le suffixe de fichier sélectionné ; cela ne convertit pas un fichier ni ne vérifie son format de système de fichiers. La coordination du noyau fait exception : elle recherche toujours `01-kernel-VERSION.sb`. Avec une extension personnalisée, le scan des candidats habituel ne sélectionne pas ces modules noyau `.sb`.
+Modifier `bext` change le suffixe de nom de fichier sélectionné ; cela ne convertit pas un fichier et ne vérifie pas son format de système de fichiers. La coordination du noyau fait exception : elle recherche toujours `01-kernel-VERSION.sb`. Avec une extension personnalisée, l’analyse normale des candidats ne sélectionne pas ces modules du noyau `.sb`.
 
 ## Filtres load et noload
 
-`load=` et `noload=` sont des expressions régulières étendues non ancrées appliquées aux chaînes de chemin candidates produites à chaque niveau. Ce ne sont pas des listes de noms exacts. Une valeur simple comme `kernel` correspond à ce texte n’importe où dans un chemin, tandis que les ancres doivent être fournies explicitement si une position exacte est requise.
-Les chemins diffèrent selon le niveau : les candidats de premier niveau sont des noms de base, les candidats de données récursives incluent `modules/`, et les candidats de persistance sont des chemins absolus.
+`load=` et `noload=` sont des expressions régulières étendues non ancrées, appliquées aux chaînes de chemin des candidats générées par chaque niveau. Il ne s’agit pas de listes de noms exacts. Une valeur simple telle que `kernel` correspond à ce texte n’importe où dans un chemin ; les ancres doivent être spécifiées explicitement pour cibler une position exacte.
+Les candidats de premier niveau sont des noms de base, tandis que les candidats récursifs incluent `modules/`. Les candidats externes utilisent le même format de chemin relatif, et non des chemins absolus de montage de persistance.
 
-Les virgules sont converties en alternance d’expression régulière. Par exemple :
+Les virgules sont converties en opérateurs d’alternance d’expressions régulières. Par exemple :
 
 ```text
 load=core,kernel,firmware
@@ -73,13 +75,13 @@ load=core,kernel,firmware
 
 est évalué comme `core|kernel|firmware`. Les autres caractères d’expression régulière ne sont pas échappés.
 
-Une plage numérique n’est développée que si tout le filtre est une plage ascendante correspondant à `^[0-9]+-[0-9]+$`. Par exemple, `load=04-06` devient les alternatives `04|05|06`, chaque valeur générée étant complétée à au moins deux chiffres. Une plage intégrée dans une liste séparée par des virgules ou une autre expression n’est pas développée et conserve sa signification ERE ordinaire.
+Une plage numérique est développée uniquement si le filtre entier est une plage croissante correspondant à `^[0-9]+-[0-9]+$`. Par exemple, `load=04-06` devient les alternatives `04|05|06`, chaque valeur générée étant complétée par des zéros pour atteindre au moins deux chiffres. Une plage intégrée à une liste séparée par des virgules ou à une autre expression n’est pas développée et conserve sa signification habituelle en ERE.
 
-Lorsque les deux paramètres sont présents, l’initrd applique d’abord `load=` puis retire les correspondances avec `noload=`. Ainsi `noload=` prévaut. Il n’y a pas de jeu de modules noyau ou système protégé : les filtres peuvent exclure `00-core`, le `01-kernel` coordonné ou tout autre candidat. Une telle sélection peut produire une racine incomplète ou empêcher le démarrage.
+Lorsque les deux paramètres sont présents, l’initrd applique d’abord `load=`, puis supprime les correspondances avec `noload=`. Ainsi, `noload=` est prioritaire. Aucun ensemble de modules essentiels ou de modules du noyau n’est protégé : les filtres peuvent exclure `00-core`, le `01-kernel` coordonné ou tout autre candidat. Une telle sélection peut produire une racine incomplète ou empêcher le démarrage.
 
-## Coordination du noyau en cours d’exécution
+## Coordination avec le noyau en cours d’exécution
 
-La version du noyau en cours est extraite d’un jeton `vmlinuz-VERSION` sur la ligne de commande du noyau si disponible, avec `uname -r` en secours. Avant de monter les modules, l’initrd coordonne ce triplet de premier niveau :
+La version du noyau en cours d’exécution est déterminée à partir d’un jeton `vmlinuz-VERSION` présent sur la ligne de commande du noyau, si disponible ; sinon, `uname -r` est utilisé. Avant de monter les modules, l’initrd coordonne ce triplet de premier niveau :
 
 ```text
 minios/01-kernel-VERSION.sb
@@ -93,49 +95,50 @@ Si un élément manque, l’initrd recherche les trois fichiers dans :
 minios/kernels/VERSION/
 ```
 
-Lorsque le triplet du dépôt est complet, il copie le module vers `minios/` et les fichiers de démarrage vers `minios/boot/`. Une copie partielle est nettoyée. Si le triplet n’est pas complet, la configuration du noyau retourne une erreur, mais l’appelant poursuit l’étape normale de montage des modules. Le système résultant peut encore échouer plus tard si la racine ne contient pas les fichiers de support pour le noyau en cours d’exécution.
+Si le triplet du dépôt est complet, il copie le module dans `minios/` et les fichiers de démarrage dans `minios/boot/`. Toute copie partielle est supprimée. Si le triplet est incomplet, la configuration du noyau renvoie une erreur, mais l’appelant poursuit le montage normal des modules. Le système qui en résulte peut tout de même échouer par la suite, car le système de fichiers racine ne contient pas les fichiers de prise en charge du noyau en cours d’exécution.
 
-Les autres fichiers de premier niveau correspondant à `01-kernel-*.sb` sont considérés comme inactifs. L’initrd tente de déplacer chaque module inactif et ses fichiers `vmlinuz` et `initrfs` associés dans `minios/kernels/VERSION/`. Ces opérations de repli et de déplacement du dépôt nécessitent un arbre de données inscriptible ; les échecs individuels de déplacement ne sont pas fatals. Elles utilisent toujours `.sb`, quel que soit `bext=`. Voir [Gestion du noyau](/preparing-and-customizing/Managing-Kernels) pour les procédures d’installation et d’activation du noyau prises en charge.
+Les autres fichiers de premier niveau correspondant à `01-kernel-*.sb` sont considérés comme inactifs. L’initrd tente de déplacer chaque module inactif ainsi que les fichiers `vmlinuz` et `initrfs` correspondants vers `minios/kernels/VERSION/`. Ces opérations de repli sur le dépôt et de déplacement nécessitent une arborescence de données inscriptible ; les échecs de déplacement individuels ne sont pas fatals. Elles utilisent toujours `.sb`, quelle que soit la valeur de `bext=`. L’analyse des candidats fusionnés exclut également les modules `01-kernel-*` qui ne correspondent pas au noyau en cours d’exécution, y compris les candidats externes. Consultez [Gestion du noyau](/preparing-and-customizing/Managing-Kernels) pour connaître les procédures prises en charge d’installation et d’activation du noyau.
 
-## Construction d'union
+<a id="union-construction"></a>
 
-MiniOS sélectionne `AUFS` lorsque le noyau en cours d'exécution le prend en charge, sinon utilise OverlayFS. `union=overlayfs` sélectionne OverlayFS. `union=aufs` demande `AUFS` mais bascule sur OverlayFS si `AUFS` n'est pas disponible. Lorsque le démarrage sécurisé UEFI est activé, initrd ne charge pas le `aufs-ng` module non signé ; si aucune autre implémentation utilisable de AUFS n'est déjà disponible, OverlayFS est utilisée même lorsque `union=aufs` a été demandée.
+## Construction de l’union
 
-Avec `AUFS`, l'initrd monte d'abord une union vide avec la branche des modifications en écriture, puis insère chaque module monté comme branche en lecture seule. Un échec lors de la création de l'union est critique. Un échec lors de l'ajout d'une branche `AUFS` est traité au mieux : le démarrage continue avec les branches déjà ajoutées, tandis que MiniOS ne considère pas la persistance comme active pour une union incomplète.
+MiniOS sélectionne `AUFS` lorsque le noyau en cours d’exécution le prend en charge, et utilise sinon OverlayFS. `union=overlayfs` sélectionne OverlayFS. `union=aufs` demande `AUFS` mais revient à OverlayFS si `AUFS` n’est pas disponible. Lorsque UEFI Secure Boot est activé, initrd ne charge pas le module non signé `aufs-ng` ; si aucune autre implémentation utilisable de AUFS n’est déjà disponible, OverlayFS est utilisé même si `union=aufs` a été demandé.
 
-Avec OverlayFS, l'ensemble complet des modules est fourni comme une seule liste `lowerdir` inversée lors du montage de l'union. La couche en écriture fournit son `upperdir` et `workdir`. Un échec de montage de cette union est critique. L'ordre inférieur de gauche à droite et `AUFS` l'ordre d'insertion appliquent tous deux la même règle : les modules ajoutés plus tard, avec un numéro plus élevé, masquent les chemins en conflit des modules précédents.
+Avec `AUFS`, initrd monte d’abord une union vide avec la branche modifiable contenant les changements, puis ajoute chaque module monté comme branche en lecture seule. L’échec de la création de l’union est fatal. En cas d’échec lors de l’ajout d’une branche `AUFS`, le système tente de poursuivre le démarrage avec les branches déjà ajoutées ; MiniOS ne signale pas la persistance comme active si l’union est incomplète.
 
-Cette composition au démarrage est distincte de l'activation à l'exécution. Après le démarrage, `sb activate` et `sb deactivate` ne peuvent modifier qu'une racine actuellement montée en tant que `AUFS`. Les couches inférieures OverlayFS ne peuvent pas être modifiées à chaud. L'activation à l'exécution n'affecte pas la sélection du prochain démarrage, et ajouter un module Next Boot ne l'active pas dans la racine actuelle. Voir [Gestionnaire de modules MiniOS](/preparing-and-customizing/Managing-Modules).
+Avec OverlayFS, l’ensemble des modules est fourni sous la forme d’une liste `lowerdir` inversée lors du montage de l’union. La couche modifiable fournit son `upperdir` et son `workdir`. L’échec du montage de cette union est fatal. L’ordre des couches inférieures de gauche à droite et l’ordre d’insertion de `AUFS` appliquent la même règle : les modules ajoutés plus tard, dont le numéro est plus élevé, masquent les chemins en conflit des modules précédents.
 
-## Toram trim
+Cette composition au démarrage est distincte de l’activation à l’exécution. Après le démarrage, `sb activate` et `sb deactivate` ne peuvent modifier qu’une racine actuellement montée en tant que `AUFS`. Il est impossible de modifier sur place les couches inférieures OverlayFS. L’activation à l’exécution ne modifie pas la sélection du prochain démarrage, et l’ajout d’un module pour le prochain démarrage ne l’active pas dans la racine actuelle. Voir [Gestionnaire de modules MiniOS](/preparing-and-customizing/Managing-Modules).
 
-`toram=trim` crée un arbre de données RAM avant la persistance et la coordination du noyau.
-Il copie exactement ces éléments depuis l’arbre de données MiniOS sélectionné :
+## Élagage Toram
 
-- `config.conf`, requis par ce chemin de copie.
-- `authorized_keys` lorsqu’il existe en tant que fichier régulier.
-- Les candidats de premier niveau correspondant à l’extension sélectionnés par `load=` et `noload=`.
-- Les candidats correspondant à l’extension sélectionnés récursivement sous `modules/`, avec conservation de leur arborescence relative.
-- L’arborescence complète `changes/` lorsque la ligne de commande demande la persistance.
+`toram=trim` crée une arborescence de données système RAM après la détection des modules externes et avant l’activation de la session et la coordination avec le noyau. Cette arborescence contient une copie de :
 
-Il ne copie pas `boot/`, `kernels/`, `rootcopy/`, `config.conf.d/`, les journaux, les autres données non liées aux modules, les modules non sélectionnés, ni le niveau de module de persistance en écriture séparé. En particulier, le repli du dépôt ne peut pas utiliser un répertoire `kernels/` omis de l’arbre RAM réduit. L’ensemble de modules copié est filtré avant la découverte du niveau de module de persistance.
+- `config.conf`, nécessaire à cette opération de copie.
+- `authorized_keys` lorsqu’il existe en tant que fichier ordinaire.
+- Les candidats de premier niveau correspondant à l’extension, sélectionnés par `load=`, `noload=` et le filtre du noyau en cours d’exécution.
+- Les candidats correspondant à l’extension, sélectionnés récursivement sous `modules/`, en conservant leurs chemins relatifs.
+- Les remplacements et ajouts externes sélectionnés selon les mêmes règles, copiés dans leurs chemins relatifs correspondants.
 
-Il n’y a pas de pré-vérification de capacité RAM. Un échec de copie de `config.conf` ou du `changes/` demandé interrompt le contexte d’exécution de la fonction de copie, mais ses appelants ne convertissent pas toujours ce statut en arrêt propre du démarrage. Un échec de copie de `authorized_keys` est signalé mais ne stoppe pas la copie. Les modules sélectionnés sont copiés via un pipeline ; un échec de copie de module individuel est signalé, mais son statut n’est pas toujours propagé pour arrêter le chemin de démarrage externe. Il n’y a pas de retour arrière transactionnel d’un arbre RAM partiellement peuplé.
+Un répertoire `changes/` vide est créé ; la copie de la session est gérée séparément par `perchtoram`. Les éléments suivants ne sont pas copiés : `boot/`, `kernels/`, `rootcopy/`, `config.conf.d/`, les journaux, les autres données qui ne sont pas des modules et les modules non sélectionnés. En particulier, le repli vers le dépôt ne peut pas utiliser un répertoire `kernels/` absent de l’arborescence RAM élaguée. Les modules externes étant déjà inclus, le démarrage RAM ne rouvre pas leurs fichiers d’origine après la copie.
 
-Après la copie, l’initrd tente de démonter le montage source, de supprimer son ancien chemin de données et de déplacer l’arbre RAM à cet emplacement. Seul le succès de cette chaîne complète marque la source comme détachée. Si la chaîne échoue, le démarrage se poursuit en utilisant le chemin de staging RAM. Les opérations de détachement ISO et Ventoy associées sont en mode « best effort ».
-Par conséquent, `toram=trim` n’est pas une preuve que le périphérique de démarrage est amovible. Ne le débranchez pas à moins que le diagnostic ne confirme que son système de fichiers, son périphérique loop et ses mappings device-mapper ne sont plus montés ni utilisés.
+La copie du système ne vérifie pas au préalable la capacité RAM. L’échec de la copie de `config.conf` ou d’un module sélectionné est transmis au point d’entrée init et déclenche sa procédure d’échec fatal. L’échec de la copie de `authorized_keys` facultatif est signalé sans interrompre le démarrage. Aucune restauration transactionnelle n’est effectuée si l’arborescence de données système n’est que partiellement remplie. La copie de la session dispose de sa propre vérification préalable de la mémoire et revient à la session d’origine sur le support de stockage si la copie ne peut être préparée ; voir [Fonctionnement interne de la persistance](/reference/boot-process/Persistence-Internals).
+
+Après la copie, initrd tente de démonter le montage source, de supprimer son ancien chemin de données et de déplacer l’arborescence RAM vers ce chemin. Le montage source n’est considéré comme détaché que si toute cette séquence réussit. En cas d’échec, le démarrage se poursuit en utilisant le chemin de préparation RAM. Les opérations connexes de détachement des ISO et de Ventoy sont effectuées au mieux.
+Par conséquent, `toram=trim` ne prouve pas que le périphérique de démarrage est amovible. Ne le débranchez pas tant que les diagnostics n’ont pas confirmé que son système de fichiers, son périphérique loop et ses mappages device-mapper ne sont plus montés ni utilisés.
 
 ## Rootcopy et transfert de la racine
 
-Après le montage des modules et la construction de l’union, l’initrd copie le contenu visible de `minios/rootcopy/` directement dans l’union assemblée. Le glob shell `*` omet les entrées préfixées par un point directement dans `rootcopy/`, bien que les fichiers cachés à l’intérieur d’un dossier copié restent inclus dans la copie de ce dossier. Il s’agit d’une copie de fichiers dans la vue inscriptible, pas d’une nouvelle couche de module en lecture seule, donc elle peut écraser les chemins fournis par les modules. Les erreurs de copie ne sont pas rendues fatales par cette fonction.
+Après le montage des modules et la construction de l’union, initrd copie le contenu visible de `minios/rootcopy/` directement dans l’union assemblée. Le motif glob du shell `*` ignore les entrées dont le nom commence par un point directement dans `rootcopy/`, mais les fichiers cachés à l’intérieur d’un répertoire copié sont conservés lors de la copie de ce répertoire. Il s’agit d’une copie de fichiers dans la vue modifiable, et non d’une autre couche de module en lecture seule ; elle peut donc remplacer les chemins fournis par les modules. Cette fonction ne traite pas les erreurs de copie comme fatales.
 
-MiniOS effectue ensuite sa configuration initiale, écrit le `fstab` de la nouvelle racine et source `rootcopy/run/preinit.sh` si présent, en passant le chemin de l’union comme premier argument. Ce script s’exécute dans l’environnement de l’initrd avant le transfert de racine et doit être traité comme un code de démarrage privilégié.
+MiniOS effectue ensuite sa configuration initiale, écrit le `fstab` de la nouvelle racine et exécute le script `rootcopy/run/preinit.sh` s’il est présent, en lui transmettant le chemin de l’union comme premier argument. Ce script s’exécute dans l’environnement initrd, avant le transfert de la racine, et doit être considéré comme du code de démarrage privilégié.
 
-À la frontière finale, l’initrd LiveKit pivote l’union assemblée vers `/`, conserve l’ancien initrd sous `/run/initramfs` pour l’arrêt, et exécute le `init` de la nouvelle racine. Le chemin Dracut prépare la même union et laisse Dracut effectuer le `switch_root` final. Une fois cette frontière franchie, le démarrage normal s’effectue dans la racine composée ; modifier des fichiers sur le support de démarrage ne reconstruit plus l’ensemble de couches inférieures sélectionné pour ce démarrage.
+À la dernière étape, l’initrd LiveKit bascule l’union assemblée vers `/`, conserve l’ancien initrd dans `/run/initramfs` pour les opérations d’arrêt, puis exécute le `init` de la nouvelle racine. Le chemin Dracut prépare la même union et laisse Dracut effectuer le `switch_root` final. Une fois cette étape franchie, le démarrage normal s’exécute dans la racine composée ; modifier des fichiers sur le support de démarrage ne reconstitue plus l’ensemble de couches inférieures sélectionnées pour ce démarrage.
 
-## Diagnostics sûrs
+## Diagnostic sécurisé
 
-Privilégiez l’inspection en lecture seule et enregistrez la ligne de commande d’origine avant de modifier les filtres :
+Privilégiez l’inspection en lecture seule et consignez la ligne de commande d’origine avant de modifier les filtres :
 
 ```bash
 cat /proc/cmdline
@@ -145,11 +148,11 @@ findmnt -no FSTYPE,OPTIONS /
 findmnt -R /run/initramfs 2>/dev/null
 ```
 
-`sb next-boot` affiche la sélection actuelle basée sur les règles, tandis que `sb list` montre les couches effectivement utilisées pour composer la racine en cours d’exécution. Une différence peut indiquer un échec de montage, un remplacement de nom de base, une modification `AUFS` à l’exécution, ou une source de sélection qui a changé après le démarrage.
+`sb next-boot` affiche la sélection actuelle fondée sur les règles, tandis que `sb list` affiche les couches qui composent réellement la racine en cours d’exécution. Un écart peut indiquer un échec de montage, un remplacement par nom de base, une modification `AUFS` à l’exécution ou une source de sélection qui a changé après le démarrage.
 
-Pour un échec précoce, ajoutez `debug` pour afficher le traçage shell, `timing` pour les temps d’étape, ou `rd.break` pour ouvrir un shell après la configuration de l’initrd et avant le transfert final de la racine. Dans ce shell, inspectez `/memory/data`, `/memory/bundles`, les montages et `/proc/cmdline` ; n’effectuez aucune réparation de système de fichiers ni ne retirez de support tant qu’ils sont montés. Capturez la première erreur de montage ou de copie, pas seulement le symptôme ultérieur. Consultez [Dépannage](/maintenance-and-recovery/Troubleshooting) pour une procédure de diagnostic sûre plus complète.
+En cas d’échec précoce, ajoutez `debug` pour afficher le traçage du shell, `timing` pour obtenir les temps d’exécution des étapes ou `rd.break` pour ouvrir un shell après la configuration d’initrd et avant le transfert final de la racine. Dans ce shell, inspectez `/memory/data`, `/memory/bundles`, les montages et `/proc/cmdline` ; ne réparez pas les systèmes de fichiers et ne retirez pas les supports pendant qu’ils sont montés. Relevez la première erreur de montage ou de copie, pas seulement le symptôme qui apparaît ensuite. Voir [Dépannage](/maintenance-and-recovery/Troubleshooting) pour connaître une procédure de diagnostic sécurisée plus complète.
 
-## Documentation associée
+## Documentation connexe
 
 - [Modes de démarrage](/using-minios/Boot-Modes)
 - [Découverte du système](/reference/boot-process/System-Discovery)

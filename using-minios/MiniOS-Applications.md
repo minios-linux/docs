@@ -1,5 +1,5 @@
 ---
-updated: 2026-10-06
+updated: 2026-10-15
 ---
 # MiniOS applications
 
@@ -21,7 +21,7 @@ A native installation keeps the familiar MiniOS desktop experience — its visua
 | Create, select, mount, resize, save, reclaim, encrypt, or remove persistent sessions | **MiniOS Session Manager** | MiniOS live systems only. It can write supported RAM-backed sessions to their original store, change detached LUKS passphrases, and mount inactive container sessions for file access. | [Session management](/using-minios/Sessions-and-Persistence) |
 | Package, activate, inspect, or remove MiniOS kernels | **MiniOS Kernel Manager** | MiniOS modular live systems only. Repository packaging can also add compatible drivers from the curated MiniOS DKMS catalog. | [Kernel management](/preparing-and-customizing/Managing-Kernels) |
 | Install applications or build application modules from catalog recipes | **MiniOS Store** | MiniOS live systems. Module builds can keep a recipe level or use an explicit build-base level; recipes can require license acceptance. | [MiniOS Store](/using-minios/Installing-Software) |
-| Remaster an existing MiniOS image through a guided project | **MiniOS Image Builder** | Works with MiniOS live image content from the running live session, an ISO, or optical media. It can select modules, capture session changes, and construct supported boot-menu behavior before producing another verified live ISO. | [MiniOS Image Builder](/preparing-and-customizing/Creating-Custom-MiniOS-Images) |
+| Remaster an existing MiniOS image through a guided project | **MiniOS Image Builder** | Uses the running session, an ISO, or optical media. Session capture requires the running-session source with its complete source and active external module set; it is unavailable for separately selected ISO/optical sources. | [MiniOS Image Builder](/preparing-and-customizing/Creating-Custom-MiniOS-Images) |
 | Inspect, create, activate, and select `.sb` modules | **MiniOS Module Manager** | MiniOS live systems only; module composition and runtime activation depend on the layered `.sb` root model. | [MiniOS Module Manager](/preparing-and-customizing/Managing-Modules) |
 | Write/read disk images, format storage, or erase a device | **Drive Utility** | Generic storage utility included with MiniOS. Raw image writing does not perform managed deployment like MiniOS Installer. | [Drive Utility](/installing-minios/installation-tools/Drive-Utility) |
 | Browse the installed documentation offline | **MiniOS Help** | Native GTK viewer for a precompiled documentation bundle; it does not require the website, WebKit, or a network connection at runtime. | [MiniOS documentation](/) |
@@ -29,7 +29,7 @@ A native installation keeps the familiar MiniOS desktop experience — its visua
 
 ## Command-line tools
 
-Most graphical tools have a public command-line counterpart or backend. These commands are shipped either in the same package as the graphical application or in a required companion package. The shared core manifest includes `minios-tools` and `minios-image-compose`. The other commands follow the availability of their corresponding graphical packages. Their presence in any particular installed system or image must still be checked directly.
+Most graphical tools have a public command-line counterpart or backend. The core manifest requests `minios-tools` for every edition and `minios-image-compose`, `minios-deploy`, `minios-kernel`, and `minios-session` for non-minimum variants, independently of the graphical desktop tools. Flux uses the `minimum` variant and does not request those four companion backends by default. Check actual installed packages; dependencies and custom images can add tools beyond the manifest.
 
 ### Deployment and sessions
 

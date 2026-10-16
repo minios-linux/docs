@@ -6,6 +6,7 @@
   "scripts": {
     "docs:dev": "vitepress dev",
     "docs:build": "vitepress build",
+    "docs:check": "npm run docs:build && python3 .vitepress/check-links.py",
     "docs:preview": "vitepress preview"
   },
   "keywords": [],

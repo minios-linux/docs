@@ -1,36 +1,36 @@
 ---
-updated: 2026-10-06
+updated: 2026-10-15
 ---
 
 # Risoluzione dei problemi
 
-Inizia con l'osservazione e test reversibili. Non ripartizionare, formattare, riparare un filesystem, eliminare una sessione o sostituire i file di avvio solo per vedere se il problema si risolve. Prima di tutto, salva i dati importanti.
+Inizia osservando il problema ed eseguendo test reversibili. Non modificare le partizioni, formattare, riparare un file system, eliminare una sessione o sostituire i file di avvio solo per vedere se questo risolve il problema. Prima, metti al sicuro i dati importanti.
 
-## Verifiche iniziali
+## Controlli preliminari
 
-1. [Verifica l'immagine scaricata](/installing-minios/Verifying-Downloads).
-2. Avvia **Avviare senza salvare**. Se il problema scompare, indaga sulla sessione persistente o sulla sua configurazione invece che sull'immagine di base.
-3. Rimuovi parametri di avvio personalizzati e filtri dei moduli a meno che non siano necessari per riprodurre il problema.
-4. Prova un'altra porta USB e, se possibile, un altro dispositivo o computer funzionante.
-5. Annota il primo errore e la voce esatta del menu di avvio invece dell'ultimo messaggio visualizzato.
-6. Verifica [Compatibilità hardware](/getting-started/Hardware-Compatibility) quando la stessa immagine verificata fallisce su una macchina ma funziona su un'altra.
+1. [Verifica l’immagine scaricata](/installing-minios/Verifying-Downloads).
+2. Avvia **Avviare senza salvare**. Se il problema scompare, verifica la sessione persistente o la sua configurazione, non l’immagine di base.
+3. Rimuovi i parametri di avvio personalizzati e i filtri dei moduli, a meno che non siano necessari per riprodurre il problema.
+4. Prova un’altra porta USB e, se possibile, un altro dispositivo o computer sicuramente funzionante.
+5. Annota il primo errore e la voce esatta del menu di avvio, non solo l’ultimo messaggio visualizzato sullo schermo.
+6. Controlla la [compatibilità hardware](/getting-started/Hardware-Compatibility) quando la stessa immagine verificata non funziona su un computer ma funziona su un altro.
 
-## Il dispositivo non raggiunge il menu di avvio MiniOS
+## Il dispositivo non raggiunge il menu di avvio di MiniOS
 
-Per prima cosa determina come è stato creato il dispositivo MiniOS.
+Per prima cosa, determina come è stato creato il dispositivo MiniOS.
 
-- Per un'immagine scritta in modalità raw (`dd`, Etcher, modalità DD di Rufus o scrittura immagine con Utilità disco), non riparare i singoli file di avvio. Se la copia è danneggiata, riscrivi l'intero dispositivo da un'immagine verificata.
-- Per un'installazione MiniOS basata su file, ricrea la struttura avviabile utilizzando lo stesso metodo di installazione documentato invece di copiare file GRUB, Syslinux o EFI da un'altra release.
-- Ventoy ha un proprio bootloader e layout. Non installare il bootloader MiniOS su un dispositivo Ventoy; usa la procedura [Ventoy](/installing-minios/installation-tools/Ventoy) invece.
-- Dopo la conversione nativa, il target utilizza un bootloader e una struttura filesystem convenzionali Debian. Può mantenere l'aspetto desktop MiniOS, ma l'infrastruttura live MiniOS e gli strumenti specifici per la modalità live non sono più presenti. Effettua un backup dei dati recuperabili prima di utilizzare la procedura di riparazione o reinstallazione del bootloader Debian adatta al suo BIOS/UEFI e alla struttura delle partizioni.
+- Per un’immagine scritta in modalità raw (`dd`, Etcher, modalità DD di Rufus o scrittura di immagini con Utilità disco), non riparare singoli file di avvio. Se la copia è danneggiata, riscrivi l’intero dispositivo usando un’immagine verificata.
+- Per un’installazione MiniOS basata su file, ricrea la struttura avviabile seguendo lo stesso metodo di installazione documentato, anziché copiare file GRUB, Syslinux o EFI da un’altra versione.
+- Ventoy ha un proprio bootloader e una propria struttura. Non installare il bootloader di MiniOS su un dispositivo Ventoy; usa invece la procedura [Ventoy](/installing-minios/installation-tools/Ventoy).
+- Dopo la conversione nativa, il sistema di destinazione usa un bootloader Debian standard e una struttura del file system convenzionale. Può mantenere l’aspetto desktop di MiniOS, ma l’infrastruttura live e gli strumenti specifici per l’ambiente live di MiniOS non saranno più presenti. Prima di usare la procedura di riparazione o reinstallazione del bootloader Debian appropriata alla configurazione BIOS/UEFI e al partizionamento, esegui il backup dei dati recuperabili.
 
-Se un dispositivo appena ricreato ancora non compare nel menu di avvio del firmware, controlla la modalità firmware, il supporto Secure Boot dell'architettura selezionata, la porta/dispositivo USB e la [compatibilità hardware](/getting-started/Hardware-Compatibility).
+Se un dispositivo appena ricreato non compare ancora nel menu di avvio del firmware, controlla la modalità del firmware, il supporto di Secure Boot per l’architettura selezionata, la porta o il dispositivo USB e la [compatibilità hardware](/getting-started/Hardware-Compatibility).
 
-## Il menu di avvio MiniOS compare ma l'avvio fallisce
+## Compare il menu di avvio di MiniOS, ma l’avvio non riesce
 
-Rimuovi prima i parametri opzionali. Usa `debug` e `timing` quando serve più output nelle prime fasi di avvio. `rd.break` serve solo per l'ispezione avanzata di initramfs, non per la riparazione.
+Rimuovi prima i parametri facoltativi. Usa `debug` e `timing` quando servono più informazioni sulle prime fasi di avvio. `rd.break` serve per l’ispezione avanzata di initramfs, non per la riparazione.
 
-Se MiniOS non trova la propria origine, vedi [Rilevamento sistema](/reference/boot-process/System-Discovery). In una shell initramfs, le informazioni utili in sola lettura includono:
+Se MiniOS non riesce a trovare la propria origine, consulta [Rilevamento del sistema](/reference/boot-process/System-Discovery). In una shell initramfs, possono essere utili queste informazioni in sola lettura:
 
 ```sh
 cat /proc/cmdline
@@ -40,20 +40,20 @@ findmnt
 cat /var/log/livedbg
 ```
 
-Un temporaneo `from=askdisk` può aiutare a identificare il dispositivo che contiene effettivamente i dati MiniOS. Successivamente, usa la sintassi documentata `from=` invece di indovinare i nomi dei dispositivi.
+Un `from=askdisk` temporaneo può aiutare a identificare il dispositivo che contiene effettivamente i dati di MiniOS. Dopodiché, usa la sintassi documentata di `from=` invece di indovinare i nomi dei dispositivi.
 
-Per l'avvio ISO tramite PXE o HTTP, vedi [Avvio di rete](/reference/boot-process/Network-Boot). La rete nelle prime fasi di avvio è separata da NetworkManager nella sessione attiva.
+Per l’avvio PXE o da ISO via HTTP, consulta [Avvio di rete](/reference/boot-process/Network-Boot). La rete nelle prime fasi di avvio è separata da NetworkManager nella sessione avviata.
 
-### Errori di modulo o root-union
+### Errori dei moduli o dell’unione principale
 
-Vedi [Caricamento moduli](/reference/boot-process/Module-Loading) per le regole effettive di selezione e ordine dei moduli. In particolare:
+Vedi [Caricamento dei moduli](/reference/boot-process/Module-Loading) per le regole effettive di selezione e ordinamento dei moduli. In particolare:
 
-- `load=` e `noload=` possono escludere moduli base o kernel essenziali; `noload=` vince quando entrambi corrispondono;
-- i candidati con lo stesso basename occupano lo stesso slot di sostituzione;
-- un file `.sb` non garantisce che il file sia una vera immagine SquashFS;
-- il kernel in esecuzione deve corrispondere al modulo kernel MiniOS coordinato e ai file di avvio.
+- `load=` e `noload=` possono escludere moduli di base o del kernel essenziali; `noload=`prevale quando entrambi corrispondono;
+- i candidati con lo stesso nome di base occupano lo stesso slot di sostituzione;
+- un `.sb`nome file non dimostra che il file sia un’immagine SquashFS valida;
+- il kernel in esecuzione deve corrispondere al modulo del kernel MiniOS e ai file di avvio coordinati.
 
-Dopo un avvio riuscito, ispeziona lo stato reale senza modificarlo:
+Dopo un avvio riuscito, verifica lo stato effettivo senza modificarlo:
 
 ```bash
 cat /proc/cmdline
@@ -65,21 +65,23 @@ findmnt -R /run/initramfs 2>/dev/null
 
 ## Problemi di visualizzazione
 
-Per schermo nero, risoluzione inutilizzabile o loop del display manager:
+In caso di schermo nero, risoluzione inutilizzabile o ciclo continuo del display manager:
 
-1. Prova il parametro di avvio `text`. Una console funzionante distingue un problema grafico/desktop da un errore precedente di avvio.
-2. Rimuovi eventuali parametri `xorg-driver` o `xorg-resolution` specificati manualmente.
-3. Prova **Avviare senza salvare** per escludere configurazioni di visualizzazione persistenti.
-4. Annota la GPU e il driver con `lspci -nnk`.
-5. Ispeziona `journalctl -b -p warning` e `dmesg --level=err,warn`.
+1. Prova il parametro di avvio `text`. Se la console funziona, il problema riguarda la grafica o il desktop, non una fase precedente dell’avvio.
+2. Rimuovi i parametri specificati manualmente `xorg-driver` o `xorg-resolution`.
+3. Prova **Avviare senza salvare** per escludere una configurazione di visualizzazione persistente.
+4. Annota GPU e driver con `lspci -nnk`.
+5. Controlla `journalctl -b -p warning` e `dmesg --level=err,warn`.
 
 Per le macchine virtuali, vedi [Virtualizzazione](/maintenance-and-recovery/Virtualization).
+
+Nelle immagini XFCE di Debian 13 / Devuan Excalibur, **Impostazioni dello schermo** include un controllo **Scala dell’interfaccia** con percentuali automatiche e manuali. La modalità automatica si basa sullo schermo principale; una percentuale esplicita salvata ha la precedenza. Usa l’anteprima temporizzata e la conferma: la risoluzione di output e la scala dell’interfaccia sono impostazioni diverse. Gli effetti delle finestre e il renderer si configurano separatamente in **Ottimizzazioni del gestore finestre → Compositore**. `xfwm4-gl` usa XRender come alternativa quando non è possibile usare OpenGL; sfocatura e Magic Lamp richiedono OpenGL, mentre le animazioni di dissolvenza e ridimensionamento e Peek funzionano anche con XRender.
 
 ## Problemi di rete
 
 Le normali connessioni cablate e Wi-Fi sono gestite tramite NetworkManager; vedi [Rete](/using-minios/Networking).
 
-Per prima cosa verifica se l'interfaccia esiste:
+Per prima cosa, verifica che l’interfaccia esista:
 
 ```bash
 ip link
@@ -89,16 +91,16 @@ nmcli device status
 nmcli connection show
 ```
 
-- Se non esiste alcuna interfaccia, annota `lspci -nnk` o `lsusb` e cerca errori di firmware o driver in `dmesg`.
-- Se l'interfaccia esiste ma non ha indirizzo, distingui i problemi di connessione/DHCP dalla mancanza di supporto hardware.
-- Se un indirizzo è presente, testa il gateway, poi un indirizzo IP, poi un nome DNS per distinguere problemi di collegamento, routing e DNS.
-- Il parametro di avvio `ip=` è relativo all'avvio di rete iniziale e non configura una connessione NetworkManager persistente. Vedi [Avvio di rete](/reference/boot-process/Network-Boot).
+- Se l’interfaccia non esiste, annota `lspci -nnk` o `lsusb` e cerca errori relativi al firmware o ai driver in `dmesg`.
+- Se l’interfaccia esiste ma non ha un indirizzo, distingui i problemi di connessione o DHCP dall’assenza del supporto hardware.
+- Se è presente un indirizzo, verifica prima il gateway, poi un indirizzo IP e infine un nome DNS, per individuare eventuali problemi di collegamento, routing o DNS.
+- Il parametro di avvio `ip=` è usato per l’avvio tramite rete nelle prime fasi e non configura una connessione NetworkManager persistente. Vedi [Avvio dalla rete](/reference/boot-process/Network-Boot).
 
 ## Problemi di persistenza
 
-Avvia **Avviare senza salvare** prima di modificare uno store di persistenza sospetto. Non riparare o eliminare l'unica copia di una sessione mentre è attiva.
+Avvia **Avviare senza salvare** prima di modificare un archivio di persistenza sospetto. Non riparare né eliminare l’unica copia di una sessione mentre è attiva.
 
-Verifica cosa vede attualmente MiniOS:
+Verifica cosa rileva attualmente MiniOS:
 
 ```bash
 sudo minios-session list
@@ -108,21 +110,25 @@ sudo minios-session status
 sudo minios-session info
 ```
 
-Controlla la modalità di avvio selezionata, lo spazio scrivibile disponibile, la compatibilità del filesystem e quella della sessione. Le regole dettagliate di selezione sono in [Sessioni e persistenza](/using-minios/Sessions-and-Persistence) e [Interni della persistenza](/reference/boot-process/Persistence-Internals).
+Controlla la modalità di avvio selezionata, lo spazio scrivibile disponibile, la compatibilità del file system e quella della sessione. Le regole dettagliate per la selezione sono disponibili in [Sessioni e persistenza](/using-minios/Sessions-and-Persistence) e [Funzionamento interno della persistenza](/reference/boot-process/Persistence-Internals).
 
-Se una sessione importante non attiva `native`, `dynfilefs`, `dynblk`, `vmdk`, o `raw` è ancora leggibile, anche in forma cifrata sbloccabile, esportala **prima** di sperimentare con lo storage:
+Se una sessione importante non in esecuzione di `native`, `dynfilefs`, `dynblk`, `vmdk` o `raw` è ancora leggibile, anche in forma crittografata se può essere sbloccata, esportala **prima** di sperimentare con l’archiviazione:
 
 ```bash
 sudo minios-session export <id> /path/to/session.tar.zst
 ```
 
-Se Session Manager non riesce a leggere o esportare la sessione, interrompi la scrittura sulla sorgente e conserva una copia offline dello storage interessato prima di ulteriori interventi. Per una sessione DynBlk scollegata, `dynblk inspect /path/to/volume000.db --metadata-only` e `dynblk check /path/to/volume000.db` forniscono diagnostica in sola lettura sul formato; non eseguirli su un volume ancora collegato. MiniOS non definisce una procedura manuale universale per ricostruire segmenti DynFileFS, ricostruire parti di supporto DynBlk, riparare un filesystem interno o ricostruire i metadati della sessione. Tale recupero è specifico per filesystem/container e va tentato solo su una copia se il valore dei dati lo giustifica.
+Se Session Manager non riesce a leggere o esportare la sessione, interrompi le scritture sull’origine e conserva una copia offline dello spazio di archiviazione interessato prima di procedere. Per una sessione DynBlk scollegata, `dynblk inspect /path/to/volume000.db --metadata-only` e `dynblk check /path/to/volume000.db` forniscono diagnostiche di sola lettura del formato; non eseguirle su un volume ancora collegato. MiniOS non definisce una procedura manuale universale per ricostruire i segmenti DynFileFS, ricreare le parti di supporto DynBlk, riparare un file system interno o ricostruire i metadati della sessione. Il recupero dipende dal file system o dal contenitore e va tentato solo su una copia, quando il valore dei dati lo giustifica.
 
-Vedi [Backup di MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS) per i flussi di lavoro supportati di backup e importazione sessioni.
+Vedi [Backup di MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS) per le procedure di backup e importazione delle sessioni supportate.
+
+### Ventoy Persistence Plugin
+
+Se Session Manager segnala che non è disponibile con il Ventoy Persistence Plugin, si tratta del comportamento previsto per il modello a immagine singola, non di metadati di sessione mancanti. Seleziona un altro backend in Ventoy oppure avvia il sistema senza selezionare un’immagine del plugin per usare sessioni MiniOS numerate. Se un backend non è disponibile o non è ext4, il formato union registrato è diverso oppure l’attivazione in scrittura non riesce, MiniOS mostrerà un avviso e continuerà in RAM. Esamina `/run/initramfs/minios-persistence/boot-state` e gli avvisi all’avvio; non creare `session.conf` manualmente all’interno dell’immagine del plugin. Vedi [Ventoy](/installing-minios/installation-tools/Ventoy).
 
 ## Problemi di archiviazione e spazio libero
 
-Ispeziona dispositivi e mount senza modificarli:
+Esamina dispositivi e punti di mount senza modificarli:
 
 ```bash
 lsblk -o NAME,SIZE,TYPE,FSTYPE,LABEL,UUID,MOUNTPOINTS,MODEL
@@ -131,19 +137,21 @@ df -hT
 df -ih
 ```
 
-Un filesystem pieno può causare errori nei pacchetti, salvataggi di sessione incompleti e altri errori secondari. Libera spazio spostando o eliminando solo dati noti dopo aver confermato il filesystem corretto. Usa il Gestore sessioni MiniOS per eliminare le sessioni invece di rimuovere manualmente le cartelle numerate delle sessioni.
+Un filesystem pieno può causare errori nelle operazioni sui pacchetti, salvataggi incompleti delle sessioni e altri problemi secondari. Libera spazio spostando o eliminando dati noti solo dopo aver verificato il filesystem corretto. Per eliminare sessioni, usa il Gestore sessioni MiniOS invece di rimuovere manualmente le directory delle sessioni numerate.
 
-Se `LIVE_APT_CACHE=volatile`, controlla anche `findmnt -T /var/cache/apt/archives` e `df -h /var/cache/apt/archives`: l'area archivio è un filesystem RAM limitato e un download di grandi dimensioni può riempirlo anche se il dispositivo USB ha spazio libero. Con `LIVE_LOG_STORAGE=volatile`, la normale `/var/log` ha un limite separato di 32 MiB su RAM. Riempire una delle due aree non fa sì che MiniOS scriva automaticamente quei file sul dispositivo USB. Vedi [Prestazioni](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch).
+Se `LIVE_APT_CACHE=volatile`, controlla anche `findmnt -T /var/cache/apt/archives` e `df -h /var/cache/apt/archives`: l’area degli archivi è un filesystem RAM con spazio limitato e un download di grandi dimensioni può riempirla anche se il dispositivo USB ha spazio libero. Con `LIVE_LOG_STORAGE=volatile`, il normale `/var/log` ha un limite separato di 32 MiB RAM. Se una delle due aree si riempie, MiniOS non inizia a scrivere quei file sul dispositivo USB senza avvisare. Vedi [Prestazioni](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch).
 
-La riparazione di filesystem non è un'operazione generica MiniOS. Se il filesystem è danneggiato, smontalo, salva prima i dati importanti o un'immagine, e usa una procedura di riparazione adatta a quel filesystem e dispositivo di archiviazione.
+La riparazione di un filesystem non è un’operazione MiniOS generica. Se il filesystem è danneggiato, smontalo, salva prima i dati importanti o un’immagine e usa una procedura di riparazione adatta a quel filesystem e al dispositivo di archiviazione.
 
 ## Modifiche ai pacchetti e aggiornamenti di sistema
 
-Se i problemi sono iniziati dopo modifiche ai pacchetti APT, ricorda che una sessione live persistente può sovrascrivere file provenienti dai moduli MiniOS in sola lettura. Prova **Avviare senza salvare** per confrontare con il set di moduli originale. Vedi [Aggiornamento di MiniOS](/maintenance-and-recovery/Updating-MiniOS) per la distinzione tra manutenzione APT e cambio di release MiniOS.
+Se i problemi sono iniziati dopo modifiche ai pacchetti APT, ricorda che una sessione live persistente può sovrascrivere i file dei moduli MiniOS di sola lettura. Prova **Avviare senza salvare** per confrontare i risultati con il set di moduli originale. Vedi [Aggiornamento di MiniOS](/maintenance-and-recovery/Updating-MiniOS) per capire la differenza tra la manutenzione APT e il passaggio alle release MiniOS.
+
+<a id="collecting-logs"></a>
 
 ## Raccolta dei log
 
-Le informazioni utili includono:
+Informazioni utili includono:
 
 ```bash
 uname -a
@@ -156,9 +164,9 @@ lspci -nnk
 lsusb
 ```
 
-Per errori di avvio ripetuti su supporti MiniOS scrivibili, `EXPORT_LOGS=true` in `config.conf` esporta i log di avvio in `minios/log/`. Vedi [config.conf](/reference/configuration/config.conf).
+In caso di ripetuti errori di avvio su supporti MiniOS scrivibili, `EXPORT_LOGS=true` in `config.conf` esporta i log di avvio in `minios/log/`. Vedi [config.conf](/reference/configuration/config.conf).
 
-In una sessione durevole funzionante `perch`, i due log di avvio obbligatori sono già conservati indipendentemente da `LIVE_LOG_STORAGE`:
+In una sessione `perch` persistente e funzionante, i due log di avvio obbligatori vengono conservati comunque, indipendentemente da `LIVE_LOG_STORAGE`:
 
 ```bash
 sudo ls -l /var/log/minios/minios-boot.log*
@@ -168,27 +176,26 @@ findmnt -T /var/log
 findmnt -T /var/log/minios
 ```
 
-Le versioni `.1`, `.2` e `.3` sono avvii precedenti. Il mount ordinario `/var/log` può essere `tmpfs` mentre `/var/log/minios` e `/var/log/live` restano nello store di persistenza. Per SquashFS, questi log sono anche in `minios/changes/<session-id>/boot-logs/`, fuori da `changes.sb`; sopravvivono anche se lo snapshot di spegnimento fallisce. Un'attivazione `perch` non riuscita o non durevole non garantisce una destinazione log persistente. Con `LIVE_LOG_STORAGE=volatile`, `journalctl -b` e altri log ordinari sono disponibili solo per l'avvio **corrente**. Abilita i log dettagliati `minios-update-*` usando `LIVE_CONFIG_DEBUG=true` solo se necessario; gli errori normali vengono comunque segnalati.
+Il `.1`, `.2` e `.3` risalgono ad avvii precedenti. Il normale mount di `/var/log` può essere `tmpfs` mentre `/var/log/minios` e `/var/log/live` rimangono nell’archivio di persistenza. Per SquashFS, questi log si trovano anche in `minios/changes/<session-id>/boot-logs/`, al di fuori di `changes.sb`; vengono conservati anche se lo snapshot di arresto non riesce. Se l’attivazione di `perch` non riesce o non è persistente, non è garantita una destinazione persistente per i log. Con `LIVE_LOG_STORAGE=volatile`, `journalctl -b` e gli altri log normali sono disponibili solo per l’avvio **corrente**. Abilita le tracce dettagliate di `minios-update-*` solo quando necessario, usando `LIVE_CONFIG_DEBUG=true`; gli errori normali vengono comunque segnalati anche senza.
 
-Rimuovi credenziali, chiavi private, password Wi-Fi e altre informazioni riservate prima di condividere i log. Per un difetto riproducibile, includi gli estratti rilevanti e apri una segnalazione nel [tracker delle segnalazioni MiniOS](https://github.com/minios-linux/minios-live/issues).
+Prima di condividere i log, rimuovi credenziali, chiavi private, password Wi-Fi e altre informazioni riservate. Per un bug riproducibile, includi gli estratti pertinenti e apri una segnalazione nel [MiniOS issue tracker](https://github.com/minios-linux/minios-live/issues).
 
 ### Le sessioni VMDK non sono disponibili
 
-Aggiorna insieme il driver/CLI DynBlk e gli strumenti di sessione, poi ricostruisci l'
-initrd di avvio. L'initrd in esecuzione deve dichiarare `vmdk-session-v1`; anche l'Installer
-controlla ogni initrd sorgente che copierà. Il vecchio marker vuoto DynBlk
-indica solo il supporto nativo per i blocchi e non garantisce il supporto all'avvio di sessioni VMDK.
-Non modificare manualmente la modalità di una sessione esistente: usa una copia esplicita o una
-conversione nell'altro formato.
+Aggiorna insieme il driver/CLI DynBlk e gli strumenti per le sessioni, quindi ricompila l’
+initrd di avvio. L’initrd in esecuzione deve indicare `vmdk-session-v1`; anche Installer
+controlla ogni initrd sorgente che copierà. Il vecchio marker DynBlk vuoto
+indica solo il supporto nativo per i dispositivi a blocchi e non garantisce il supporto all’avvio di sessioni VMDK.
+Non modificare manualmente la modalità di una sessione esistente: usa una copia esplicita o
+una conversione nell’altro formato.
 
 ### Liberare spazio in DynFileFS, DynBlk o nelle sessioni VMDK
 
 Usa il menu contestuale di Session Manager **Libera spazio...**, oppure
-`minios-session reclaim ID --json`. Per le sessioni in chiaro questa funzione esegue il trim
-dell'effettivo ext4 interno e poi chiede al backend proprietario di recuperare spazio senza
-spostare dati attivi. DynFileFS richiede la versione 4.6.0 o successiva per questa operazione.
-Su filesystem come exFAT, possono restare spazi interni allocati al file host
-ma riutilizzabili dal container; `--compact` è una scelta manuale separata che può
-spostare dati attivi e scrivere di più sul dispositivo flash. Nessuna opzione abilita
-compattazione o discard LUKS in automatico. Una sessione cifrata può recuperare solo
-lo spazio già noto al backend sottostante tramite questo comando.
+`minios-session reclaim ID --json`. Nelle sessioni in testo normale, questa operazione riduce l’
+ext4 interno vero e proprio, quindi chiede al backend proprietario di recuperare spazio di archiviazione senza
+spostare i dati attivi. DynFileFS richiede la versione 4.6.0 o successiva per questa operazione.
+Su file system come exFAT, gli spazi vuoti interni possono restare allocati nel file host
+ma essere riutilizzabili dal container; `--compact` è un’opzione manuale separata che può
+spostare i dati attivi e comporta più scritture sul dispositivo flash. La compattazione e il discard LUKS non vengono mai attivati
+automaticamente. Una sessione cifrata può recuperare solo lo spazio già noto al backend sottostante tramite questo comando.

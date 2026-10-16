@@ -1,8 +1,8 @@
 ---
-updated: 2026-10-06
+updated: 2026-10-15
 program_commits:
-  minios-image-builder: bf84d50bfe9461f4e9300033c5855ec8fa387552
-  minios-tools: be508248395979c27cb8036a7d8cc69bdfc82c42
+  minios-image-builder: 8592ec061393e48e6bdfbd43d5b4365a94c73a67
+  minios-tools: bc6de2e7649ef7629fe6491b906de2290e394fd0
 ---
 # Creating custom MiniOS images
 
@@ -31,7 +31,7 @@ The Source page accepts:
 
 ISO and optical-disc sources are mounted read-only with `udisksctl`. Source inventory records the release, version, architecture, bootloader support, size, module inventory, and a source fingerprint. If a source changes after planning, the build is blocked rather than continuing with different input.
 
-Session capture always describes changes in the currently running MiniOS session. When an ISO or optical disc is selected, capture is available only if that source's base-module fingerprint matches the mounted base of the running session. Selecting external media does not capture changes made in some other system.
+In the graphical builder, session capture is available only with the **running MiniOS session** as the source, with every source module and every active external module included. It is unavailable for a separately selected ISO or optical disc, even if it contains the same release. Do not deselect source layers when capturing the writable session, because its changes depend on that complete running base.
 
 ## Requirements
 
@@ -106,7 +106,7 @@ Supported settings are constrained and validated by the backend:
 - **User data:** validated root-relative user directories with either link or bind behavior, not both.
 - **Boot behavior:** a timeout from 0 to 300 seconds, the source menu or a constructed menu, and a selected default entry.
 - **Boot entries:** resume, new, choose, fresh, and copy-to-RAM templates can be hidden, reordered, duplicated, and configured through typed persistence, module, startup, localization, zRAM, and diagnostic controls. Current new-session templates use `perchdir=setup` so the persistence backend can be selected at startup; when an older source already uses `perchdir=new`, that legacy selector is preserved rather than silently rewritten.
-- **RAM behavior:** system copying (`toram`) and persistence-session copying (`perchtoram`) are independent controls. `perchtoram=off` keeps persistence on storage, `trim` copies the selected supported session, and `full` requests a full supported-session copy. When persistence is enabled, current menus use `trim` with a RAM system boot and `off` otherwise unless you choose another value. Native directory sessions are not copied by `perchtoram`.
+- **RAM behavior:** system copying (`toram`) and persistence-session copying (`perchtoram`) are independent controls. `perchtoram=off` keeps persistence on storage, `trim` copies the selected supported session, and `full` requests a full supported-session copy. With a persistence request, a RAM system boot defaults to `trim` unless another value is chosen. Native directory data is not copied: the initrd normally starts a new empty container for that request instead. Use `perchtoram=off` to retain native data on storage.
 - **Expert boot settings:** validated global and per-entry kernel arguments for options not represented by typed controls.
 - **Appearance:** a validated PNG boot background.
 - **Project filesystem layer:** one real directory interpreted relative to image root and packaged as a root-owned SquashFS overlay module.
@@ -154,6 +154,8 @@ A cancelled or failed build does not publish its private ISO. Any previous desti
 - [Building MiniOS](/development/Building-MiniOS)
 - [Creating modules](/preparing-and-customizing/Managing-Modules#creating-modules)
 - [Composing ISO images from the command line](/preparing-and-customizing/Creating-Custom-MiniOS-Images#composing-minios-iso-images-from-the-command-line)
+
+<a id="composing-minios-iso-images-from-the-command-line"></a>
 
 ## Composing MiniOS ISO images from the command line
 

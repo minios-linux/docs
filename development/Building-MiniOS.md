@@ -1,7 +1,7 @@
 ---
-updated: 2026-08-31
+updated: 2026-10-15
 program_commits:
-  minios-live: f59faa38c0667fbeefdc6dbe899a2db6e131e462
+  minios-live: a70af61230d2891ed9ca2447019bd7210a670694
 ---
 # Building MiniOS
 
@@ -155,6 +155,7 @@ If `REMOVE_SOURCES=true`, the final `remove-sources` stage deletes and recreates
 
 - `DISTRIBUTION`, `DISTRIBUTION_ARCH`, `DESKTOP_ENVIRONMENT`, and `PACKAGE_VARIANT` select the target and module chain.
 - `COMP_TYPE` controls SquashFS compression.
+- `LIVE_MODULE_MODE` selects `merged` (the current default for every variant) or `simple` live-config integration; it is no longer inferred solely from edition size.
 - `KERNEL_*` and `MINIOS_KERNEL_SERIES` control kernel acquisition and payload.
 - `INITRAMFS_BUILDER`, `INITRAMFS_CRYPT`, `BOOTLOADER`, `MENU_LANG`, and `SERIAL_CONSOLE` control boot artifacts.
 - `USE_ROOTFS`, `USE_APT_CACHE`, `USE_SHARED_APT_CACHE`, `USE_APT_CACHE_REPO`, and `USE_APT_CACHER` control reusable inputs.
@@ -219,6 +220,7 @@ set -o pipefail
 set -u
 
 . /minioslib || exit 1
+console_colors
 . /minios_build.conf || exit 1
 
 SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"

@@ -1,5 +1,5 @@
 ---
-updated: 2026-10-06
+updated: 2026-10-15
 ---
 
 # Solución de problemas
@@ -65,15 +65,17 @@ findmnt -R /run/initramfs 2>/dev/null
 
 ## Problemas de pantalla
 
-Para pantalla en negro, resolución inutilizable o bucle en el gestor de pantalla:
+Si tienes pantalla negra, resolución inutilizable o un bucle en el gestor de pantalla:
 
-1. Pruebe el parámetro de arranque `text`. Una consola funcional permite distinguir entre un problema gráfico/de escritorio y un fallo anterior de arranque.
-2. Elimine los parámetros especificados manualmente `xorg-driver` o `xorg-resolution`.
-3. Pruebe **Iniciar sin guardar** para descartar una configuración de pantalla persistente.
-4. Registre la GPU y el controlador con `lspci -nnk`.
-5. Inspeccione `journalctl -b -p warning` y `dmesg --level=err,warn`.
+1. Prueba el parámetro de arranque `text`. Una consola funcional permite distinguir entre un problema gráfico/de escritorio y un fallo anterior al arranque.
+2. Elimina los parámetros especificados manualmente `xorg-driver` o `xorg-resolution`.
+3. Prueba **Iniciar sin guardar** para descartar una configuración de pantalla persistente.
+4. Registra la GPU y el controlador con `lspci -nnk`.
+5. Revisa `journalctl -b -p warning` y `dmesg --level=err,warn`.
 
-Para máquinas virtuales, consulte [Virtualización](/maintenance-and-recovery/Virtualization).
+Para máquinas virtuales, consulta [Virtualización](/maintenance-and-recovery/Virtualization).
+
+En las imágenes de Debian 13 / Devuan Excalibur XFCE, **Configuración de pantalla** incluye un control de **Escala de la interfaz** con porcentajes automáticos y manuales. Automático sigue la pantalla principal; un porcentaje explícito guardado lo reemplaza. Utiliza la vista previa temporizada y la confirmación en lugar de tratar la resolución de salida y la escala de la interfaz como el mismo ajuste. Los efectos de ventana y el renderizador se configuran por separado en **Ajustes del gestor de ventanas → Compositor**. `xfwm4-gl` utiliza XRender si no se puede usar OpenGL; el desenfoque y Magic Lamp requieren OpenGL, mientras que las animaciones de desvanecimiento/escalado y Peek también funcionan con XRender.
 
 ## Problemas de red
 
@@ -120,9 +122,13 @@ Si Session Manager no puede leer ni exportar la sesión, deje de escribir en el 
 
 Consulte [Copia de seguridad de MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS) para flujos de trabajo de copia de seguridad e importación de sesiones compatibles.
 
+### Ventoy Persistence Plugin
+
+Si Session Manager informa que no está disponible con el complemento de persistencia Ventoy, esto corresponde al modelo de imagen única esperado y no a la falta de metadatos de sesión. Selecciona otro backend en Ventoy o inicia sin una imagen de complemento seleccionada para utilizar sesiones numeradas MiniOS. Si el backend no está disponible o no es ext4, si hay un formato de unión registrado diferente, o si falla la activación en modo escritura, MiniOS mostrará una advertencia y continuará en RAM. Revisa `/run/initramfs/minios-persistence/boot-state` los avisos de inicio; no crees `session.conf` manualmente dentro de la imagen del complemento. Consulta [Ventoy](/installing-minios/installation-tools/Ventoy).
+
 ## Problemas de almacenamiento y espacio libre
 
-Inspeccione los dispositivos y puntos de montaje sin modificarlos:
+Inspecciona los dispositivos y puntos de montaje sin modificarlos:
 
 ```bash
 lsblk -o NAME,SIZE,TYPE,FSTYPE,LABEL,UUID,MOUNTPOINTS,MODEL
@@ -131,15 +137,17 @@ df -hT
 df -ih
 ```
 
-Un sistema de archivos lleno puede provocar fallos en operaciones de paquetes, guardados de sesión incompletos y otros errores secundarios. Libere espacio moviendo o eliminando solo datos conocidos después de confirmar el sistema de archivos correcto. Utilice el Gestor de sesiones de MiniOS para eliminar sesiones en lugar de borrar manualmente los directorios numerados de sesión.
+Un sistema de archivos lleno puede provocar fallos en operaciones de paquetes, guardados de sesión incompletos y otros errores secundarios. Libera espacio moviendo o eliminando solo datos conocidos, y solo después de confirmar el sistema de archivos correcto. Utiliza el Gestor de sesiones de MiniOS para eliminar sesiones en lugar de borrar manualmente los directorios de sesiones numerados.
 
-Si `LIVE_APT_CACHE=volatile`, también compruebe `findmnt -T /var/cache/apt/archives` y `df -h /var/cache/apt/archives`: el área de archivo es un sistema de archivos RAM limitado y una descarga grande puede llenarlo incluso si el dispositivo USB tiene espacio libre. Con `LIVE_LOG_STORAGE=volatile`, la `/var/log` ordinaria tiene un límite separado de 32 MiB de RAM. Llenar cualquiera de las áreas no hace que MiniOS cambie silenciosamente a escribir esos archivos en el dispositivo USB. Consulte [Rendimiento](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch).
+Si `LIVE_APT_CACHE=volatile`, revisa también `findmnt -T /var/cache/apt/archives` y `df -h /var/cache/apt/archives`: la zona de archivos es un sistema de archivos RAM limitado y una descarga grande puede llenarla incluso si el dispositivo USB tiene espacio libre. Con `LIVE_LOG_STORAGE=volatile`, el `/var/log` ordinario tiene un límite independiente de 32 MiB en RAM. Llenar cualquiera de estas áreas no hace que MiniOS cambie automáticamente a escribir esos archivos en el dispositivo USB. Consulta [Rendimiento](/maintenance-and-recovery/Performance#reduce-cache-and-log-writes-with-perch).
 
-La reparación de sistemas de archivos no es una operación genérica de MiniOS. Si el sistema de archivos está dañado, desmóntelo, asegure primero los datos importantes o una imagen, y utilice un procedimiento de reparación adecuado para ese sistema de archivos y dispositivo de almacenamiento.
+La reparación del sistema de archivos no es una operación genérica de MiniOS. Si el propio sistema de archivos está dañado, desmóntalo, guarda primero los datos importantes o una imagen, y utiliza un procedimiento de reparación adecuado para ese sistema de archivos y dispositivo de almacenamiento.
 
 ## Cambios de paquetes y actualizaciones del sistema
 
-Si los problemas comenzaron tras cambios de paquetes APT, recuerde que una sesión persistente en vivo puede sobrescribir archivos de los módulos de solo lectura MiniOS. Pruebe **Iniciar sin guardar** para comparar con el conjunto original de módulos. Consulte [Actualización de MiniOS](/maintenance-and-recovery/Updating-MiniOS) para la diferencia entre el mantenimiento con APT y el cambio de versiones de MiniOS.
+Si los problemas comenzaron después de cambios en paquetes APT, recuerda que una sesión persistente en vivo puede sobrescribir archivos de los módulos de solo lectura MiniOS. Prueba **Iniciar sin guardar** para comparar con el conjunto original de módulos. Consulta [Actualización de MiniOS](/maintenance-and-recovery/Updating-MiniOS) para conocer la diferencia entre el mantenimiento con APT y el cambio de versiones de MiniOS.
+
+<a id="collecting-logs"></a>
 
 ## Recopilación de registros
 
@@ -156,9 +164,9 @@ lspci -nnk
 lsusb
 ```
 
-Para fallos de arranque repetidos en medios MiniOS regrabables, `EXPORT_LOGS=true` en `config.conf` exporta los registros de arranque en `minios/log/`. Consulte [config.conf](/reference/configuration/config.conf).
+Para fallos repetidos de arranque en medios MiniOS con permisos de escritura, `EXPORT_LOGS=true` en `config.conf` exporta los registros de arranque en `minios/log/`. Consulta [config.conf](/reference/configuration/config.conf).
 
-En una sesión duradera y saludable de `perch`, los dos registros de arranque obligatorios ya se conservan independientemente de `LIVE_LOG_STORAGE`:
+En una sesión duradera y saludable de `perch`, los dos registros obligatorios de inicio ya se conservan independientemente de `LIVE_LOG_STORAGE`:
 
 ```bash
 sudo ls -l /var/log/minios/minios-boot.log*
@@ -168,27 +176,27 @@ findmnt -T /var/log
 findmnt -T /var/log/minios
 ```
 
-Las versiones `.1`, `.2` y `.3` corresponden a arranques anteriores. El montaje ordinario de `/var/log` puede ser `tmpfs` mientras `/var/log/minios` y `/var/log/live` permanecen en el almacén de persistencia. Para SquashFS, estos registros también se encuentran en `minios/changes/<session-id>/boot-logs/`, fuera de `changes.sb`; sobreviven incluso si falla la instantánea de apagado. Una activación fallida o no duradera de `perch` no garantiza un destino persistente para los registros. Con `LIVE_LOG_STORAGE=volatile`, `journalctl -b` y otros registros ordinarios están disponibles solo para el arranque **actual**. Active los registros detallados de `minios-update-*` con `LIVE_CONFIG_DEBUG=true` solo cuando sea necesario; los errores normales siguen siendo reportados sin ello.
+Las versiones `.1`, `.2` y `.3` corresponden a arranques anteriores. El montaje estándar de `/var/log` puede `tmpfs` mientras que `/var/log/minios` y `/var/log/live` permanecen en el almacenamiento persistente. Para SquashFS, estos registros también se encuentran en `minios/changes/<session-id>/boot-logs/`, fuera de `changes.sb`; se conservan incluso si falla la instantánea de apagado. Una activación fallida o no duradera de `perch` no garantiza un destino persistente para los registros. Con `LIVE_LOG_STORAGE=volatile`, `journalctl -b` y otros registros habituales están disponibles solo para el **arranque actual**. Activa los seguimientos detallados de `minios-update-*` usando `LIVE_CONFIG_DEBUG=true` solo cuando sea necesario; los errores normales se informan igualmente sin ello.
 
-Elimine credenciales, claves privadas, contraseñas Wi-Fi y otra información confidencial antes de compartir registros. Para un error reproducible, incluya los extractos relevantes y abra un reporte en el [seguimiento de incidencias de MiniOS](https://github.com/minios-linux/minios-live/issues).
+Elimina credenciales, claves privadas, contraseñas Wi-Fi y cualquier otra información confidencial antes de compartir los registros. Si el defecto es reproducible, incluye los extractos relevantes y abre un reporte en el [seguimiento de incidencias de MiniOS](https://github.com/minios-linux/minios-live/issues).
 
-### No se ofrecen sesiones VMDK
+### Las sesiones VMDK no están disponibles
 
-Actualice el controlador/CLI DynBlk y las herramientas de sesión juntas, luego reconstruya el
+Actualiza el controlador/CLI DynBlk y las herramientas de sesión al mismo tiempo, luego vuelve a generar el
 initrd de arranque. El initrd en ejecución debe anunciar `vmdk-session-v1`; el instalador también
 verifica cada initrd de origen que va a copiar. El antiguo marcador vacío DynBlk solo
-indica soporte nativo de bloques y no garantiza soporte de arranque de sesiones VMDK.
-No cambie manualmente el modo de una sesión existente: utilice una copia explícita o
+indica soporte nativo de bloques y no garantiza compatibilidad con arranque de sesiones VMDK.
+No cambies manualmente el modo de una sesión existente: utiliza una copia explícita o
 conversión al otro formato.
 
 ### Liberar espacio en DynFileFS, DynBlk o sesiones VMDK
 
-Use el menú contextual de Session Manager **Liberar espacio...**, o
+Utiliza el menú contextual del Administrador de Sesiones **Liberar espacio...**, o
 `minios-session reclaim ID --json`. Para sesiones en texto plano, esto recorta el
-ext4 interno real y luego solicita al backend propietario que recupere el almacenamiento sin
+sistema de archivos ext4 interno real y luego solicita al backend propietario que recupere el almacenamiento sin
 mover datos en uso. DynFileFS requiere la versión 4.6.0 o posterior para esta operación.
 En sistemas de archivos como exFAT, pueden quedar huecos internos asignados al archivo anfitrión
-pero reutilizables por el contenedor; `--compact` es una opción manual independiente que puede
-reubicar datos en uso y escribe más en el dispositivo flash. Nada habilita
+pero reutilizables por el contenedor; `--compact` es una opción manual aparte que puede
+reubicar datos activos y escribir más en el dispositivo flash. Ninguna opción activa
 la compactación ni el descarte LUKS automáticamente. Una sesión cifrada solo puede recuperar
-el espacio ya reconocido por el backend subyacente mediante este comando.
+el espacio que el backend subyacente ya reconoce mediante este comando.

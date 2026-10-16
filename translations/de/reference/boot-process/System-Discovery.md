@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-28
+updated: 2026-10-15
 ---
 
 # Systemerkennung
@@ -16,17 +16,17 @@ Das Finden eines Laufwerks beweist nicht, dass das Modul-Set vollständig ist, u
 
 ## Parameter erklärt
 
-| Parameter | Was es MiniOS mitteilt | Typische Verwendung |
+| Parameter | Was MiniOS angibt | Typische Verwendung |
 |---|---|---|
-| `from=PATH` | Sucht nach MiniOS in einem bestimmten Verzeichnis oder einer ISO, anstatt die erste passende lokale Quelle zu akzeptieren. | Starten einer ISO, die auf einem Laufwerk gespeichert ist, oder Verwendung eines nicht standardmäßigen Verzeichnisses. |
-| `from=askdisk` | Öffnet einen interaktiven Auswahldialog für die Partition, die MiniOS enthält. | Mehrere angeschlossene Laufwerke enthalten mögliche Quellen. |
-| `from=http://...` | Bindet eine ISO von einem einfachen HTTP-Server ein. | Kontrollierter Netzwerk-Boot, bei dem das laufende System weiterhin auf den Server angewiesen sein kann. |
-| `ip=...` | Verwendet frühes statisches Netzwerk. Ohne einen HTTP-`from=` wird der PXE-Datendownload gewählt und lokale Laufwerke werden übersprungen. | PXE-Bereitstellung oder statische Adressierung für eine HTTP-ISO. |
-| `cache=MB` | Reserviert einen httpfs-Cache für eine HTTP-ISO. Es wird nicht garantiert, dass die komplette ISO heruntergeladen wird. | Wiederholte Lesezugriffe von einer HTTP-Quelle reduzieren. |
-| `bext=EXTENSION` | Sucht nach Moduldateinamen mit einer anderen Erweiterung anstelle von `.sb`. | Nur für spezielle Images; wandelt keine Module um. |
-| `toram` oder `toram=full` | Kopiert den gesamten gefundenen MiniOS-Datenbaum in RAM und versucht, die Quelle zu trennen. Die Kurzform bedeutet `full`. | Temporäre RAM-Operation auf einem Rechner mit genügend Speicher. |
+| `from=PATH` | Sucht nach MiniOS in einem bestimmten Verzeichnis oder einer ISO, anstatt die erste passende lokale Quelle zu akzeptieren. | Eine ISO, die auf einer Festplatte gespeichert ist, starten oder ein nicht standardmäßiges Verzeichnis verwenden. |
+| `from=askdisk` | Einen interaktiven Auswahldialog für die Partition öffnen, die MiniOS enthält. | Mehrere angeschlossene Laufwerke enthalten mögliche Quellen. |
+| `from=http://...` | Eine ISO von einem einfachen HTTP-Server einbinden. | Kontrollierter Netzwerk-Boot, wobei das laufende System weiterhin vom Server abhängig sein kann. |
+| `ip=...` | Frühes statisches Netzwerk verwenden. Ohne HTTP`from=` wird PXE-Datenübertragung gewählt und lokale Laufwerke werden übersprungen. | PXE-Bereitstellung oder statische Adressierung für eine HTTP-ISO. |
+| `cache=MB` | Einen httpfs-Cache für eine HTTP-ISO reservieren. Es wird nicht garantiert, dass die komplette ISO heruntergeladen wird. | Wiederholte Lesezugriffe von einer HTTP-Quelle reduzieren. |
+| `bext=EXTENSION` | Nach Modul-Dateinamen mit einer anderen Erweiterung suchen anstelle von`.sb`. | Nur für spezialisierte Images; Module werden dabei nicht konvertiert. |
+| `toram` oder `toram=full` | Kopiert die gefundenen MiniOS Systemdaten, einschließlich versteckter Einträge auf oberster Ebene, aber ohne`changes/`, nach RAM und versucht, die Quelle zu trennen. Für das Kopieren von Sitzungen wird`perchtoram` separat verwendet. Die Kurzform bedeutet`full`. | RAM-Vorgang auf einem Rechner mit ausreichend Arbeitsspeicher. |
 
-Wenn ein lokaler USB-Boot abbricht, bevor der Desktop erscheint, entfernen Sie zuerst benutzerdefinierte `from=`- und `ip=`-Werte. Ein versehentlich nicht-leerer `ip=` verhindert die Erkennung von lokalen Laufwerken, während ein falscher `from=` dazu führen kann, dass MiniOS nach einem Pfad sucht, der nicht vorhanden ist.
+Wenn ein lokaler USB-Boot vor dem Erscheinen des Desktops stoppt, entfernen Sie zunächst benutzerdefinierte`from=` und`ip=` Werte. Ein versehentlich nicht leerer`ip=` verhindert die Erkennung lokaler Laufwerke, während ein falscher`from=` dazu führen kann, dass MiniOS nach einem nicht vorhandenen Pfad sucht.
 
 ## Quell-Priorität
 
@@ -46,11 +46,11 @@ Diese Reihenfolge hat zwei wichtige Konsequenzen:
 
 ## Lokale Erkennung
 
-Ohne HTTP-Quelle oder nicht-leeren `ip=` führt MiniOS 45 Erkennungspässe durch, etwa einen pro Sekunde. Jeder Durchlauf aktualisiert die Gerätenodes, ermittelt Blockgeräte-Kandidaten aus `blkid`, sortiert deren Gerätenamen und prüft sie in dieser Reihenfolge. Der erste Kandidat mit einer passenden MiniOS-Quelle wird übernommen; weitere Geräte werden nicht berücksichtigt.
+Ohne eine HTTP-Quelle oder ein nicht-leeres `ip=`, führt MiniOS 45 Erkennungsdurchläufe durch, etwa einen pro Sekunde. Bei jedem Durchlauf werden die Gerätenodes aktualisiert und Blockgeräte-Kandidaten von `blkid`abgerufen. Falls `/dev/mapper/ventoy`vorhanden ist, wird diese ISO-Zuordnung zuerst versucht; die übrigen Kandidaten werden nach Gerätename sortiert und Duplikate entfernt. Die erste passende MiniOS-Quelle wird beibehalten. Dadurch wird verhindert, dass Ersatzmodule auf der Ventoy-Datenpartition mit der Haupt-ISO-Quelle verwechselt werden.
 
-Ist `from=` leer, wird auf jedem Dateisystem der Pfad `minios` geprüft. Eine Quelle gilt als qualifiziert, wenn entweder dieses Verzeichnis oder dessen direktes `modules/`-Unterverzeichnis mindestens eine Datei mit der Standard-Endung `.sb` enthält. Der Parameter `bext=` ändert die für diesen Test verwendete Endung. Die Erkennung prüft nicht, ob das gefundene Modul-Set vollständig oder bootfähig ist.
+Wenn `from=`leer ist, wird auf jedem Dateisystem der Pfad `minios`überprüft. Eine Quelle gilt als geeignet, wenn entweder dieses Verzeichnis oder das unmittelbare `modules/`Unterverzeichnis mindestens eine Datei mit der Erweiterung `.sb`(Standard) enthält. Der `bext=`Parameter ändert die für diesen Test verwendete Erweiterung. Die Erkennung prüft nicht, ob das gefundene Modul-Set vollständig oder bootfähig ist.
 
-Jeder Kandidat wird zunächst im Read-Only-Modus eingehängt. Nach der Qualifizierung versucht MiniOS, das ausgewählte Datenlaufwerk beschreibbar zu mounten; das Scheitern daran führt jedoch nicht zum Ausschluss einer ansonsten gültigen Quelle.
+Jeder Kandidat wird zunächst im Nur-Lese-Modus eingebunden. Nachdem er als geeignet erkannt wurde, versucht MiniOS, das ausgewählte Datenlaufwerk beschreibbar zu machen; kann dies jedoch nicht erfolgen, wird eine ansonsten gültige Quelle trotzdem akzeptiert.
 
 ### Lokale `from=`-Formen
 
@@ -135,16 +135,16 @@ MiniOS konfiguriert die erste erkannte Nicht-Loopback-Schnittstelle, ohne zu pr�
 
 ## Kopieren und Trennen mit `toram=full`
 
-`toram=full` ist für die Erkennung relevant, da dadurch die fortlaufende Abhängigkeit von der gewählten Quelle aufgehoben werden kann. Nach der Erkennung kopiert MiniOS den Datenbaum nach RAM und versucht dann, die Quelle auszuhängen und die RAM-Kopie an deren Stelle zu verschieben. Nur ein erfolgreiches Aushängen und Verschieben trennt lokale Medien, eine loop-gemountete ISO oder eine HTTP-ISO.
+`toram=full` ist für die Erkennung relevant, da dadurch die fortlaufende Abhängigkeit von der gewählten Quelle aufgehoben werden kann. Nach der Erkennung der Quelle und eines externen MiniOS-Baums werden Systemdaten in RAM kopiert und anschließend versucht, die Quelle auszuhängen und die RAM-Kopie an deren Stelle zu verschieben. Nur ein erfolgreiches Aushängen und Verschieben trennt diese Quelle vollständig; ISO-Host-Dateisysteme und Ventoy-Zuordnungen müssen ebenfalls freigegeben werden.
 
-Wichtige Einschränkungen:
+Strikte Einschränkungen:
 
-- Es gibt keine Vorabprüfung, ob der verfügbare RAM für die Kopie ausreicht.
-- Bei angeforderter Persistenz werden beim Kopieren auf oberster Ebene `*` keine Dotfiles übernommen.
-- Ohne Persistenz wird der `changes`-Eintrag absichtlich ausgelassen. Dieser Zweig kopiert andere Top-Level-Einträge, einschließlich Dotfiles.
-- Ein Fehler beim Kopieren, Aushängen oder Verschieben kann dazu führen, dass die Originalquelle eingehängt bleibt. Gehen Sie nicht davon aus, dass die Angabe von `toram=full` das Entfernen von Medien oder einen Netzwerkausfall sicher macht; prüfen Sie, ob das Trennen erfolgreich war.
+- Es gibt keine Vorabprüfung, ob der verfügbare RAM ausreichend Platz für die Kopie bietet.
+- Das vollständige Systemkopieren umfasst versteckte Einträge auf oberster Ebene und lässt `changes/` unabhängig davon aus, ob Persistenz angefordert wurde, aus. Ein erkannter externer MiniOS-Baum wird über den Quellbaum kopiert, einschließlich Ersatzmodulen.
+- Unterstützte Sitzungscontainer werden separat mit `perchtoram=trim|full` kopiert; `perchtoram=off` behält die Speicherabhängigkeit bei. Native Sitzungen haben eine separate Einschränkung, die unter [Boot-Modi](/using-minios/Boot-Modes).
+- Fehler beim Systemkopieren führen zum fatalen initramfs-Pfad. Ein Fehlschlag beim Aushängen oder Verschieben kann dazu führen, dass die ursprüngliche Quelle weiterhin eingehängt bleibt, während der Bootvorgang den RAM-Staging-Pfad verwendet. Gehen Sie nicht davon aus, dass `toram=full` das Entfernen oder den Netzwerkverlust sicher macht; prüfen Sie die Trennung.
 
-Siehe [Initrd-Persistenz](/reference/boot-process/Persistence-Internals), bevor Sie `toram` mit `perch` oder `perchdir` kombinieren.
+Siehe [Initrd-Persistenz](/reference/boot-process/Persistence-Internals) bevor Sie `toram` mit `perch` oder `perchdir` kombinieren.
 
 ## Fehler und Diagnose
 

@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-31
+updated: 2026-10-15
 ---
 # Hardware compatibility
 
@@ -22,23 +22,13 @@ Use the architecture stated in the image name and release description. The avail
 
 MiniOS PC images can boot through legacy BIOS and UEFI when the required boot files are present in the selected image. Firmware implementations vary widely, so the same USB device may appear differently in the boot menu on different computers.
 
-Current 64-bit MiniOS images use the Debian kernel and Debian EFI components.
-They therefore support **Secure Boot** on amd64 systems.
+Secure Boot depends on the image's complete kernel and EFI chain, not just its architecture. Debian/Ubuntu amd64 builds using the matching signed distribution kernel and EFI components can support Secure Boot. A custom or MiniOS-provided unsigned kernel does not become trusted merely because signed EFI files are present. DynBlk and the external AUFS-NG driver are unsigned: Secure Boot disables DynBlk/VMDK sessions and normally leaves OverlayFS for module composition.
 
-The 32-bit i386 images use a MiniOS-built kernel because Debian no longer publishes 32-bit kernel packages. This kernel is kept identical to the corresponding Debian kernel, but it is built by MiniOS and is not part of Debian's signed boot chain. Therefore **Secure Boot is not supported by i386 MiniOS images**.
+Current i386 images use a MiniOS-built kernel where the selected base no longer supplies a suitable 32-bit kernel. MiniOS kernels are separate builds with MiniOS integration, not a guarantee of byte-identical Debian binaries, and are not part of Debian's signed chain. **Secure Boot is not supported by these i386 images.** Firmware bitness is a separate boot-compatibility consideration.
 
 ## Memory
 
-Recommended minimum memory depends on the edition:
-
-| Edition | Recommended minimum RAM |
-|---|---:|
-| **Flux** | 512 MB |
-| **Standard** | 756 MB |
-| **Toolbox** | 756 MB |
-| **Ultra** | 756 MB |
-
-These values are for normal use from the boot medium. Actual applications may need more memory.
+Memory requirements depend on the actual release, desktop, applications, and session type. Flux generally needs less than the full XFCE editions; a browser, office suite, virtual machine, or large persistence snapshot can need substantially more than the desktop alone. Use the release's stated requirements and test the intended workload rather than treating an old edition-wide RAM figure as sufficient for every current image.
 
 **Run from RAM** needs additional memory because MiniOS data is copied into RAM alongside the running system and applications. Larger images therefore require substantially more memory in this mode.
 
@@ -47,15 +37,25 @@ See [Boot modes](/using-minios/Boot-Modes) before using **Run from RAM** on a me
 ## Graphics
 
 Current amd64 MiniOS images use the Debian graphics stack with Xorg and Mesa.
-The kernel includes Intel `i915` and `xe`, AMD `amdgpu` and `radeon`, and the open-source NVIDIA `nouveau` driver.
+Depending on the selected kernel, its modules cover Intel `i915` and `xe`, AMD `amdgpu` and `radeon`, and open-source NVIDIA `nouveau` hardware.
 
 Xorg includes its generic `modesetting` driver together with Intel, AMD/ATI, Radeon, Nouveau, VESA, and framebuffer drivers. Mesa provides the normal 3D acceleration stack used by Intel, AMD, and supported open-source drivers.
 
-Debian-based MiniOS images install the Debian firmware collections alongside vendor-specific firmware packages. The current Trixie Standard image includes `firmware-amd-graphics` and `firmware-misc-nonfree`; Ubuntu-based images use `linux-firmware` instead.
+Debian-based MiniOS images request Debian firmware collections alongside vendor-specific packages, including `firmware-intel-graphics` on Trixie and Excalibur. Actual installed firmware depends on repository availability and the completed image. Ubuntu-based images use `linux-firmware` instead.
 
 The maintained MiniOS package lists do not include the proprietary NVIDIA kernel driver. NVIDIA hardware therefore uses the included `nouveau` driver by default. Hardware or features that specifically require NVIDIA's proprietary driver need it to be added separately.
 
 Virtual graphics are also covered by kernel and Xorg drivers for common VMware, QXL, Bochs, and Hyper-V devices.
+
+### XFCE scaling and window management
+
+Debian 13 and Devuan Excalibur XFCE images use MiniOS-adapted settings and desktop packages, the MiniOS tasklist and Show Desktop plugins, and `xfwm4-gl` in place of `xfwm4`. Display Settings provides Automatic interface scaling or manual 100–200% choices in 25% steps, with a timed preview and rollback. Text, controls, decorations, and themed cursors follow interface scaling; output pixel scale and monitor resolution remain separate controls. Saved manual choices override Automatic.
+
+`xfwm4-gl` uses OpenGL by default with XRender fallback. Window Manager Tweaks configures blur, animations, fullscreen compositing bypass, and Alt+Tab appearance. Alt+Tab and taskbar thumbnails can dim or hide other windows for Peek without activating the previewed window; cached minimized images are used when available. Fade/scaling and Peek work on both renderers, while blur and Magic Lamp require OpenGL. Other suites retain their distribution XFCE components.
+
+### Optional MateBook E packages
+
+Huawei MateBook E 2023 support is available through separately installable Linux 6.12 packages; do not assume they are bundled in a release image. `matebook-e-dsi-dkms` supplies an experimental internal-display backport: residual colored bands and unvalidated suspend/resume remain limitations. Camera integration uses `matebook-e-cameras-dkms` and the amd64/systemd `matebook-e-cameras` userspace package. The camera packages do not install the experimental pen driver.
 
 ## Network hardware
 

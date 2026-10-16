@@ -1,5 +1,5 @@
 ---
-updated: 2026-08-31
+updated: 2026-10-15
 ---
 
 # Hardware-Kompatibilität
@@ -21,93 +21,93 @@ Verwenden Sie die Architektur, die im Abbildnamen und in der Release-Beschreibun
 
 ## Firmware und Boot
 
-MiniOS PC-Abbilder können sowohl über Legacy-BIOS als auch UEFI booten, sofern die erforderlichen Boot-Dateien im gewählten Abbild enthalten sind. Firmware-Implementierungen unterscheiden sich stark, daher kann dasselbe USB-Gerät im Boot-Menü auf verschiedenen Rechnern unterschiedlich erscheinen.
+MiniOS PC-Images können sowohl über das Legacy-BIOS als auch über UEFI booten, sofern die erforderlichen Boot-Dateien im ausgewählten Image vorhanden sind. Firmware-Implementierungen unterscheiden sich jedoch stark, daher kann dasselbe USB-Gerät im Boot-Menü verschiedener Computer unterschiedlich angezeigt werden.
 
-Aktuelle 64-Bit-MiniOS-Abbilder verwenden den Debian-Kernel und Debian-EFI-Komponenten.
-Daher wird **Secure Boot** auf amd64-Systemen unterstützt.
+Secure Boot hängt von der vollständigen Kernel- und EFI-Kette des Images ab, nicht nur von dessen Architektur. Debian/Ubuntu amd64-Images, die den passenden signierten Distributions-Kernel und die entsprechenden EFI-Komponenten verwenden, können Secure Boot unterstützen. Ein benutzerdefinierter oder von MiniOS bereitgestellter unsignierter Kernel wird nicht allein dadurch vertrauenswürdig, dass signierte EFI-Dateien vorhanden sind. DynBlk und der externe AUFS-NG-Treiber sind unsigniert: Secure Boot deaktiviert DynBlk/VMDK-Sitzungen und lässt in der Regel OverlayFS für die Modulerstellung zu.
 
-Die 32-Bit-i386-Abbilder nutzen einen von MiniOS gebauten Kernel, da Debian keine 32-Bit-Kernelpakete mehr veröffentlicht. Dieser Kernel ist identisch mit dem entsprechenden Debian-Kernel, wird aber von MiniOS gebaut und ist nicht Teil der signierten Debian-Bootkette. Daher **wird Secure Boot von i386-MiniOS-Abbildern nicht unterstützt**.
+Aktuelle i386-Images verwenden einen von MiniOS gebauten Kernel, da die gewählte Basis keinen geeigneten 32-Bit-Kernel mehr bereitstellt. MiniOS-Kernel sind separate Builds mit MiniOS-Integration, stellen jedoch keine Garantie für byte-identische Debian-Binärdateien dar und sind nicht Teil der signierten Debian-Kette.**Secure Boot wird von diesen i386-Images nicht unterstützt.** Die Bitness der Firmware ist ein separates Kriterium für die Boot-Kompatibilität.
 
 ## Arbeitsspeicher
 
-Der empfohlene Mindestwert für den Arbeitsspeicher hängt von der Edition ab:
+Die Anforderungen an den Arbeitsspeicher hängen von der jeweiligen Version, dem Desktop, den Anwendungen und dem Sitzungstyp ab. Flux benötigt in der Regel weniger Speicher als die vollständigen XFCE-Editionen; ein Browser, ein Office-Paket, eine virtuelle Maschine oder ein großes Persistenz-Image können jedoch deutlich mehr Speicher als nur der Desktop allein benötigen. Orientieren Sie sich an den angegebenen Anforderungen der jeweiligen Version und testen Sie die geplante Nutzung, anstatt eine veraltete, editionsweite RAM-Angabe als ausreichend für jedes aktuelle Abbild zu betrachten.
 
-| Edition | Empfohlener Mindestwert an RAM |
-|---|---:|
-| **Flux** | 512 MB |
-| **Standard** | 756 MB |
-| **Toolbox** | 756 MB |
-| **Ultra** | 756 MB |
+**Aus dem RAM ausführen** benötigt zusätzlichen Arbeitsspeicher, da MiniOS-Daten zusammen mit dem laufenden System und den Anwendungen in RAM kopiert werden. Größere Abbilder erfordern in diesem Modus daher wesentlich mehr Arbeitsspeicher.
 
-Diese Werte gelten für den normalen Betrieb vom Boot-Medium aus. Tatsächliche Anwendungen können mehr Speicher benötigen.
-
-**Run from RAM** benötigt zusätzlichen Speicher, da die MiniOS-Daten zusammen mit dem laufenden System und den Anwendungen in den RAM kopiert werden. Größere Abbilder benötigen in diesem Modus daher deutlich mehr Speicher.
-
-Siehe [Boot-Modi](/using-minios/Boot-Modes), bevor Sie **Run from RAM** auf einem speicherbeschränkten Rechner verwenden.
+Siehe [Startmodi](/using-minios/Boot-Modes) bevor Sie **Aus dem RAM ausführen** auf einem speicherbegrenzten Computer verwenden.
 
 ## Grafik
 
-Aktuelle amd64-MiniOS-Abbilder verwenden den Debian-Grafikstack mit Xorg und Mesa.
-Der Kernel enthält Intel `i915` und `xe`, AMD `amdgpu` und `radeon` sowie den Open-Source-NVIDIA-Treiber `nouveau`.
+Aktuelle amd64 MiniOS Images verwenden den Debian-Grafik-Stack mit Xorg und Mesa.
+Je nach ausgewähltem Kernel decken dessen Module Intel `i915` und `xe`, AMD `amdgpu` sowie `radeon` und quelloffene NVIDIA `nouveau` Hardware ab.
 
-Xorg enthält seinen generischen `modesetting`-Treiber zusammen mit Intel-, AMD/ATI-, Radeon-, Nouveau-, VESA- und Framebuffer-Treibern. Mesa stellt den üblichen 3D-Beschleunigungsstack für Intel, AMD und unterstützte Open-Source-Treiber bereit.
+Xorg enthält seinen generischen `modesetting` Treiber sowie Intel-, AMD/ATI-, Radeon-, Nouveau-, VESA- und Framebuffer-Treiber. Mesa stellt den üblichen 3D-Beschleunigungs-Stack für Intel, AMD und unterstützte Open-Source-Treiber bereit.
 
-Debian-basierte MiniOS-Abbilder installieren die Debian-Firmware-Sammlungen zusammen mit herstellerspezifischen Firmware-Paketen. Das aktuelle Trixie Standard-Abbild enthält `firmware-amd-graphics` und `firmware-misc-nonfree`; Ubuntu-basierte Abbilder verwenden stattdessen `linux-firmware`.
+Debian-basierte MiniOS Images fordern Debian-Firmware-Sammlungen zusammen mit herstellerspezifischen Paketen an, einschließlich `firmware-intel-graphics` unter Trixie und Excalibur. Die tatsächlich installierte Firmware hängt von der Verfügbarkeit im Repository und dem fertigen Image ab. Ubuntu-basierte Images verwenden stattdessen `linux-firmware`.
 
-Die gepflegten MiniOS-Paketlisten enthalten den proprietären NVIDIA-Kernel-Treiber nicht. NVIDIA-Hardware verwendet daher standardmäßig den enthaltenen `nouveau`-Treiber. Hardware oder Funktionen, die explizit den proprietären NVIDIA-Treiber benötigen, müssen diesen separat hinzufügen.
+Die gepflegten MiniOS Paketlisten enthalten keinen proprietären NVIDIA-Kernel-Treiber. NVIDIA-Hardware nutzt daher standardmäßig den enthaltenen `nouveau` Treiber. Hardware oder Funktionen, die explizit den proprietären NVIDIA-Treiber benötigen, müssen diesen separat hinzufügen.
 
-Virtuelle Grafik wird ebenfalls durch Kernel- und Xorg-Treiber für gängige VMware-, QXL-, Bochs- und Hyper-V-Geräte abgedeckt.
+Virtuelle Grafik wird ebenfalls durch Kernel- und Xorg-Treiber für gängige VMware-, QXL-, Bochs- und Hyper-V-Geräte unterstützt.
 
-## Netzwerktechnik
+### XFCE-Skalierung und Fensterverwaltung
 
-Aktuelle amd64-MiniOS-Abbilder verwenden den Debian-Kernel mit seinem üblichen Satz an Netzwerktreibern. Der in aktuellen Trixie-Abbildern verwendete 6.12-Kernel enthält Treiber für gängige Intel-, Realtek-, Broadcom-, Atheros-, MediaTek-, Ralink-, Marvell- und weitere Ethernet- und WLAN-Hardware.
+Die XFCE-Images von Debian 13 und Devuan Excalibur verwenden MiniOS-angepasste Einstellungen und Desktop-Pakete, die MiniOS-Taskleiste und die Plugins „Desktop anzeigen“, sowie `xfwm4-gl` anstelle von `xfwm4`. Die Anzeigeeinstellungen bieten automatische Oberflächenskalierung oder manuelle Auswahl zwischen 100–200 % in 25-%-Schritten, mit zeitgesteuerter Vorschau und Rücknahme. Text, Bedienelemente, Fensterdekorationen und thematische Mauszeiger folgen der Oberflächenskalierung; die Pixelskala der Ausgabe und die Monitorauflösung bleiben separate Einstellungen. Gespeicherte manuelle Werte überschreiben die automatische Auswahl.
 
-Zu den gängigen Ethernet-Treibern zählen Intel `e1000`, `e1000e`, `igb`, `igc`, `i40e`, `ice` und `ixgbe`; Realtek `8139` und `r8169`; Broadcom `tg3`, `bnx2`, `bnx2x` und `bnxt`; Atheros `atl*` und `alx`; Marvell `sky2`; sowie gängige USB-Ethernet-Treiber wie ASIX, `r8152`, CDC Ethernet/NCM und RNDIS.
+`xfwm4-gl` verwendet standardmäßig OpenGL mit XRender als Fallback. Mit den Fensterverwaltungseinstellungen lassen sich Unschärfe, Animationen, Umgehung der Vollbild-Komposition und das Erscheinungsbild von Alt+Tab konfigurieren. Alt+Tab und Taskleisten-Thumbnails können andere Fenster für Peek abdunkeln oder ausblenden, ohne das Vorschaufenster zu aktivieren; zwischengespeicherte Bilder minimierter Fenster werden genutzt, wenn verfügbar. Überblendung/Skalierung und Peek funktionieren mit beiden Renderern, während Unschärfe und Magic Lamp OpenGL erfordern. Andere Editionen behalten ihre jeweiligen XFCE-Komponenten der Distribution bei.
 
-Die WLAN-Unterstützung umfasst Intel `iwlwifi`; Atheros `ath5k`, `ath9k`, `ath10k`, `ath11k` und `ath12k`; Broadcom `brcmfmac`, `brcmsmac` und `b43`; MediaTek `mt76`; Ralink `rt2x00`; Realtek `rtl8xxxu`, `rtlwifi`, `rtw88` und `rtw89`; sowie mehrere ältere Marvell-, Intersil-, ZyDAS- und weitere Treiber.
+### Optionale MateBook E-Pakete
 
-MiniOS ergänzt zudem DKMS-Module für Hardware, die vom Standard-Kernel nicht ausreichend unterstützt wird. Das aktuelle amd64-Modulset enthält zusätzliche Realtek-USB-WLAN-Treiber für RTL8188EU, RTL8814AU, RTL8811/RTL8821AU und verwandte RTL88xxAU-Adapter sowie den Broadcom STA `wl`-Treiber.
+Die Unterstützung für das Huawei MateBook E 2023 ist über separat installierbare Linux 6.12-Pakete verfügbar; diese sind nicht standardmäßig im Release-Image enthalten.`matebook-e-dsi-dkms` bietet ein experimentelles Backport für das interne Display: Verbleibende farbige Streifen und nicht validierte Suspend-/Resume-Funktionen sind weiterhin Einschränkungen. Die Kameraintegration verwendet `matebook-e-cameras-dkms` und das amd64/systemd-`matebook-e-cameras` Userspace-Paket. Die Kamerapakete installieren den experimentellen Pen-Treiber nicht.
 
-Das Firmware-Set umfasst Debian-Firmwarepakete für Intel, Atheros, Realtek, MediaTek, Broadcom, Marvell/Libertas, Cavium und weitere gängige Netzwerktechnik.
+## Netzwerkhardware
+
+Die aktuellen amd64 MiniOS Abbilder verwenden den Debian-Kernel mit dem üblichen Satz an Netzwerktreibern. Der in den aktuellen Trixie-Abbildern eingesetzte Kernel 6.12 enthält Treiber für gängige Ethernet- und WLAN-Hardware von Intel, Realtek, Broadcom, Atheros, MediaTek, Ralink, Marvell und weiteren Herstellern.
+
+Zu den verbreiteten Ethernet-Treibern gehören Intel `e1000`, `e1000e`, `igb`, `igc`, `i40e`, `ice`, und `ixgbe`; Realtek `8139` und `r8169`; Broadcom `tg3`, `bnx2`, `bnx2x`, und `bnxt`; Atheros `atl*` und `alx`; Marvell `sky2`; sowie gängige USB-Ethernet-Treiber wie ASIX, `r8152`, CDC Ethernet/NCM und RNDIS.
+
+Die WLAN-Unterstützung umfasst Intel `iwlwifi`; Atheros `ath5k`, `ath9k`, `ath10k`, `ath11k`, und `ath12k`; Broadcom `brcmfmac`, `brcmsmac`, und `b43`; MediaTek `mt76`; Ralink `rt2x00`; Realtek `rtl8xxxu`, `rtlwifi`, `rtw88`, und `rtw89`; sowie verschiedene ältere Treiber für Marvell, Intersil, ZyDAS und andere.
+
+MiniOS ergänzt DKMS-Module für Hardware, die vom Standard-Kernel nicht ausreichend unterstützt wird. Das aktuelle amd64-Modulpaket enthält zusätzliche Realtek USB-WLAN-Treiber für RTL8188EU, RTL8814AU, RTL8811/RTL8821AU und verwandte RTL88xxAU-Adapter sowie den Broadcom STA `wl`-Treiber.
+
+Das Firmware-Paket enthält Debian-Firmware für Intel, Atheros, Realtek, MediaTek, Broadcom, Marvell/Libertas, Cavium und weitere gängige Netzwerktechnik.
 Die genaue Verfügbarkeit hängt weiterhin von der MiniOS-Version, der Architektur und dem gewählten Kernel ab.
 
-Für den normalen Netzwerkbetrieb nach dem Booten verwendet MiniOS NetworkManager. Wird ein Adapter überhaupt nicht erkannt, kann eine Änderung der NetworkManager-Einstellungen keinen fehlenden Kernel-Treiber oder Firmware ersetzen. Siehe [Netzwerkkonfiguration](/using-minios/Networking) für den normalen Netzbetrieb.
+Für die normale Netzwerknutzung nach dem Start verwendet MiniOS NetworkManager. Wird ein Adapter gar nicht erkannt, kann das Anpassen der NetworkManager-Einstellungen fehlende Kernel-Treiber oder Firmware nicht ersetzen. Siehe [Netzwerkkonfiguration](/using-minios/Networking) für die übliche Netzwerknutzung.
 
 ## Speicher
 
-Für einen Live-MiniOS-Boot ist der Speichercontroller in zweierlei Hinsicht entscheidend: Die Firmware muss den Bootloader starten können und das MiniOS-initramfs muss anschließend das Gerät erkennen, das den `minios/`-Datenbaum enthält.
+Bei einem Live-MiniOS-Boot ist der Speichercontroller in zweifacher Hinsicht entscheidend: Die Firmware muss in der Lage sein, den Bootloader zu starten, und das MiniOS-initramfs muss anschließend das Gerät erkennen, das das`minios/` Datenverzeichnis enthält.
 
-MiniOS enthält absichtlich nur ausgewählte Speichertreiber im initramfs.
-Die aktuellen Builder fügen immer IDE/PATA/SATA, NVMe, SD/MMC, USB-Massenspeicher/UAS und Hyper-V-Speicherunterstützung hinzu. Standard, Toolbox und Ultra ergänzen außerdem VirtIO-Block/SCSI und VMware PVSCSI im initramfs; Flux nicht.
+MiniOS enthält im initramfs bewusst nur ausgewählte Speicher-Treiber.
+Die aktuellen Builder beinhalten immer Unterstützung für IDE/PATA/SATA, NVMe, SD/MMC, USB-Massenspeicher/UAS und Hyper-V-Speicher. Standard, Toolbox und Ultra fügen dem initramfs zusätzlich VirtIO-Block/SCSI sowie VMware PVSCSI hinzu; Flux nicht.
 
-Der vollständige Kernel-Modulbaum enthält zusätzliche Speichertreiber, die während der frühen MiniOS-Quellenerkennung nicht verfügbar sind. Wenn das Boot-Menü erscheint, aber MiniOS seine Module nicht findet, siehe [Initrd-Systemerkennung](/reference/boot-process/System-Discovery).
+Der vollständige Kernel-Modulbaum enthält weitere Speicher-Treiber, die während der frühen MiniOS-Quellenerkennung nicht verfügbar sind. Falls das Boot-Menü erscheint, aber MiniOS seine Module nicht findet, siehe[Initrd-Systemerkennung](/reference/boot-process/System-Discovery).
 
 ## Virtuelle Maschinen
 
-MiniOS unterstützt die gängige virtuelle Hardware von VirtualBox, VMware, QEMU/KVM und Hyper-V. Für Boot-Medien und Installationszielplatten empfiehlt sich ein **IDE- oder SATA-Controller**, sofern der Hypervisor dies anbietet. Diese Controller sorgen für das vorhersehbarste Verhalten beim frühen Booten und während der Installation.
+MiniOS unterstützt die gängige virtuelle Hardware, wie sie von VirtualBox, VMware, QEMU/KVM und Hyper-V verwendet wird. Für Boot-Medien und Installationszielplatten empfiehlt es sich, einen **IDE- oder SATA-Controller** zu verwenden, sofern der Hypervisor dies anbietet. Diese Controller sorgen während des Systemstarts und der Installation für das vorhersehbarste Verhalten.
 
-Der aktuelle Debian-6.12-Kernel enthält bereits die wichtigsten Gast-Hardwaretreiber:
+Der aktuelle Debian 6.12-Kernel enthält bereits die wichtigsten Treiber für virtuelle Gast-Hardware:
 
 | Hypervisor | Im Kernel enthaltene Treiber |
 |---|---|
 | **VirtualBox** | `vboxguest`, `vboxsf`, `vboxvideo` |
 | **VMware** | `vmwgfx`, `vmxnet3` |
-| **QEMU/KVM** | VirtIO-Block, Netzwerk, Grafik, Eingabe, Balloon, SCSI, Sound und verwandte Treiber |
-| **Hyper-V** | `hv_vmbus`, `hv_storvsc`, `hv_netvsc`, `hv_balloon`, `hv_utils`, `hyperv_drm` sowie Hyper-V-Eingabeunterstützung |
+| **QEMU/KVM** | VirtIO-Block-, Netzwerk-, Grafik-, Eingabe-, Balloon-, SCSI-, Sound- und zugehörige Treiber |
+| **Hyper-V** | `hv_vmbus`, `hv_storvsc`, `hv_netvsc`, `hv_balloon`, `hv_utils`, `hyperv_drm`, sowie Hyper-V-Eingabeunterstützung |
 
-Diese Kernel-Treiber reichen für den grundlegenden Gastbetrieb aus. Zusätzliche Gastdienste sorgen für Host-Integration wie automatische Display-Anpassung, sauberes Herunterfahren, Dateisystemfreigabe und Kommunikation zwischen Host und Gast.
+Diese Kernel-Treiber reichen für den grundlegenden Betrieb als Gast aus. Zusätzliche Gastdienste ermöglichen eine bessere Integration mit dem Host, wie automatische Anzeigeanpassung, sauberes Herunterfahren, Dateisystemfreigabe und Kommunikation zwischen Host und Gast.
 
-Toolbox und Ultra enthalten `open-vm-tools` und `open-vm-tools-desktop` für VMware, `qemu-guest-agent` für QEMU/KVM und `hyperv-daemons` für Hyper-V. In unterstützten Suiten, einschließlich aktueller Trixie-Abbilder, sind außerdem `virtualbox-guest-utils` und `virtualbox-guest-x11` enthalten. Flux und Standard enthalten diese Gastdienst-Pakete standardmäßig nicht.
+Toolbox und Ultra enthalten `open-vm-tools` und `open-vm-tools-desktop` für VMware, `qemu-guest-agent` für QEMU/KVM und `hyperv-daemons` für Hyper-V. In unterstützten Suiten, einschließlich aktueller Trixie-Images, sind außerdem `virtualbox-guest-utils` und `virtualbox-guest-x11` enthalten. Flux und Standard beinhalten diese Gastdienst-Pakete standardmäßig nicht.
 
 Siehe [Virtualisierung](/maintenance-and-recovery/Virtualization) und [Pakete und Editionen](/reference/Package-and-Edition-Contents) für editionsspezifische Software.
 
-## Einen Computer vor dem produktiven Einsatz testen
+## Testen Sie einen Computer, bevor Sie sich darauf verlassen
 
 1. Starten Sie genau das MiniOS-Abbild, das Sie verwenden möchten.
-2. Nutzen Sie den Standardmodus **Start MiniOS** für normale Tests oder **Start ohne Speichern**, wenn Sie ausdrücklich keine persistente Sitzung öffnen oder erstellen möchten.
-3. Prüfen Sie Grafik, Tastatur und Zeigegeräte, Sound, kabelgebundene und drahtlose Netzwerke, die benötigten Speichergeräte sowie Standby/Wiederaufnahme, falls Sie diese Funktion nutzen möchten.
-4. Wenn Sie Persistenz verwenden wollen, nehmen Sie eine kleine Teständerung vor, starten Sie neu und bestätigen Sie, dass die erwartete Sitzung aktiviert wurde und die Änderung erhalten blieb.
-5. Erst danach sollten Sie sich für wichtige Arbeiten auf das Gerät verlassen oder destruktive Festplattenoperationen durchführen.
+2. Verwenden Sie den Standard-**MiniOS starten**-Modus für normale Tests oder **Ohne Speichern starten**, wenn Sie ausdrücklich keine persistente Sitzung öffnen oder erstellen möchten.
+3. Überprüfen Sie Grafik, Tastatur und Zeigegeräte, Sound, kabelgebundene und drahtlose Netzwerke, die benötigten Speichermedien sowie Suspend/Resume, falls Sie diese Funktion nutzen möchten.
+4. Wenn Sie Persistenz verwenden möchten, nehmen Sie eine kleine Teständerung vor, starten Sie neu und stellen Sie sicher, dass die erwartete Sitzung aktiviert wurde und die Änderung erhalten geblieben ist.
+5. Verlassen Sie sich erst dann für wichtige Aufgaben auf das Gerät oder führen Sie zerstörerische Festplattenoperationen durch.
 
-Falls etwas fehlschlägt, klären Sie zunächst, ob das Problem vor dem Boot-Menü, während der MiniOS-Quellenerkennung oder nach dem Start des Betriebssystems auftritt.
-Diese Unterscheidung zeigt meist, ob Sie Firmware, Initramfs oder die normale Linux-Hardwareunterstützung prüfen sollten.
+Falls etwas fehlschlägt, prüfen Sie zunächst, ob das Problem vor dem Boot-Menü, während der MiniOS-Quellenerkennung oder nach dem Start des Betriebssystems auftritt.
+Diese Unterscheidung zeigt meist, ob Sie Firmware, initramfs oder die reguläre Linux-Hardwareunterstützung untersuchen sollten.

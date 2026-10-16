@@ -1,7 +1,7 @@
 ---
-updated: 2026-10-06
+updated: 2026-10-15
 program_commits:
-    minios-installer: ecabe245a5eaff606ce06f034af334b399f4c3b3
+    minios-installer: e895f8065faef84356f9c1cda4dbfa97700b0370
 ---
 
 # MiniOS-Installationsprogramm
@@ -28,26 +28,28 @@ Diese Bereitstellung unterscheidet sich von einem einfachen ISO-Schreibvorgang, 
 
 ## Grafisches Installationsprogramm starten
 
-Öffnen Sie das Anwendungsmenü, wählen Sie System und dann das MiniOS-Installationsprogramm. Es kann auch über das Terminal gestartet werden:
+Öffnen Sie das MiniOS-Installationsprogramm aus dem **MiniOS** Anwendungsmenü. Alternativ kann es auch über ein Terminal gestartet werden und fordert bei Bedarf Administratorrechte an:
 
 ```bash
-sudo minios-installer
+minios-installer
 ```
 
-Der Assistent erfasst Installationsmodus, Sicherheit, Standort, kabelgebundenes Netzwerk, Tastatur, Benutzerkonto, Module, Speicher- und Boot-Einstellungen. Überprüfen Sie die genaue Partitionsgeometrie und die Zusammenfassung der Vorgänge, bevor Sie die endgültige, zerstörerische Bestätigung akzeptieren.
+Der Assistent erfasst Einstellungen für Installationsmodus, Sicherheit, Standort, kabelgebundenes Netzwerk, Tastatur, Benutzerkonto, Module, Speicher und Boot-Optionen. Überprüfen Sie vor der endgültigen, nicht rückgängig zu machenden Bestätigung die genaue Partitionsgeometrie und die Zusammenfassung der geplanten Aktionen.
 
-## Platzierung und Boot-Layouts
+## Platzierungs- und Boot-Layouts
 
-Das grafische Installationsprogramm bietet folgende Platzierungsoptionen, wenn das Ziel geeignet ist:
+Der grafische Installer bietet diese Platzierungsoptionen an, wenn das Ziel geeignet ist:
 
-- Alles löschen erstellt eine neue Partitionstabelle und löscht alle Daten auf der Zielfestplatte.
-- Freier Speicher nutzt geeigneten, nicht zugeordneten Speicherplatz, ohne ein bestehendes Dateisystem zu verkleinern.
-- Neben bestehend verkleinert eine geeignete, nicht eingehängte ext2-, ext3-, ext4- oder NTFS-Partition. Unsichere Layouts wie verschmutzte, eingehängte, verschachtelte oder mehrdeutige Partitionen werden abgelehnt. Das Installationsprogramm kann vor dem Herunterladen fehlender Dateisystem-Tools nachfragen.
-- Manuelle Partitionierung ist nur für native Umwandlungen in der grafischen Oberfläche auf geeigneten Direktfestplatten verfügbar. Änderungen werden bis zur endgültigen Bestätigung zwischengespeichert.
+- „Alles löschen“ erstellt eine neue Partitionstabelle und entfernt alle Daten auf der Zieldisk.
+- „Freier Speicherplatz“ nutzt geeigneten, nicht zugeordneten Speicher, ohne ein bestehendes Dateisystem zu verkleinern.
+- „Nebeneinander“ verkleinert eine geeignete, nicht eingehängte letzte ext2-, ext3-, ext4- oder NTFS-Partition. Verschmutzte, eingehängte, verschachtelte, mehrdeutige oder anderweitig unsichere Layouts werden abgelehnt. Der Installer kann nach fehlenden Dateisystem-Tools fragen, bevor er sie herunterlädt.
+- Manuelle Partitionierung ist nur für native Konvertierungen in der grafischen Oberfläche auf geeigneten Direkt-Datenträgern verfügbar. Änderungen werden erst nach endgültiger Bestätigung übernommen.
 
-Automatische Boot-Layouts sind BIOS/MBR, UEFI/MBR und UEFI/GPT. UEFI funktioniert mit GPT- oder primären MBR-Layouts. BIOS wird auf primären MBR, aber nicht auf GPT unterstützt. Erweiterte oder logische MBR-Preserve-Layouts werden nicht unterstützt.
+Automatische Boot-Layouts sind BIOS/MBR, UEFI/MBR und UEFI/GPT. UEFI funktioniert mit GPT- oder primären MBR-Layouts. BIOS wird auf primären MBR-Layouts unterstützt, nicht auf GPT. Erweiterte oder logische MBR-Preserve-Layouts werden nicht unterstützt.
 
-Im manuellen Modus können Partitionen erstellt, gelöscht, formatiert und wiederverwendet werden; ein unterstütztes Dateisystem vom Ende her verkleinert; Mountpunkte, eine EFI-Systempartition und Swap zugewiesen sowie geplante Änderungen rückgängig gemacht oder zurückgesetzt werden. LVM, RAID, native LUKS-Root-Partitionen, gemappter oder verschachtelter Speicher, bcache, ZFS oder Btrfs-Subvolume-Bearbeitung werden nicht unterstützt. LUKS2-Verschlüsselung für eine Live-Persistenz-Sitzung verschlüsselt kein natives Root-Dateisystem.
+Für **Alles löschen** im Live-Modus wählt **Automatisch** immer MBR, auch wenn der Installer unter UEFI läuft. MBR-Live-Ziele behalten EFI-Dateien und erhalten einen BIOS-Bootloader, sodass beide Firmware-Modi unterstützt werden. Festplatten ab 2 TiB benötigen explizit die Auswahl von **UEFI/GPT**; GPT-Live-Ziele sind ausschließlich für UEFI geeignet. Das native „Alles löschen“ folgt einer eigenen, firmwareabhängigen Richtlinie. Installationen im freien Speicherplatz und nebeneinander behalten die bestehende Partitionstabelle.
+
+Im manuellen Modus können Partitionen erstellt, gelöscht, formatiert und wiederverwendet werden; ein unterstütztes Dateisystem kann am Ende verkleinert werden; Mountpunkte, eine EFI-Systempartition und Swap können zugewiesen werden; Änderungen können rückgängig gemacht oder zurückgesetzt werden. Nicht unterstützt werden LVM, RAID, native LUKS-Root-Partitionen, gemappte oder verschachtelte Speicher, bcache, ZFS oder die Bearbeitung von Btrfs-Subvolumes. LUKS2-Verschlüsselung für eine Live-Persistenz-Sitzung verschlüsselt nicht das native Root-Dateisystem.
 
 ## Dateisysteme
 
@@ -61,29 +63,31 @@ Benötigter Speicherplatz umfasst die gewählten Moduldaten, Boot-Komponenten, a
 
 ## Konfiguration und Sicherheit
 
-Das Installationsprogramm kann Gebietsschema, Zeitzone, Tastatur, Benutzername, Passwörter, Benutzergruppen, Hostname, Dienste, Bootmenü und Modulauswahl festlegen. Die Auswahl eines höheren MiniOS-Moduls umfasst automatisch die erforderlichen unteren Ebenen.
+Der Installer kann Sprache, Zeitzone, Tastaturlayout, Benutzername, Passwörter, Benutzergruppen, Hostname, Dienste, Boot-Menü und Modulauswahl festlegen. Wird eine höhere Systemebene ausgewählt, werden die dafür benötigten unteren Ebenen automatisch mit einbezogen. Eigene Module von `minios/modules/` werden unabhängig ausgewählt, auch wenn ihre Dateinamen System- oder Kernelmodulen ähneln.
 
-Sicherheitsprofile sind `convenient`, `balanced` und `strict`. Im Live-Modus ist standardmäßig `convenient` aktiv; native Umwandlung startet mit `balanced`. SSH- und XRDP-Einstellungen sind unabhängig vom gewählten Profil. Überprüfen Sie die Fernzugriffs-Dienste vor der ersten Netzwerkverbindung. Nach der nativen Umwandlung erfolgt die weitere Sicherheitskonfiguration wie gewohnt über die Debian-Systemadministration.
+Sicherheitsprofile sind `convenient`, `balanced` und `strict`. Im Live-Modus ist standardmäßig `convenient` aktiviert; die native Umstellung beginnt mit `balanced`. SSH- und XRDP-Steuerungen sind unabhängig vom gewählten Profil. Überprüfen Sie die Fernzugriffsdienste, bevor Sie die erste Netzwerkverbindung herstellen. Nach der nativen Umstellung erfolgt die weitere Sicherheitskonfiguration wie gewohnt über die Debian-Systemverwaltung.
 
-Die Netzwerkkonfiguration umfasst Hostname und kabelgebundenes DHCP oder statisches IPv4. Das Installationsprogramm erstellt oder ändert keine WLAN-Profile. Native Umwandlung und einige Nebenplatzierungen benötigen ggf. Netzwerkzugang (mit Ihrer Zustimmung), um GRUB, EFI, initramfs, `os-prober` oder Pakete zur Dateisystemverkleinerung vor Festplattenänderungen zu beziehen.
+Die Netzwerkkonfiguration umfasst den Hostnamen sowie kabelgebundenes DHCP oder statisches IPv4. Der Installer erstellt oder ändert keine WLAN-Profile. Für die native Umstellung und einige Parallel-Installationen kann, mit Ihrer Zustimmung, Netzwerkzugriff erforderlich sein, um GRUB-, EFI-, initramfs-, `os-prober` oder Pakete zur Größenänderung des Dateisystems vor Änderungen an der Festplatte zu beziehen.
 
-## Live-Sitzungspersistenz
+## Live-Session-Persistenz
 
-Persistenz gilt nur für Live-Installationen. Wenn `minios-session` verfügbar ist, kann das MiniOS-Installationsprogramm direkt auf dem Ziel eine echte nummerierte Sitzung erstellen und aktivieren, bevor die Installation abgeschlossen ist. **Automatisch beim ersten Start einrichten** überspringt diesen Schritt; MiniOS kann dann später beim Booten den Sitzungspeicher wie gewohnt anlegen.
+Persistenz gilt nur für Live-Installationen. Wenn `minios-session` verfügbar ist, kann das MiniOS-Installationsprogramm direkt auf dem Zielsystem noch vor Abschluss der Installation eine echte, nummerierte Sitzung anlegen und aktivieren. **Automatische Einrichtung beim ersten Start** überspringt diesen Schritt; MiniOS kann dann später beim Booten über die normale Persistenz-Logik den Sitzungspeicher anlegen.
 
-Das Installationsprogramm bietet diese Speicher-Backends an, wenn das laufende System und das Ziel sie unterstützen:
+Das Installationsprogramm bietet diese Speicher-Backends an, sofern das laufende System und das Ziel sie unterstützen:
 
-- `native` speichert Änderungen der Live-Sitzung direkt im Sitzungsverzeichnis auf einem POSIX-kompatiblen Ziel-Dateisystem. Trotz des Namens handelt es sich um ein **Live-Persistenz-Backend** und ist unabhängig von der nativen Installation. Es wird nicht auf FAT32 oder NTFS angeboten.
-- DynFileFS erstellt erweiterbaren, dateibasierten ext4-Speicher. Die gewählte Größe ist das logische Maximum, nicht vorab reservierter Speicherplatz. Die Standardgröße beträgt 4000 MiB.
-- DynBlk erstellt ein ext4-Dateisystem auf einem Thin-Block-Device, das vom DynBlk-Kernelmodul bereitgestellt wird. Sitzungsdaten werden durch segmentierte `volumeNNN.db` Dateien gesichert, die bei Bedarf angelegt werden. Die gewählte Größe ist ein logisches Maximum, nicht vorab belegter Speicher. Neue DynBlk-Sitzungen werden standardmäßig auf 16384 MiB gesetzt. Bei unverschlüsselten DynBlk-Sitzungen kann das Installationsprogramm einen Kompressions-Codec wählen, der sowohl vom laufenden System als auch vom auf das Ziel kopierten initrd unterstützt wird.
-- VMDK verwendet den DynBlk-Treiber, um standardmäßigen, geteilten, dünn-provisionierten VMDK-Speicher zu erstellen (`volume.vmdk` und `volume-sNNN.vmdk`). Es gilt das gleiche Thin-Allocation-Modell und der Standardwert von 16384 MiB wie bei DynBlk, Backend-Kompression ist jedoch nicht verfügbar.
+- `native` speichert Änderungen der Live-Session direkt im Sitzungsverzeichnis auf einem POSIX-kompatiblen Ziel-Dateisystem. Trotz des Namens handelt es sich um ein **Live-Persistenz-Backend** und ist unabhängig von einer nativen Installation. Auf FAT32 oder NTFS wird es nicht angeboten.
+- DynFileFS erstellt erweiterbaren, dateibasierten ext4-Speicher. Die gewählte Größe ist das logische Maximum und wird nicht vorab reserviert. Die Standardgröße beträgt 4000 MiB.
+- DynBlk erstellt ein ext4-Dateisystem auf einem Thin-Block-Gerät, das vom DynBlk-Kernel-Treiber bereitgestellt wird. Sitzungsdaten werden durch segmentierte `volumeNNN.db` Dateien gesichert, die bei Bedarf angelegt werden. Die gewählte Größe ist ein logisches Maximum und wird nicht vorab auf der Festplatte reserviert. Neue DynBlk-Sitzungen werden standardmäßig mit 16384 MiB angelegt. Für unverschlüsselte DynBlk-Sitzungen kann das Installationsprogramm einen Kompressions-Codec auswählen, der sowohl vom laufenden System als auch vom kopierten initrd auf dem Ziel unterstützt wird.
+- VMDK verwendet den DynBlk-Treiber, um standardmäßigen, gesplitteten, sparsamen VMDK-Speicher zu erstellen (`volume.vmdk` und `volume-sNNN.vmdk`). Es verwendet dasselbe Thin-Allocation-Modell und hat wie DynBlk standardmäßig 16384 MiB, Backend-Kompression ist jedoch nicht verfügbar.
 - Raw erstellt ein ext4-Abbild mit fester Größe und reserviert die gewählte Kapazität sofort. Die Standardgröße beträgt 4000 MiB.
 
-LUKS2 ist eine separate Verschlüsselungsschicht, die Raw-, DynFileFS-, DynBlk- oder VMDK-Sitzungsspeicher umschließen kann. Das Installationsprogramm fordert die bestätigte Passphrase nur zur Erstellung der Sitzung ab, übergibt sie an `minios-session` über die Standardeingabe und speichert sie nicht in Befehlszeilenargumenten, Protokollen oder dauerhaften Konfigurationen. Die Passphrase wird beim Entsperren der verschlüsselten Sitzung beim Booten benötigt. LUKS2 wird nur angeboten, wenn die laufende Umgebung und das kopierte Ziel-initrd kompatible Unterstützung anzeigen. DynBlk-Kompression ist deaktiviert, wenn LUKS2 gewählt wird.
+LUKS2 ist eine separate Verschlüsselungsschicht, die Raw-, DynFileFS-, DynBlk- oder VMDK-Sitzungsspeicher umschließen kann. Das Installationsprogramm erfasst die bestätigte Passphrase nur zur Sitzungsanlage und übergibt sie an `minios-session` über die Standard-Eingabe, aber nicht in Befehlszeilenargumenten, Protokollen oder dauerhaften Konfigurationen. Die Passphrase wird beim Entsperren der verschlüsselten Sitzung beim Booten benötigt. LUKS2 wird nur angeboten, wenn sowohl die laufende Umgebung als auch das kopierte initrd auf dem Ziel kompatible Unterstützung anzeigen. DynBlk-Kompression ist deaktiviert, wenn LUKS2 gewählt ist.
 
-DynBlk- und VMDK-Sitzungsspeicher sind nicht verfügbar, wenn UEFI Secure Boot aktiviert ist, da das externe DynBlk-Kernelmodul dieser Backends nicht von MiniOS signiert ist. Raw-Container sind auf FAT32 auf 4000 MiB begrenzt; DynFileFS, DynBlk und geteilte VMDK-Speicher sind nicht auf eine Datei über FAT32s 4-GiB-Grenze angewiesen, unterliegen aber dennoch ihren eigenen Backend- und Freispeichergrenzen.
+DynBlk- und VMDK-Sitzungsspeicher sind nicht verfügbar, solange UEFI Secure Boot aktiviert ist, da das externe DynBlk-Kernelmodul, das von diesen Backends genutzt wird, nicht von MiniOS signiert ist. Raw-Container sind auf FAT32 auf 4000 MiB begrenzt; DynFileFS, DynBlk und gesplitteter VMDK-Speicher sind nicht davon abhängig, dass eine Datei das 4-GiB-Limit von FAT32 überschreitet, allerdings gelten weiterhin die jeweiligen Backend- und Freispeichergrenzen.
 
-Da das Installationsprogramm die gewählte Sitzung direkt auf dem Ziel erstellt und aktiviert, ist es nicht auf `perchmode` und `perchsize` angewiesen, um diesen Speicher beim ersten Start zu erzeugen. Diese Boot-Parameter beschreiben weiterhin die initrd-gesteuerte Persistenz-Erstellung und -Auswahl außerhalb des vom Installationsprogramm vorab angelegten Sitzungswegs. Siehe [Sitzungsverwaltung](/using-minios/Sessions-and-Persistence), [Initrd-Persistenz](/reference/boot-process/Persistence-Internals), und [Boot-Parameter](/reference/Boot-Parameters).
+Da das Installationsprogramm die gewählte Sitzung direkt auf dem Ziel erstellt und aktiviert, ist es nicht auf `perchmode` und `perchsize` angewiesen, um diesen Speicher beim ersten Start anzulegen. Diese Boot-Parameter beschreiben weiterhin die von initrd gesteuerte Persistenz-Erstellung und -Auswahl außerhalb des vom Installationsprogramm vorab angelegten Sitzungswegs. Siehe [Sitzungsverwaltung](/using-minios/Sessions-and-Persistence), [Initrd-Persistenz](/reference/boot-process/Persistence-Internals), und [Boot-Parameter](/reference/Boot-Parameters).
+
+<a id="command-line-deployment"></a>
 
 ## Kommandozeilen-Installation
 

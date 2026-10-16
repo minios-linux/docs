@@ -1,7 +1,7 @@
 ---
-updated: 2026-10-06
+updated: 2026-10-15
 program_commits:
-  minios-installer: ecabe245a5eaff606ce06f034af334b399f4c3b3
+  minios-installer: e895f8065faef84356f9c1cda4dbfa97700b0370
 ---
 # MiniOS Installer
 
@@ -28,10 +28,10 @@ This deployment is different from a raw ISO write, a Ventoy ISO-file multiboot s
 
 ## Start the graphical installer
 
-Open the applications menu, select System, then select MiniOS Installer. It can also be started from a terminal:
+Open MiniOS Installer from the **MiniOS** application-menu category. It can also be started from a terminal and request administrator authorization when needed:
 
 ```bash
-sudo minios-installer
+minios-installer
 ```
 
 The wizard collects installation mode, security, location, wired network, keyboard, account, module, storage, and boot settings. Review the exact partition geometry and operation summary before accepting the final destructive confirmation.
@@ -47,6 +47,8 @@ The graphical installer offers these placement choices when the target is eligib
 
 Automatic boot layouts are BIOS/MBR, UEFI/MBR, and UEFI/GPT. UEFI works with GPT or primary MBR layouts. BIOS is supported on primary MBR, not GPT. Extended or logical MBR preserve layouts are unsupported.
 
+For **Erase all** in Live mode, **Automatic** selects MBR even when the installer runs under UEFI. MBR Live targets retain EFI files and receive a BIOS bootloader, so they support both firmware modes. Disks of 2 TiB or larger require an explicit **UEFI/GPT** choice; GPT Live targets are UEFI-only. Native erase-all follows its separate firmware-dependent policy. Free-space and alongside installations keep the existing partition table.
+
 Manual mode can create, delete, format, and reuse partitions; shrink a supported filesystem from its end; assign mount points, an EFI system partition, and swap; and undo or reset staged changes. It does not support LVM, RAID, native LUKS roots, mapped or nested storage, bcache, ZFS, or Btrfs subvolume editing. LUKS2 encryption for a live persistence session does not encrypt a native root filesystem.
 
 ## Filesystems
@@ -61,7 +63,7 @@ Required space includes the selected module data, boot assets, requested persist
 
 ## Configuration and security
 
-The installer can set locale, timezone, keyboard, username, passwords, user groups, hostname, services, boot menu, and module selection. Selecting a higher MiniOS module includes its required lower layers.
+The installer can set locale, timezone, keyboard, username, passwords, user groups, hostname, services, boot menu, and module selection. Selecting a higher system layer includes its required lower system layers. Custom modules from `minios/modules/` are selected independently, even when their filenames resemble system or kernel modules.
 
 Security profiles are `convenient`, `balanced`, and `strict`. Live mode defaults to `convenient`; native conversion starts from `balanced`. SSH and XRDP controls are separate from the selected profile. Review remote-access services before the first network connection. After native conversion, subsequent security configuration follows the normal Debian system-administration workflow.
 
@@ -84,6 +86,8 @@ LUKS2 is a separate encryption layer that can wrap Raw, DynFileFS, DynBlk, or VM
 DynBlk and VMDK session storage are unavailable while UEFI Secure Boot is enabled because the external DynBlk kernel module used by these backends is not signed by MiniOS. Raw containers are limited to 4000 MiB on FAT32; DynFileFS, DynBlk, and split VMDK storage do not depend on one file exceeding FAT32's 4 GiB limit, although their own backend and free-space limits still apply.
 
 Because the installer creates and activates the selected session on the target, it does not rely on `perchmode` and `perchsize` to create that storage on first boot. Those boot parameters still describe initrd-driven persistence creation and selection outside the installer's pre-created-session path. See [Session management](/using-minios/Sessions-and-Persistence), [Initrd persistence](/reference/boot-process/Persistence-Internals), and [Boot parameters](/reference/Boot-Parameters).
+
+<a id="command-line-deployment"></a>
 
 ## Command-line deployment
 

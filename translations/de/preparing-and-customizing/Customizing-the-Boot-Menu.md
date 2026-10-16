@@ -1,5 +1,5 @@
 ---
-updated: 2026-10-06
+updated: 2026-10-15
 ---
 
 # Anpassen des Boot-Menüs
@@ -33,15 +33,11 @@ Dies sind Selektoren und keine Garantie dafür, dass der Speicher beschreibbar i
 - Drücken Sie **Esc** , um zum vorherigen Menü zurückzukehren (in GRUB)
 - Die automatische Auswahl und die Timeout-Dauer hängen von der aktiven Menü-Konfiguration ab; manche Menüs warten unbegrenzt
 
-### Sprachauswahl (GRUB)
+### Hilfe und Sprachauswahl
 
-Wenn Ihr MiniOS USB-Stick mehrere Sprachen unterstützt:
-1. Auf dem ersten Bildschirm werden Sprachoptionen angezeigt
-2. Wählen Sie Ihre bevorzugte Sprache aus
-3. Das Boot-Menü erscheint in der gewählten Sprache
-4. Die Auswahl kann auch Locale-Einstellungen an den weiteren Startvorgang übergeben, garantiert aber nicht, dass jede Boot- oder Anwendungsnachricht übersetzt wird
+Aktuelle mehrsprachige GRUB- und native SYSLINUX-Menüs beginnen mit den Startoptionen und nicht mit einer Sprachauswahl.**F1** öffnet die Start-Hilfe und **F2** öffnet die Sprachauswahl. Nach Auswahl einer Sprache kehren Sie zum übersetzten Startmenü zurück. Medien mit nur einer Sprache bieten weiterhin Hilfe, aber keine Navigation zu nicht verfügbaren Sprachen.
 
-**Wichtig:** Das mehrsprachige Menü überschreibt alle Locale-Einstellungen, die in `config.conf` angegeben sind. Die im Boot-Menü gewählte Sprache hat Vorrang vor vorkonfigurierten Locale-Einstellungen. Siehe **[Konfigurationsdatei](/reference/configuration/config.conf)** und **[live-config](/reference/configuration/live-config)** für Details zu den Systemkonfigurationsdateien.
+Das anfängliche mehrsprachige Menü übernimmt die konfigurierte System-Lokalisierung. Erst eine explizite Sprachauswahl setzt Locale-Einstellungen, die `config.conf` für diesen Start überschreiben. Es ist jedoch nicht garantiert, dass jede Start- oder Anwendungsnachricht übersetzt wird. Siehe [Konfigurationsdatei](/reference/configuration/config.conf) und [live-config](/reference/configuration/live-config).
 
 ## Boot-Optionen anpassen
 
@@ -62,22 +58,23 @@ Sie können Boot-Optionen für eine einzelne Sitzung ändern:
 3. Fügen Sie Parameter zur angezeigten Befehlszeile hinzu
 4. Drücken Sie **Enter** , um zu booten
 
-### Häufige Änderungen an Boot-Parametern
+### Häufige Änderungen von Boot-Parametern
 
-- `debug` - Ausführliche Boot-Meldungen anzeigen (hilfreich zur Fehlerbehebung)
+- `debug` - Ausführliche Boot-Meldungen anzeigen (nützlich zur Fehlerbehebung)
 - `toram=trim` - Das gefilterte Modulpaket und die erforderlichen Daten nach RAM kopieren
-- `perchsize=2000` - Sitzungspeichergröße auf 2GB festlegen (nach Bedarf anpassen)
-- `locales=ru_RU.UTF-8` - Eine bestimmte Sprache/Locale anfordern
+- `perchsize=2000` - 2000 MiB für einen neuen oder wachsenden unterstützten Container anfordern; dies gilt nicht für native oder SquashFS-Sitzungen
+- `locales=ru_RU.UTF-8` - Eine bestimmte Sprache/Region anfordern
 
 Eine vollständige Liste aller verfügbaren Boot-Parameter finden Sie unter **[Boot-Parameter](/reference/Boot-Parameters)**.
 
 ## Speicherorte der Konfigurationsdateien
 
-### Auf Ihrem MiniOS USB-Stick
+### Auf Ihrem MiniOS USB-Laufwerk
 
 - **GRUB-Konfiguration:** `/minios/boot/grub/grub.cfg`
+- **GRUB-Modus- und Sprachmenüs:** `/minios/boot/grub/main.cfg` und `/minios/boot/grub/languages.cfg`; in lokalisierten Builds können andere generierte Dateien ausgewählt werden
 - **SYSLINUX-Konfiguration:** `/minios/boot/syslinux/syslinux.cfg`
-- **Boot-Images:** `/minios/boot/bootlogo.png`
+- **Boot-Grafik:** prüfen Sie die aktive SYSLINUX `MENU BACKGROUND` oder GRUB-Theme-Einstellung; die Pfade hängen vom gewählten Bootloader ab
 - **Sprachdateien:** `/minios/boot/grub/locale/`
 
 ### Im laufenden System

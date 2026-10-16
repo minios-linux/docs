@@ -10,28 +10,28 @@ hero:
         alt: MiniOS
     actions:
         - theme: brand
-          text: Início Rápido
+          text: Início rápido
           link: /getting-started/Quick-Start
 ---
 
 <section class="home-paths">
-  <h2>O que você deseja fazer?</h2>
+  <h2>O que você quer fazer?</h2>
   <div class="home-path-grid">
     <a class="home-path-card" href="installing-minios/Installation-Methods">
       <span class="home-path-title">Instalar MiniOS</span>
-      <span class="home-path-details">Escolha um método de instalação e prepare um pendrive USB ou outro destino.</span>
+      <span class="home-path-details">Escolha um método de instalação e prepare um pendrive ou outro dispositivo de destino.</span>
     </a>
     <a class="home-path-card" href="using-minios/MiniOS-Applications">
-      <span class="home-path-title">Explorar aplicativos do MiniOS</span>
-      <span class="home-path-details">Veja as ferramentas do MiniOS incluídas no sistema e para que serve cada uma.</span>
+      <span class="home-path-title">Conhecer os aplicativos MiniOS</span>
+      <span class="home-path-details">Veja as ferramentas MiniOS incluídas no sistema e para que serve cada uma.</span>
     </a>
     <a class="home-path-card" href="using-minios/Sessions-and-Persistence">
       <span class="home-path-title">Gerenciar sessões</span>
-      <span class="home-path-details">Escolha como o MiniOS salva alterações e como trabalhar com sessões salvas.</span>
+      <span class="home-path-details">Escolha como MiniOS salva as alterações e saiba como trabalhar com sessões salvas.</span>
     </a>
     <a class="home-path-card" href="preparing-and-customizing/Managing-Modules">
       <span class="home-path-title">Gerenciar módulos</span>
-      <span class="home-path-details">Adicione softwares e alterações como módulos sem precisar reconstruir o sistema base.</span>
+      <span class="home-path-details">Adicione softwares e alterações como módulos, sem precisar recriar o sistema base.</span>
     </a>
   </div>
 </section>

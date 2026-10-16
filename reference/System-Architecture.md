@@ -1,5 +1,5 @@
 ---
-updated: 2026-10-06
+updated: 2026-10-15
 ---
 # System architecture
 
@@ -22,7 +22,7 @@ A typical Xfce image contains the following ordered roles, although exact names 
 
 ```text
 00-core-<arch>.sb
-01-kernel-<version>-<arch>.sb
+01-kernel-<version>.sb
 02-firmware-<arch>.sb
 03-gui-base-<arch>.sb
 04-xfce-desktop-<arch>.sb
@@ -46,7 +46,7 @@ After the root is assembled and early setup completes, the LiveKit initrd uses `
 
 ## Writable layer and sessions
 
-Without persistence, the writable layer is memory-backed and disappears at shutdown. Persistence can instead activate a numbered session with a supported storage backend. Selection, compatibility, activation failure, current-boot authority, and durability are defined in [Initrd persistence](/reference/boot-process/Persistence-Internals).
+Without persistence, the writable layer is memory-backed and disappears at shutdown. Persistence can instead activate a numbered session with a supported storage backend. With a selected Ventoy Persistence Plugin backend, MiniOS uses one direct ext4 persistent environment instead of numbered sessions. Selection, compatibility, activation failure, current-boot authority, and durability are defined in [Initrd persistence](/reference/boot-process/Persistence-Internals).
 
 | Mode | Writable storage | Notes |
 |------|------------------|-------|
@@ -89,7 +89,7 @@ A current image is organized as follows. Optional directories appear only when t
 |-- EFI/                           UEFI boot files
 `-- minios/
     |-- 00-core-<arch>.sb          base userspace
-    |-- 01-kernel-<version>-<arch>.sb
+    |-- 01-kernel-<version>.sb
     |-- 02-firmware-<arch>.sb
     |-- NN-<name>-<arch>.sb        ordered system modules
     |-- boot/                      kernels, initramfs, GRUB, and Syslinux data

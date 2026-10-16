@@ -1,5 +1,5 @@
 ---
-updated: 2026-10-06
+updated: 2026-10-15
 ---
 
 # Systemarchitektur
@@ -16,20 +16,20 @@ Nach der Erkennung kann MiniOS optional eine RAM-Kopie vorbereiten. Ob die Origi
 
 ## Modulzusammensetzung
 
-Jede `.sb`-Datei ist ein schreibgeschütztes SquashFS-Dateisystem. Eingebaute Module werden direkt unter `minios/` gespeichert; zusätzliche Modulpfade können zur geordneten Zusammenstellung beitragen. Das initramfs wählt, ordnet und mountet die resultierenden schreibgeschützten Ebenen. Kandidatenebenen, Basename-Ersatz, Filter, benutzerdefinierte Bundle-Erweiterungen und Koordination mit dem laufenden Kernel werden in [Initrd-Modulladen](/reference/boot-process/Module-Loading).
+Jede `.sb`-Datei ist ein schreibgeschütztes SquashFS-Dateisystem. Eingebaute Module werden direkt unter `minios/` abgelegt; zusätzliche Modulpfade können zur geordneten Zusammensetzung beitragen. Das initramfs wählt, ordnet und mountet die resultierenden schreibgeschützten Layer. Kandidatenebenen, Basename-Ersetzungen, Filter, benutzerdefinierte Bundle-Erweiterungen und die Koordination mit dem laufenden Kernel werden in [Initrd-Modulladung](/reference/boot-process/Module-Loading).
 
-Ein typisches Xfce-Image enthält die folgenden geordneten Rollen, wobei genaue Namen und Anzahl vom Build und ausgelassenen Modulen für das jeweilige Ziel abhängen:
+Ein typisches Xfce-Image enthält die folgenden geordneten Rollen, wobei genaue Namen und Anzahl vom Build und den für dieses Ziel übersprungenen Modulen abhängen:
 
 ```text
 00-core-<arch>.sb
-01-kernel-<version>-<arch>.sb
+01-kernel-<version>.sb
 02-firmware-<arch>.sb
 03-gui-base-<arch>.sb
 04-xfce-desktop-<arch>.sb
 05-apps-<arch>.sb or the next applicable module
 ```
 
-Später geladene Module haben eine höhere Priorität und können Pfade ersetzen, die von früheren Modulen bereitgestellt wurden. Ein Modul kann auf Dateien aller niedriger nummerierten Module zugreifen, daher ist eine Modulsammlung eine geordnete Komposition und keine Ansammlung unabhängiger Pakete.
+Später geladene Module haben eine höhere Priorität und können Pfade ersetzen, die von früheren Modulen bereitgestellt wurden. Ein Modul kann von Dateien in jedem niedriger nummerierten Modul abhängen, sodass eine Menge von Moduldateien eine geordnete Zusammensetzung und keine Sammlung unabhängiger Pakete darstellt.
 
 ## AUFS und OverlayFS
 
@@ -46,22 +46,22 @@ Nachdem das Root-Dateisystem zusammengesetzt und die frühe Einrichtung abgeschl
 
 ## Beschreibbare Ebene und Sitzungen
 
-Ohne Persistenz ist die beschreibbare Ebene speicherbasiert und verschwindet beim Herunterfahren. Mit Persistenz kann stattdessen eine nummerierte Sitzung mit einem unterstützten Speicher-Backend aktiviert werden. Auswahl, Kompatibilität, Aktivierungsfehler, Autorität des aktuellen Starts und Dauerhaftigkeit sind definiert in [Initrd-Persistenz](/reference/boot-process/Persistence-Internals).
+Ohne Persistenz ist die beschreibbare Ebene speicherbasiert und geht beim Herunterfahren verloren. Mit Persistenz kann stattdessen eine nummerierte Sitzung mit einem unterstützten Speicher-Backend aktiviert werden. Bei Auswahl des Ventoy Persistence Plugin-Backends verwendet MiniOS eine direkte ext4-Persistenzumgebung anstelle von nummerierten Sitzungen. Auswahl, Kompatibilität, Aktivierungsfehler, aktuelle Boot-Berechtigung und Haltbarkeit sind definiert unter [Initrd-Persistenz](/reference/boot-process/Persistence-Internals).
 
 | Modus | Beschreibbarer Speicher | Hinweise |
 |------|------------------|-------|
 | `native` | Dateien werden direkt im Sitzungsverzeichnis gespeichert | Erfordert ein beschreibbares POSIX-Dateisystem, das Linux-Metadaten erhält. |
-| `dynfilefs` | Erweiterbares ext4-Dateisystem, verteilt auf Backing-Dateien | Unterstützt POSIX-Dateisysteme sowie FAT32-, NTFS- oder exFAT-Medien. |
-| `dynblk` | Schlankes ext4-Dateisystem auf einem Kernel-Blockgerät, das durch `volumeNNN.db`-Dateien | Erfordert die DynBlk-Userspace-, Kernel- und initrd-Funktionalität. |
-| `vmdk` | Geteilte Sparse-`volume.vmdk` / `volume-sNNN.vmdk`-Speicher als Blockgerät durch den DynBlk-Treiber bereitgestellt | Erfordert die `vmdk-session-v1` DynBlk/initrd-Funktion; keine Backend-Komprimierung. |
+| `dynfilefs` | Erweiterbares ext4-Dateisystem, verteilt auf mehrere Backing-Dateien | Unterstützt POSIX-Dateisysteme sowie FAT32-, NTFS- oder exFAT-Medien. |
+| `dynblk` | Schlankes ext4-Dateisystem auf einem Kernel-Blockgerät, das von `volumeNNN.db`-Dateien unterstützt wird | Erfordert die DynBlk Userspace-, Kernel- und Initrd-Funktionalität. |
+| `vmdk` | Geteilte Sparse-`volume.vmdk`- / `volume-sNNN.vmdk`-Speicher als Blockgerät durch den DynBlk-Treiber bereitgestellt | Erfordert die `vmdk-session-v1`DynBlk/initrd-Funktion; keine Backend-Komprimierung. |
 | `raw` | Feste Größe `changes.img` mit ext4 | Unterstützt POSIX-Dateisysteme sowie FAT32-, NTFS- oder exFAT-Medien. |
-| `squashfs` | Komprimierter `changes.sb`-Snapshot | Wird für die Nutzung in RAM entpackt; das Speichern erstellt einen neuen Snapshot und ersetzt diesen atomar. Das Persistenz-Dateisystem muss beim Speichern Linux-Metadaten erhalten. |
+| `squashfs` | Komprimiertes `changes.sb`-Schnappschuss | Wird für die Nutzung in RAM entpackt; Speichern erstellt einen neuen Schnappschuss und ersetzt diesen atomar. Das Persistenz-Dateisystem muss beim Speichern Linux-Metadaten erhalten. |
 
-Raw-, DynFileFS-, DynBlk- und VMDK-Images können optional eine LUKS2-Schicht enthalten. Die Metadaten erfassen das Speicher-Backend und die Verschlüsselung getrennt. Beim Herunterfahren werden ext4, der Mapper, ggf. verwendete Loop-Devices und das Backend in Abhängigkeitsreihenfolge freigegeben.
+Raw, DynFileFS, DynBlk und VMDK können optional eine LUKS2-Schicht enthalten. Metadaten erfassen das Speicher-Backend und die Verschlüsselung separat. Beim Herunterfahren werden ext4, der Mapper, alle zugehörigen Loop-Devices und das Backend in Abhängigkeitsreihenfolge freigegeben.
 
-Die für ein zukünftiges Resume ausgewählte aktive Sitzung und die tatsächlich für den aktuellen Start autorisierte beschreibbare Ebene sind verwandte, aber unterschiedliche Zustände. Eine Änderung der zukünftigen Auswahl ersetzt nicht die laufende beschreibbare Ebene.
+Die für einen zukünftigen Resume ausgewählte aktive Sitzung und die tatsächlich für den aktuellen Boot autorisierte beschreibbare Ebene sind verwandte, aber unterschiedliche Zustände. Eine Änderung der zukünftigen Auswahl ersetzt nicht die aktuell laufende beschreibbare Ebene.
 
-Siehe [Sitzungsverwaltung](/using-minios/Sessions-and-Persistence) für Befehle zu Erstellung, Auswahl, Größenanpassung, Verschlüsselung, Konvertierung, Export und Wiederherstellung.
+Siehe [Sitzungsverwaltung](/using-minios/Sessions-and-Persistence) für Befehle zur Erstellung, Auswahl, Größenanpassung, Verschlüsselung, Konvertierung, zum Export und zur Wiederherstellung.
 
 ## Konfigurations-Priorität
 
@@ -81,7 +81,7 @@ Das Shutdown-initramfs trennt anschließend ungenutzte Loop-Devices, hängt das 
 
 ## Medienbaum
 
-Ein aktuelles Image ist wie folgt organisiert. Optionale Verzeichnisse erscheinen nur, wenn die jeweilige Funktion Inhalte erstellt hat.
+Ein aktuelles Image ist wie folgt organisiert. Optionale Verzeichnisse erscheinen nur, wenn die jeweilige Funktion Inhalte erzeugt hat.
 
 ```text
 /
@@ -89,7 +89,7 @@ Ein aktuelles Image ist wie folgt organisiert. Optionale Verzeichnisse erscheine
 |-- EFI/                           UEFI boot files
 `-- minios/
     |-- 00-core-<arch>.sb          base userspace
-    |-- 01-kernel-<version>-<arch>.sb
+    |-- 01-kernel-<version>.sb
     |-- 02-firmware-<arch>.sb
     |-- NN-<name>-<arch>.sb        ordered system modules
     |-- boot/                      kernels, initramfs, GRUB, and Syslinux data

@@ -4,41 +4,41 @@ updated: 2026-08-31
 
 # Instalasi manual berbasis file
 
-Metode instalasi MiniOS ini menyalin file sistem ke filesystem normal dan memasang bootloader di sana, bukan menulis ISO secara blok demi blok.
-Sisa ruang pada filesystem tetap tersedia untuk file biasa, sehingga perangkat dapat terus digunakan sebagai USB drive biasa sekaligus sebagai perangkat boot MiniOS.
+Metode instalasi MiniOS ini menyalin file sistem ke sistem file biasa dan menginstal bootloader di sana, alih-alih menulis ISO blok demi blok.
+Ruang yang tersisa di sistem file tetap tersedia untuk file biasa, sehingga perangkat dapat terus digunakan sebagai drive USB biasa sekaligus perangkat boot MiniOS.
 
-Metode ini sangat berguna jika Anda ingin akses langsung ke file MiniOS, penyimpanan data biasa pada partisi yang sama, atau tata letak yang dapat ditulis untuk sesi persisten. Metode ini menggunakan bootloader SYSLINUX dan ditujukan untuk Windows dan Linux.
+Metode ini sangat berguna jika Anda ingin mengakses file MiniOS secara langsung, menyimpan data biasa di partisi yang sama, atau menggunakan tata letak yang dapat ditulis untuk sesi persisten. Metode ini menggunakan bootloader SYSLINUX dan ditujukan untuk Windows dan Linux.
 
 ## Penting
 
-**Peringatan:** Prosedur ini akan mempartisi ulang dan memformat perangkat yang dipilih. Proses ini akan menghapus seluruh perangkat, bukan hanya file yang terlihat saat ini. Cadangkan data penting dan pastikan jalur perangkat, model, kapasitas, partisi, dan mount point sudah benar sebelum menjalankan `fdisk`, `mkfs`, atau `bootinst`. Lepaskan drive eksternal lain jika memungkinkan.
+**Peringatan:** Prosedur ini mempartisi ulang dan memformat perangkat yang dipilih. Prosedur ini akan menghapus seluruh isi perangkat, bukan hanya file yang saat ini terlihat di dalamnya. Cadangkan data penting dan pastikan jalur perangkat, model, kapasitas, partisi, serta titik kait yang dipilih sudah benar sebelum menjalankan `fdisk`, `mkfs`, atau `bootinst`. Jika memungkinkan, lepaskan drive lepasan lainnya.
 
 ## Persyaratan drive
 
 ### Ukuran drive
 
-Lihat [Panduan kompatibilitas perangkat keras](/getting-started/Hardware-Compatibility) untuk detail persyaratan sistem dan ukuran drive.
+Lihat [Panduan kompatibilitas perangkat keras](/getting-started/Hardware-Compatibility) untuk mengetahui persyaratan sistem dan ukuran drive secara terperinci.
 
 ### Persyaratan teknis
 
 - **Sistem file**: FAT32, NTFS, ext2/3/4, Btrfs
 - **Skema partisi**: MBR
-- **Booting EFI**: Jika menggunakan sistem file NTFS, exFAT, atau ext2/3/4, mode boot EFI mungkin tidak tersedia. Untuk dukungan EFI, disarankan menggunakan FAT32.
+- **Boot EFI**: Saat menggunakan sistem file NTFS, exFAT, atau ext2/3/4, boot dalam mode EFI mungkin tidak tersedia. Untuk mendukung EFI, sebaiknya gunakan FAT32.
 
-## Membuat USB drive bootable
+## Membuat drive USB yang dapat di-boot
 
 ### Langkah 1: Siapkan drive
 
 **Windows:**
-1. Buka "Disk Management" (`Win+R`, lalu `diskmgmt.msc`)
-2. Verifikasi perangkat USB berdasarkan nomor disk, model, dan kapasitas. Jangan lanjutkan jika ada detail yang tidak pasti.
-3. Klik kanan pada volume dan pilih "Delete Volume"
-4. Klik kanan pada ruang yang belum teralokasi dan pilih "New Simple Volume"
+1. Buka "Manajemen Disk" (`Win+R`, lalu `diskmgmt.msc`)
+2. Pastikan perangkat USB yang dipilih benar dengan memeriksa nomor disk, model, dan kapasitasnya. Jangan lanjutkan jika ada detail yang belum pasti.
+3. Klik kanan volumenya, lalu pilih "Hapus Volume"
+4. Klik kanan ruang yang belum dialokasikan, lalu pilih "Volume Sederhana Baru"
 5. Pilih sistem file: FAT32 (disarankan) atau NTFS
 
 **Linux:**
 
-Setel `TARGET_DISK` dan `TARGET_PARTITION` ke jalur yang tepat hanya setelah mencocokkan model dan kapasitas perangkat di `lsblk`. Penulisan `fdisk` akan menggantikan tabel partisi pada seluruh disk target. Jalankan hanya satu perintah `mkfs` untuk filesystem yang diinginkan.
+Atur `TARGET_DISK` dan `TARGET_PARTITION` hanya ke jalur yang tepat setelah mencocokkan model dan kapasitas perangkat di `lsblk`. Penulisan `fdisk` akan mengganti tabel partisi di seluruh disk target. Jalankan hanya satu perintah `mkfs` untuk sistem file yang diinginkan.
 
 ```bash
 lsblk -o NAME,PATH,SIZE,FSTYPE,LABEL,MOUNTPOINTS,MODEL
@@ -58,10 +58,10 @@ sudo mkfs.vfat -F 32 "$TARGET_PARTITION"  # For FAT32
 
 ### Langkah 2: Ekstrak dan salin file
 
-**Mounting ISO:**
+**Memasang ISO:**
 
 *Windows:*
-- Klik kanan file ISO dan pilih "Mount"
+- Klik kanan file ISO, lalu pilih "Pasang"
 
 *Linux:*
 ```bash
@@ -74,20 +74,20 @@ sudo mount "$TARGET_PARTITION" /mnt/minios-target
 findmnt --mountpoint /mnt/minios-target
 ```
 
-**Menyalin File:**
-1. **Temukan folder `/minios/`** di ISO yang sudah di-mount
-2. **Salin seluruh folder `/minios/`** ke root USB drive
+**Menyalin file:**
+1. **Temukan folder `/minios/`** di ISO yang telah dipasang
+2. **Salin seluruh folder `/minios/`** ke direktori root drive USB
 
-Di Linux, root target pada contoh di atas adalah `/mnt/minios-target`. Pastikan `findmnt --mountpoint /mnt/minios-target` melaporkan partisi yang benar seperti yang dipilih pada Langkah 1 sebelum menyalin file.
+Di Linux, direktori root target pada contoh di atas adalah `/mnt/minios-target`. Pastikan `findmnt --mountpoint /mnt/minios-target` menunjukkan partisi yang tepat seperti yang dipilih pada Langkah 1 sebelum menyalin file.
 
 ### Langkah 3: Instal bootloader
 
-Arahkan ke folder `/minios/boot/syslinux/` di drive dan jalankan installer:
+Buka folder `/minios/boot/syslinux/` di drive, lalu jalankan installer:
 
-`bootinst` akan menulis kode boot ke disk berdasarkan lokasi installer. Baca [Troubleshooting](/maintenance-and-recovery/Troubleshooting) sebelum mengubah kode boot, dan jangan jalankan installer sebelum perangkat dan mount point-nya diverifikasi.
+`bootinst` menulis kode boot ke disk yang ditentukan berdasarkan lokasi installer. Baca [Pemecahan masalah](/maintenance-and-recovery/Troubleshooting) sebelum mengubah kode boot, dan jangan jalankan installer sebelum perangkat dan titik mount-nya dipastikan.
 
 **Windows:**
-- Buka USB drive yang sudah diverifikasi sesuai drive letter, masuk ke `minios\boot\syslinux`, dan jalankan `bootinst.bat` **sebagai administrator**.
+- Buka drive USB yang telah diverifikasi menggunakan huruf drive yang tepat, lalu buka `minios\boot\syslinux`, dan jalankan `bootinst.bat` **sebagai administrator**.
 
 **Linux:**
 ```bash
@@ -99,10 +99,10 @@ chmod +x bootinst.sh
 sudo ./bootinst.sh
 ```
 
-Jangan gunakan wildcard untuk mount point. Script akan menentukan disk target dari lokasinya sendiri dan menulis kode boot ke disk tersebut.
+Jangan gunakan wildcard sebagai pengganti titik mount. Skrip menentukan disk tujuan berdasarkan lokasinya sendiri dan menulis kode boot ke disk tersebut.
 
 ## Hasil dan persistensi
 
-Prosedur ini membuat instalasi live berbasis file dengan menempatkan pohon `minios/` dan bootloader pada filesystem normal. Ini bukan penulisan ISO mentah, pengaturan multiboot file ISO, atau deployment MiniOS.
+Prosedur ini membuat instalasi live berbasis file dengan menempatkan `minios/` tree dan bootloader pada filesystem biasa. Ini bukan penulisan ISO mentah, konfigurasi multiboot dengan file ISO, atau Penginstal MiniOS.
 
-Filesystem yang dipilih memengaruhi backend persistensi yang dapat digunakan, tetapi tidak secara otomatis mengaktifkan persistensi atau menjamin sesi akan dibuat. Persistensi hanya diaktifkan jika entri boot atau baris perintah kernel memintanya, dan aktivasi tetap memerlukan media penyimpanan yang dapat ditulis. Lihat [Mode Boot](/using-minios/Boot-Modes) dan [Persistensi Initrd](/reference/boot-process/Persistence-Internals) sebelum mengandalkan perubahan yang disimpan.
+Filesystem yang dipilih memengaruhi backend persistensi yang dapat digunakan, tetapi tidak mengaktifkan persistensi atau menjamin sesi akan dibuat. Persistensi hanya diaktifkan jika entri boot atau baris perintah kernel memintanya, dan aktivasi tetap memerlukan penyimpanan yang dapat ditulis dan sesuai. Lihat [Mode boot](/using-minios/Boot-Modes) dan [Persistensi initrd](/reference/boot-process/Persistence-Internals) sebelum mengandalkan perubahan yang tersimpan.

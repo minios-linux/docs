@@ -10,7 +10,7 @@ hero:
         alt: MiniOS
     actions:
         - theme: brand
-          text: Mulai Cepat
+          text: Panduan Memulai Cepat
           link: /getting-started/Quick-Start
 ---
 
@@ -19,19 +19,19 @@ hero:
   <div class="home-path-grid">
     <a class="home-path-card" href="installing-minios/Installation-Methods">
       <span class="home-path-title">Instal MiniOS</span>
-      <span class="home-path-details">Pilih metode instalasi dan siapkan USB drive atau target lainnya.</span>
+      <span class="home-path-details">Pilih metode instalasi dan siapkan drive USB atau media tujuan lainnya.</span>
     </a>
     <a class="home-path-card" href="using-minios/MiniOS-Applications">
       <span class="home-path-title">Jelajahi aplikasi MiniOS</span>
-      <span class="home-path-details">Lihat berbagai alat MiniOS yang disertakan dalam sistem dan fungsinya masing-masing.</span>
+      <span class="home-path-details">Lihat alat MiniOS yang disertakan dalam sistem dan fungsi masing-masing.</span>
     </a>
     <a class="home-path-card" href="using-minios/Sessions-and-Persistence">
       <span class="home-path-title">Kelola sesi</span>
-      <span class="home-path-details">Pilih cara MiniOS menyimpan perubahan dan cara bekerja dengan sesi yang telah disimpan.</span>
+      <span class="home-path-details">Pilih cara MiniOS menyimpan perubahan dan cara menggunakan sesi yang tersimpan.</span>
     </a>
     <a class="home-path-card" href="preparing-and-customizing/Managing-Modules">
       <span class="home-path-title">Kelola modul</span>
-      <span class="home-path-details">Tambahkan perangkat lunak dan perubahan sebagai modul tanpa membangun ulang sistem dasar.</span>
+      <span class="home-path-details">Tambahkan software dan perubahan sebagai modul tanpa membangun ulang sistem dasar.</span>
     </a>
   </div>
 </section>
