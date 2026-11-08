@@ -279,11 +279,26 @@ sudo minios-session info
 
 Beim Start werden Container-Dateisysteme vor der schreibbaren Aktivierung überprüft. Bei schwerwiegenden Fehlern bei der Dateisystemprüfung bleibt der Container zum Zweck der Wiederherstellung erhalten und wird nicht schreibbar eingehängt. SquashFS erkennt einen nicht ordnungsgemäß beendeten vorherigen Zustand und stellt den zuletzt erfolgreich gespeicherten Snapshot wieder her. Löschen Sie Sitzungen ausschließlich über den MiniOS-Sitzungsmanager oder `minios-session delete`; entfernen Sie Sitzungsverzeichnisse nicht manuell.
 
-## Nicht verwendete DynFileFS, DynBlk und VMDK-Speicher zurückgeben
+## Nicht genutzte DynFileFS, DynBlk und VMDK-Speicher werden zurückgegeben
 
-Klicken Sie im Session Manager mit der rechten Maustaste auf eine DynFileFS, DynBlk oder eine VMDK-Sitzung und wählen Sie **Speicher freigeben...**. Der Dialog funktioniert sowohl für laufende als auch für inaktive unterstützte Sitzungen und verwendet auch eine bereits über den Session Manager eingebundene Sitzung erneut. Bei einer Klartext-Sitzung führt MiniOS FITRIM auf dem tatsächlichen inneren ext4-Dateisystem aus und fordert anschließend das zugehörige Backend auf, als frei bekannten Speicherplatz zurückzugeben. Getrennte Sitzungen werden vorübergehend eingebunden und erst nach sauberem Aushängen ihres Dateisystems wieder freigegeben.
+Wenn Sie Dateien in einer persistenten Sitzung löschen, werden die `changes.dat` Segmente des Hosts **nicht** unbedingt kleiner. Das innere ext4-Dateisystem weiß, welche Blöcke frei sind, aber das Speicher-Backend betrachtet diese Blöcke möglicherweise weiterhin als belegt. Die Aktion **Freier Speicher...** dient dazu, Speicherplatz auf dem USB-Laufwerk wiederherzustellen, nicht um die logische Kapazität der Sitzung zu erhöhen.
 
-Für die Rückgewinnung von DynFileFS ist DynFileFS 4.6.0 oder neuer erforderlich. Wurde das Paket aktualisiert, während noch ein älterer DynFileFS-Daemon aktiv ist, starten Sie das aktualisierte Backend neu, bevor Sie die laufende Sitzung zurückgewinnen.
+Für DynFileFS haben die Vorgänge unterschiedliche Zwecke:
+
+| Mechanismus | Verwendungszweck | Was passiert tatsächlich? |
+| --- | --- | --- |
+| **TRIM / Discard** | Sie haben Dateien aus einer unverschlüsselten ext4-Sitzung gelöscht und möchten, dass das Backend erfährt, welche Blöcke nicht mehr benötigt werden. | `fstrim` informiert DynFileFS über ungenutzte logische Blöcke. Ganze 4 KiB-Blöcke können aus der Zuordnung entfernt werden; Teilbereiche werden genullt. Die freigegebenen physischen Bereiche können erneut verwendet werden. Dies ist nicht dasselbe wie eine sichere Löschung. |
+| **Automatisches Hole Punching und Tail Truncation** | Sie möchten, dass das Host-Dateisystem Speicherplatz zurückgewinnt, ohne vorhandene Daten zu verschieben. | Nach erfolgreichem Discard kann DynFileFS ungenutzte physische Bereiche auf einem Hole-Punch-fähigen Dateisystem (wie ext4) freigeben und komplett freie Segment-Enden verkürzen. FAT32/exFAT kann innere Lücken in der Regel nicht auf diese Weise freigeben. |
+| **Reclaim** (Standardmäßig **Freier Speicher...**) | Sie haben Dateien gelöscht und möchten eine bereinigende Aufräumaktion ohne Verschieben von Daten durchführen, einschließlich der Wiederherstellung ungenutzter Bereiche aus früheren Einhängungen. | Session Manager führt FITRIM auf dem inneren ext4-Dateisystem aus und ruft `dynfilefs --reclaim`auf. Es kann Speicherplatz an den Host zurückgeben oder lediglich physische Bereiche im Container wieder nutzbar machen. Es **verschiebt** keine aktiven Blöcke. |
+| **Kompaktierung** (`--compact`) | Sie verwenden FAT32/exFAT oder haben fragmentierte Segmentdateien, deren freie Bereiche *vor* den aktiven Daten liegen, und eine nicht-verschiebende Aufräumaktion kann die Dateien nicht verkleinern. | Verschiebt aktive Blöcke in niedriger nummerierte freie Bereiche und kürzt anschließend freie Enden, wo möglich. Dies kann zu erheblich mehr Schreibvorgängen führen und deutlich länger dauern; verwenden Sie diese Option nur, wenn die Rückgewinnung von Host-Speicherplatz diesen Aufwand rechtfertigt. |
+
+**Welche Option wählen?** Wählen Sie normalerweise **Freier Speicher...** ohne Kompaktierung, nachdem Sie eine größere Datenmenge gelöscht haben. Überprüfen Sie anschließend den tatsächlich verfügbaren Speicherplatz auf dem USB-Laufwerk. Aktivieren Sie **Kompaktierung** nur, wenn die Sicherungsdateien trotz freiem Speicherplatz innerhalb der Sitzung groß bleiben, insbesondere bei FAT32/exFAT. Wenn nichts gelöscht wurde oder der Speicher bereits optimal genutzt wird, bringen Reclaim und Kompaktierung möglicherweise keinen Gewinn. Diese Vorgänge sind kein Ersatz für regelmäßige SSD-Wartung oder Backups.
+
+**Grenzen:** Allein das Löschen im Dateisystem ist kein Beweis dafür, dass die Blöcke auch wirklich freigegeben wurden; das innere Dateisystem muss ungenutzte Blöcke melden. Verschlüsselte LUKS-Sitzungen geben Discard nicht automatisch durch die Verschlüsselungsschicht weiter. Die Unterstützung des Backing-Dateisystems und die Verteilung der aktiven Blöcke bestimmen, wie viel Speicherplatz tatsächlich zurückgegeben werden kann. Die Option `perchtoram=trim` beim Booten ist unabhängig: Sie steuert, welche Sitzungen nach RAM kopiert werden, nicht das Dateisystem-Discard.
+
+Klicken Sie im Session Manager mit der rechten Maustaste auf eine DynFileFS, DynBlk oder VMDK-Sitzung und wählen Sie **Freier Speicher...**. Der Dialog funktioniert sowohl für laufende als auch für inaktive unterstützte Sitzungen und nutzt auch eine bereits über den Session Manager eingehängte Sitzung erneut. Bei einer unverschlüsselten Sitzung führt MiniOS FITRIM auf dem tatsächlichen inneren ext4-Dateisystem aus und fordert dann das zugehörige Backend auf, bekannten freien Speicherplatz freizugeben. Temporär eingehängte Sitzungen werden erst nach sauberem Aushängen des Dateisystems wieder gelöst.
+
+DynFileFS-Wiederherstellung erfordert DynFileFS 4.6.0 oder neuer. Wurde das Paket aktualisiert, während noch ein älterer DynFileFS-Daemon aktiv ist, starten Sie das Backend neu, bevor Sie die laufende Sitzung bereinigen.
 
 ```sh
 sudo minios-session reclaim 3 --json
@@ -291,10 +306,10 @@ sudo minios-session reclaim 3 --json
 sudo minios-session reclaim 3 --compact --json
 ```
 
-Das Komprimierungs-Kontrollkästchen ist **standardmäßig deaktiviert**, auch bei exFAT. Es gibt keine
-automatische Komprimierungs-Alternative. Verschlüsselte Sitzungen geben nur Speicherplatz frei, der bereits
-dem Backend bekannt ist; dieser Vorgang aktiviert kein Discard über LUKS und
-gibt das Belegungsmuster nicht preis. Gerätefehler und fehlgeschlagene Trim-Vorgänge beenden den Vorgang.
+Die Kompaktierungs-Checkbox ist **standardmäßig deaktiviert**, auch bei exFAT. Es gibt keine
+automatische Kompaktierungs-Alternative. Verschlüsselte Sitzungen geben nur Speicherplatz frei, der dem Backend bereits bekannt ist; dieser Vorgang aktiviert kein Discard durch LUKS und
+zeigt nicht das Zuweisungsmuster. Gerätefehler und fehlgeschlagenes Trim beenden die Aktion.
+Fehler beim Gerät oder ein fehlgeschlagenes Trim stoppen den Vorgang.
 
 ### Low-Level-Treiberbefehle
 

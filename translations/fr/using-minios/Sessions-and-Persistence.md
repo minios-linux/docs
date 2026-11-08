@@ -279,11 +279,26 @@ sudo minios-session info
 
 Au démarrage, les systèmes de fichiers des conteneurs sont vérifiés avant leur activation en écriture. En cas d’échec grave de la vérification du système de fichiers, le conteneur est préservé pour permettre sa récupération plutôt que monté en écriture. SquashFS détecte un état précédent incorrect et restaure le dernier instantané enregistré avec succès. Supprimez les sessions uniquement via le Gestionnaire de sessions MiniOS ou `minios-session delete` ; ne supprimez pas manuellement les répertoires de session.
 
-## Récupérer l’espace inutilisé des stockages DynFileFS, DynBlk et VMDK
+## Restitution de l’espace inutilisé pour DynFileFS, DynBlk et le stockage VMDK
 
-Dans le Gestionnaire de sessions, faites un clic droit sur une session DynFileFS, DynBlk ou VMDK, puis choisissez **Libérer de l’espace...**. La boîte de dialogue fonctionne avec les sessions prises en charge, qu’elles soient en cours d’exécution ou inactives, et réutilise également une session déjà montée via le Gestionnaire de sessions. Pour une session en clair, MiniOS exécute FITRIM sur le système de fichiers ext4 interne réel, puis demande au backend propriétaire de libérer l’espace de stockage qu’il sait inutilisé. Les sessions détachées sont temporairement attachées et ne sont libérées qu’après le démontage propre de leur système de fichiers.
+Lorsque vous supprimez des fichiers dans une session persistante, les segments du système de fichiers de l’hôte `changes.dat` **ne** se réduisent pas forcément. Le système de fichiers ext4 interne sait quels blocs sont libres, mais le stockage sous-jacent peut encore considérer ces blocs comme occupés. L’action **Libérer l’espace…** vise à récupérer de l’espace sur la clé USB, et non à augmenter la capacité logique de la session.
 
-La récupération d’espace DynFileFS nécessite DynFileFS 4.6.0 ou version ultérieure. Si le paquet a été mis à niveau alors qu’un ancien démon DynFileFS était encore actif, redémarrez sur le backend mis à jour avant de récupérer l’espace de cette session en cours d’exécution.
+Pour DynFileFS, chaque opération a un objectif distinct :
+
+| Mécanisme | Pourquoi l’utiliser | Ce que cela fait réellement |
+| --- | --- | --- |
+| **TRIM / discard** | Vous avez supprimé des fichiers d’une session ext4 non chiffrée et souhaitez que le backend soit informé des blocs qui ne sont plus nécessaires. | `fstrim` signale à DynFileFS les blocs logiques inutilisés. Les blocs entiers de 4 KiB peuvent être démapés ; les plages partielles sont remplies de zéros. Les emplacements physiques libérés peuvent alors être réutilisés. Ce n’est pas une suppression sécurisée. |
+| **Perforation automatique et troncature de fin** | Vous souhaitez que le système de fichiers hôte récupère de l’espace sans déplacer les données existantes. | Après un discard réussi, DynFileFS peut libérer les plages physiques inutilisées sur un système de fichiers supportant la perforation (comme ext4) et raccourcir les fins de segments totalement libres. FAT32/exFAT ne peut généralement pas libérer les trous internes de cette manière. |
+| **Récupération** (par défaut **Libérer l’espace…**) | Vous avez supprimé des fichiers et souhaitez effectuer un nettoyage sans déplacement, y compris la récupération des emplacements inutilisés issus de montages précédents. | Le gestionnaire de sessions exécute FITRIM sur le système de fichiers ext4 interne puis appelle `dynfilefs --reclaim`. Cela peut rendre de l’espace à l’hôte, ou simplement rendre les emplacements physiques réutilisables à l’intérieur du conteneur. Cette opération ne **déplace pas** les blocs actifs. |
+| **Compactage** (`--compact`) | Vous utilisez FAT32/exFAT ou avez des fichiers de segments fragmentés dont les emplacements libres se trouvent *avant* les données actives, et le nettoyage sans déplacement ne peut pas raccourcir les fichiers. | Déplace les blocs actifs vers les emplacements libres les plus bas, puis tronque les fins libres si possible. Cela peut entraîner beaucoup d’écritures supplémentaires et être bien plus long ; à utiliser uniquement si la récupération d’espace sur l’hôte le justifie. |
+
+**Quel mode choisir ?** Il est généralement conseillé d’utiliser **Libérer l’espace…** sans compactage après avoir supprimé une quantité importante de données. Vérifiez ensuite l’espace réellement disponible sur la clé USB. Activez le **compactage** uniquement si les fichiers de support restent volumineux malgré l’espace libre dans la session, en particulier sur FAT32/exFAT. Si rien n’a été supprimé ou si le stockage est déjà optimisé, la récupération et le compactage peuvent ne rien libérer. Ne considérez pas ces opérations comme un entretien courant du SSD ni comme un remplacement de la sauvegarde.
+
+**Limites :** La suppression d’un fichier sur le système de fichiers ne garantit pas que ses blocs ont été libérés ; le système de fichiers interne doit signaler les blocs inutilisés. Les sessions chiffrées LUKS ne transmettent pas automatiquement les commandes discard à travers la couche de chiffrement. Le support du système de fichiers hôte et la disposition des blocs actifs déterminent la quantité d’espace réellement récupérable. L’option de démarrage `perchtoram=trim` n’est pas liée : elle détermine quelles sessions sont copiées dans RAM, et non la gestion du discard.
+
+Dans le gestionnaire de sessions, faites un clic droit sur une session DynFileFS, DynBlk ou VMDK et choisissez **Libérer l’espace…**. La boîte de dialogue fonctionne pour une session prise en charge, qu’elle soit en cours d’exécution ou inactive, et réutilise aussi une session déjà montée via le gestionnaire de sessions. Pour une session en clair, MiniOS exécute FITRIM sur le système de fichiers ext4 interne réel, puis demande au backend de libérer l’espace connu comme libre. Les sessions détachées sont temporairement attachées et ne sont libérées qu’après démontage propre du système de fichiers.
+
+La récupération DynFileFS nécessite DynFileFS 4.6.0 ou plus récent. Si le paquet a été mis à jour alors qu’un ancien démon DynFileFS est encore actif, redémarrez sur le backend mis à jour avant de récupérer cette session en cours.
 
 ```sh
 sudo minios-session reclaim 3 --json
@@ -291,10 +306,10 @@ sudo minios-session reclaim 3 --json
 sudo minios-session reclaim 3 --compact --json
 ```
 
-La case à cocher de compactage est **désactivée par défaut**, y compris sur exFAT. Il n’existe pas de
-compactage automatique en solution de repli. Les sessions chiffrées ne récupèrent que l’espace déjà
-connu du backend ; cette opération n’active pas discard via LUKS et ne
-révèle pas son schéma d’allocation. Les erreurs de périphérique et les échecs de trim interrompent l’opération.
+La case à cocher du compactage est **désactivée par défaut**, y compris sur exFAT. Il n’y a pas de
+compactage automatique en cas d’échec. Les sessions chiffrées ne récupèrent que l’espace déjà
+connu du backend ; cette opération n’active pas le discard à travers LUKS et ne
+révèle pas le schéma d’allocation. Les erreurs de périphérique et les échecs de trim interrompent l’opération.
 
 ### Commandes de bas niveau du pilote
 

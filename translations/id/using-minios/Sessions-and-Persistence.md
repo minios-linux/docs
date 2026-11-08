@@ -279,11 +279,26 @@ sudo minios-session info
 
 Saat boot, sistem file kontainer diperiksa sebelum diaktifkan dengan akses tulis. Jika pemeriksaan sistem file menemukan masalah serius, kontainer akan dipertahankan untuk pemulihan, bukan dipasang dengan akses tulis. SquashFS mendeteksi keadaan sebelumnya yang tidak bersih dan memulihkan snapshot terakhir yang berhasil disimpan. Hapus sesi hanya melalui Manajer Sesi MiniOS atau `minios-session delete`; jangan hapus direktori sesi secara manual.
 
-## Mengembalikan ruang penyimpanan Raw, DynFileFS, DynBlk, dan VMDK yang tidak terpakai
+## Mengembalikan DynFileFS, DynBlk, dan penyimpanan VMDK yang tidak terpakai
 
-Di Session Manager, klik kanan sesi DynFileFS, DynBlk, atau VMDK, lalu pilih **Kosongkan Ruang...**. Dialog ini berfungsi untuk sesi yang sedang berjalan maupun tidak aktif dan didukung, serta dapat menggunakan kembali sesi yang sudah dipasang melalui Session Manager. Untuk sesi plaintext, MiniOS menjalankan FITRIM pada sistem file ext4 internal yang sebenarnya, lalu meminta backend terkait untuk mengembalikan ruang penyimpanan pendukung yang diketahui kosong. Sesi yang dilepas akan dipasang sementara dan dilepas kembali hanya setelah sistem filenya dibongkar dengan benar.
+Ketika Anda menghapus file di dalam sesi persisten, segmen `changes.dat` milik host **tidak** selalu mengecil. Filesystem ext4 di dalamnya mengetahui blok mana yang sudah kosong, namun backend penyimpanannya mungkin masih menganggap blok tersebut terpakai. **Bebaskan Ruang...** bertujuan untuk memulihkan ruang di flashdisk USB, bukan untuk menambah kapasitas logis sesi.
 
-Pengembalian ruang DynFileFS memerlukan DynFileFS 4.6.0 atau yang lebih baru. Jika paket diperbarui saat daemon DynFileFS versi lama masih aktif, boot ulang ke backend yang telah diperbarui sebelum mengembalikan ruang sesi yang sedang berjalan tersebut.
+Untuk DynFileFS, tiap operasi memiliki tujuan yang berbeda:
+
+| Mekanisme | Alasan penggunaan | Apa yang sebenarnya dilakukan |
+| --- | --- | --- |
+| **TRIM / discard** | Anda menghapus file dari sesi ext4 tanpa enkripsi dan ingin backend mengetahui blok mana yang sudah tidak diperlukan. | `fstrim` memberi tahu DynFileFS tentang blok logis yang tidak terpakai. Seluruh blok 4 KiB dapat dilepas; rentang parsial akan diisi nol. Slot fisik yang telah dibebaskan dapat digunakan kembali. Ini berbeda dengan penghapusan aman. |
+| **Hole punching dan tail truncation otomatis** | Anda ingin filesystem host mendapatkan kembali ruang tanpa memindahkan data yang ada. | Setelah discard berhasil, DynFileFS dapat melepas rentang fisik yang tidak terpakai pada filesystem backing yang mendukung hole punching (seperti ext4) dan memendekkan tail segmen yang benar-benar kosong. FAT32/exFAT umumnya tidak dapat melepas hole di bagian dalam dengan cara ini. |
+| **Reclaim** (default **Bebaskan Ruang...**) | Anda telah menghapus file dan ingin melakukan pembersihan tanpa pemindahan data, termasuk memulihkan slot kosong yang tersisa dari mount sebelumnya. | Session Manager menjalankan FITRIM pada filesystem ext4 di dalam dan memanggil `dynfilefs --reclaim`. Proses ini bisa mengembalikan ruang ke host, atau hanya membuat slot fisik dapat digunakan kembali di dalam container. Proses ini **tidak** memindahkan blok data yang masih aktif. |
+| **Kompaksi** (`--compact`) | Anda menggunakan FAT32/exFAT atau memiliki file segmen yang terfragmentasi di mana slot kosong berada *sebelum* data aktif, dan pembersihan tanpa pemindahan tidak dapat memendekkan file. | Memindahkan blok data aktif ke slot kosong bernomor lebih rendah, lalu memangkas tail kosong jika memungkinkan. Proses ini dapat menyebabkan penulisan tambahan yang signifikan dan memakan waktu lebih lama; gunakan hanya jika pemulihan ruang host memang diperlukan. |
+
+**Mana yang sebaiknya dipilih?** Biasanya pilih **Bebaskan Ruang...** tanpa kompaksi setelah menghapus data dalam jumlah besar. Periksa ruang kosong yang sebenarnya di flashdisk USB setelahnya. Aktifkan **Kompaksi** hanya jika file backing tetap besar meskipun ada ruang kosong di dalam sesi, terutama pada FAT32/exFAT. Jika tidak ada yang dihapus atau penyimpanan sudah padat, reclaim dan kompaksi mungkin tidak mengembalikan apa pun. Jangan perlakukan operasi ini sebagai perawatan rutin SSD atau pengganti backup.
+
+**Batasan:** Penghapusan file di filesystem saja tidak menjamin bloknya sudah didiscard; filesystem di dalam harus melaporkan blok yang tidak terpakai. Sesi LUKS terenkripsi tidak otomatis meneruskan discard melalui lapisan enkripsi. Dukungan filesystem backing dan tata letak blok aktif menentukan seberapa banyak ruang yang benar-benar dapat dikembalikan. Opsi boot `perchtoram=trim` tidak terkait: opsi ini mengatur sesi mana yang disalin ke RAM, bukan discard filesystem.
+
+Di Session Manager, klik kanan pada sesi DynFileFS, DynBlk, atau VMDK lalu pilih **Bebaskan Ruang...**. Dialog ini dapat digunakan untuk sesi yang sedang berjalan maupun yang tidak aktif, dan juga dapat menggunakan ulang sesi yang sudah ter-mount melalui Session Manager. Untuk sesi plaintext, MiniOS menjalankan FITRIM di filesystem ext4 di dalam, lalu meminta backend untuk mengembalikan ruang backing yang sudah diketahui kosong. Sesi yang terlepas akan di-attach sementara dan dilepas hanya setelah filesystem-nya di-unmount dengan bersih.
+
+Reklamasi DynFileFS memerlukan DynFileFS versi 4.6.0 atau lebih baru. Jika paket diperbarui saat daemon DynFileFS lama masih aktif, reboot ke backend yang sudah diperbarui sebelum melakukan reclaim pada sesi yang sedang berjalan.
 
 ```sh
 sudo minios-session reclaim 3 --json
@@ -291,10 +306,10 @@ sudo minios-session reclaim 3 --json
 sudo minios-session reclaim 3 --compact --json
 ```
 
-Kotak centang pemadatan **dinonaktifkan secara default**, termasuk pada exFAT. Tidak ada
-pemadatan otomatis sebagai alternatif. Sesi terenkripsi hanya mengembalikan ruang yang sudah
-diketahui backend sebagai ruang kosong; operasi ini tidak mengaktifkan discard melalui LUKS atau
-mengungkap pola alokasinya. Kesalahan perangkat dan kegagalan trim akan menghentikan operasi.
+Checkbox kompaksi **nonaktif secara default**, termasuk pada exFAT. Tidak ada
+kompaksi otomatis. Sesi terenkripsi hanya mengklaim ruang yang sudah
+diketahui backend; operasi ini tidak mengaktifkan discard melalui LUKS atau
+menampilkan pola alokasinya. Error perangkat dan trim yang gagal akan menghentikan operasi.
 
 ### Perintah driver tingkat rendah
 

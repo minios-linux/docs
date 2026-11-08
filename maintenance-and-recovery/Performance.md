@@ -35,6 +35,8 @@ Persistence moves writable-layer I/O from temporary RAM to storage or a containe
 
 LUKS2 can wrap Raw, DynFileFS, DynBlk, or VMDK. Encryption adds unlock and crypto overhead while keeping the underlying backend's capacity and storage behavior. DynBlk compression is disabled when LUKS2 is used; VMDK never provides backend compression.
 
+DynFileFS 4.6.0 and the experimental 5.01 MiniOS branch add discard and allocation reuse to the original backend. For a reproducible demonstration, see `tests/benefit-minios.py` in the DynFileFS repository. In a synthetic test on lego2's ext4 storage (not a USB flash device), discarding 32 MiB reduced MiniOS backing allocation from about 49 MiB to 17 MiB; after another 16 MiB of writes MiniOS used about 25 MiB, compared with about 57 MiB for the original Tomas-M 5.01 backend. Non-moving reclaim and optional compaction released no further space in that particular layout. These figures are workload-specific, and the original backend was given zero writes rather than discard because it does not implement that interface. Do not interpret the result as a universal speed or endurance advantage.
+
 Benchmark representative workloads on the actual device. Flash-controller, filesystem, USB bridge, encryption, compression, and workload differences are more reliable than a universal ranking of persistence modes.
 
 <a id="reduce-cache-and-log-writes-with-perch"></a>

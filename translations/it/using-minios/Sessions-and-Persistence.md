@@ -279,11 +279,26 @@ sudo minios-session info
 
 All'avvio, i filesystem dei container vengono controllati prima dell'attivazione in scrittura. In caso di errori gravi durante il controllo del filesystem, il container viene conservato per il ripristino invece di essere montato in scrittura. SquashFS rileva uno stato precedente non corretto e ripristina l'ultimo snapshot salvato correttamente. Elimina le sessioni solo tramite il Gestore sessioni MiniOS oppure `minios-session delete`; non rimuovere manualmente le directory delle sessioni.
 
-## Restituire lo spazio inutilizzato di DynFileFS, DynBlk e dello storage VMDK
+## Restituzione di DynFileFS, DynBlk e spazio di archiviazione VMDK non utilizzati
 
-In Gestore sessioni, fai clic con il pulsante destro del mouse su una sessione DynFileFS, DynBlk o VMDK e scegli **Libera spazio...**. La finestra di dialogo funziona con le sessioni supportate, in esecuzione o inattive, e può essere usata anche per una sessione già montata tramite Gestore sessioni. Per una sessione non crittografata, MiniOS esegue FITRIM sul filesystem ext4 interno effettivo, quindi chiede al backend proprietario di restituire lo spazio di supporto che risulta libero. Le sessioni scollegate vengono collegate temporaneamente e rilasciate solo dopo aver smontato correttamente il filesystem.
+Quando elimini file all'interno di una sessione persistente, i segmenti `changes.dat` dell'host **non** si riducono necessariamente. Il filesystem ext4 interno sa quali blocchi sono liberi, ma il backend di archiviazione può comunque considerarli occupati. L'azione **Spazio libero...** serve a recuperare spazio sulla chiavetta USB, non ad aumentare la capacità logica della sessione.
 
-Il recupero dello spazio DynFileFS richiede DynFileFS 4.6.0 o versioni successive. Se il pacchetto è stato aggiornato mentre era ancora attivo un daemon DynFileFS precedente, riavvia usando il backend aggiornato prima di recuperare lo spazio della sessione in esecuzione.
+Per DynFileFS, le operazioni hanno scopi distinti:
+
+| Meccanismo | Perché utilizzarlo | Cosa fa effettivamente |
+| --- | --- | --- |
+| **TRIM / discard** | Hai eliminato file da una sessione ext4 non cifrata e vuoi che il backend riconosca quali blocchi non sono più necessari. | `fstrim` informa DynFileFS sui blocchi logici non utilizzati. Blocchi interi da 4 KiB possono essere smappati; gli intervalli parziali vengono azzerati. Gli slot fisici liberati possono essere riutilizzati. Questo non equivale a una cancellazione sicura. |
+| **Hole punching e troncamento automatico delle code** | Vuoi che il filesystem dell'host recuperi spazio senza spostare i dati esistenti. | Dopo un discard riuscito, DynFileFS può rilasciare intervalli fisici non utilizzati su un filesystem di supporto compatibile con hole punching (come ext4) e accorciare le code dei segmenti completamente liberi. FAT32/exFAT generalmente non può liberare spazi interni in questo modo. |
+| **Reclaim** (predefinito **Spazio libero...**) | Hai eliminato file e vuoi una pulizia senza spostamenti, inclusa la liberazione degli slot inutilizzati rimasti da precedenti montaggi. | Session Manager esegue FITRIM sul filesystem ext4 interno e richiama `dynfilefs --reclaim`. Può restituire spazio all'host oppure semplicemente rendere riutilizzabili gli slot fisici all'interno del contenitore. Non **sposta** i blocchi attivi. |
+| **Compattazione** (`--compact`) | Usi FAT32/exFAT o hai file di segmento frammentati con slot liberi *prima* dei dati attivi, e la pulizia senza spostamenti non può accorciare i file. | Sposta i blocchi attivi negli slot liberi a numerazione più bassa, quindi tronca le code libere dove possibile. Questa operazione può generare molte più scritture e richiedere molto più tempo; usala solo se il recupero dello spazio sull'host giustifica questo costo. |
+
+**Quale scegliere?** Normalmente scegli **Spazio libero...** senza compattazione dopo aver eliminato una quantità significativa di dati. Controlla lo spazio effettivamente libero sulla chiavetta USB al termine. Abilita la **Compattazione** solo se i file di supporto rimangono grandi nonostante lo spazio libero all'interno della sessione, in particolare su FAT32/exFAT. Se non hai eliminato nulla o lo storage è già compatto, reclaim e compattazione potrebbero non recuperare spazio. Non considerare queste operazioni come manutenzione ordinaria SSD o come sostituto del backup.
+
+**Limiti:** L'eliminazione di file dal filesystem non garantisce che i blocchi siano stati effettivamente scartati; il filesystem interno deve segnalare i blocchi inutilizzati. Le sessioni LUKS cifrate non trasmettono automaticamente il discard attraverso il livello di cifratura. Il supporto del filesystem di backend e la disposizione dei blocchi attivi determinano quanto spazio può essere effettivamente restituito. L'opzione di avvio `perchtoram=trim` è indipendente: controlla quali sessioni vengono copiate in RAM, non il discard del filesystem.
+
+In Session Manager, fai clic con il tasto destro su una sessione DynFileFS, DynBlk o VMDK e scegli **Spazio libero...**. La finestra funziona sia per sessioni attive che inattive supportate e riutilizza anche una sessione già montata tramite Session Manager. Per una sessione in chiaro, MiniOS esegue FITRIM sul filesystem ext4 interno effettivo e poi chiede al backend proprietario di restituire lo spazio di supporto riconosciuto come libero. Le sessioni scollegate vengono collegate temporaneamente e vengono rilasciate solo dopo che il filesystem è stato smontato correttamente.
+
+La reclamazione di DynFileFS richiede DynFileFS 4.6.0 o superiore. Se il pacchetto è stato aggiornato mentre un demone DynFileFS precedente è ancora attivo, riavvia nel backend aggiornato prima di reclamare quella sessione in esecuzione.
 
 ```sh
 sudo minios-session reclaim 3 --json
@@ -291,10 +306,10 @@ sudo minios-session reclaim 3 --json
 sudo minios-session reclaim 3 --compact --json
 ```
 
-La casella di controllo della compattazione è **disattivata per impostazione predefinita**, anche con exFAT. Non è disponibile alcuna
-compattazione automatica di ripiego. Le sessioni crittografate recuperano solo lo spazio già
-segnalato come libero dal backend; questa operazione non abilita discard tramite LUKS né
-rivela il modello di allocazione. Gli errori del dispositivo e quelli di trim interrompono l'operazione.
+La casella di controllo compattazione è **disattivata per impostazione predefinita**, anche su exFAT. Non è previsto un fallback automatico per la compattazione. Le sessioni cifrate recuperano solo lo spazio già
+conosciuto dal backend; questa operazione non abilita il discard tramite LUKS né
+rivela il pattern di allocazione. Errori del dispositivo e trim falliti interrompono l'operazione.
+Errori del dispositivo e trim falliti interrompono l'operazione.
 
 ### Comandi di basso livello del driver
 

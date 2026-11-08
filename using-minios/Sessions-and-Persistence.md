@@ -281,6 +281,21 @@ At boot, container filesystems are checked before writable activation. Serious f
 
 ## Returning unused DynFileFS, DynBlk, and VMDK storage
 
+When you delete files inside a persistent session, the host's `changes.dat` segments do **not** necessarily shrink. The inner ext4 filesystem knows which blocks are free, but its storage backend may still consider those blocks occupied. The **Free Space...** action is intended to recover space on the USB drive, not to increase the session's logical capacity.
+
+For DynFileFS, the operations have distinct purposes:
+
+| Mechanism | Why you would use it | What it actually does |
+| --- | --- | --- |
+| **TRIM / discard** | You deleted files from an unencrypted ext4 session and want the backend to learn which blocks are no longer needed. | `fstrim` informs DynFileFS about unused logical blocks. Whole 4 KiB blocks can be unmapped; partial ranges are zeroed. The freed physical slots can be used again. This is not the same as secure erasure. |
+| **Automatic hole punching and tail truncation** | You want the host filesystem to regain space without moving existing data. | After successful discard, DynFileFS can release unused physical ranges on a hole-punch-capable backing filesystem (such as ext4) and shorten completely free segment tails. FAT32/exFAT generally cannot release interior holes this way. |
+| **Reclaim** (default **Free Space...**) | You have deleted files and want non-moving cleanup, including recovery of unused slots left from earlier mounts. | Session Manager runs FITRIM on the inner ext4 filesystem and invokes `dynfilefs --reclaim`. It may return space to the host, or merely leave physical slots reusable inside the container. It does **not** relocate live blocks. |
+| **Compaction** (`--compact`) | You use FAT32/exFAT or have fragmented segment files whose free slots lie *before* live data, and non-moving cleanup cannot shorten the files. | Moves live blocks to lower-numbered free slots, then truncates free tails where possible. This can cause significant additional writes and take much longer; use it only when recovering host space is worth that cost. |
+
+**Which to choose?** Normally choose **Free Space...** without compaction after deleting a substantial amount of data. Check actual free space on the USB drive afterward. Enable **Compaction** only when the backing files remain large despite free space inside the session, particularly on FAT32/exFAT. If nothing has been deleted or the storage is already packed, reclaim and compaction may recover nothing. Do not treat these operations as routine SSD maintenance or as a substitute for backup.
+
+**Limits:** A filesystem deletion alone is not proof that its blocks were discarded; the inner filesystem must report unused blocks. Encrypted LUKS sessions do not automatically pass discard through the encryption layer. Backing filesystem support and the layout of live blocks determine how much space can actually be returned. The `perchtoram=trim` boot option is unrelated: it controls which sessions are copied into RAM, not filesystem discard.
+
 In Session Manager, right-click a DynFileFS, DynBlk, or VMDK session and choose **Free Space...**. The dialog works for a running or inactive supported session and also reuses a session that is already mounted through Session Manager. For a plaintext session, MiniOS runs FITRIM on the actual inner ext4 filesystem and then asks the owning backend to return known-free backing space. Detached sessions are attached temporarily and are released only after their filesystem has been unmounted cleanly.
 
 DynFileFS reclamation requires DynFileFS 4.6.0 or later. If the package was upgraded while an older DynFileFS daemon remains active, reboot into the updated backend before reclaiming that running session.
