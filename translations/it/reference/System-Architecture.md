@@ -46,22 +46,22 @@ Una volta assemblato il root e completata la configurazione iniziale, l’initrd
 
 ## Livello scrivibile e sessioni
 
-Senza persistenza, il livello scrivibile è supportato dalla memoria e scompare allo spegnimento. La persistenza può invece attivare una sessione numerata con un backend di archiviazione supportato. Selezionando un backend Persistence Plugin Ventoy, MiniOS usa un unico ambiente persistente ext4 diretto anziché sessioni numerate. La selezione, la compatibilità, gli errori di attivazione, l’autorità per l’avvio corrente e la durabilità sono descritti in [Persistenza initrd](/reference/boot-process/Persistence-Internals).
+Senza persistenza, il livello scrivibile è basato sulla memoria e scompare allo spegnimento. La persistenza può invece attivare una sessione numerata con un backend di archiviazione supportato. Selezionando un backend Persistence Plugin Ventoy, MiniOS usa un unico ambiente persistente ext4 diretto anziché sessioni numerate. La selezione, la compatibilità, gli errori di attivazione, l'autorità per l'avvio corrente e la durabilità sono descritti in [Persistenza initrd](/reference/boot-process/Persistence-Internals).
 
 | Modalità | Archiviazione scrivibile | Note |
 |------|------------------|-------|
 | `native` | File archiviati direttamente nella directory della sessione | Richiede un filesystem POSIX scrivibile che mantenga i metadati Linux. |
-| `dynfilefs` | Filesystem ext4 espandibile suddiviso in file di supporto | Supporta filesystem POSIX e supporti FAT32, NTFS o exFAT. |
-| `dynblk` | Filesystem ext4 thin su un dispositivo a blocchi del kernel basato su `volumeNNN.db` file | Richiede lo userspace DynBlk, il kernel e il supporto initrd. |
-| `vmdk` | File sparsi suddivisi `volume.vmdk` / `volume-sNNN.vmdk` esposti come dispositivo a blocchi dal driver DynBlk | Richiede il supporto `vmdk-session-v1` DynBlk/initrd; nessuna compressione del backend. |
-| `raw` |  `changes.img` contenente ext4 | Supporta filesystem POSIX e supporti FAT32, NTFS o exFAT. |
-| `squashfs` | Snapshot `changes.sb` compresso | Decompresso in RAM per l’uso; il salvataggio ricrea e sostituisce atomicamente lo snapshot. Durante il salvataggio, il filesystem di persistenza deve mantenere i metadati Linux. |
+| `dynfilefs` | Un runtime FUSE espone un'immagine espandibile con ext4 al suo interno, suddivisa in file di supporto di formato 600 | Supporta i filesystem POSIX e i supporti FAT32, NTFS o exFAT. |
+| `dynblk` | Filesystem ext4 thin su un dispositivo a blocchi del kernel, basato su `volumeNNN.db` file | Richiede il supporto DynBlk per userspace, kernel e initrd. |
+| `vmdk` | Archiviazione sparse suddivisa `volume.vmdk` / `volume-sNNN.vmdk` esposta come dispositivo a blocchi dal driver DynBlk | Richiede il supporto `vmdk-session-v1` DynBlk/initrd; nessuna compressione del backend. |
+| `raw` | File `changes.img` di dimensioni fisse contenente ext4 | Supporta i filesystem POSIX e i supporti FAT32, NTFS o exFAT. |
+| `squashfs` | Snapshot `changes.sb` compressa | Decompressa in RAM per l'uso; il salvataggio la ricrea e sostituisce lo snapshot atomicamente. Durante il salvataggio, il filesystem di persistenza deve mantenere i metadati Linux. |
 
-Raw, DynFileFS, DynBlk e VMDK possono includere facoltativamente un livello LUKS2. I metadati registrano separatamente il backend di archiviazione e la crittografia. Allo spegnimento, ext4, il mapper, l’eventuale loop di proprietà e il backend vengono rilasciati nell’ordine delle dipendenze.
+Raw, DynFileFS, DynBlk e VMDK possono includere facoltativamente un livello LUKS2. I metadati registrano separatamente il backend di archiviazione e la crittografia. Durante lo spegnimento vengono rilasciati ext4, il mapper, l'eventuale loop di proprietà e il backend, nell'ordine delle dipendenze.
 
-La sessione attiva selezionata per un ripristino futuro e il livello scrivibile effettivamente autorizzato per l’avvio corrente sono stati correlati ma distinti. Modificare una selezione futura non sostituisce il livello scrivibile in uso.
+La sessione attiva selezionata per una ripresa futura e il livello scrivibile effettivamente autorizzato per l'avvio corrente sono stati correlati ma distinti. Modificare una selezione futura non sostituisce il livello scrivibile in uso.
 
-Per i comandi di creazione, selezione, dimensionamento, crittografia, conversione, esportazione e ripristino, consulta [Gestione delle sessioni](/using-minios/Sessions-and-Persistence).
+Vedi [Gestione delle sessioni](/using-minios/Sessions-and-Persistence) per i comandi di creazione, selezione, dimensionamento, crittografia, conversione, esportazione e ripristino.
 
 ## Precedenza della configurazione
 

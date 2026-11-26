@@ -12,26 +12,28 @@ Ejecute `./minios-cmd --help`, `./minios-live --help` y revise el `build.conf` s
 
 ## Requisitos
 
-Compile en Debian o Ubuntu con suficiente espacio libre bajo `BUILD_DIR` y `/tmp`.
-Un entorno de escritorio típico requiere al menos 20 GiB. Las operaciones de compilación requieren privilegios de root para debootstrap, chroots, montajes, dispositivos de bucle y creación de imágenes; mostrar la ayuda no los requiere.
+Compile en Debian o Ubuntu con suficiente espacio libre: `BUILD_DIR` y `/tmp`.
+Un sistema de escritorio típico necesita al menos 20 GiB. Las operaciones de compilación requieren permisos de root para debootstrap, chroots, montajes, dispositivos loop y creación de imágenes; mostrar la ayuda no los requiere.
 
-La lista de paquetes del host autorizada es `linux-live/prerequisites.list`. Para el checkout actual se puede instalar con:
+La lista oficial de paquetes del sistema anfitrión está en `linux-live/prerequisites.list`. Para la copia de trabajo actual, se puede instalar con:
 
 ```bash
 sudo apt-get update
 sudo apt-get install \
   sudo binutils debootstrap squashfs-tools xorriso mtools rsync \
-  grub-common gpg curl openssl sbsigntool
+  grub-common gpg curl jq openssl sbsigntool
 ```
 
-En un checkout de fuentes, `minios-live` verifica esta lista antes de compilar, a menos que `SKIP_SETUP_HOST=true`. En un host normal informa los paquetes faltantes y se detiene; la instalación automática solo se usa en la ruta de compilación en contenedor.
+En una copia del código fuente, `minios-live` comprueba esta lista antes de compilar, salvo que `SKIP_SETUP_HOST=true`. En un sistema anfitrión normal, informa de los paquetes que faltan y se detiene; la instalación automática solo se usa en el proceso de compilación del contenedor.
 
-La configuración predeterminada comprueba la conectividad a Internet. Esta comprobación se puede desactivar con `CHECK_INTERNET_CONNECTION=false` y se omite si hay un repositorio de caché APT preparado, pero todos los paquetes y archivos de arranque requeridos deben estar disponibles desde los repositorios o cachés configurados.
+En el sistema anfitrión de compilación, instala `minios-dpkg-state` desde la suite genérica del repositorio APT de MiniOS. Las etapas `build-live`, `build-modules` y `build-boot` comprueban el índice del repositorio para la arquitectura del sistema anfitrión antes de continuar. El paquete instalado debe cumplir tanto el requisito mínimo del constructor como la versión publicada para esa arquitectura. El constructor no lo instala ni lo actualiza automáticamente; si la comprobación falla, sigue las instrucciones del paquete que muestra.
 
-Si `USE_APT_CACHER=true`, ya debe estar configurado un servicio apt-cacher-ng accesible en `APT_CACHER_ADDRESS`; de lo contrario, establezca la opción en `false` antes de compilar.
+La configuración predeterminada comprueba la conectividad a Internet. La comprobación se puede desactivar con `CHECK_INTERNET_CONNECTION=false` y se omite si se ha preparado un repositorio de caché APT, pero todos los paquetes necesarios y los archivos de arranque deben seguir estando disponibles en los repositorios o cachés configurados.
 
-::: danger Confianza en el arranque
-La ruta de arranque actual llama a debootstrap con `--no-check-gpg` y descarga la clave de archivo MiniOS por HTTP sin autenticación. No utilice la imagen resultante como artefacto de lanzamiento confiable hasta que estas rutas de origen exijan verificación autenticada de clave y arranque.
+Si `USE_APT_CACHER=true`, ya debe estar configurado un servicio apt-cacher-ng accesible en `APT_CACHER_ADDRESS`; de lo contrario, establece la opción en `false` antes de compilar.
+
+::: danger Confianza del arranque inicial
+La ruta actual de arranque inicial ejecuta debootstrap con `--no-check-gpg` y descarga la clave del archivo MiniOS mediante HTTP sin autenticación. No uses la imagen resultante como artefacto de lanzamiento de confianza hasta que estas rutas del código fuente garanticen la autenticación de la clave y la verificación del arranque inicial.
 :::
 
 ## Compilación rápida
@@ -165,15 +167,17 @@ Si `REMOVE_SOURCES=true`, la etapa final `remove-sources` elimina y recrea todo 
 
 No edite un `build/<target>/build.conf` generado como sustituto de mantener la configuración de origen seleccionada.
 
-### Selección de kernel
+### Selección del kernel
 
-El proveedor `distribution` resuelve el kernel Debian o Ubuntu seleccionado y, cuando DKMS está habilitado, los encabezados coincidentes en un estado APT firmado e independiente.
-`KERNEL_AUTO_SELECT=true` deriva su suite de origen y arquitectura del destino de espacio de usuario. Establécelo en `false` para usar los campos manuales de distribución, arquitectura, versión, snapshot y política de actualización en `build.conf`.
+El proveedor `distribution` resuelve el kernel de Debian o Ubuntu seleccionado y, si DKMS está habilitado, los encabezados correspondientes en un estado APT firmado y aislado.
+`KERNEL_AUTO_SELECT=true` obtiene la suite de origen y la arquitectura del sistema de destino. Configúralo como `false` para usar los campos manuales de distribución, arquitectura, versión, instantánea y política de actualización de `build.conf`.
 
-El proveedor `minios` instala `linux-image-SERIES-mos-ARCH`, verifica el soporte AUFS y utiliza los encabezados MiniOS correspondientes para DKMS. Requiere `KERNEL_FLAVOUR=none` y arquitecturas coincidentes de espacio de usuario y paquete de kernel.
-En el código actual, `MINIOS_KERNEL_SERIES=auto` se resuelve como `6.12`; usa `6.1` explícitamente cuando se requiera esa serie.
+En las compilaciones de Debian Trixie o Devuan Excalibur para x86 de 32 bits (i386), la selección automática usa el proveedor de kernel MiniOS. Esto se aplica incluso si la configuración especifica `KERNEL_PROVIDER=distribution` como proveedor. Trixie ya no incluye un kernel de distribución para i386.
 
-`KERNEL_PAYLOAD_MODE=runtime` conserva el árbol de módulos del kernel, la configuración del kernel, `System.map`, metadatos de despliegue e integración en tiempo de ejecución bajo `modprobe.d`, `modules-load.d` y `udev/rules.d`. Elimina solo el estado de paquetes de compilación, encabezados, fuentes DKMS, herramientas de compilación y paquetes de initramfs. El firmware sigue siendo propiedad de `02-firmware`. `full` conserva un payload de diagnóstico más amplio.
+El proveedor `minios` instala `linux-image-SERIES-mos-ARCH`, verifica la compatibilidad con AUFS y usa los encabezados MiniOS correspondientes para DKMS. Requiere `KERNEL_FLAVOUR=none` y que las arquitecturas de los paquetes del sistema de destino y del kernel coincidan.
+En el código actual, `MINIOS_KERNEL_SERIES=auto` se resuelve como `6.12`; usa `6.1` explícitamente cuando necesites esa serie.
+
+`KERNEL_PAYLOAD_MODE=runtime` conserva el árbol de módulos del kernel, la configuración del kernel, `System.map`, los metadatos de implementación y la integración en tiempo de ejecución en `modprobe.d`, `modules-load.d` y `udev/rules.d`. Elimina el estado de los paquetes necesarios solo para la compilación, los encabezados, las fuentes de DKMS, las herramientas de compilación y los paquetes de initramfs. El firmware sigue siendo responsabilidad de `02-firmware`. `full` conserva una carga de diagnóstico más amplia.
 
 ## Sistema de módulos
 
@@ -285,18 +289,20 @@ Los nombres de los ISOs dependen de la configuración de compilación, el modo d
 
 ## Secretos y artefactos de depuración
 
-No coloques un token de Ubuntu Pro en el control de versiones, documentación, historial de shell ni registros compartidos. Prefiere una configuración privada fuera del repositorio:
+No incluyas un token de Ubuntu Pro en el control de versiones, la documentación, el historial de la shell ni los registros compartidos. Es preferible usar un archivo de configuración privado fuera del repositorio:
 
 ```bash
 install -m 600 linux-live/build.conf /private/path/build-trixie.conf
 sudo env BUILD_CONF=/private/path/build-trixie.conf ./minios-live -
 ```
 
-Define `USE_UBUNTU_PRO=true` y `UBUNTU_PRO_TOKEN=...` solo en ese archivo. La compilación elimina el estado Pro de la imagen, pero el archivo en el host sigue conteniendo el secreto.
+Configura `USE_UBUNTU_PRO=true` y `UBUNTU_PRO_TOKEN=...` solo en ese archivo. La compilación elimina el estado de Pro de la imagen, pero el archivo del host sigue conteniendo el secreto.
 
-`DEBUG_SSH_KEYS=true` genera material de clave privada para depuración. Trata la imagen resultante como desechable y nunca la publiques sin verificar que la clave esté ausente.
+Si se solicita Pro para una suite de Ubuntu compatible, el creador comprueba que tanto `esm-infra` como `esm-apps` estén habilitados y que APT haya cargado ambos índices de seguridad. Si falla la activación o la actualización de los índices queda incompleta, la compilación se detiene en lugar de usar silenciosamente solo los archivos públicos.
 
-Cambiar la opción de nuevo a `false` no elimina las claves ya generadas en `build/<target>/image/minios/debug_ssh_key`, los archivos `authorized_keys.*` adyacentes ni `build/<target>/debug_ssh_key`. Usa un destino limpio o elimina esos archivos explícitamente, luego revisa el árbol ISO antes de publicar.
+`DEBUG_SSH_KEYS=true` genera material de clave privada para la depuración. Considera la imagen resultante desechable y no la publiques sin comprobar que la clave no está presente.
+
+Si vuelves a cambiar la opción a `false` no se eliminan las claves que ya se hayan generado en `build/<target>/image/minios/debug_ssh_key`, los archivos `authorized_keys.*` adyacentes ni `build/<target>/debug_ssh_key`. Usa un destino limpio o elimina esos archivos explícitamente y, antes de publicar, inspecciona el árbol de la ISO.
 
 ## Resolución de problemas
 

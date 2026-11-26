@@ -76,7 +76,7 @@ Persistence applies only to live installations. When `minios-session` is availab
 The installer offers these storage backends when the running system and target support them:
 
 - `native` stores live-session changes directly in the session directory on a POSIX-compatible target filesystem. Despite the name, this is a **live persistence backend** and is unrelated to native installation. It is not offered on FAT32 or NTFS.
-- DynFileFS creates expandable file-backed ext4 storage. The selected size is the logical maximum rather than space reserved in advance. Its default size is 4000 MiB.
+- DynFileFS creates expandable file-backed ext4 storage using format 600. The selected size is the logical maximum rather than space reserved in advance. Its default size is 4000 MiB.
 - DynBlk creates an ext4 filesystem on a thin block device provided by the DynBlk kernel driver. Session data is backed by segmented `volumeNNN.db` files that are allocated as needed, so the selected size is a logical maximum rather than preallocated disk usage. The installer defaults new DynBlk sessions to 16384 MiB. For unencrypted DynBlk sessions, the installer can select a compression codec supported by both the running system and the initrd copied to the target.
 - VMDK uses the DynBlk driver to create standard split sparse VMDK storage (`volume.vmdk` and `volume-sNNN.vmdk`). It has the same thin-allocation model and 16384 MiB default as DynBlk, but backend compression is unavailable.
 - Raw creates a fixed-size ext4 image and reserves the selected capacity immediately. Its default size is 4000 MiB.

@@ -211,22 +211,23 @@ Los entornos gráficos comparten la base de Xorg y de renderizado que se muestra
 | `policykit-1-gnome` / `mate-polkit` / `xfce-polkit` | Condicional | Condicional | Condicional | Condicional | Agente gráfico de PolicyKit seleccionado según disponibilidad |
 | `xrdp`, `xorgxrdp` | - | - | Sí | Sí | Inicio de sesión gráfico remoto vía RDP |
 
-## Escritorio Flux y aplicaciones
+## Flux: escritorio y aplicaciones
 
 | Paquete | Propósito o condición |
 |---|---|
-| `fluxbox-flux` | Configuración del gestor de ventanas Fluxbox de MiniOS |
-| `xfce4-panel`, `xfce4-xkb-plugin` | Panel e indicador de distribución de teclado |
+| `fluxbox-flux` | MiniOS configuración del gestor de ventanas Fluxbox |
+| `xfce4-panel`, `xfce4-xkb-plugin` | Indicador del panel y de la distribución del teclado |
 | `xwallpaper`, `gpicview` / `feh` | Fondo de pantalla y visualización de imágenes |
-| `compton` | Compositor X |
+| `picom-flux` | Compositor X para el escritorio Flux |
+| `pcmanfm-flux`, `libfm-modules-flux`, `gvfs` | Gestor de archivos, iconos del escritorio e integración con el sistema de archivos |
 | `alsa-utils`, `volumeicon-alsa` | Controles de audio ALSA |
 | `systrayicon`, `cbatticon` | Indicadores de bandeja y batería |
-| `xlunch`, `gtkask`, `flux-tools` | Lanzador y asistentes del escritorio Flux de MiniOS |
-| `scrot` | Herramienta de capturas de pantalla |
-| `mousepad`, `pcmanfm` | Editor de texto y gestor de archivos |
+| `xlunch`, `gtkask`, `flux-tools` | Lanzador y utilidades de escritorio de Flux MiniOS |
+| `scrot` | Herramienta de captura de pantalla |
+| `mousepad` | Editor de texto |
 | `galculator`, `lxtask`, `xarchiver` | Calculadora, gestor de tareas y gestor de archivos comprimidos |
 | `network-manager-gnome` | Applet de escritorio de NetworkManager |
-| `firefox` / `firefox-esr` | Navegador seleccionado por suite, con paquetes de idioma seleccionados |
+| `firefox` / `firefox-esr` | Navegador seleccionado por la suite, con paquetes de localización seleccionados |
 
 ## Entorno de escritorio Xfce y aplicaciones MiniOS
 

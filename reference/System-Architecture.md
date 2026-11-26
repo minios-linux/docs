@@ -51,7 +51,7 @@ Without persistence, the writable layer is memory-backed and disappears at shutd
 | Mode | Writable storage | Notes |
 |------|------------------|-------|
 | `native` | Files stored directly in the session directory | Requires a writable POSIX filesystem that preserves Linux metadata. |
-| `dynfilefs` | Expandable ext4 filesystem split across backing files | Supports POSIX filesystems and FAT32, NTFS, or exFAT media. |
+| `dynfilefs` | One FUSE runtime exposes an expandable image with ext4 inside, split across format-600 backing files | Supports POSIX filesystems and FAT32, NTFS, or exFAT media. |
 | `dynblk` | Thin ext4 filesystem on a kernel block device backed by `volumeNNN.db` files | Requires the DynBlk userspace, kernel, and initrd capability. |
 | `vmdk` | Split sparse `volume.vmdk` / `volume-sNNN.vmdk` storage exposed as a block device by the DynBlk driver | Requires the `vmdk-session-v1` DynBlk/initrd capability; no backend compression. |
 | `raw` | Fixed-size `changes.img` containing ext4 | Supports POSIX filesystems and FAT32, NTFS, or exFAT media. |

@@ -217,12 +217,13 @@ The graphical environments share the Xorg and rendering base below. Flux then us
 | `fluxbox-flux` | MiniOS Fluxbox window manager configuration |
 | `xfce4-panel`, `xfce4-xkb-plugin` | Panel and keyboard layout indicator |
 | `xwallpaper`, `gpicview` / `feh` | Wallpaper and image display |
-| `compton` | X compositor |
+| `picom-flux` | X compositor for the Flux desktop |
+| `pcmanfm-flux`, `libfm-modules-flux`, `gvfs` | File manager, desktop icons, and filesystem integration |
 | `alsa-utils`, `volumeicon-alsa` | ALSA audio controls |
 | `systrayicon`, `cbatticon` | Tray and battery indicators |
 | `xlunch`, `gtkask`, `flux-tools` | Launcher and MiniOS Flux desktop helpers |
 | `scrot` | Screenshot utility |
-| `mousepad`, `pcmanfm` | Text editor and file manager |
+| `mousepad` | Text editor |
 | `galculator`, `lxtask`, `xarchiver` | Calculator, task manager, and archive manager |
 | `network-manager-gnome` | NetworkManager desktop applet |
 | `firefox` / `firefox-esr` | Browser selected by suite, with selected localization packages |

@@ -211,22 +211,23 @@ Lingkungan grafis menggunakan basis Xorg dan rendering berikut. Flux menggunakan
 | `policykit-1-gnome` / `mate-polkit` / `xfce-polkit` | Bersyarat | Bersyarat | Bersyarat | Bersyarat | Agen PolicyKit grafis yang dipilih berdasarkan ketersediaan |
 | `xrdp`, `xorgxrdp` | - | - | Ya | Ya | Login grafis jarak jauh melalui RDP |
 
-## Desktop Flux dan aplikasi
+## Flux desktop dan aplikasi
 
 | Paket | Tujuan atau kondisi |
 |---|---|
-| `fluxbox-flux` | Konfigurasi pengelola jendela Fluxbox MiniOS |
-| `xfce4-panel`, `xfce4-xkb-plugin` | Panel dan indikator tata letak keyboard |
+| `fluxbox-flux` | MiniOS konfigurasi window manager Fluxbox |
+| `xfce4-panel`, `xfce4-xkb-plugin` | Indikator panel dan tata letak keyboard |
 | `xwallpaper`, `gpicview` / `feh` | Wallpaper dan tampilan gambar |
-| `compton` | Kompositor X |
+| `picom-flux` | Kompositor X untuk desktop Flux |
+| `pcmanfm-flux`, `libfm-modules-flux`, `gvfs` | Manajer file, ikon desktop, dan integrasi sistem file |
 | `alsa-utils`, `volumeicon-alsa` | Kontrol audio ALSA |
-| `systrayicon`, `cbatticon` | Indikator baki sistem dan baterai |
-| `xlunch`, `gtkask`, `flux-tools` | Peluncur dan alat bantu desktop Flux MiniOS |
+| `systrayicon`, `cbatticon` | Indikator tray dan baterai |
+| `xlunch`, `gtkask`, `flux-tools` | Peluncur dan utilitas desktop Flux MiniOS |
 | `scrot` | Utilitas tangkapan layar |
-| `mousepad`, `pcmanfm` | Editor teks dan pengelola file |
-| `galculator`, `lxtask`, `xarchiver` | Kalkulator, pengelola tugas, dan pengelola arsip |
+| `mousepad` | Editor teks |
+| `galculator`, `lxtask`, `xarchiver` | Kalkulator, manajer tugas, dan manajer arsip |
 | `network-manager-gnome` | Applet desktop NetworkManager |
-| `firefox` / `firefox-esr` | Browser yang dipilih berdasarkan suite, beserta paket pelokalan yang dipilih |
+| `firefox` / `firefox-esr` | Browser yang dipilih oleh suite, beserta paket lokalisasi yang dipilih |
 
 ## Desktop Xfce dan aplikasi MiniOS
 

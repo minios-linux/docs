@@ -61,6 +61,20 @@ NetworkManager configura el sistema MiniOS en ejecución. La red utilizada por e
 
 Por lo tanto, el parámetro de arranque `ip=`, las descargas PXE y `from=http://...` no crean perfiles de NetworkManager y no deben usarse para configurar la red normal del escritorio. Consulta [Arranque por red](/reference/boot-process/Network-Boot).
 
+## Direcciones alternativas para los servicios MiniOS
+
+En imágenes con el dispatcher de NetworkManager MiniOS, los cambios de conexión pueden activar comprobaciones del sitio web MiniOS, el repositorio de paquetes, la Store y las descargas de versiones de GitHub. Si no se puede acceder a un recurso mediante el DNS habitual, el dispatcher puede añadir temporalmente una dirección alternativa verificada a su propio bloque del `/etc/hosts`archivo. Mantiene activada la validación de certificados HTTPS, no modifica las entradas manuales y elimina sus sobrescrituras cuando la siguiente comprobación confirma que el acceso normal vuelve a funcionar.
+
+Una evaluación correcta descarga unos 4 MiB de datos de prueba; los reintentos pueden consumir más. Las comprobaciones usan conexiones directas y no modifican los perfiles de NetworkManager. No pueden solucionar una interrupción del servicio ni garantizar la descarga de una ISO completa.
+
+Para desactivar las comprobaciones, establece `enabled` como `false` en `/etc/minios/network-fallback.json`, y luego elimina las sobrescrituras existentes:
+
+```bash
+sudo /etc/NetworkManager/dispatcher.d/90-minios-network --clear
+```
+
+En sistemas con systemd, consulta los diagnósticos del dispatcher con `journalctl -t minios-network-fallback`.
+
 ## Resolución de problemas
 
 Para un problema común de conexión, comienza con el propio NetworkManager:

@@ -213,20 +213,21 @@ Les environnements graphiques partagent la base Xorg et de rendu ci-dessous. Flu
 
 ## Bureau Flux et applications
 
-| Paquet | Rôle ou condition |
+| Paquet | Fonction ou condition |
 |---|---|
-| `fluxbox-flux` | Configuration du gestionnaire de fenêtres Fluxbox MiniOS |
-| `xfce4-panel`, `xfce4-xkb-plugin` | Panneau et indicateur de disposition du clavier |
+| `fluxbox-flux` | MiniOS configuration du gestionnaire de fenêtres Fluxbox |
+| `xfce4-panel`, `xfce4-xkb-plugin` | Indicateur de panneau et de disposition du clavier |
 | `xwallpaper`, `gpicview` / `feh` | Fond d’écran et affichage des images |
-| `compton` | Compositeur X |
-| `alsa-utils`, `volumeicon-alsa` | Commandes audio ALSA |
-| `systrayicon`, `cbatticon` | Indicateurs de zone de notification et de batterie |
-| `xlunch`, `gtkask`, `flux-tools` | Lanceur et outils du bureau Flux MiniOS |
+| `picom-flux` | Compositeur X pour le bureau Flux |
+| `pcmanfm-flux`, `libfm-modules-flux`, `gvfs` | Gestionnaire de fichiers, icônes du bureau et intégration au système de fichiers |
+| `alsa-utils`, `volumeicon-alsa` | Contrôles audio ALSA |
+| `systrayicon`, `cbatticon` | Indicateurs de la zone de notification et de la batterie |
+| `xlunch`, `gtkask`, `flux-tools` | Lanceur et utilitaires du bureau Flux MiniOS |
 | `scrot` | Outil de capture d’écran |
-| `mousepad`, `pcmanfm` | Éditeur de texte et gestionnaire de fichiers |
+| `mousepad` | Éditeur de texte |
 | `galculator`, `lxtask`, `xarchiver` | Calculatrice, gestionnaire de tâches et gestionnaire d’archives |
 | `network-manager-gnome` | Applet de bureau NetworkManager |
-| `firefox` / `firefox-esr` | Navigateur choisi selon la suite, avec les paquets de localisation correspondants |
+| `firefox` / `firefox-esr` | Navigateur choisi par la suite, avec les paquets de localisation correspondants |
 
 ## Bureau Xfce et applications MiniOS
 

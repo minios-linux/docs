@@ -96,11 +96,11 @@ nmcli connection show
 - Existiert eine Adresse, testen Sie das Gateway, dann eine IP-Adresse und anschließend einen DNS-Namen, um Link-, Routing- und DNS-Fehler zu unterscheiden.
 - Der Boot-Parameter `ip=` gehört zum frühen Netzwerk-Boot und konfiguriert keine persistente NetworkManager-Verbindung. Siehe [Netzwerk-Boot](/reference/boot-process/Network-Boot).
 
-## Persistenzprobleme
+## Probleme mit der Persistenz
 
-Starten Sie **Ohne Speichern starten** , bevor Sie einen verdächtigen Persistenzspeicher verändern. Reparieren oder löschen Sie keine einzige Sitzungskopie, solange sie aktiv ist.
+Starte **Ohne Speichern starten** neu, bevor du einen verdächtigen Persistenzspeicher änderst. Repariere oder lösche niemals die einzige Kopie einer Sitzung, während sie aktiv ist.
 
-Prüfen Sie, was MiniOS aktuell erkennt:
+Prüfe, was MiniOS aktuell erkennt:
 
 ```bash
 sudo minios-session list
@@ -110,17 +110,19 @@ sudo minios-session status
 sudo minios-session info
 ```
 
-Überprüfen Sie den gewählten Boot-Modus, verfügbaren Schreibplatz, Dateisystem- und Sitzungs-Kompatibilität. Die detaillierten Auswahlregeln finden Sie unter [Sitzungen und Persistenz](/using-minios/Sessions-and-Persistence) und [Persistenz-Interna](/reference/boot-process/Persistence-Internals).
+Prüfe den ausgewählten Startmodus, den verfügbaren beschreibbaren Speicherplatz, die Dateisystemkompatibilität und die Sitzungskompatibilität. Die detaillierten Auswahlregeln findest du unter [Sitzungen und Persistenz](/using-minios/Sessions-and-Persistence) und [Interna der Persistenz](/reference/boot-process/Persistence-Internals).
 
-Ist eine wichtige, nicht laufende `native`, `dynfilefs`, `dynblk`, `vmdk`- oder `raw`-Sitzung noch lesbar, auch in verschlüsselter Form, die entsperrt werden kann, exportieren Sie sie **bevor** Sie mit dem Speicher experimentieren:
+Wenn eine wichtige, nicht laufende `native`, `dynfilefs`, `dynblk`, `vmdk` oder `raw` Sitzung noch lesbar ist – auch in verschlüsselter Form, sofern sie entsperrt werden kann –, exportiere sie, **bevor** du mit dem Speicher experimentierst:
 
 ```bash
 sudo minios-session export <id> /path/to/session.tar.zst
 ```
 
-Kann der Sitzungsmanager die Sitzung weder lesen noch exportieren, beenden Sie alle Schreibvorgänge auf die Quelle und sichern Sie eine Offline-Kopie des betroffenen Speichers, bevor Sie fortfahren. Bei einer getrennten DynBlk-Sitzung bieten `dynblk inspect /path/to/volume000.db --metadata-only` und `dynblk check /path/to/volume000.db` schreibgeschützte Formatdiagnosen; führen Sie diese nicht auf einem noch eingebundenen Volume aus. MiniOS definiert kein universelles manuelles Verfahren zum Wiederaufbau von DynFileFS-Segmenten, zur Rekonstruktion von DynBlk-Backings, zur Reparatur eines inneren Dateisystems oder zur Wiederherstellung von Sitzungsmetadaten. Eine solche Wiederherstellung ist dateisystem-/container-spezifisch und sollte nur an einer Kopie erfolgen, wenn der Wert der Daten dies rechtfertigt.
+Kann Session Manager die Sitzung weder lesen noch exportieren, schreibe nicht mehr auf den Datenträger und sichere den betroffenen Speicher offline, bevor du weitere Schritte unternimmst. Für eine getrennte DynBlk-Sitzung bieten `dynblk inspect /path/to/volume000.db --metadata-only` und `dynblk check /path/to/volume000.db` schreibgeschützte Formatdiagnosen; führe sie nicht für ein noch eingebundenes Volume aus. MiniOS beschreibt kein universelles manuelles Verfahren zum Neuerstellen von DynFileFS-Segmenten, zum Rekonstruieren von DynBlk-Sicherungsteilen, zum Reparieren eines inneren Dateisystems oder zum Wiederherstellen von Sitzungsmetadaten. Eine solche Wiederherstellung hängt vom Dateisystem und Container ab und sollte nur anhand einer Kopie versucht werden, wenn der Wert der Daten den Aufwand rechtfertigt.
 
-Siehe [Backup von MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS) für unterstützte Backup- und Sitzungsimport-Workflows.
+Wurde ein Format-400- oder Format-500-DynFileFS-Volume mit einer Aufteilung in ungerade MiB erstellt, verweigert die aktuelle Laufzeit das Einbinden und lässt die Quelle unverändert. Um die Dateien wiederherzustellen, verwende eine kompatible ältere Umgebung mit einer getrennten Kopie des vollständigen Containers und importiere die exportierten Dateien in einen neuen Speicher. Erkennt ein älteres Startmedium ein konvertiertes Volume nicht mehr, verwende ein MiniOS-Start-initrd, das das aktuelle Format 600 unterstützt.
+
+Siehe [MiniOS sichern](/maintenance-and-recovery/Backing-Up-MiniOS) für unterstützte Sicherungs- und Sitzungsimport-Workflows.
 
 ### Ventoy Persistence-Plugin
 
@@ -189,14 +191,13 @@ zeigt nur native Blockunterstützung an und garantiert keine VMDK-Session-Boot-U
 Ändern Sie den Modus einer bestehenden Sitzung nicht manuell: Verwenden Sie stattdessen eine explizite Kopie oder
 Konvertierung in das andere Format.
 
-### Freigeben von Speicherplatz in DynFileFS, DynBlk oder VMDK-Sitzungen
+### Speicherplatz in DynFileFS, DynBlk- oder VMDK-Sitzungen freigeben
 
-Verwenden Sie das Kontextmenü des Sitzungsmanagers **Speicherplatz freigeben...**, oder
-`minios-session reclaim ID --json`. Bei Klartext-Sitzungen wird das
-eigentliche innere ext4-Dateisystem getrimmt und anschließend das zugehörige Backend aufgefordert, den Speicherplatz freizugeben, ohne
-aktive Daten zu verschieben. DynFileFS benötigt für diesen Vorgang Version 4.6.0 oder neuer.
-Bei Dateisystemen wie exFAT können innere Lücken weiterhin der Host-Datei zugeordnet bleiben,
-aber vom Container wiederverwendet werden; `--compact` ist eine separate manuelle Option, die
-aktive Daten verschieben und zusätzliche Schreibvorgänge auf das Flash-Laufwerk auslösen kann. Keine Option aktiviert
-automatisch Komprimierung oder LUKS-Discard. Eine verschlüsselte Sitzung kann nur
-Speicherplatz zurückgewinnen, der dem zugrunde liegenden Backend bereits durch diesen Befehl bekannt ist.
+Verwende im Kontextmenü des Session Managers die Option **Speicherplatz freigeben...**, oder
+`minios-session reclaim ID --json`. Bei unverschlüsselten Sitzungen wird dabei das
+tatsächliche innere ext4-Dateisystem bereinigt; anschließend fordert die Operation das zuständige Backend auf, Speicherplatz zurückzugewinnen, ohne
+aktive Daten zu verschieben. DynFileFS-Snapshots können gelöschte Blöcke weiterhin belegen; die Operation löscht keine Snapshots.
+Bei Dateisystemen wie exFAT können Lücken innerhalb der Datei auf dem Host weiterhin Speicherplatz belegen,
+für den Container aber wiederverwendbar sein; `--compact`ist eine separate manuelle Option, die aktive Daten
+verschieben kann und mehr Schreibvorgänge auf dem Flash-Gerät verursacht. Die Datenverdichtung oder LUKS-Discard wird nicht automatisch aktiviert. Eine verschlüsselte Sitzung kann nur
+Speicherplatz freigeben, der dem zugrunde liegenden Backend durch diesen Befehl bereits bekannt ist.

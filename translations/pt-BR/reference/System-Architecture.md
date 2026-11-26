@@ -46,22 +46,22 @@ Depois que a raiz é montada e a configuração inicial é concluída, o initrd 
 
 ## Camada gravável e sessões
 
-Sem persistência, a camada gravável é baseada em memória e desaparece ao desligar. A persistência pode, em vez disso, ativar uma sessão numerada com um backend de armazenamento compatível. Com um backend do Persistence Plugin Ventoy selecionado, MiniOS usa um único ambiente persistente ext4 direto, em vez de sessões numeradas. A seleção, a compatibilidade, as falhas de ativação, a autoridade do boot atual e a durabilidade são definidas em [Persistência no initrd](/reference/boot-process/Persistence-Internals).
+Sem persistência, a camada gravável é armazenada na memória e desaparece ao desligar. A persistência pode, em vez disso, ativar uma sessão numerada com um backend de armazenamento compatível. Com um backend do Persistence Plugin selecionado, Ventoy MiniOS usa um único ambiente persistente ext4 direto, em vez de sessões numeradas. A seleção, a compatibilidade, as falhas de ativação, a autoridade no boot atual e a durabilidade são definidas em [Persistência no initrd](/reference/boot-process/Persistence-Internals).
 
 | Modo | Armazenamento gravável | Observações |
 |------|------------------|-------|
 | `native` | Arquivos armazenados diretamente no diretório da sessão | Requer um sistema de arquivos POSIX gravável que preserve os metadados do Linux. |
-| `dynfilefs` | Sistema de arquivos ext4 expansível, dividido entre arquivos de suporte | Compatível com sistemas de arquivos POSIX e mídias FAT32, NTFS ou exFAT. |
-| `dynblk` | Sistema de arquivos ext4 thin em um dispositivo de bloco do kernel, com suporte de `volumeNNN.db` arquivos | Requer os recursos de espaço de usuário, kernel e initrd do DynBlk. |
-| `vmdk` | Armazenamento esparso `volume.vmdk` dividido em partes / `volume-sNNN.vmdk` exposto como dispositivo de bloco pelo driver DynBlk | Requer o recurso de `vmdk-session-v1` DynBlk/initrd; sem compactação no backend. |
-| `raw` | Arquivo de tamanho fixo `changes.img` contendo ext4 | Compatível com sistemas de arquivos POSIX e mídias FAT32, NTFS ou exFAT. |
-| `squashfs` | Snapshot `changes.sb`compactado | Descompactado em RAM para uso; ao salvar, é recriado e substituído atomicamente. O sistema de arquivos de persistência deve preservar os metadados do Linux durante o salvamento. |
+| `dynfilefs` | Um runtime FUSE expõe uma imagem expansível com ext4 no interior, dividida em arquivos de apoio no formato 600 | Compatível com sistemas de arquivos POSIX e mídias FAT32, NTFS ou exFAT. |
+| `dynblk` | Sistema de arquivos ext4 dinâmico em um dispositivo de bloco do kernel, com suporte de `volumeNNN.db` arquivos | Requer o userspace, o kernel e o recurso de initrd do DynBlk. |
+| `vmdk` | Dividido e esparso `volume.vmdk` / `volume-sNNN.vmdk` armazenamento exposto como dispositivo de bloco pelo driver DynBlk | Requer o recurso `vmdk-session-v1` DynBlk/initrd; sem compactação no backend. |
+| `raw` | Tamanho fixo `changes.img` contendo ext4 | Compatível com sistemas de arquivos POSIX e mídias FAT32, NTFS ou exFAT. |
+| `squashfs` | Compactado `changes.sb` snapshot | Descompactado em RAM para uso; ao salvar, o snapshot é recriado e substituído atomicamente. O sistema de arquivos de persistência precisa preservar os metadados do Linux durante o salvamento. |
 
-Raw, DynFileFS, DynBlk e VMDK podem incluir opcionalmente uma camada LUKS2. Os metadados registram separadamente o backend de armazenamento e a criptografia. Ao desligar, os recursos ext4, o mapeador, qualquer loop próprio e o backend são liberados na ordem de dependência.
+Raw, DynFileFS, DynBlk e VMDK podem incluir uma camada LUKS2 opcional. Os metadados registram separadamente o backend de armazenamento e a criptografia. Ao desligar, o ext4, o mapper, qualquer loop de propriedade do sistema e o backend são liberados na ordem das dependências.
 
 A sessão ativa selecionada para uma retomada futura e a camada gravável efetivamente autorizada para o boot atual são estados relacionados, mas distintos. Alterar uma seleção futura não substitui a camada gravável em uso.
 
-Consulte [Gerenciamento de sessões](/using-minios/Sessions-and-Persistence) para ver os comandos de criação, seleção, dimensionamento, criptografia, conversão, exportação e recuperação.
+Consulte [Gerenciamento de sessões](/using-minios/Sessions-and-Persistence) para ver comandos de criação, seleção, dimensionamento, criptografia, conversão, exportação e recuperação.
 
 ## Precedência da configuração
 

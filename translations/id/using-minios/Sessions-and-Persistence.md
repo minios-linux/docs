@@ -21,54 +21,56 @@ Alur kerja sesi bernomor ini tidak tersedia jika yang dipilih adalah image **Ven
 
 ## Mode sesi
 
-| Mode | Penyimpanan | Batasan utama | Lapisan LUKS2 MiniOS |
+| Mode | Penyimpanan | Batasan utama | MiniOS lapisan LUKS2 |
 |------|---------|------------------|--------------------|
-| `native` | Perubahan disimpan langsung di direktori sesi | Memerlukan filesystem writable yang mempertahankan metadata dan operasi Linux yang diperiksa oleh MiniOS. Kapasitas mengikuti ruang kosong pada penyimpanan dasar; `perchsize` tidak berlaku. | Tidak |
-| `dynfilefs` | ext4 yang dapat diperluas `virtual.dat` didukung file segmen format-400 | Berfungsi pada filesystem POSIX, FAT32, NTFS, dan exFAT yang writable. Payload menggunakan thin provisioning, tetapi indeks pemetaan bertambah sesuai kapasitas logis yang ditetapkan. | Ya |
-| `dynblk` | Filesystem ext4 thin pada perangkat blok kernel yang didukung oleh file `volumeNNN.db` | Memerlukan CLI DynBlk, modul kernel, dan kemampuan initrd. Secara default, ukuran yang dibuat saat boot hingga 16 GiB; batas maksimum dilaporkan oleh `dynblk limits`. Pemetaan yang tersimpan di disk menggunakan cache metadata dengan batas ukuran. | Ya |
-| `vmdk` | Filesystem ext4 thin pada VMDK sparse terpisah standar, yang diekspos oleh driver DynBlk | Menggunakan `volume.vmdk` dan `volume-sNNN.vmdk`. Tanpa kompresi. Memerlukan `vmdk-session-v1` pada penanda kemampuan initrd yang sedang berjalan. Default manual sama, yaitu 16 GiB seperti DynBlk; periksa batasnya dengan `dynblk limits --format vmdk`. | Ya |
-| `raw` | Satu file `changes.img` yang berisi ext4 | Kapasitas logis tetap dan hanya dapat diperbesar secara eksplisit. Berfungsi pada filesystem POSIX, FAT32, NTFS, dan exFAT yang writable; FAT32 dibatasi hingga 4000 MiB. | Ya |
-| `squashfs` | Snapshot terkompresi di `changes.sb`; upper writable saat runtime dibangun ulang di RAM | `perchsize` tidak berlaku. Snapshot yang ada dapat dipulihkan dari media writable yang didukung; penyimpanan snapshot secara tepat memerlukan penyimpanan persistensi yang kompatibel dengan POSIX. | Tidak |
+| `native` | Perubahan disimpan langsung di direktori sesi | Memerlukan sistem file yang dapat ditulis dan mendukung metadata serta operasi Linux yang diperiksa oleh MiniOS. Kapasitas mengikuti ruang kosong pada media penyimpanan; `perchsize` tidak berlaku. | Tidak |
+| `dynfilefs` | Dapat diperluas `virtual.dat` dengan file format-600, berisi ext4 | Berfungsi pada sistem file POSIX, FAT32, NTFS, dan exFAT yang dapat ditulis. Payload dialokasikan sesuai kebutuhan. | Ya |
+| `dynblk` | Sistem file ext4 tipis pada perangkat blok kernel yang didukung oleh `volumeNNN.db` file | Memerlukan CLI DynBlk, modul kernel, dan dukungan initrd. Ukuran yang dibuat saat boot secara default hingga 16 GiB; batas maksimumnya dilaporkan oleh `dynblk limits`. Pemetaan yang tersimpan di disk menggunakan cache metadata terbatas. | Ya |
+| `vmdk` | Sistem file ext4 tipis pada VMDK sparse terpisah standar, diekspos oleh driver DynBlk | Menggunakan `volume.vmdk` dan `volume-sNNN.vmdk`. Tanpa kompresi. Memerlukan `vmdk-session-v1` pada penanda kapabilitas initrd yang sedang berjalan. Default manual sama, yaitu 16 GiB, seperti DynBlk; tanyakan `dynblk limits --format vmdk` untuk mengetahui batasnya. | Ya |
+| `raw` | Satu file `changes.img` yang berisi ext4 | Kapasitas logis tetap dan hanya dapat diperbesar secara eksplisit. Berfungsi pada sistem file POSIX, FAT32, NTFS, dan exFAT yang dapat ditulis; FAT32 dibatasi hingga 4000 MiB. | Ya |
+| `squashfs` | Snapshot terkompresi di `changes.sb`; area atas yang dapat ditulis saat runtime dibuat ulang di RAM | `perchsize` tidak berlaku. Snapshot yang ada dapat dipulihkan dari media dapat tulis yang didukung; penyimpanan yang sesuai dan mendukung POSIX diperlukan untuk menyimpan perubahan secara persis. | Tidak |
 
-Raw, DynFileFS, DynBlk, dan VMDK dapat menggunakan lapisan enkripsi LUKS2 secara opsional. Backend penyimpanan tetap menjadi mode sesi, sedangkan metadata sesi mencatat enkripsi secara terpisah. DynFileFS dan raw yang dibuat dengan `minios-session` secara default berukuran 4000 MiB; DynBlk dan VMDK secara default berukuran 16 GiB. Nilai ukuran dialokasikan dalam MiB; akhiran `GB` dan `TB` dikonversi menjadi 1000 dan 1.000.000 MiB. Raw dibatasi hingga 4000 MiB pada FAT32, baik dienkripsi maupun tidak. Data payload DynFileFS bertambah sesuai kebutuhan, tetapi indeks format-400-nya diukur berdasarkan kapasitas logis penuh dan menggunakan sekitar 2 MiB RAM serta sekitar 2 MiB penyimpanan dasar per GiB. DynBlk menyimpan tabel pemetaan di disk dan cache metadata berbatas ukuran di RAM, dengan default 1 MiB, bukan persentase dari RAM. Vektor extent/file dan direktori bertambah sesuai jumlah bagian yang ditetapkan, sementara pengisian payload tidak memerlukan peta penuh di memori. Periksa batas kapasitas yang terpasang dengan `dynblk limits --format dynblk`. Penulisan aktual tetap dibatasi oleh ruang kosong filesystem di bawahnya dan alokasi resource backend. Operasi pengubahan ukuran container hanya dapat memperbesar sesi; ukuran tidak dapat diperkecil.
+Raw, DynFileFS, DynBlk, dan VMDK dapat menggunakan lapisan enkripsi LUKS2 secara opsional. Backend penyimpanan tetap menjadi mode sesi, sementara metadata sesi mencatat enkripsi secara terpisah. DynFileFS dan raw yang dibuat dengan `minios-session` secara default berukuran 4000 MiB; DynBlk dan VMDK secara default berukuran 16 GiB. Nilai ukuran dialokasikan dalam MiB; `GB` dan `TB` sebagai akhiran masing-masing dikonversi menjadi 1000 dan 1.000.000 MiB. Raw dibatasi hingga 4000 MiB pada FAT32, baik dienkripsi maupun tidak. DynFileFS menyimpan halaman indeks di disk dan menyimpannya dalam cache sesuai kebutuhan. DynBlk menyimpan tabel pemetaan di disk dan menggunakan cache metadata terbatas di RAM, dengan nilai default 1 MiB, bukan persentase dari RAM. Vektor extent/file dan direktori bertambah sesuai jumlah bagian yang ditetapkan, sementara pengisian payload tidak memerlukan peta lengkap di memori. Tanyakan batas kapasitas yang terpasang dengan `dynblk limits --format dynblk`. Penulisan aktual tetap dibatasi oleh ruang kosong sistem file dasar dan penerimaan sumber daya backend. Operasi ubah ukuran container hanya dapat memperbesar sesi; ukuran tidak dapat diperkecil.
+
+Saat runtime DynFileFS yang baru pertama kali memasang container format 400 atau 500 yang sudah ada, container tersebut otomatis dikonversi langsung ke format 600 jika pemisahan lama berukuran genap dalam MiB. Pemisahan dengan ukuran ganjil dalam MiB akan ditolak tanpa mengubah sumber. Proses ini memperbarui format container, bukan mode `dynfilefs`sesi. Simpan cadangan terpisah dan perbarui initrd boot sebelum mengonversi; helper versi lama tidak dapat membuka container yang telah dikonversi.
 
 Mode native adalah pilihan paling sederhana dan cepat pada filesystem yang kompatibel.
-Gunakan DynFileFS jika filesystem persistensi tidak dapat merepresentasikan metadata Linux.
-Gunakan DynBlk jika Anda memerlukan perangkat blok kernel sungguhan dengan file penyimpanan dasar thin; driver dapat menghubungkan beberapa volume DynBlk yang independen sekaligus, dan Manajer Sesi menggunakan jalur perangkat yang dikembalikan driver, bukan menganggap bahwa `/dev/dynblk0` tersedia. DynBlk dan VMDK tidak tersedia saat UEFI Secure Boot aktif karena MiniOS tidak menandatangani modul kernel DynBlk eksternal. Karena itu, Installer dan Manajer Sesi menyembunyikan mode ini dan menolak permintaan pembuatan eksplisit sebelum mencoba memuat modul.
+Gunakan DynFileFS jika filesystem penyimpanan persisten tidak dapat merepresentasikan metadata Linux.
+Gunakan DynBlk jika Anda menginginkan perangkat blok kernel sungguhan dengan file backing thin; driver dapat memasang beberapa volume DynBlk independen sekaligus, dan Session Manager menggunakan path perangkat yang dikembalikan oleh driver, bukan mengasumsikan `/dev/dynblk0` tersedia. DynBlk dan VMDK tidak tersedia saat UEFI Secure Boot diaktifkan karena MiniOS tidak menandatangani modul kernel DynBlk eksternal. Karena itu, Installer dan Session Manager menyembunyikan mode ini dan menolak permintaan pembuatan eksplisit sebelum mencoba memuat modul.
 Gunakan raw jika alokasi tetap diperlukan, tambahkan LUKS2 jika sesi harus dienkripsi, dan gunakan SquashFS untuk snapshot terkompresi yang persis.
 
-Jalankan perintah berikut untuk memeriksa filesystem persistensi yang sebenarnya dan mode yang tersedia:
+Jalankan perintah berikut untuk memeriksa filesystem penyimpanan persisten yang sebenarnya dan mode yang tersedia di dalamnya:
 
 ```bash
 sudo minios-session info
 sudo minios-session status
 ```
 
-Sesi tidak dapat dibuat pada media hanya-baca. Initrd dapat membaca dan mengaktifkan snapshot SquashFS yang sudah ada dan tersimpan di FAT, exFAT, atau NTFS writable karena snapshot diekstrak ke upper ext4 sementara. Membuat atau menyimpan snapshot secara persis berbeda: penyimpanan persistensi harus mendukung metadata POSIX yang diperlukan serta publikasi privat dan tahan lama. Pohon kerja untuk pengambilan persis menggunakan RAM tepercaya jika tersedia, dengan fallback ke ruang kerja disk jika RAM tidak memadai.
+Sesi tidak dapat dibuat di media hanya-baca. initrd dapat membaca dan mengaktifkan snapshot SquashFS yang sudah ada dan tersimpan di FAT, exFAT, atau NTFS yang dapat ditulisi karena snapshot tersebut diekstrak ke upper ext4 sementara. Membuat atau menyimpan snapshot secara persis berbeda: penyimpanan persisten harus mendukung metadata POSIX yang diperlukan serta publikasi privat dan tahan lama. Pohon kerja untuk pengambilan persis menggunakan RAM tepercaya jika tersedia, dengan fallback ruang kerja disk jika RAM tidak memadai.
 
 ## Pemilihan boot
 
-Parameter persistensi apa pun yang dikenali akan mengaktifkan penanganan persistensi. Menu boot MiniOS biasanya menyediakan entri untuk melanjutkan, memulai baru, memilih, dan menggunakan mode nonpersisten. Deskripsi kanonis tentang semantik pemilih, kompatibilitas, fallback, dan aktivasi tersedia di [Persistensi Initrd](/reference/boot-process/Persistence-Internals).
+Parameter persistensi yang dikenali akan mengaktifkan penanganan persistensi. Menu boot MiniOS biasanya menyediakan entri untuk melanjutkan sesi, memulai sesi baru, memilih sesi, dan menjalankan sistem tanpa persistensi. Penjelasan kanonis tentang semantik pemilih, kompatibilitas, fallback, dan aktivasi tersedia di [Persistensi Initrd](/reference/boot-process/Persistence-Internals).
 
 | Parameter | Arti |
 |-----------|---------|
-| `perch` | Gunakan jalur lama untuk mencoba melanjutkan sesi sebaik mungkin. Sistem akan mencoba menggunakan default metadata, tetapi tidak membuat pengganti jika tidak ada yang dapat digunakan. |
-| `perchdir=resume` | Lanjutkan sesi dari default metadata dan, jika tidak ada atau tidak kompatibel, izinkan initrd membuat pengganti baru yang kompatibel. Ini adalah perilaku saat ini untuk melanjutkan sesi dari menu boot. |
-| `perchdir=setup` | Buka pemilih backend persistensi interaktif, lalu alokasikan sesi baru dengan nomor. Ini adalah perilaku saat ini untuk **Mulai sesi baru** . |
-| `perchdir=new` | Alokasikan sesi baru dengan nomor langsung dari pengaturan backend, enkripsi, kompresi, dan ukuran yang diminta atau default tanpa membuka pemilih backend. |
-| `perchdir=ask` | Pilih sesi yang sudah ada; jika penyimpanan kosong, mulai alur penyiapan yang sama seperti `perchdir=setup`. |
+| `perch` | Gunakan jalur melanjutkan sesi lama yang bersifat upaya terbaik. Jalur ini mencoba default metadata, tetapi tidak membuat pengganti jika tidak ada yang dapat digunakan. |
+| `perchdir=resume` | Lanjutkan sesi default metadata dan, jika sesi tersebut tidak ada atau tidak kompatibel, izinkan initrd membuat pengganti baru yang kompatibel. Ini adalah perilaku melanjutkan sesi saat ini pada menu boot. |
+| `perchdir=setup` | Buka pemilih backend persistensi interaktif, lalu alokasikan sesi bernomor baru. Ini adalah perilaku **Mulai sesi baru** saat ini. |
+| `perchdir=new` | Alokasikan sesi bernomor baru langsung dari pengaturan backend, enkripsi, kompresi, dan ukuran yang diminta atau default, tanpa membuka pemilih backend. |
+| `perchdir=ask` | Pilih sesi yang ada; jika penyimpanan kosong, otomatis masuk ke alur penyiapan yang sama dengan `perchdir=setup`. |
 | `perchdir=<id>` | Pilih sesi bernomor tersebut secara langsung. |
-| `perchdir=<device/path>` | Gunakan lokasi persistensi di perangkat, termasuk `/dev/...` dan `label:...` yang ditangani oleh initrd. |
+| `perchdir=<device/path>` | Gunakan lokasi persistensi pada perangkat, termasuk `/dev/...` dan `label:...` dalam format yang ditangani initrd. |
 | `perchmode=<mode>` | Atur `native`, `dynfilefs`, `dynblk`, `vmdk`, `raw`, atau `squashfs`. |
-| `perchencrypt=luks` | Enkripsi sesi Raw, DynFileFS, DynBlk, atau VMDK yang baru dibuat dengan LUKS2. Untuk sesi yang sudah ada, enkripsi ditentukan hanya dari metadata. |
-| `perchcomp=<codec>` | Pilih kompresi backend DynBlk untuk sesi DynBlk yang baru. Kompresi dipaksa menjadi `none` jika DynBlk dilindungi LUKS2. |
-| `perchsize=<size>` | Atur ukuran kontainer baru atau yang lebih besar; nilai tanpa satuan dialokasikan dalam MiB dan akhiran `MB`, `GB`, serta `TB` diterima. |
+| `perchencrypt=luks` | Enkripsi sesi Raw, DynFileFS, DynBlk, atau VMDK yang baru dibuat dengan LUKS2. Enkripsi sesi yang sudah ada ditentukan hanya dari metadata. |
+| `perchcomp=<codec>` | Pilih kompresi backend DynBlk untuk sesi DynBlk baru. Kompresi akan dipaksakan menjadi `none` jika DynBlk dibungkus dengan LUKS2. |
+| `perchsize=<size>` | Atur ukuran kontainer baru atau yang lebih besar; nilai biasa dialokasikan dalam MiB dan `MB`, `GB`, dan `TB` dapat digunakan sebagai sufiks. |
 
-Jika mode tidak ditentukan untuk sesi baru, boot akan menggunakan mode native. Pada FAT32/NTFS/exFAT, atau jika pemeriksaan sistem berkas native gagal, saat startup sistem akan memilih DynBlk jika helper-nya tersedia dan Secure Boot mengizinkannya; jika tidak, sistem akan beralih ke DynFileFS. Kegagalan aktivasi tidak akan mengonversi sesi yang sudah ada secara diam-diam. Kontainer raw baru memiliki ukuran default 4000 MiB. Sesi boot DynFileFS, DynBlk, dan VMDK yang baru dibuat tanpa`perchsize` menggunakan hingga 16 GiB; jika ruang penyimpanan yang tersisa setelah cadangan keamanan kurang dari itu, ukuran otomatis akan dikurangi. DynFileFS juga memperhitungkan overhead indeks dan batas RAM. Pertumbuhan DynBlk yang ditentukan secara eksplisit mengikuti batas backend yang terpasang, yang diperiksa menggunakan `dynblk limits --format dynblk`. Dengan Secure Boot, initrd tidak menyediakan DynBlk/VMDK dan menganggap sesi DynBlk/VMDK yang dipilih secara eksplisit atau dilanjutkan tidak tersedia, alih-alih mencoba memuat modul yang tidak ditandatangani.
-Sesi SquashFS dapat diambil dari sistem yang sedang berjalan menggunakan Manajer Sesi MiniOS atau `minios-session create squashfs`. Penyiapan initrd hanya membuat metadata sesi generasi nol dan menyimpan lapisan atas yang dapat ditulis di RAM. Sistem yang sedang berjalan membuat snapshot `changes.sb` pertama sesuai kebutuhan atau saat dimatikan.
+Jika mode tidak ditentukan untuk sesi baru, boot akan menggunakan mode native. Pada FAT32/NTFS/exFAT, atau jika pemeriksaan sistem file native gagal, saat startup sistem akan memilih DynBlk jika helper-nya tersedia dan Secure Boot mengizinkannya; jika tidak, sistem akan beralih ke DynFileFS. Fallback ini tidak mengubah mode penyimpanan sesi yang sudah ada. Kontainer raw baru menggunakan ukuran default 4000 MiB. Sesi boot DynFileFS, DynBlk, dan VMDK baru tanpa `perchsize` menggunakan hingga 16 GiB; jika ruang penyimpanan yang tersisa setelah cadangan keamanan kurang dari itu, ukuran otomatis akan dikurangi. Pemeriksaan kapasitas backend tetap berlaku. Penambahan ukuran DynBlk yang ditentukan secara eksplisit mengikuti batas backend yang terpasang, yang diperiksa menggunakan `dynblk limits --format dynblk`. Dengan Secure Boot, initrd tidak menawarkan DynBlk/VMDK dan menganggap sesi DynBlk/VMDK yang dipilih secara eksplisit atau dilanjutkan tidak tersedia, alih-alih mencoba memuat modul yang tidak ditandatangani.
+Sesi SquashFS dapat diambil dari sistem yang sedang berjalan menggunakan Manajer Sesi MiniOS atau `minios-session create squashfs`. Penyiapan initrd hanya membuat metadata sesi generasi nol dan menyimpan lapisan atas yang dapat ditulis di RAM. Sistem yang sedang berjalan membuat snapshot pertama `changes.sb` sesuai kebutuhan atau saat dimatikan.
 
-Saat melanjutkan sesi, MiniOS memeriksa versi, edisi, sistem berkas union, dan mode yang tercatat. `perchdir=resume`harfiah dapat membuat sesi baru alih-alih menggunakan default yang tidak tersedia atau tidak kompatibel. `perch`, pemilihan nomor secara langsung, dan permintaan untuk melanjutkan sesi lainnya dari cara lama tidak otomatis membuat pengganti tersebut.
-Pemilihan interaktif menampilkan peringatan sebelum mengizinkan sesi yang tidak kompatibel. Jika pemilihan atau aktivasi tetap gagal, proses boot biasanya berlanjut dengan lapisan atas RAM dan peringatan persistensi.
+Saat melanjutkan sesi, MiniOS memeriksa versi, edisi, sistem file union, dan mode yang tercatat. `perchdir=resume` dapat membuat sesi baru sebagai pengganti default yang tidak ada atau tidak kompatibel. Permintaan `perch` tanpa argumen, pemilihan nomor secara langsung, dan permintaan melanjutkan sesi lama lainnya tidak otomatis membuat sesi pengganti tersebut.
+Pemilihan interaktif menampilkan peringatan sebelum mengizinkan sesi yang tidak kompatibel. Jika pemilihan atau aktivasi tetap gagal, boot biasanya berlanjut dengan lapisan atas RAM dan peringatan persistensi.
 
 Penyimpanan sesi memiliki format berikut:
 
@@ -80,8 +82,8 @@ minios/changes/
 `-- N/
 ```
 
-`session.conf` mencatat ID default dan ID yang sedang berjalan, serta mode, versi, edisi, sistem file gabungan, ukuran, status, dan pengaturan khusus mode untuk setiap sesi.
-Ini adalah metadata persisten yang disimpan oleh implementasi boot, bukan bukti bahwa status runtime saat ini masih berlaku. Jangan mengeditnya atau memindahkan data sesi bernomor saat sesi sedang terpasang; gunakan Manajer Sesi MiniOS atau `minios-session`.
+`session.conf` mencatat ID default dan ID yang sedang berjalan, serta mode, versi, edisi, sistem file union, ukuran, status, dan pengaturan khusus mode untuk setiap sesi.
+Metadata ini bersifat persisten dan ditulis oleh implementasi boot, tetapi dengan sendirinya tidak membuktikan status runtime saat ini. Jangan mengeditnya atau memindahkan data sesi bernomor saat sesi sedang terpasang; gunakan Manajer Sesi MiniOS atau `minios-session`.
 
 ## Sesi aktif dan sesi yang berjalan
 
@@ -279,26 +281,26 @@ sudo minios-session info
 
 Saat boot, sistem file kontainer diperiksa sebelum diaktifkan dengan akses tulis. Jika pemeriksaan sistem file menemukan masalah serius, kontainer akan dipertahankan untuk pemulihan, bukan dipasang dengan akses tulis. SquashFS mendeteksi keadaan sebelumnya yang tidak bersih dan memulihkan snapshot terakhir yang berhasil disimpan. Hapus sesi hanya melalui Manajer Sesi MiniOS atau `minios-session delete`; jangan hapus direktori sesi secara manual.
 
-## Mengembalikan DynFileFS, DynBlk, dan penyimpanan VMDK yang tidak terpakai
+## Mengembalikan DynFileFS, DynBlk, dan penyimpanan VMDK
 
-Ketika Anda menghapus file di dalam sesi persisten, segmen `changes.dat` milik host **tidak** selalu mengecil. Filesystem ext4 di dalamnya mengetahui blok mana yang sudah kosong, namun backend penyimpanannya mungkin masih menganggap blok tersebut terpakai. **Bebaskan Ruang...** bertujuan untuk memulihkan ruang di flashdisk USB, bukan untuk menambah kapasitas logis sesi.
+Saat Anda menghapus file dalam sesi persisten, segmen `changes.dat`host **tidak** selalu menyusut. Sistem file ext4 di dalam mengetahui blok mana yang kosong, tetapi backend penyimpanannya mungkin masih menganggap blok tersebut terpakai. Tindakan **Free Space...** dimaksudkan untuk mengosongkan ruang di drive USB, bukan menambah kapasitas logis sesi.
 
-Untuk DynFileFS, tiap operasi memiliki tujuan yang berbeda:
+Untuk DynFileFS, setiap operasi memiliki tujuan yang berbeda:
 
-| Mekanisme | Alasan penggunaan | Apa yang sebenarnya dilakukan |
+| Mekanisme | Alasan penggunaannya | Fungsi sebenarnya |
 | --- | --- | --- |
-| **TRIM / discard** | Anda menghapus file dari sesi ext4 tanpa enkripsi dan ingin backend mengetahui blok mana yang sudah tidak diperlukan. | `fstrim` memberi tahu DynFileFS tentang blok logis yang tidak terpakai. Seluruh blok 4 KiB dapat dilepas; rentang parsial akan diisi nol. Slot fisik yang telah dibebaskan dapat digunakan kembali. Ini berbeda dengan penghapusan aman. |
-| **Hole punching dan tail truncation otomatis** | Anda ingin filesystem host mendapatkan kembali ruang tanpa memindahkan data yang ada. | Setelah discard berhasil, DynFileFS dapat melepas rentang fisik yang tidak terpakai pada filesystem backing yang mendukung hole punching (seperti ext4) dan memendekkan tail segmen yang benar-benar kosong. FAT32/exFAT umumnya tidak dapat melepas hole di bagian dalam dengan cara ini. |
-| **Reclaim** (default **Bebaskan Ruang...**) | Anda telah menghapus file dan ingin melakukan pembersihan tanpa pemindahan data, termasuk memulihkan slot kosong yang tersisa dari mount sebelumnya. | Session Manager menjalankan FITRIM pada filesystem ext4 di dalam dan memanggil `dynfilefs --reclaim`. Proses ini bisa mengembalikan ruang ke host, atau hanya membuat slot fisik dapat digunakan kembali di dalam container. Proses ini **tidak** memindahkan blok data yang masih aktif. |
-| **Kompaksi** (`--compact`) | Anda menggunakan FAT32/exFAT atau memiliki file segmen yang terfragmentasi di mana slot kosong berada *sebelum* data aktif, dan pembersihan tanpa pemindahan tidak dapat memendekkan file. | Memindahkan blok data aktif ke slot kosong bernomor lebih rendah, lalu memangkas tail kosong jika memungkinkan. Proses ini dapat menyebabkan penulisan tambahan yang signifikan dan memakan waktu lebih lama; gunakan hanya jika pemulihan ruang host memang diperlukan. |
+| **TRIM / discard** | Anda menghapus file dari sesi ext4 yang tidak dienkripsi dan ingin backend mengetahui blok mana yang tidak lagi diperlukan. | `fstrim` memberi tahu DynFileFS tentang blok logis yang tidak terpakai. Blok utuh berukuran 4 KiB dapat dilepas petanya; rentang parsial diisi dengan nol. Slot fisik dapat digunakan kembali setelah tidak lagi direferensikan. Ini tidak sama dengan penghapusan aman. |
+| **Pengosongan ruang otomatis dan pemangkasan bagian akhir** | Anda ingin sistem file host mendapatkan kembali ruang tanpa memindahkan data yang ada. | Setelah discard berhasil, DynFileFS dapat melepaskan rentang fisik yang tidak terpakai pada sistem file penyimpanan yang mendukung hole punching (seperti ext4), serta memangkas bagian akhir segmen yang sepenuhnya kosong. FAT32/exFAT umumnya tidak dapat melepaskan lubang di bagian tengah dengan cara ini. |
+| **Pengosongan ruang** (default **Free Space...**) | Anda telah menghapus file dan ingin membersihkan ruang tanpa memindahkan data, termasuk memulihkan slot tak terpakai yang tersisa dari pemasangan sebelumnya. | Session Manager menjalankan FITRIM pada sistem file ext4 di dalam dan memanggil `dynfilefs --reclaim`. Tindakan ini mungkin mengembalikan ruang ke host, atau hanya membuat slot fisik dapat digunakan kembali di dalam kontainer. Tindakan ini **tidak** memindahkan blok yang masih digunakan. |
+| **Pemadatan** (`--compact`) | Anda menggunakan FAT32/exFAT atau memiliki file segmen yang terfragmentasi dengan slot kosong yang berada *sebelum* data yang masih digunakan, sehingga pembersihan tanpa pemindahan tidak dapat memangkas file. | Memindahkan blok yang masih digunakan ke slot kosong bernomor lebih rendah, lalu memangkas bagian akhir yang kosong jika memungkinkan. Proses ini dapat menyebabkan banyak penulisan tambahan dan memerlukan waktu jauh lebih lama; gunakan hanya jika pemulihan ruang host sepadan dengan biayanya. |
 
-**Mana yang sebaiknya dipilih?** Biasanya pilih **Bebaskan Ruang...** tanpa kompaksi setelah menghapus data dalam jumlah besar. Periksa ruang kosong yang sebenarnya di flashdisk USB setelahnya. Aktifkan **Kompaksi** hanya jika file backing tetap besar meskipun ada ruang kosong di dalam sesi, terutama pada FAT32/exFAT. Jika tidak ada yang dihapus atau penyimpanan sudah padat, reclaim dan kompaksi mungkin tidak mengembalikan apa pun. Jangan perlakukan operasi ini sebagai perawatan rutin SSD atau pengganti backup.
+**Mana yang harus dipilih?** Biasanya pilih **Free Space...** tanpa pemadatan setelah menghapus banyak data. Periksa ruang kosong sebenarnya di drive USB setelahnya. Aktifkan **Pemadatan** hanya jika file penyimpanan tetap berukuran besar meski ada ruang kosong di dalam sesi, terutama pada FAT32/exFAT. Jika tidak ada yang dihapus atau penyimpanan sudah penuh, pengosongan ruang dan pemadatan mungkin tidak memulihkan ruang apa pun. Jangan anggap operasi ini sebagai perawatan SSD rutin atau pengganti pencadangan.
 
-**Batasan:** Penghapusan file di filesystem saja tidak menjamin bloknya sudah didiscard; filesystem di dalam harus melaporkan blok yang tidak terpakai. Sesi LUKS terenkripsi tidak otomatis meneruskan discard melalui lapisan enkripsi. Dukungan filesystem backing dan tata letak blok aktif menentukan seberapa banyak ruang yang benar-benar dapat dikembalikan. Opsi boot `perchtoram=trim` tidak terkait: opsi ini mengatur sesi mana yang disalin ke RAM, bukan discard filesystem.
+**Batasan:** Penghapusan file saja tidak membuktikan bahwa bloknya telah di-discard; sistem file di dalam harus melaporkan blok yang tidak terpakai. Sesi LUKS terenkripsi tidak meneruskan discard secara otomatis melalui lapisan enkripsi. Dukungan sistem file penyimpanan dan tata letak blok yang masih digunakan menentukan seberapa banyak ruang yang benar-benar dapat dikembalikan. Opsi boot `perchtoram=trim` tidak terkait: opsi ini menentukan sesi mana yang disalin ke RAM, bukan discard sistem file.
 
-Di Session Manager, klik kanan pada sesi DynFileFS, DynBlk, atau VMDK lalu pilih **Bebaskan Ruang...**. Dialog ini dapat digunakan untuk sesi yang sedang berjalan maupun yang tidak aktif, dan juga dapat menggunakan ulang sesi yang sudah ter-mount melalui Session Manager. Untuk sesi plaintext, MiniOS menjalankan FITRIM di filesystem ext4 di dalam, lalu meminta backend untuk mengembalikan ruang backing yang sudah diketahui kosong. Sesi yang terlepas akan di-attach sementara dan dilepas hanya setelah filesystem-nya di-unmount dengan bersih.
+Di Session Manager, klik kanan DynFileFS, DynBlk, atau sesi VMDK, lalu pilih **Kosongkan Ruang...**. Dialog ini dapat digunakan untuk sesi yang didukung, baik yang sedang berjalan maupun tidak aktif, dan juga akan menggunakan kembali sesi yang sudah di-mount melalui Session Manager. Untuk sesi plaintext, MiniOS menjalankan FITRIM pada sistem file ext4 bagian dalam yang sebenarnya, lalu meminta backend pemiliknya mengembalikan ruang backing yang diketahui kosong. Sesi yang detached akan dilampirkan sementara dan dilepas hanya setelah sistem filenya berhasil di-unmount dengan bersih.
 
-Reklamasi DynFileFS memerlukan DynFileFS versi 4.6.0 atau lebih baru. Jika paket diperbarui saat daemon DynFileFS lama masih aktif, reboot ke backend yang sudah diperbarui sebelum melakukan reclaim pada sesi yang sedang berjalan.
+Snapshot DynFileFS dapat mempertahankan blok yang Anda hapus dari image kerja. Proses reclaim tidak pernah menghapus snapshot. Jika paket diperbarui saat daemon DynFileFS versi lama masih aktif, reboot dengan initrd yang telah diperbarui agar runtime saat ini digunakan untuk sesi boot tersebut.
 
 ```sh
 sudo minios-session reclaim 3 --json
@@ -306,10 +308,10 @@ sudo minios-session reclaim 3 --json
 sudo minios-session reclaim 3 --compact --json
 ```
 
-Checkbox kompaksi **nonaktif secara default**, termasuk pada exFAT. Tidak ada
-kompaksi otomatis. Sesi terenkripsi hanya mengklaim ruang yang sudah
-diketahui backend; operasi ini tidak mengaktifkan discard melalui LUKS atau
-menampilkan pola alokasinya. Error perangkat dan trim yang gagal akan menghentikan operasi.
+Kotak centang pemadatan **tidak dicentang secara default**, termasuk pada exFAT. Tidak ada
+fallback pemadatan otomatis. Sesi terenkripsi hanya mengklaim kembali ruang yang sudah
+diketahui oleh backend; operasi ini tidak mengaktifkan discard melalui LUKS atau
+mengungkap pola alokasinya. Kesalahan perangkat dan kegagalan trim akan menghentikan operasi.
 
 ### Perintah driver tingkat rendah
 

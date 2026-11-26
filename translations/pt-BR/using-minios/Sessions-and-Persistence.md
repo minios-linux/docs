@@ -21,56 +21,58 @@ Esses fluxos de trabalho com sessões numeradas não estão disponíveis quando 
 
 ## Modos de sessão
 
-| Modo | Armazenamento | Principais restrições | Camada LUKS2 MiniOS |
+| Modo | Armazenamento | Principais restrições | MiniOS camada LUKS2 |
 |------|---------|------------------|--------------------|
-| `native` | As alterações são armazenadas diretamente no diretório da sessão | Requer um sistema de arquivos gravável que preserve os metadados e as operações do Linux que MiniOS verifica. A capacidade depende do espaço livre no armazenamento subjacente; `perchsize` não se aplica. | Não |
-| `dynfilefs` | ext4 expansível `virtual.dat` com suporte de arquivos de segmento format-400 | Funciona em sistemas de arquivos POSIX graváveis, FAT32, NTFS e exFAT. A carga de dados é alocada sob demanda, mas o índice de mapeamento cresce de acordo com a capacidade lógica declarada. | Sim |
-| `dynblk` | Sistema de arquivos ext4 alocado sob demanda em um dispositivo de bloco do kernel, com suporte de arquivos `volumeNNN.db` | Requer a CLI DynBlk, o módulo do kernel e suporte no initrd. Por padrão, o tamanho criado na inicialização é de até 16 GiB; o limite máximo é informado por `dynblk limits`. Os mapeamentos armazenados em disco usam um cache de metadados limitado. | Sim |
-| `vmdk` | Sistema de arquivos ext4 alocado sob demanda em um VMDK esparso dividido padrão, exposto pelo driver DynBlk | Usa `volume.vmdk` e `volume-sNNN.vmdk`. Sem compactação. Requer `vmdk-session-v1` no marcador de suporte do initrd em execução. O mesmo padrão manual de 16 GiB que DynBlk; consulte `dynblk limits --format vmdk` para ver os limites. | Sim |
-| `raw` | Um único arquivo `changes.img` contendo ext4 | Capacidade lógica fixa, com expansão somente explícita. Funciona em sistemas de arquivos POSIX graváveis, FAT32, NTFS e exFAT; no FAT32, o limite é 4000 MiB. | Sim |
-| `squashfs` | Snapshot compactado em `changes.sb`; a camada gravável superior em tempo de execução é reconstruída em RAM | `perchsize` não se aplica. Snapshots existentes podem ser restaurados de mídias graváveis compatíveis; para salvar exatamente, é necessário um armazenamento de persistência compatível com POSIX. | Não |
+| `native` | Alterações armazenadas diretamente no diretório da sessão | Requer um sistema de arquivos gravável que preserve os metadados e as operações do Linux para os quais MiniOS verifica. A capacidade depende do espaço livre no armazenamento subjacente; `perchsize` não se aplica. | Não |
+| `dynfilefs` | Expansível `virtual.dat` com suporte de arquivos format-600 e ext4 internamente | Funciona em sistemas de arquivos POSIX, FAT32, NTFS e exFAT graváveis. Aloca os dados sob demanda. | Sim |
+| `dynblk` | Sistema de arquivos ext4 thin em um dispositivo de bloco do kernel com suporte de `volumeNNN.db` arquivos | Requer a CLI DynBlk, o módulo do kernel e o suporte do initrd. Por padrão, o tamanho criado na inicialização pode chegar a 16 GiB; o máximo é informado por `dynblk limits`. Mapeamentos residentes em disco usam um cache de metadados limitado. | Sim |
+| `vmdk` | Sistema de arquivos ext4 thin em um VMDK esparso dividido padrão, disponibilizado pelo driver DynBlk | Usa `volume.vmdk` e `volume-sNNN.vmdk`. Sem compressão. Requer `vmdk-session-v1` no marcador de capacidade do initrd em execução. Mesmo padrão manual de 16 GiB que DynBlk; consulte `dynblk limits --format vmdk` para ver os limites. | Sim |
+| `raw` | Arquivo `changes.img` único contendo ext4 | Capacidade lógica fixa, com crescimento somente explícito. Funciona em sistemas de arquivos POSIX, FAT32, NTFS e exFAT graváveis; no FAT32, o limite é 4000 MiB. | Sim |
+| `squashfs` | Snapshot compactado em `changes.sb`; a camada superior gravável em tempo de execução é reconstruída em RAM | `perchsize` não se aplica. Snapshots existentes podem ser restaurados de mídias graváveis compatíveis; para salvar exatamente, é necessário um armazenamento persistente compatível com POSIX. | Não |
 
-Raw, DynFileFS, DynBlk e VMDK podem opcionalmente incluir uma camada de criptografia LUKS2. O backend de armazenamento continua sendo o modo da sessão, e os metadados da sessão registram a criptografia separadamente. DynFileFS e raw criados com `minios-session` têm como padrão 4000 MiB; DynBlk e VMDK têm como padrão 16 GiB. Os tamanhos são alocados em MiB; sufixos `GB` e `TB` convertem para 1000 e 1.000.000 MiB. O tamanho de raw é limitado a 4000 MiB em FAT32, com ou sem criptografia. Os dados de carga de DynFileFS crescem sob demanda, mas o índice format-400 é dimensionado para toda a capacidade lógica e consome cerca de 2 MiB de RAM e cerca de 2 MiB de armazenamento subjacente por GiB. DynBlk mantém as tabelas de mapeamento em disco e um cache de metadados limitado em RAM, com padrão de 1 MiB, em vez de uma porcentagem de RAM. Seus vetores de extensões/arquivos e diretórios crescem de acordo com as partes declaradas, enquanto o preenchimento da carga de dados não exige um mapa inteiro residente na memória. Consulte o limite de capacidade da instalação com `dynblk limits --format dynblk`. As gravações reais continuam limitadas pelo espaço livre no sistema de arquivos subjacente e pela disponibilidade de recursos do backend. As operações de redimensionamento do contêiner só podem aumentar uma sessão; não há suporte para redução.
+Raw, DynFileFS, DynBlk e VMDK podem opcionalmente incluir uma camada de criptografia LUKS2. O backend de armazenamento continua sendo o modo de sessão, e os metadados da sessão registram a criptografia separadamente. DynFileFS e raw criados com `minios-session` têm como padrão 4000 MiB; DynBlk e VMDK têm como padrão 16 GiB. Os valores de tamanho são alocados em MiB; `GB` e `TB` como sufixos correspondem a 1000 e 1.000.000 MiB. O formato raw tem limite de 4000 MiB no FAT32, com ou sem criptografia. DynFileFS mantém as páginas de índice em disco e as armazena em cache conforme necessário. DynBlk mantém as tabelas de mapeamento em disco e um cache de metadados limitado em RAM, com padrão de 1 MiB em vez de uma porcentagem de RAM. Seus vetores de extensões/arquivos e diretórios crescem conforme as partes declaradas, enquanto o preenchimento dos dados não exige um mapa inteiro residente na memória. Consulte o limite de capacidade instalado com `dynblk limits --format dynblk`. As gravações reais continuam limitadas pelo espaço livre no sistema de arquivos subjacente e pela admissão de recursos do backend. As operações de redimensionamento de contêiner só podem aumentar uma sessão; não há suporte para reduzi-la.
+
+Quando o runtime DynFileFS atual monta pela primeira vez um contêiner existente nos formatos 400 ou 500, ele o converte automaticamente no local para o formato 600 se a divisão herdada tiver um número par de MiB. Uma divisão em MiB ímpar é rejeitada sem alterar a origem. Isso atualiza o formato do contêiner, não o modo de `dynfilefs` da sessão. Mantenha um backup desconectado e atualize o initrd de inicialização antes da conversão; ferramentas auxiliares mais antigas não conseguem abrir o contêiner convertido.
 
 O modo nativo é a opção mais simples e rápida em um sistema de arquivos compatível.
 Use DynFileFS quando o sistema de arquivos de persistência não puder representar metadados do Linux.
-Use DynBlk quando precisar de um dispositivo de bloco real do kernel com arquivos de suporte alocados sob demanda; o driver pode manter vários volumes DynBlk independentes conectados ao mesmo tempo, e o Gerenciador de sessões usa o caminho do dispositivo retornado pelo driver, em vez de presumir que `/dev/dynblk0` esteja livre. DynBlk e VMDK não estão disponíveis quando o UEFI Secure Boot está habilitado, pois MiniOS não assina o módulo externo do kernel DynBlk. Por isso, o instalador e o Gerenciador de sessões ocultam esses modos e rejeitam solicitações explícitas de criação antes de tentar carregar o módulo.
-Use raw quando for necessária uma alocação fixa, adicione LUKS2 se a sessão precisar ser criptografada e use SquashFS para obter um snapshot compactado exato.
+Use DynBlk quando quiser um dispositivo de bloco real do kernel com arquivos de apoio alocados sob demanda; o driver pode manter vários volumes DynBlk independentes conectados ao mesmo tempo, e o Session Manager usa o caminho do dispositivo retornado pelo driver, em vez de presumir que `/dev/dynblk0` esteja livre. DynBlk e VMDK ficam indisponíveis enquanto o UEFI Secure Boot está ativado, pois MiniOS não assina o módulo externo do kernel DynBlk. Por isso, o Installer e o Session Manager ocultam esses modos e rejeitam solicitações explícitas de criação antes de tentar carregar o módulo.
+Use raw quando for necessária uma alocação fixa, adicione LUKS2 quando a sessão precisar ser criptografada e use SquashFS para obter um snapshot compactado exato.
 
-Execute os comandos a seguir para verificar o sistema de arquivos de persistência real e os modos disponíveis nele:
+Execute os comandos a seguir para inspecionar o sistema de arquivos de persistência real e os modos disponíveis nele:
 
 ```bash
 sudo minios-session info
 sudo minios-session status
 ```
 
-Não é possível criar sessões em mídias somente leitura. O initrd pode ler e ativar um snapshot SquashFS existente, armazenado em FAT, exFAT ou NTFS gravável, pois extrai o snapshot para uma camada superior ext4 temporária. A criação ou o salvamento exato de um snapshot é diferente: o armazenamento de persistência precisa oferecer suporte aos metadados POSIX necessários e à publicação privada e durável. A árvore de trabalho de captura exata usa RAM confiável quando disponível, com uma alternativa de área de trabalho em disco se RAM for insuficiente.
+Não é possível criar sessões em mídias somente leitura. O initrd pode ler e ativar um snapshot SquashFS existente, armazenado em FAT, exFAT ou NTFS com permissão de escrita, pois extrai o snapshot para uma camada superior ext4 temporária. Criar ou salvar um snapshot exato é diferente: o armazenamento de persistência precisa oferecer suporte aos metadados POSIX necessários e à publicação privada e durável. Quando disponível, a árvore de trabalho para captura exata usa RAM, com uma alternativa de espaço de trabalho em disco caso RAM seja insuficiente.
 
-## Seleção na inicialização
+## Seleção de inicialização
 
-Qualquer parâmetro de persistência reconhecido habilita o tratamento de persistência. Os menus de inicialização MiniOS normalmente oferecem opções para retomar, criar, selecionar e iniciar sem persistência. A descrição canônica do seletor, da compatibilidade, da alternativa e da semântica de ativação está em [Persistência no initrd](/reference/boot-process/Persistence-Internals).
+Qualquer parâmetro de persistência reconhecido ativa o tratamento de persistência. Os menus de inicialização MiniOS normalmente oferecem opções para retomar, iniciar uma nova sessão, selecionar uma sessão e iniciar sem persistência. A descrição canônica da semântica do seletor, da compatibilidade, do fallback e da ativação está em [Persistência no initrd](/reference/boot-process/Persistence-Internals).
 
 | Parâmetro | Significado |
 |-----------|---------|
-| `perch` | Usa o caminho legado de retomada por melhor esforço. Tenta usar o padrão definido nos metadados, mas não cria uma substituição quando nenhum padrão é utilizável. |
-| `perchdir=resume` | Retoma a sessão padrão dos metadados e, se ela estiver ausente ou for incompatível, permite que o initrd crie uma substituição nova e compatível. Esse é o comportamento atual da opção de retomada no menu de inicialização. |
-| `perchdir=setup` | Abre o seletor interativo de backend de persistência e, em seguida, aloca uma nova sessão numerada. Esse é o comportamento atual de **Iniciar nova sessão**. |
+| `perch` | Usa o caminho legado de retomada com melhor esforço. Ele tenta usar o padrão dos metadados, mas não cria uma substituição quando nenhuma opção é utilizável. |
+| `perchdir=resume` | Retoma a sessão padrão dos metadados e, se ela estiver ausente ou for incompatível, permite que o initrd crie uma nova sessão compatível como substituição. Esse é o comportamento atual de retomada do menu de inicialização. |
+| `perchdir=setup` | Abre o seletor interativo de backend de persistência e, em seguida, aloca uma nova sessão numerada. Esse é o comportamento atual de **Iniciar nova sessão** . |
 | `perchdir=new` | Aloca diretamente uma nova sessão numerada usando as configurações de backend, criptografia, compactação e tamanho solicitadas ou padrão, sem abrir o seletor de backend. |
 | `perchdir=ask` | Seleciona uma sessão existente; se o armazenamento estiver vazio, inicia automaticamente o mesmo fluxo de configuração usado por `perchdir=setup`. |
 | `perchdir=<id>` | Seleciona diretamente essa sessão numerada. |
-| `perchdir=<device/path>` | Usa um local de persistência em um dispositivo, incluindo formatos `/dev/...` e `label:...` tratados pelo initrd. |
-| `perchmode=<mode>` | Defina `native`, `dynfilefs`, `dynblk`, `vmdk`, `raw` ou `squashfs`. |
-| `perchencrypt=luks` | Criptografa com LUKS2 uma sessão Raw, DynFileFS, DynBlk ou VMDK recém-criada. A criptografia das sessões existentes é determinada apenas pelos metadados. |
+| `perchdir=<device/path>` | Usa um local de persistência em um dispositivo, incluindo `/dev/...` e `label:...` formatos tratados pelo initrd. |
+| `perchmode=<mode>` | Define `native`, `dynfilefs`, `dynblk`, `vmdk`, `raw`, ou `squashfs`. |
+| `perchencrypt=luks` | Criptografa uma nova sessão Raw, DynFileFS, DynBlk ou VMDK com LUKS2. A criptografia de sessões existentes é determinada apenas pelos metadados. |
 | `perchcomp=<codec>` | Seleciona a compactação do backend DynBlk para uma nova sessão DynBlk. A compactação é forçada para `none` quando DynBlk é encapsulado em LUKS2. |
-| `perchsize=<size>` | Define um tamanho novo ou maior para o contêiner; valores sem sufixo são alocados em MiB, e os sufixos `MB`, `GB` e `TB` são aceitos. |
+| `perchsize=<size>` | Define um tamanho novo ou maior para o contêiner; valores simples são alocados em MiB, e as unidades `MB`, `GB` e `TB` são aceitas. |
 
-Se nenhum modo for especificado para uma nova sessão, a inicialização usa o modo nativo. Em FAT32/NTFS/exFAT, ou quando as verificações do sistema de arquivos nativo falham, a inicialização prefere DynBlk quando o respectivo auxiliar está disponível e o Secure Boot permite; caso contrário, usa DynFileFS. Uma falha de ativação não converte silenciosamente uma sessão existente. O tamanho padrão de um novo contêiner raw é 4000 MiB. Sessões de inicialização novas DynFileFS, DynBlk e VMDK, sem `perchsize`, usam até 16 GiB; quando resta menos espaço de armazenamento subjacente após a reserva de segurança, o tamanho automático é reduzido. DynFileFS também considera a sobrecarga do índice e o limite RAM. A expansão explícita de DynBlk respeita o limite do backend instalado, consultado com `dynblk limits --format dynblk`. Com o Secure Boot habilitado, o initrd não oferece DynBlk/VMDK e considera indisponível uma sessão DynBlk/VMDK selecionada explicitamente ou retomada, em vez de tentar carregar o módulo não assinado.
-Sessões SquashFS podem ser capturadas no sistema em execução com o Gerenciador de sessões MiniOS ou `minios-session create squashfs`. A configuração do initrd cria apenas metadados da sessão de geração zero e mantém a camada superior gravável em RAM. O sistema em execução cria o primeiro snapshot `changes.sb` sob demanda ou no desligamento.
+Se nenhum modo for especificado para uma nova sessão, a inicialização usa o modo nativo. Em FAT32/NTFS/exFAT, ou quando as verificações do sistema de arquivos nativo falham, a inicialização prefere DynBlk se o auxiliar estiver disponível e o Secure Boot permitir; caso contrário, usa DynFileFS. Esse fallback não altera o modo de armazenamento de uma sessão existente. O tamanho padrão de um novo contêiner raw é 4000 MiB. Novas sessões de inicialização DynFileFS, DynBlk e VMDK sem `perchsize` usam até 16 GiB; quando resta menos espaço disponível após a reserva de segurança, o tamanho automático é reduzido. As verificações de capacidade do backend continuam sendo aplicadas. O aumento explícito de DynBlk segue o limite do backend instalado, consultado com `dynblk limits --format dynblk`. Com o Secure Boot ativado, o initrd não oferece DynBlk/VMDK e considera indisponível uma sessão DynBlk/VMDK especificada explicitamente ou retomada, em vez de tentar carregar o módulo não assinado.
+Sessões SquashFS podem ser capturadas no sistema em execução com o Gerenciador de sessões MiniOS ou `minios-session create squashfs`. A configuração do initrd cria apenas metadados de sessão da geração zero e mantém a camada superior gravável em RAM. O sistema em execução cria o primeiro snapshot `changes.sb` sob demanda ou durante o desligamento.
 
-Ao retomar uma sessão, MiniOS verifica a versão, a edição, o sistema de arquivos union e o modo registrados. O valor literal `perchdir=resume` pode criar uma nova sessão em vez de usar uma sessão padrão ausente ou incompatível. Uma solicitação simples de `perch`, uma seleção numérica direta e outras solicitações legadas de retomada não criam automaticamente essa substituição.
-A seleção interativa exibe um aviso antes de permitir uma sessão incompatível. Se a seleção ou ativação ainda assim falhar, a inicialização normalmente prossegue com uma camada superior RAM e um aviso de persistência.
+Ao retomar, MiniOS verifica a versão, a edição, o sistema de arquivos de união e o modo registrados. O uso de `perchdir=resume` pode criar uma nova sessão em vez de usar uma sessão padrão ausente ou incompatível. Solicitações simples de `perch`, seleção numérica direta e outras solicitações legadas de retomada não criam essa substituição automaticamente.
+A seleção interativa exibe um aviso antes de permitir o uso de uma sessão incompatível. Se a seleção ou ativação ainda falhar, a inicialização normalmente continua com uma camada superior RAM e um aviso de persistência.
 
-O armazenamento de sessões tem o seguinte formato:
+O armazenamento da sessão tem este formato:
 
 ```text
 minios/changes/
@@ -80,8 +82,8 @@ minios/changes/
 `-- N/
 ```
 
-`session.conf` registra os IDs padrão e em execução, além do modo, da versão, da edição, do sistema de arquivos union, do tamanho, do estado e das configurações específicas do modo de cada sessão.
-Esses são metadados persistentes confirmados pela implementação de inicialização, mas não constituem, por si só, uma prova do estado atual em tempo de execução. Não edite esses metadados nem mova dados de sessões numeradas enquanto uma sessão estiver montada; use o Gerenciador de sessões MiniOS ou `minios-session`.
+`session.conf` registra os IDs padrão e em execução, além do modo, da versão, da edição, do sistema de arquivos de união, do tamanho, do estado e das configurações específicas de cada modo por sessão.
+São metadados persistentes confirmados pela implementação de inicialização, mas, por si só, não comprovam o estado atual do ambiente em execução. Não edite esses dados nem mova dados de sessões numeradas enquanto uma sessão estiver montada; use o Gerenciador de sessões MiniOS ou `minios-session`.
 
 ## Sessões ativas e em execução
 
@@ -279,26 +281,26 @@ sudo minios-session info
 
 Na inicialização, os sistemas de arquivos do contêiner são verificados antes da ativação para gravação. Falhas graves na verificação do sistema de arquivos preservam o contêiner para recuperação, em vez de montá-lo com acesso de gravação. SquashFS detecta um estado anterior encerrado incorretamente e restaura o último snapshot salvo com sucesso. Exclua sessões somente pelo Gerenciador de sessões MiniOS ou `minios-session delete`; não remova os diretórios das sessões manualmente.
 
-## Devolvendo DynFileFS, DynBlk e armazenamento VMDK não utilizados
+## Recuperação de DynFileFS, DynBlk e armazenamento VMDK
 
-Ao excluir arquivos em uma sessão persistente, os segmentos do host `changes.dat` **não** necessariamente diminuem de tamanho. O sistema de arquivos ext4 interno sabe quais blocos estão livres, mas o backend de armazenamento ainda pode considerar esses blocos como ocupados. A ação **Liberar espaço...** serve para recuperar espaço no pendrive USB, não para aumentar a capacidade lógica da sessão.
+Quando você exclui arquivos em uma sessão persistente, os `changes.dat`segmentos do host **não** necessariamente diminuem. O sistema de arquivos ext4 interno sabe quais blocos estão livres, mas o backend de armazenamento ainda pode considerá-los ocupados. A ação **Liberar espaço...** foi criada para recuperar espaço no pendrive, não para aumentar a capacidade lógica da sessão.
 
-Para DynFileFS, as operações têm finalidades distintas:
+No DynFileFS, as operações têm objetivos distintos:
 
 | Mecanismo | Por que usar | O que realmente faz |
 | --- | --- | --- |
-| **TRIM / discard** | Você excluiu arquivos de uma sessão ext4 não criptografada e quer que o backend reconheça quais blocos não são mais necessários. | `fstrim` informa DynFileFS sobre blocos lógicos não utilizados. Blocos inteiros de 4 KiB podem ser desmapeados; intervalos parciais são zerados. Os espaços físicos liberados podem ser reutilizados. Isso não equivale à eliminação segura dos dados. |
-| **Furos automáticos e truncamento de cauda** | Você quer que o sistema de arquivos do host recupere espaço sem mover os dados existentes. | Após o descarte bem-sucedido, DynFileFS pode liberar intervalos físicos não usados em um sistema de arquivos de backend compatível com furos (como ext4) e encurtar as caudas de segmentos totalmente livres. FAT32/exFAT geralmente não consegue liberar furos internos dessa forma. |
-| **Reclamar** (padrão **Liberar espaço...**) | Você excluiu arquivos e deseja uma limpeza sem movimentação, incluindo a recuperação de espaços não utilizados de montagens anteriores. | O Gerenciador de Sessão executa o FITRIM no sistema de arquivos ext4 interno e chama `dynfilefs --reclaim`. Isso pode devolver espaço ao host ou apenas deixar espaços físicos reutilizáveis dentro do contêiner. Não **move** blocos ativos. |
-| **Compactação** (`--compact`) | Você usa FAT32/exFAT ou tem arquivos de segmento fragmentados cujos espaços livres estão *antes dos* dados ativos, e a limpeza sem movimentação não consegue encurtar os arquivos. | Move blocos ativos para os espaços livres de menor numeração e, em seguida, trunca as caudas livres quando possível. Isso pode gerar muitas gravações adicionais e levar bem mais tempo; use apenas quando a recuperação de espaço no host justificar esse custo. |
+| **TRIM / descarte** | Você excluiu arquivos de uma sessão ext4 sem criptografia e quer que o backend saiba quais blocos não são mais necessários. | `fstrim` informa ao DynFileFS quais blocos lógicos estão livres. Blocos inteiros de 4 KiB podem ser desalocados; intervalos parciais são zerados. Os espaços físicos podem ser reutilizados quando deixam de ser referenciados. Isso não equivale a uma exclusão segura. |
+| **Liberação automática de buracos e truncamento do final** | Você quer que o sistema de arquivos do host recupere espaço sem mover os dados existentes. | Após o descarte bem-sucedido, DynFileFS pode liberar intervalos físicos não utilizados em um sistema de arquivos de suporte que permita liberar buracos (como ext4) e encurtar as partes finais totalmente livres dos segmentos. Em geral, FAT32/exFAT não conseguem liberar buracos internos dessa forma. |
+| **Recuperação de espaço** (padrão: **Liberar espaço...**) | Você excluiu arquivos e quer fazer a limpeza sem mover dados, inclusive recuperando espaços não utilizados que sobraram de montagens anteriores. | O Session Manager executa o FITRIM no sistema de arquivos ext4 interno e invoca `dynfilefs --reclaim`. Ele pode devolver espaço ao host ou apenas deixar os espaços físicos disponíveis para reutilização dentro do contêiner. Ele **não** realoca blocos em uso. |
+| **Compactação** (`--compact`) | Você usa FAT32/exFAT ou tem arquivos de segmento fragmentados cujos espaços livres ficam *antes dos* dados em uso, e a limpeza sem movimentação não consegue encurtar os arquivos. | Move os blocos em uso para espaços livres com numeração menor e, em seguida, trunca as partes finais livres quando possível. Isso pode gerar muitas gravações adicionais e levar bem mais tempo; use essa opção somente quando a recuperação de espaço no host justificar esse custo. |
 
-**Qual escolher?** Normalmente, utilize a opção **Liberar espaço...** sem compactação após excluir uma quantidade significativa de dados. Verifique o espaço realmente livre no pendrive USB em seguida. Ative a opção **Compactação** somente quando os arquivos de backend continuarem grandes apesar do espaço livre dentro da sessão, especialmente em FAT32/exFAT. Se nada foi excluído ou o armazenamento já está otimizado, a recuperação e a compactação podem não liberar espaço. Não trate essas operações como manutenção rotineira de SSD ou substituto de backup.
+**Qual opção escolher?** Normalmente, escolha **Liberar espaço...** sem compactação após excluir uma quantidade significativa de dados. Depois, confira o espaço livre real no pendrive. Ative a **Compactação** somente quando os arquivos de suporte continuarem grandes apesar de haver espaço livre na sessão, especialmente em FAT32/exFAT. Se nada tiver sido excluído ou se o armazenamento já estiver cheio, a recuperação de espaço e a compactação talvez não recuperem nada. Não use essas operações como manutenção de rotina de SSD nem como substitutas de backup.
 
-**Limites:** Apenas excluir arquivos no sistema de arquivos não garante que os blocos foram descartados; o sistema de arquivos interno precisa informar os blocos não utilizados. Sessões criptografadas LUKS não passam o descarte automaticamente pela camada de criptografia. O suporte do sistema de arquivos de backend e a disposição dos blocos ativos determinam quanto espaço pode realmente ser devolvido. A opção de boot `perchtoram=trim` é independente: ela controla quais sessões são copiadas para RAM, não o descarte do sistema de arquivos.
+**Limitações:** A exclusão em um sistema de arquivos, por si só, não comprova que os blocos foram descartados; o sistema de arquivos interno precisa informar quais blocos estão livres. Sessões LUKS criptografadas não encaminham automaticamente o descarte pela camada de criptografia. O suporte do sistema de arquivos de destino e a disposição dos blocos em uso determinam quanto espaço pode realmente ser devolvido. A opção de inicialização `perchtoram=trim` não tem relação com isso: ela controla quais sessões são copiadas para RAM, não o descarte no sistema de arquivos.
 
-No Gerenciador de Sessão, clique com o botão direito em uma sessão DynFileFS, DynBlk ou VMDK e escolha **Liberar espaço...**. A janela funciona para sessões ativas ou inativas compatíveis e também reutiliza uma sessão já montada pelo Gerenciador de Sessão. Para uma sessão em texto simples, MiniOS executa FITRIM no ext4 interno real e depois solicita ao backend proprietário que devolva o espaço de backend já reconhecido como livre. Sessões destacadas são anexadas temporariamente e liberadas somente após o sistema de arquivos ser desmontado corretamente.
+No Session Manager, clique com o botão direito em uma sessão DynFileFS, DynBlk ou VMDK e escolha **Liberar espaço...**. A caixa de diálogo funciona com uma sessão compatível em execução ou inativa e também reutiliza uma sessão que já esteja montada pelo Session Manager. Em uma sessão de texto simples, MiniOS executa o FITRIM no sistema de arquivos ext4 interno real e, em seguida, solicita ao backend responsável que devolva o espaço livre conhecido no armazenamento subjacente. Sessões desconectadas são anexadas temporariamente e liberadas somente depois que o sistema de arquivos é desmontado corretamente.
 
-A recuperação de DynFileFS requer DynFileFS 4.6.0 ou superior. Se o pacote foi atualizado enquanto um daemon DynFileFS antigo ainda estiver ativo, reinicie no backend atualizado antes de recuperar essa sessão em execução.
+Os snapshots de DynFileFS podem manter blocos que você excluiu da imagem de trabalho. A recuperação de espaço nunca exclui snapshots. Se o pacote foi atualizado enquanto um daemon DynFileFS antigo ainda estava ativo, reinicie com o initrd atualizado para usar o runtime atual durante essa sessão de inicialização.
 
 ```sh
 sudo minios-session reclaim 3 --json
@@ -306,10 +308,10 @@ sudo minios-session reclaim 3 --json
 sudo minios-session reclaim 3 --compact --json
 ```
 
-A caixa de seleção de compactação vem **desmarcada por padrão**, inclusive no exFAT. Não há
-compactação automática como fallback. Sessões criptografadas recuperam apenas o espaço já
-conhecido pelo backend; esta operação não habilita o descarte via LUKS nem
-revela o padrão de alocação. Erros de dispositivo e falhas no trim interrompem a operação.
+A caixa de seleção de compactação fica **desmarcada por padrão**, inclusive em exFAT. Não há
+compactação automática como alternativa. Em sessões criptografadas, só é possível recuperar o espaço já
+conhecido pelo backend; esta operação não ativa o descarte de blocos por meio do LUKS nem
+revela o padrão de alocação. Erros no dispositivo e falhas no trim interrompem a operação.
 
 ### Comandos de driver de baixo nível
 

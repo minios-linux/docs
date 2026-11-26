@@ -44,24 +44,24 @@ Las dos implementaciones tienen una diferencia operativa importante:
 
 Una vez ensamblada la raíz y completada la configuración inicial, el initrd de LiveKit utiliza `pivot_root`, mantiene el antiguo initrd para las tareas de apagado y ejecuta el init de la nueva raíz. La ruta dracut prepara la misma raíz ensamblada pero deja la finalización `switch_root` a dracut. Consulta [Carga de módulos Initrd](/reference/boot-process/Module-Loading) para los detalles del traspaso.
 
-## Capa editable y sesiones
+## Capa de escritura y sesiones
 
-Sin persistencia, la capa editable se almacena en memoria y desaparece al apagar el sistema. Al activar la persistencia, se puede iniciar una sesión numerada con un backend de almacenamiento compatible. Con un backend seleccionado del complemento de persistencia Ventoy, MiniOS utiliza un entorno persistente ext4 directo en lugar de sesiones numeradas. La selección, compatibilidad, fallos de activación, autoridad en el arranque actual y durabilidad se definen en [Persistencia en initrd](/reference/boot-process/Persistence-Internals).
+Sin persistencia, la capa de escritura se almacena en memoria y desaparece al apagar el sistema. En su lugar, la persistencia puede activar una sesión numerada con un backend de almacenamiento compatible. Si se selecciona un backend de Persistence Plugin Ventoy, MiniOS utiliza un único entorno persistente ext4 directo en vez de sesiones numeradas. La selección, la compatibilidad, los errores de activación, la autoridad durante el arranque actual y la durabilidad se definen en [Persistencia en Initrd](/reference/boot-process/Persistence-Internals).
 
-| Modo | Almacenamiento editable | Notas |
+| Modo | Almacenamiento de escritura | Notas |
 |------|------------------|-------|
-| `native` | Archivos almacenados directamente en el directorio de la sesión | Requiere un sistema de archivos POSIX editable que conserve los metadatos de Linux. |
-| `dynfilefs` | Sistema de archivos ext4 expandible dividido en archivos de respaldo | Compatible con sistemas de archivos POSIX y medios FAT32, NTFS o exFAT. |
-| `dynblk` | Sistema de archivos ext4 ligero en un dispositivo de bloques del kernel respaldado por `volumeNNN.db` archivos | Requiere la capacidad de userspace, kernel e initrd de DynBlk. |
-| `vmdk` | Almacenamiento dividido y disperso en `volume.vmdk` / `volume-sNNN.vmdk` expuesto como dispositivo de bloques por el controlador DynBlk | Requiere la capacidad de `vmdk-session-v1` DynBlk/initrd; sin compresión en el backend. |
-| `raw` | Archivo de tamaño fijo `changes.img` con ext4 | Compatible con sistemas de archivos POSIX y medios FAT32, NTFS o exFAT. |
-| `squashfs` | Instantánea comprimida de `changes.sb` | Se desempaqueta en RAM para su uso; al guardar, se reconstruye y reemplaza atómicamente la instantánea. El sistema de archivos de persistencia debe conservar los metadatos de Linux durante el guardado. |
+| `native` | Archivos almacenados directamente en el directorio de la sesión | Requiere un sistema de archivos POSIX con permisos de escritura que conserve los metadatos de Linux. |
+| `dynfilefs` | Un entorno de ejecución FUSE expone una imagen ampliable con ext4 en su interior, dividida en archivos de respaldo de formato 600 | Compatible con sistemas de archivos POSIX y medios FAT32, NTFS o exFAT. |
+| `dynblk` | Sistema de archivos ext4 ligero en un dispositivo de bloques del kernel, respaldado por `volumeNNN.db` archivos | Requiere la capacidad de espacio de usuario, kernel e initrd de DynBlk. |
+| `vmdk` | Almacenamiento disperso dividido de `volume.vmdk` / `volume-sNNN.vmdk` expuesto como dispositivo de bloques por el controlador DynBlk | Requiere la capacidad de `vmdk-session-v1` DynBlk/initrd; el backend no admite compresión. |
+| `raw` | Imagen de tamaño fijo `changes.img` que contiene ext4 | Compatible con sistemas de archivos POSIX y medios FAT32, NTFS o exFAT. |
+| `squashfs` | Instantánea comprimida `changes.sb` de | Se descomprime en RAM para su uso; al guardar, se reconstruye y se reemplaza la instantánea de forma atómica. El sistema de archivos de persistencia debe conservar los metadatos de Linux al guardar. |
 
-Los formatos raw, DynFileFS, DynBlk y VMDK pueden incluir opcionalmente una capa LUKS2. Los metadatos registran por separado el backend de almacenamiento y el cifrado. Al apagar, se liberan ext4, el mapeador, cualquier loop asignado y el backend en orden de dependencia.
+Raw, DynFileFS, DynBlk y VMDK pueden incluir opcionalmente una capa LUKS2. Los metadatos registran por separado el backend de almacenamiento y el cifrado. Al apagar, se liberan ext4, el mapeador, cualquier dispositivo loop propio y el backend, en el orden de dependencia.
 
-La sesión activa seleccionada para una futura reanudación y la capa editable realmente autorizada para el arranque actual son estados relacionados pero distintos. Cambiar la selección futura no reemplaza la capa editable en ejecución.
+La sesión activa seleccionada para reanudarla en el futuro y la capa de escritura autorizada para el arranque actual están relacionadas, pero son estados distintos. Cambiar una selección futura no reemplaza la capa de escritura en uso.
 
-Consulte [Gestión de sesiones](/using-minios/Sessions-and-Persistence) para los comandos de creación, selección, dimensionamiento, cifrado, conversión, exportación y recuperación.
+Consulta [Administración de sesiones](/using-minios/Sessions-and-Persistence) para ver los comandos de creación, selección, asignación de tamaño, cifrado, conversión, exportación y recuperación.
 
 ## Precedencia de configuración
 

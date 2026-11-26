@@ -46,20 +46,20 @@ Setelah root dirakit dan penyiapan awal selesai, initrd LiveKit menggunakan `piv
 
 ## Lapisan tulis dan sesi
 
-Tanpa persistensi, lapisan tulis menggunakan memori dan akan hilang saat sistem dimatikan. Persistensi dapat mengaktifkan sesi bernomor dengan backend penyimpanan yang didukung. Dengan backend Persistence Plugin Ventoy yang dipilih, MiniOS menggunakan satu lingkungan persisten ext4 langsung, bukan sesi bernomor. Pemilihan, kompatibilitas, kegagalan aktivasi, otoritas boot saat ini, dan durabilitas dijelaskan di [Persistensi initrd](/reference/boot-process/Persistence-Internals).
+Tanpa persistensi, lapisan tulis berbasis memori dan akan hilang saat sistem dimatikan. Persistensi dapat mengaktifkan sesi bernomor dengan backend penyimpanan yang didukung. Dengan backend Persistence Plugin Ventoy yang dipilih, MiniOS menggunakan satu lingkungan persisten ext4 langsung, bukan sesi bernomor. Pemilihan, kompatibilitas, kegagalan aktivasi, otoritas boot saat ini, dan durabilitas dijelaskan di [Persistensi Initrd](/reference/boot-process/Persistence-Internals).
 
 | Mode | Penyimpanan tulis | Catatan |
 |------|------------------|-------|
-| `native` | File disimpan langsung di direktori sesi | Memerlukan filesystem POSIX yang dapat ditulis dan mempertahankan metadata Linux. |
-| `dynfilefs` | Filesystem ext4 yang dapat diperluas dan dibagi ke beberapa file pendukung | Mendukung filesystem POSIX serta media FAT32, NTFS, atau exFAT. |
-| `dynblk` | Filesystem ext4 tipis pada perangkat blok kernel yang didukung oleh `volumeNNN.db` file | Memerlukan userspace DynBlk, kernel, dan dukungan initrd. |
-| `vmdk` | Penyimpanan `volume.vmdk` / `volume-sNNN.vmdk` sparse terpisah yang diekspos sebagai perangkat blok oleh driver DynBlk | Memerlukan kemampuan `vmdk-session-v1` DynBlk/initrd; tanpa kompresi backend. |
-| `raw` | File berukuran tetap `changes.img` yang berisi ext4 | Mendukung filesystem POSIX serta media FAT32, NTFS, atau exFAT. |
-| `squashfs` | Snapshot `changes.sb` terkompresi | Diekstrak ke RAM untuk digunakan; penyimpanan akan membuat ulang dan mengganti snapshot secara atomik. Filesystem persistensi harus mempertahankan metadata Linux selama penyimpanan. |
+| `native` | File disimpan langsung di direktori sesi | Memerlukan sistem file POSIX yang dapat ditulis dan mempertahankan metadata Linux. |
+| `dynfilefs` | Satu runtime FUSE menyediakan image yang dapat diperluas dengan ext4 di dalamnya, terbagi ke beberapa file backing format-600 | Mendukung sistem file POSIX dan media FAT32, NTFS, atau exFAT. |
+| `dynblk` | Sistem file ext4 tipis pada perangkat blok kernel yang didukung oleh `volumeNNN.db` file | Memerlukan userspace, kernel, dan kapabilitas initrd DynBlk. |
+| `vmdk` | Sparse terpisah `volume.vmdk` / `volume-sNNN.vmdk` penyimpanan yang diekspos sebagai perangkat blok oleh driver DynBlk | Memerlukan kapabilitas `vmdk-session-v1` DynBlk/initrd; tanpa kompresi backend. |
+| `raw` | Berukuran tetap `changes.img` yang berisi ext4 | Mendukung sistem file POSIX dan media FAT32, NTFS, atau exFAT. |
+| `squashfs` | Snapshot `changes.sb` terkompresi | Dibuka ke RAM untuk digunakan; proses penyimpanan membangun ulang dan mengganti snapshot secara atomik. Sistem file persistensi harus mempertahankan metadata Linux selama proses penyimpanan. |
 
-Raw, DynFileFS, DynBlk, dan VMDK dapat menggunakan lapisan LUKS2 secara opsional. Metadata mencatat backend penyimpanan dan enkripsi secara terpisah. Saat dimatikan, ext4, mapper, loop yang dimiliki, dan backend dilepas sesuai urutan dependensinya.
+Raw, DynFileFS, DynBlk, dan VMDK dapat secara opsional menggunakan lapisan LUKS2. Metadata mencatat backend penyimpanan dan enkripsi secara terpisah. Saat sistem dimatikan, ext4, mapper, loop yang dimiliki (jika ada), dan backend dilepas sesuai urutan dependensinya.
 
-Sesi aktif yang dipilih untuk dilanjutkan nanti dan lapisan tulis yang benar-benar diizinkan untuk boot saat ini adalah status yang saling terkait, tetapi berbeda. Mengubah pilihan untuk penggunaan mendatang tidak mengganti lapisan tulis yang sedang berjalan.
+Sesi aktif yang dipilih untuk dilanjutkan nanti dan lapisan tulis yang benar-benar diizinkan untuk boot saat ini merupakan status yang terkait, tetapi berbeda. Mengubah pilihan untuk sesi mendatang tidak mengganti lapisan tulis yang sedang berjalan.
 
 Lihat [Pengelolaan sesi](/using-minios/Sessions-and-Persistence) untuk perintah pembuatan, pemilihan, pengaturan ukuran, enkripsi, konversi, ekspor, dan pemulihan.
 

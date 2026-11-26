@@ -12,26 +12,28 @@ Jalankan `./minios-cmd --help`, `./minios-live --help`, dan periksa `build.conf`
 
 ## Persyaratan
 
-Lakukan build di Debian atau Ubuntu dengan ruang kosong yang cukup, minimal `BUILD_DIR` dan `/tmp`.
-Target desktop biasanya membutuhkan setidaknya 20 GiB. Operasi build memerlukan akses root untuk debootstrap, chroot, mount, perangkat loop, dan pembuatan image; menampilkan bantuan tidak memerlukannya.
+Bangun di Debian atau Ubuntu dengan ruang kosong yang cukup, minimal `BUILD_DIR` dan `/tmp`.
+Target desktop pada umumnya memerlukan setidaknya 20 GiB. Operasi build memerlukan akses root untuk debootstrap, chroot, mount, perangkat loop, dan pembuatan image; menampilkan bantuan tidak memerlukannya.
 
-Daftar paket host yang menjadi acuan ada di `linux-live/prerequisites.list`. Untuk checkout saat ini, paket-paket tersebut dapat diinstal dengan:
+Daftar paket host resmi ada di `linux-live/prerequisites.list`. Untuk checkout saat ini, paket dapat diinstal dengan:
 
 ```bash
 sudo apt-get update
 sudo apt-get install \
   sudo binutils debootstrap squashfs-tools xorriso mtools rsync \
-  grub-common gpg curl openssl sbsigntool
+  grub-common gpg curl jq openssl sbsigntool
 ```
 
-Pada source checkout, `minios-live` memeriksa daftar ini sebelum build, kecuali jika `SKIP_SETUP_HOST=true`. Di host biasa, perintah ini melaporkan paket yang belum tersedia lalu berhenti; instalasi otomatis hanya digunakan pada jalur build container.
+Dalam checkout sumber, `minios-live` memeriksa daftar ini sebelum build, kecuali jika `SKIP_SETUP_HOST=true`. Di host biasa, program ini melaporkan paket yang hilang lalu berhenti; instalasi otomatis hanya digunakan pada jalur build container.
 
-Konfigurasi default memeriksa konektivitas Internet. Pemeriksaan ini dapat dinonaktifkan dengan `CHECK_INTERNET_CONNECTION=false` dan dilewati jika tersedia repositori cache APT yang sudah disiapkan, tetapi semua paket dan file boot yang diperlukan tetap harus tersedia dari repositori atau cache yang dikonfigurasi.
+Di host build, instal `minios-dpkg-state` dari suite generik repositori APT MiniOS. Tahap `build-live`, `build-modules` dan `build-boot` memeriksa indeks repositori untuk arsitektur host sebelum melanjutkan. Paket yang diinstal harus memenuhi persyaratan minimum builder dan versi yang dipublikasikan untuk arsitektur tersebut. Builder tidak menginstal atau memperbarui paket ini secara otomatis; jika pemeriksaan gagal, ikuti petunjuk paket yang ditampilkan.
 
-Jika `USE_APT_CACHER=true`, layanan apt-cacher-ng yang dapat dijangkau harus sudah dikonfigurasi di `APT_CACHER_ADDRESS`; jika tidak, atur opsi ke `false` sebelum build.
+Konfigurasi default memeriksa konektivitas Internet. Pemeriksaan ini dapat dinonaktifkan dengan `CHECK_INTERNET_CONNECTION=false` dan dilewati jika menggunakan repositori cache APT yang telah disiapkan. Namun, semua paket dan file boot yang diperlukan tetap harus tersedia dari repositori atau cache yang dikonfigurasi.
+
+Jika `USE_APT_CACHER=true`, layanan apt-cacher-ng yang dapat dijangkau harus sudah dikonfigurasi di `APT_CACHER_ADDRESS`; jika tidak, setel opsi ke `false` sebelum build.
 
 ::: danger Kepercayaan bootstrap
-Jalur bootstrap saat ini memanggil debootstrap dengan `--no-check-gpg` dan mengambil kunci arsip MiniOS melalui HTTP tanpa autentikasi. Jangan gunakan image yang dihasilkan sebagai artefak rilis tepercaya sampai jalur sumber ini menerapkan verifikasi kunci dan bootstrap yang terautentikasi.
+Jalur bootstrap saat ini memanggil debootstrap dengan `--no-check-gpg` dan mengambil kunci arsip MiniOS melalui HTTP yang tidak diautentikasi. Jangan gunakan image yang dihasilkan sebagai artefak rilis tepercaya sebelum jalur sumber ini menerapkan verifikasi kunci dan bootstrap yang terautentikasi.
 :::
 
 ## Build cepat
@@ -167,13 +169,15 @@ Jangan mengedit `build/<target>/build.conf` yang dihasilkan sebagai pengganti pe
 
 ### Pemilihan kernel
 
-Provider `distribution`menentukan kernel Debian atau Ubuntu yang dipilih dan, jika DKMS diaktifkan, header yang sesuai dalam state APT bertanda tangan yang terisolasi.
-`KERNEL_AUTO_SELECT=true` mengambil suite sumber dan arsitektur dari target userspace. Atur ke `false` untuk menggunakan kolom distribusi, arsitektur, versi, snapshot, dan kebijakan pembaruan manual di `build.conf`.
+Provider `distribution` menyelesaikan pemilihan kernel Debian atau Ubuntu, serta header yang sesuai jika DKMS diaktifkan, dalam status APT bertanda tangan yang terisolasi.
+`KERNEL_AUTO_SELECT=true` mengambil suite sumber dan arsitekturnya dari target ruang pengguna. Setel ke `false` untuk menggunakan kolom distribusi, arsitektur, versi, snapshot, dan kebijakan pembaruan manual di `build.conf`.
 
-Provider `minios` memasang `linux-image-SERIES-mos-ARCH`, memverifikasi dukungan AUFS, dan menggunakan header MiniOS yang sesuai untuk DKMS. Provider ini memerlukan `KERNEL_FLAVOUR=none` serta arsitektur paket userspace dan kernel yang cocok.
-Dalam kode saat ini, `MINIOS_KERNEL_SERIES=auto` ditetapkan ke `6.12`; gunakan `6.1` secara eksplisit jika seri tersebut diperlukan.
+Untuk build Debian Trixie atau Devuan Excalibur pada x86 32-bit (i386), pemilihan otomatis menggunakan provider kernel MiniOS. Ini berlaku meskipun konfigurasi menetapkan `KERNEL_PROVIDER=distribution` sebagai provider. Trixie tidak lagi menyediakan kernel distribusi i386.
 
-`KERNEL_PAYLOAD_MODE=runtime` mempertahankan pohon modul kernel, konfigurasi kernel, `System.map`, metadata deployment, dan integrasi runtime di bawah `modprobe.d`, `modules-load.d`, dan `udev/rules.d`. Komponen ini menghapus state paket khusus build, header, sumber DKMS, alat compiler, dan paket initramfs. Firmware tetap dikelola oleh `02-firmware`. `full` menyertakan payload diagnostik yang lebih lengkap.
+Provider `minios` menginstal `linux-image-SERIES-mos-ARCH`, memverifikasi dukungan AUFS, dan menggunakan header MiniOS yang sesuai untuk DKMS. Provider ini memerlukan `KERNEL_FLAVOUR=none` serta arsitektur paket ruang pengguna dan kernel yang cocok.
+Dalam kode saat ini, `MINIOS_KERNEL_SERIES=auto` mengarah ke `6.12`; gunakan `6.1` secara eksplisit jika seri tersebut diperlukan.
+
+`KERNEL_PAYLOAD_MODE=runtime` mempertahankan pohon modul kernel, konfigurasi kernel, `System.map`, metadata deployment, dan integrasi runtime di bawah `modprobe.d`, `modules-load.d` dan `udev/rules.d`. Provider ini menghapus status paket khusus build, header, sumber DKMS, alat compiler, dan paket initramfs. Firmware tetap dikelola oleh `02-firmware`. `full` mempertahankan payload diagnostik yang lebih lengkap.
 
 ## Sistem modul
 
@@ -285,18 +289,20 @@ Nama ISO bergantung pada setelan build, mode rilis, dan stempel waktu. Gunakan j
 
 ## Rahasia dan artefak debug
 
-Jangan simpan token Ubuntu Pro di kontrol versi, dokumentasi, riwayat shell, atau log bersama. Sebaiknya gunakan file konfigurasi privat di luar repositori:
+Jangan simpan token Ubuntu Pro di version control, dokumentasi, riwayat shell, atau log bersama. Sebaiknya gunakan konfigurasi privat di luar repositori:
 
 ```bash
 install -m 600 linux-live/build.conf /private/path/build-trixie.conf
 sudo env BUILD_CONF=/private/path/build-trixie.conf ./minios-live -
 ```
 
-Atur `USE_UBUNTU_PRO=true` dan `UBUNTU_PRO_TOKEN=...` hanya di file tersebut. Build menghapus status Pro dari image, tetapi file di host tetap berisi rahasia.
+Atur `USE_UBUNTU_PRO=true` dan `UBUNTU_PRO_TOKEN=...` hanya di file tersebut. Proses build menghapus status Pro dari image, tetapi file di host tetap berisi rahasia.
 
-`DEBUG_SSH_KEYS=true` menghasilkan materi kunci privat untuk keperluan debugging. Perlakukan image yang dihasilkan sebagai image sementara dan jangan pernah memublikasikannya sebelum memastikan kunci tersebut tidak ada.
+Jika Pro diminta untuk suite Ubuntu yang didukung, builder memastikan bahwa `esm-infra` dan `esm-apps` diaktifkan dan APT telah memuat kedua indeks keamanan. Jika aktivasi gagal atau pemutakhiran indeks tidak lengkap, build akan dihentikan, bukan diam-diam hanya menggunakan arsip publik.
 
-Mengubah opsi kembali ke `false` tidak menghapus kunci yang sudah dibuat di `build/<target>/image/minios/debug_ssh_key`, file `authorized_keys.*` yang berdekatan, atau `build/<target>/debug_ssh_key`. Gunakan target yang bersih atau hapus file tersebut secara eksplisit, lalu periksa struktur direktori ISO sebelum memublikasikannya.
+`DEBUG_SSH_KEYS=true` menghasilkan materi kunci privat untuk keperluan debug. Anggap image yang dihasilkan hanya untuk sementara dan jangan pernah memublikasikannya tanpa memastikan bahwa kunci tersebut tidak ada.
+
+Mengubah kembali opsi ke `false` tidak menghapus kunci yang sudah dibuat di `build/<target>/image/minios/debug_ssh_key`, file `authorized_keys.*` lain di sekitarnya, atau `build/<target>/debug_ssh_key`. Gunakan target yang bersih atau hapus file tersebut secara eksplisit, lalu periksa struktur ISO sebelum dipublikasikan.
 
 ## Pemecahan masalah
 

@@ -20,10 +20,12 @@ The authoritative host package list is `linux-live/prerequisites.list`. For the 
 sudo apt-get update
 sudo apt-get install \
   sudo binutils debootstrap squashfs-tools xorriso mtools rsync \
-  grub-common gpg curl openssl sbsigntool
+  grub-common gpg curl jq openssl sbsigntool
 ```
 
 In a source checkout, `minios-live` checks this list before building unless `SKIP_SETUP_HOST=true`. On a normal host it reports missing packages and stops; automatic installation is used only by the container build path.
+
+On the build host, install `minios-dpkg-state` from the generic suite of the MiniOS APT repository. The `build-live`, `build-modules`, and `build-boot` stages check the repository index for the host architecture before proceeding. The installed package must meet both the builder's minimum and the version published for that architecture. The builder does not install or upgrade it automatically; follow the package instructions it prints if the check fails.
 
 The default configuration checks Internet connectivity. The check can be disabled with `CHECK_INTERNET_CONNECTION=false` and is skipped for a prepared APT cache repository, but all required package and boot-file inputs must still be available from configured repositories or caches.
 
@@ -169,6 +171,8 @@ Do not edit a generated `build/<target>/build.conf` as a substitute for maintain
 The `distribution` provider resolves the selected Debian or Ubuntu kernel and, when DKMS is enabled, matching headers in an isolated signed APT state.
 `KERNEL_AUTO_SELECT=true` derives its source suite and architecture from the userspace target. Set it to `false` to use the manual distribution, architecture, version, snapshot, and update-policy fields in `build.conf`.
 
+For 32-bit x86 (i386) builds of Debian Trixie or Devuan Excalibur, automatic selection uses the MiniOS kernel provider. This applies even when the configuration specifies `KERNEL_PROVIDER=distribution` as the provider. Trixie no longer ships an i386 distribution kernel.
+
 The `minios` provider installs `linux-image-SERIES-mos-ARCH`, verifies AUFS support, and uses the matching MiniOS headers for DKMS. It requires `KERNEL_FLAVOUR=none` and matching userspace and kernel package architectures.
 In the current code, `MINIOS_KERNEL_SERIES=auto` resolves to `6.12`; use `6.1` explicitly when that series is required.
 
@@ -292,6 +296,8 @@ sudo env BUILD_CONF=/private/path/build-trixie.conf ./minios-live -
 ```
 
 Set `USE_UBUNTU_PRO=true` and `UBUNTU_PRO_TOKEN=...` only in that file. The build removes Pro state from the image, but the host-side file still contains the secret.
+
+When Pro is requested for a supported Ubuntu suite, the builder verifies that both `esm-infra` and `esm-apps` are enabled and that APT has loaded both security indexes. A failed activation or incomplete index refresh stops the build rather than silently using only the public archives.
 
 `DEBUG_SSH_KEYS=true` generates private key material for debugging. Treat the resulting image as disposable and never publish it without verifying that the key is absent.
 

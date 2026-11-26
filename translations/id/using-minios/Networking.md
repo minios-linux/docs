@@ -61,6 +61,20 @@ NetworkManager mengonfigurasi sistem MiniOS yang sedang berjalan. Jaringan yang 
 
 Parameter boot `ip=`, unduhan PXE, dan `from=http://...` karena itu tidak membuat profil NetworkManager dan tidak boleh digunakan untuk mengonfigurasi jaringan desktop biasa. Lihat [Boot jaringan](/reference/boot-process/Network-Boot).
 
+## Fallback alamat untuk layanan MiniOS
+
+Pada image dengan dispatcher NetworkManager MiniOS, perubahan koneksi dapat memicu pemeriksaan terhadap situs web MiniOS, repositori paket, Store, dan unduhan rilis GitHub. Jika suatu sumber daya tidak dapat dijangkau menggunakan DNS biasa, dispatcher dapat menambahkan sementara alamat alternatif terverifikasi ke bloknya sendiri di dalam berkas `/etc/hosts` tersebut. Dispatcher tetap mengaktifkan validasi sertifikat HTTPS, tidak mengubah entri manual, dan menghapus override-nya saat pemeriksaan berikutnya mendapati akses normal sudah berfungsi kembali.
+
+Evaluasi yang berhasil mengunduh sekitar 4 MiB data uji; percobaan ulang mungkin menggunakan lebih banyak data. Pemeriksaan ini menggunakan koneksi langsung dan tidak mengubah profil NetworkManager. Pemeriksaan ini tidak dapat mengatasi gangguan layanan atau menjamin bahwa seluruh file ISO akan terunduh.
+
+Untuk menonaktifkan pemeriksaan, atur `enabled` menjadi `false` di `/etc/minios/network-fallback.json`, lalu hapus override yang sudah ada:
+
+```bash
+sudo /etc/NetworkManager/dispatcher.d/90-minios-network --clear
+```
+
+Pada sistem systemd, lihat diagnostik dispatcher dengan `journalctl -t minios-network-fallback`.
+
 ## Pemecahan masalah
 
 Untuk masalah koneksi biasa, mulailah dengan NetworkManager itu sendiri:

@@ -98,9 +98,9 @@ nmcli connection show
 
 ## Problemi di persistenza
 
-Avvia **Avviare senza salvare** prima di modificare un archivio di persistenza sospetto. Non riparare né eliminare l’unica copia di una sessione mentre è attiva.
+Avvia **Avviare senza salvare** prima di modificare un archivio di persistenza sospetto. Non riparare né eliminare l'unica copia di una sessione mentre è attiva.
 
-Verifica cosa rileva attualmente MiniOS:
+Controlla cosa rileva attualmente MiniOS:
 
 ```bash
 sudo minios-session list
@@ -110,17 +110,19 @@ sudo minios-session status
 sudo minios-session info
 ```
 
-Controlla la modalità di avvio selezionata, lo spazio scrivibile disponibile, la compatibilità del file system e quella della sessione. Le regole dettagliate per la selezione sono disponibili in [Sessioni e persistenza](/using-minios/Sessions-and-Persistence) e [Funzionamento interno della persistenza](/reference/boot-process/Persistence-Internals).
+Controlla la modalità di avvio selezionata, lo spazio scrivibile disponibile, la compatibilità del filesystem e quella della sessione. Le regole dettagliate per la selezione sono descritte in [Sessioni e persistenza](/using-minios/Sessions-and-Persistence) e [Dettagli interni della persistenza](/reference/boot-process/Persistence-Internals).
 
-Se una sessione importante non in esecuzione di `native`, `dynfilefs`, `dynblk`, `vmdk` o `raw` è ancora leggibile, anche in forma crittografata se può essere sbloccata, esportala **prima** di sperimentare con l’archiviazione:
+Se una `native`, `dynfilefs`, `dynblk`, `vmdk`, o `raw` sessione importante e non in esecuzione è ancora leggibile, anche in forma crittografata purché sia possibile sbloccarla, esportala **prima di** sperimentare con lo spazio di archiviazione:
 
 ```bash
 sudo minios-session export <id> /path/to/session.tar.zst
 ```
 
-Se Session Manager non riesce a leggere o esportare la sessione, interrompi le scritture sull’origine e conserva una copia offline dello spazio di archiviazione interessato prima di procedere. Per una sessione DynBlk scollegata, `dynblk inspect /path/to/volume000.db --metadata-only` e `dynblk check /path/to/volume000.db` forniscono diagnostiche di sola lettura del formato; non eseguirle su un volume ancora collegato. MiniOS non definisce una procedura manuale universale per ricostruire i segmenti DynFileFS, ricreare le parti di supporto DynBlk, riparare un file system interno o ricostruire i metadati della sessione. Il recupero dipende dal file system o dal contenitore e va tentato solo su una copia, quando il valore dei dati lo giustifica.
+Se Session Manager non riesce a leggere o esportare la sessione, interrompi le scritture sull'origine e conserva una copia offline dello spazio di archiviazione interessato prima di procedere. Per una sessione DynBlk scollegata, `dynblk inspect /path/to/volume000.db --metadata-only` e `dynblk check /path/to/volume000.db` forniscono diagnostica di formato in sola lettura; non eseguirli su un volume ancora collegato. MiniOS non definisce una procedura manuale universale per ricostruire i segmenti DynFileFS, ricreare le parti di supporto DynBlk, riparare un filesystem interno o ricostruire i metadati della sessione. Questo tipo di recupero dipende dal filesystem e dal container e va tentato solo su una copia, quando il valore dei dati lo giustifica.
 
-Vedi [Backup di MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS) per le procedure di backup e importazione delle sessioni supportate.
+Se un volume DynFileFS di formato 400 o 500 è stato creato con una suddivisione in MiB dispari, il runtime attuale rifiuta di montarlo e lascia invariata l'origine. Per recuperare i file, usa un ambiente meno recente compatibile su una copia scollegata del container completo e importa i file esportati in un nuovo spazio di archiviazione. Se un supporto di avvio meno recente ha smesso di riconoscere un volume convertito, usa un initrd di avvio MiniOS che supporti il formato 600 attuale.
+
+Consulta [Backup di MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS) per conoscere le procedure supportate per il backup e l'importazione delle sessioni.
 
 ### Ventoy Persistence Plugin
 
@@ -189,13 +191,14 @@ indica solo il supporto nativo per i dispositivi a blocchi e non garantisce il s
 Non modificare manualmente la modalità di una sessione esistente: usa una copia esplicita o
 una conversione nell’altro formato.
 
-### Liberare spazio in DynFileFS, DynBlk o nelle sessioni VMDK
+### Liberare spazio nelle sessioni DynFileFS, DynBlk o VMDK
 
-Usa il menu contestuale di Session Manager **Libera spazio...**, oppure
-`minios-session reclaim ID --json`. Nelle sessioni in testo normale, questa operazione riduce l’
-ext4 interno vero e proprio, quindi chiede al backend proprietario di recuperare spazio di archiviazione senza
-spostare i dati attivi. DynFileFS richiede la versione 4.6.0 o successiva per questa operazione.
-Su file system come exFAT, gli spazi vuoti interni possono restare allocati nel file host
-ma essere riutilizzabili dal container; `--compact` è un’opzione manuale separata che può
-spostare i dati attivi e comporta più scritture sul dispositivo flash. La compattazione e il discard LUKS non vengono mai attivati
-automaticamente. Una sessione cifrata può recuperare solo lo spazio già noto al backend sottostante tramite questo comando.
+Usa il menu contestuale di Session Manager e scegli **Libera spazio...**, oppure
+`minios-session reclaim ID --json`. Per le sessioni in testo normale, questa operazione esegue il trim dell'
+ext4 interno effettivo e chiede quindi al backend proprietario di recuperare spazio di archiviazione senza
+spostare dati attivi. Gli snapshot DynFileFS possono mantenere allocati i blocchi eliminati; l'operazione non elimina gli snapshot.
+Nei filesystem come exFAT, gli spazi vuoti interni possono restare allocati nel file host
+ma essere riutilizzabili dal container; `--compact` è un'opzione manuale distinta che può
+spostare i dati attivi e comporta più scritture sul dispositivo flash. Nessuna opzione attiva automaticamente
+la compattazione o il discard LUKS. Una sessione crittografata può recuperare solo lo
+spazio già riconosciuto dal backend sottostante tramite questo comando.

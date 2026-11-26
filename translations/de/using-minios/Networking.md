@@ -61,6 +61,20 @@ NetworkManager konfiguriert das laufende MiniOS-System. Die Netzwerkverbindung, 
 
 Der Boot-Parameter `ip=`, PXE-Downloads und `from=http://...` erstellen daher keine NetworkManager-Profile und sollten nicht zur Konfiguration des normalen Desktop-Netzwerks verwendet werden. Siehe [Netzwerk-Boot](/reference/boot-process/Network-Boot).
 
+## Adress-Fallback für MiniOS-Dienste
+
+Auf Images mit dem MiniOS-Dispatcher von NetworkManager können Verbindungsänderungen Prüfungen der MiniOS-Website, des Paket-Repositorys, des Stores und der GitHub-Release-Downloads auslösen. Wenn eine Ressource über normales DNS nicht erreichbar ist, kann der Dispatcher vorübergehend eine verifizierte alternative Adresse in einen eigenen Abschnitt der `/etc/hosts`Datei eintragen. Die HTTPS-Zertifikatsprüfung bleibt aktiviert, manuelle Einträge bleiben unangetastet und die Überschreibungen werden entfernt, sobald eine spätere Prüfung wieder einen normalen Zugriff feststellt.
+
+Bei einer erfolgreichen Prüfung werden etwa 4 MiB Testdaten heruntergeladen; bei Wiederholungsversuchen kann die Datenmenge höher sein. Die Prüfungen verwenden direkte Verbindungen und ändern keine NetworkManager-Profile. Sie können weder einen Dienstausfall beheben noch garantieren, dass eine vollständige ISO-Datei heruntergeladen werden kann.
+
+Um die Prüfungen zu deaktivieren, setzen Sie `enabled` auf `false` in `/etc/minios/network-fallback.json` und löschen Sie anschließend vorhandene Überschreibungen:
+
+```bash
+sudo /etc/NetworkManager/dispatcher.d/90-minios-network --clear
+```
+
+Auf systemd-Systemen können Sie die Dispatcher-Diagnose mit `journalctl -t minios-network-fallback` anzeigen.
+
 ## Fehlerbehebung
 
 Bei einem gewöhnlichen Verbindungsproblem beginnen Sie mit NetworkManager selbst:

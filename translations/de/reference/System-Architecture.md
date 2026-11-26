@@ -44,24 +44,24 @@ Die beiden Implementierungen unterscheiden sich in einem wichtigen Betriebsaspek
 
 Nachdem das Root-Dateisystem zusammengesetzt und die frühe Einrichtung abgeschlossen ist, verwendet das LiveKit-initrd `pivot_root`, behält das alte initrd für den Shutdown bei und startet das Init des neuen Root. Der dracut-Pfad bereitet das gleiche zusammengesetzte Root vor, überlässt aber das finale `switch_root` an dracut. Siehe [Initrd-Modulladen](/reference/boot-process/Module-Loading) für die genaue Übergabegrenze.
 
-## Beschreibbare Ebene und Sitzungen
+## Schreibbare Ebene und Sitzungen
 
-Ohne Persistenz ist die beschreibbare Ebene speicherbasiert und geht beim Herunterfahren verloren. Mit Persistenz kann stattdessen eine nummerierte Sitzung mit einem unterstützten Speicher-Backend aktiviert werden. Bei Auswahl des Ventoy Persistence Plugin-Backends verwendet MiniOS eine direkte ext4-Persistenzumgebung anstelle von nummerierten Sitzungen. Auswahl, Kompatibilität, Aktivierungsfehler, aktuelle Boot-Berechtigung und Haltbarkeit sind definiert unter [Initrd-Persistenz](/reference/boot-process/Persistence-Internals).
+Ohne Persistenz wird die schreibbare Ebene im Arbeitsspeicher gehalten und beim Herunterfahren verworfen. Mit Persistenz kann stattdessen eine nummerierte Sitzung mit einem unterstützten Speicher-Backend aktiviert werden. Bei Auswahl eines Persistence-Plugin-Backends Ventoy verwendet MiniOS eine direkte persistente ext4-Umgebung anstelle nummerierter Sitzungen. Auswahl, Kompatibilität, Fehler bei der Aktivierung, maßgebliche Ebene für den aktuellen Start und Dauerhaftigkeit werden unter [Initrd-Persistenz](/reference/boot-process/Persistence-Internals).
 
-| Modus | Beschreibbarer Speicher | Hinweise |
+| Modus | Schreibbarer Speicher | Hinweise |
 |------|------------------|-------|
 | `native` | Dateien werden direkt im Sitzungsverzeichnis gespeichert | Erfordert ein beschreibbares POSIX-Dateisystem, das Linux-Metadaten erhält. |
-| `dynfilefs` | Erweiterbares ext4-Dateisystem, verteilt auf mehrere Backing-Dateien | Unterstützt POSIX-Dateisysteme sowie FAT32-, NTFS- oder exFAT-Medien. |
-| `dynblk` | Schlankes ext4-Dateisystem auf einem Kernel-Blockgerät, das von `volumeNNN.db`-Dateien unterstützt wird | Erfordert die DynBlk Userspace-, Kernel- und Initrd-Funktionalität. |
-| `vmdk` | Geteilte Sparse-`volume.vmdk`- / `volume-sNNN.vmdk`-Speicher als Blockgerät durch den DynBlk-Treiber bereitgestellt | Erfordert die `vmdk-session-v1`DynBlk/initrd-Funktion; keine Backend-Komprimierung. |
-| `raw` | Feste Größe `changes.img` mit ext4 | Unterstützt POSIX-Dateisysteme sowie FAT32-, NTFS- oder exFAT-Medien. |
-| `squashfs` | Komprimiertes `changes.sb`-Schnappschuss | Wird für die Nutzung in RAM entpackt; Speichern erstellt einen neuen Schnappschuss und ersetzt diesen atomar. Das Persistenz-Dateisystem muss beim Speichern Linux-Metadaten erhalten. |
+| `dynfilefs` | Eine FUSE-Laufzeitumgebung stellt ein erweiterbares Image mit einem darin enthaltenen ext4-Dateisystem bereit, aufgeteilt auf Format-600-Backedateien | Unterstützt POSIX-Dateisysteme sowie FAT32-, NTFS- oder exFAT-Datenträger. |
+| `dynblk` | Dünnes ext4-Dateisystem auf einem Kernel-Blockgerät, bereitgestellt durch `volumeNNN.db` Dateien | Erfordert die Userspace-, Kernel- und Initrd-Funktion DynBlk. |
+| `vmdk` | Aufgeteilte Sparse-`volume.vmdk` / `volume-sNNN.vmdk`-Speicherung, die vom Treiber DynBlk als Blockgerät bereitgestellt wird | Erfordert die `vmdk-session-v1`-Funktion DynBlk/initrd; keine Backend-Komprimierung. |
+| `raw` | Datei fester Größe `changes.img` mit enthaltenem ext4-Dateisystem | Unterstützt POSIX-Dateisysteme sowie FAT32-, NTFS- oder exFAT-Datenträger. |
+| `squashfs` | Komprimierter `changes.sb` Snapshot | Wird zur Verwendung nach RAM entpackt. Beim Speichern wird der Snapshot neu erstellt und atomar ersetzt. Das Persistenzdateisystem muss beim Speichern Linux-Metadaten erhalten. |
 
-Raw, DynFileFS, DynBlk und VMDK können optional eine LUKS2-Schicht enthalten. Metadaten erfassen das Speicher-Backend und die Verschlüsselung separat. Beim Herunterfahren werden ext4, der Mapper, alle zugehörigen Loop-Devices und das Backend in Abhängigkeitsreihenfolge freigegeben.
+Raw, DynFileFS, DynBlk und VMDK können optional eine LUKS2-Ebene enthalten. Metadaten erfassen Speicher-Backend und Verschlüsselung getrennt. Beim Herunterfahren werden ext4, der Mapper, gegebenenfalls die eigene Loop-Schnittstelle und das Backend in Abhängigkeitsreihenfolge freigegeben.
 
-Die für einen zukünftigen Resume ausgewählte aktive Sitzung und die tatsächlich für den aktuellen Boot autorisierte beschreibbare Ebene sind verwandte, aber unterschiedliche Zustände. Eine Änderung der zukünftigen Auswahl ersetzt nicht die aktuell laufende beschreibbare Ebene.
+Die aktive Sitzung, die für eine spätere Wiederaufnahme ausgewählt wurde, und die schreibbare Ebene, die für den aktuellen Start tatsächlich freigegeben ist, sind miteinander verbunden, aber unterschiedliche Zustände. Eine Änderung der Auswahl für die Zukunft ersetzt nicht die aktuell verwendete schreibbare Ebene.
 
-Siehe [Sitzungsverwaltung](/using-minios/Sessions-and-Persistence) für Befehle zur Erstellung, Auswahl, Größenanpassung, Verschlüsselung, Konvertierung, zum Export und zur Wiederherstellung.
+Weitere Informationen zu [Sitzungsverwaltung](/using-minios/Sessions-and-Persistence) sowie zu Befehlen zum Erstellen, Auswählen, Dimensionieren, Verschlüsseln, Konvertieren, Exportieren und Wiederherstellen.
 
 ## Konfigurations-Priorität
 

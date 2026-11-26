@@ -98,9 +98,9 @@ nmcli connection show
 
 ## Problèmes de persistance
 
-Démarrez **Démarrer sans enregistrer** avant de modifier un espace de persistance suspect. Ne réparez pas et ne supprimez pas l’unique copie d’une session tant qu’elle est active.
+Démarrez **Démarrer sans enregistrer** avant de modifier un espace de stockage de persistance suspect. Ne réparez pas et ne supprimez pas l’unique copie d’une session pendant qu’elle est active.
 
-Examinez ce que MiniOS détecte actuellement :
+Vérifiez ce que MiniOS détecte actuellement :
 
 ```bash
 sudo minios-session list
@@ -110,17 +110,19 @@ sudo minios-session status
 sudo minios-session info
 ```
 
-Vérifiez le mode de démarrage sélectionné, l’espace inscriptible disponible, la compatibilité du système de fichiers et celle de la session. Les règles détaillées de sélection figurent dans [Sessions et persistance](/using-minios/Sessions-and-Persistence) et dans [Fonctionnement interne de la persistance](/reference/boot-process/Persistence-Internals).
+Vérifiez le mode de démarrage sélectionné, l’espace inscriptible disponible, la compatibilité du système de fichiers et celle de la session. Les règles détaillées de sélection sont présentées dans [Sessions et persistance](/using-minios/Sessions-and-Persistence) et [Fonctionnement interne de la persistance](/reference/boot-process/Persistence-Internals).
 
-Si une `native`, `dynfilefs`, `dynblk`, `vmdk` ou `raw`session importante qui n’est pas en cours d’exécution reste lisible, y compris sous forme chiffrée si elle peut être déverrouillée, exportez-la **avant** de faire des essais sur le stockage :
+Si une `native`, `dynfilefs`, `dynblk`, `vmdk`, ou `raw` session importante, qui n’est pas en cours d’exécution, reste lisible (y compris sous une forme chiffrée pouvant être déverrouillée), exportez-la **avant** d’expérimenter avec le stockage :
 
 ```bash
 sudo minios-session export <id> /path/to/session.tar.zst
 ```
 
-Si Session Manager ne peut pas lire ou exporter la session, cessez d’écrire sur la source et conservez une copie hors ligne du stockage concerné avant toute autre intervention. Pour une session DynBlk détachée, `dynblk inspect /path/to/volume000.db --metadata-only` et `dynblk check /path/to/volume000.db` fournissent des diagnostics en lecture seule du format ; ne les exécutez pas sur un volume encore attaché. MiniOS ne définit pas de procédure manuelle universelle pour reconstruire les segments DynFileFS, reconstituer les éléments de stockage DynBlk, réparer un système de fichiers interne ou reconstituer les métadonnées de session. Une telle récupération dépend du système de fichiers ou du conteneur ; elle ne doit être tentée que sur une copie et si la valeur des données le justifie.
+Si Session Manager ne parvient pas à lire ou à exporter la session, cessez toute écriture sur la source et conservez une copie hors ligne de l’espace de stockage concerné avant de poursuivre. Pour une session DynBlk détachée, `dynblk inspect /path/to/volume000.db --metadata-only` et `dynblk check /path/to/volume000.db` fournissent des diagnostics de format en lecture seule ; ne les exécutez pas sur un volume encore connecté. MiniOS ne définit pas de procédure manuelle universelle pour reconstruire les segments DynFileFS, reconstituer les éléments de stockage DynBlk, réparer un système de fichiers interne ou reconstruire les métadonnées de session. Ces opérations de récupération dépendent du système de fichiers ou du conteneur et ne doivent être tentées que sur une copie, si la valeur des données le justifie.
 
-Consultez [Sauvegarde de MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS) pour connaître les procédures de sauvegarde et d’importation de session prises en charge.
+Si un volume DynFileFS au format 400 ou 500 a été créé avec une séparation en MiB impairs, l’environnement d’exécution actuel refuse de le monter et laisse la source inchangée. Pour récupérer les fichiers, utilisez un environnement plus ancien compatible sur une copie détachée du conteneur complet, puis importez les fichiers exportés dans un nouvel espace de stockage. Si un ancien support de démarrage ne reconnaît plus un volume converti, utilisez un initrd de démarrage MiniOS prenant en charge le format 600 actuel.
+
+Consultez [Sauvegarder MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS) pour connaître les procédures de sauvegarde et d’importation de session prises en charge.
 
 ### Ventoy Persistence Plugin
 
@@ -189,13 +191,13 @@ indique uniquement la prise en charge native des blocs et ne garantit pas la pri
 Ne modifiez pas manuellement le mode d’une session existante : utilisez une copie explicite ou
 une conversion vers l’autre format.
 
-### Libérer de l’espace dans DynFileFS, DynBlk ou les sessions VMDK
+### Libérer de l’espace dans les sessions DynFileFS, DynBlk ou VMDK
 
-Utilisez le menu contextuel du Gestionnaire de sessions **Libérer de l’espace...**, ou
-`minios-session reclaim ID --json`. Pour les sessions en texte brut, cette opération réduit le système de fichiers
-ext4 interne, puis demande au backend propriétaire de récupérer de l’espace de stockage sans
-déplacer les données actives. DynFileFS nécessite la version 4.6.0 ou ultérieure pour cette opération.
-Sur des systèmes de fichiers comme exFAT, les espaces libres internes peuvent rester alloués au fichier hôte
-tout en restant réutilisables par le conteneur ; `--compact` est une option manuelle distincte qui peut
-déplacer les données actives et entraîner davantage d’écritures sur le périphérique flash. Aucune opération n’active automatiquement
-la compaction ou le discard LUKS. Une session chiffrée ne peut récupérer que l’espace déjà connu du backend sous-jacent grâce à cette commande.
+Utilisez le menu contextuel de Session Manager **Libérer de l’espace...**, ou
+`minios-session reclaim ID --json`. Pour les sessions en clair, cette opération tronque le
+système de fichiers ext4 interne réel, puis demande au moteur de stockage propriétaire de récupérer de l’espace sans
+déplacer les données actives. Les instantanés DynFileFS peuvent conserver les blocs supprimés comme alloués ; l’opération ne supprime pas les instantanés.
+Sur les systèmes de fichiers tels qu’exFAT, les espaces libres internes peuvent rester alloués au fichier hôte,
+mais être réutilisables par le conteneur ; `--compact` est une action manuelle distincte qui peut
+déplacer les données actives et solliciter davantage le périphérique flash. Aucune option n’active automatiquement
+la compaction ni le discard LUKS. Une session chiffrée ne peut récupérer que l’espace déjà connu du moteur de stockage sous-jacent grâce à cette commande.

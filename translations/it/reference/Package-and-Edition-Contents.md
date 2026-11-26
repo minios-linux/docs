@@ -215,18 +215,19 @@ Gli ambienti grafici condividono la base Xorg e di rendering riportata di seguit
 
 | Pacchetto | Scopo o condizione |
 |---|---|
-| `fluxbox-flux` | Configurazione del gestore di finestre Fluxbox MiniOS |
-| `xfce4-panel`, `xfce4-xkb-plugin` | Pannello e indicatore del layout di tastiera |
-| `xwallpaper`, `gpicview` / `feh` | Sfondo e visualizzazione immagini |
-| `compton` | Compositore X |
+| `fluxbox-flux` | MiniOS configurazione del window manager Fluxbox |
+| `xfce4-panel`, `xfce4-xkb-plugin` | Indicatore del pannello e del layout della tastiera |
+| `xwallpaper`, `gpicview` / `feh` | Sfondo e visualizzazione delle immagini |
+| `picom-flux` | Compositor X per il desktop Flux |
+| `pcmanfm-flux`, `libfm-modules-flux`, `gvfs` | Gestore file, icone del desktop e integrazione con il filesystem |
 | `alsa-utils`, `volumeicon-alsa` | Controlli audio ALSA |
-| `systrayicon`, `cbatticon` | Indicatori di sistema e batteria |
-| `xlunch`, `gtkask`, `flux-tools` | Launcher e strumenti per il desktop Flux MiniOS |
-| `scrot` | Strumento per screenshot |
-| `mousepad`, `pcmanfm` | Editor di testo e file manager |
-| `galculator`, `lxtask`, `xarchiver` | Calcolatrice, gestore attività e gestore archivi |
+| `systrayicon`, `cbatticon` | Indicatori di sistema e della batteria |
+| `xlunch`, `gtkask`, `flux-tools` | Launcher e strumenti di supporto per il desktop Flux MiniOS |
+| `scrot` | Strumento per acquisire screenshot |
+| `mousepad` | Editor di testo |
+| `galculator`, `lxtask`, `xarchiver` | Calcolatrice, gestore delle attività e gestore degli archivi |
 | `network-manager-gnome` | Applet desktop di NetworkManager |
-| `firefox` / `firefox-esr` | Browser selezionato in base alla suite, con i pacchetti di localizzazione corrispondenti |
+| `firefox` / `firefox-esr` | Browser scelto in base alla suite, con i relativi pacchetti di localizzazione |
 
 ## Desktop Xfce e applicazioni MiniOS
 

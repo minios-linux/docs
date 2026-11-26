@@ -46,20 +46,20 @@ Une fois la racine assemblée et la configuration initiale terminée, l’initrd
 
 ## Couche inscriptible et sessions
 
-Sans persistance, la couche inscriptible est stockée en mémoire et disparaît à l’arrêt. La persistance peut activer une session numérotée avec un backend de stockage pris en charge. Avec un backend Ventoy Persistence Plugin sélectionné, MiniOS utilise un environnement persistant ext4 direct au lieu de sessions numérotées. La sélection, la compatibilité, les échecs d’activation, l’autorité au démarrage actuel et la durabilité sont définies dans [Persistance avec initrd](/reference/boot-process/Persistence-Internals).
+Sans persistance, la couche inscriptible est stockée en mémoire et disparaît à l’arrêt. La persistance peut activer une session numérotée avec un backend de stockage compatible. Avec un backend du Persistence Plugin Ventoy sélectionné, MiniOS utilise plutôt un environnement persistant ext4 direct unique, sans sessions numérotées. La sélection, la compatibilité, les échecs d’activation, l’autorité pour le démarrage en cours et la durabilité sont définis dans [Persistance de l’initrd](/reference/boot-process/Persistence-Internals).
 
 | Mode | Stockage inscriptible | Remarques |
 |------|------------------|-------|
 | `native` | Fichiers stockés directement dans le répertoire de la session | Nécessite un système de fichiers POSIX inscriptible qui préserve les métadonnées Linux. |
-| `dynfilefs` | Système de fichiers ext4 extensible réparti sur des fichiers de support | Prend en charge les systèmes de fichiers POSIX et les supports FAT32, NTFS ou exFAT. |
-| `dynblk` | Système de fichiers ext4 à allocation fine sur un périphérique bloc du noyau, reposant sur des fichiers `volumeNNN.db` | Nécessite l’espace utilisateur DynBlk, le noyau et la prise en charge par initrd. |
-| `vmdk` | Stockage sparse fractionné `volume.vmdk` / `volume-sNNN.vmdk` exposé comme périphérique bloc par le pilote DynBlk | Nécessite la prise en charge `vmdk-session-v1` DynBlk/initrd ; aucune compression du backend. |
-| `raw` | Image de taille fixe `changes.img` contenant ext4 | Prend en charge les systèmes de fichiers POSIX et les supports FAT32, NTFS ou exFAT. |
-| `squashfs` | Instantané compressé `changes.sb` | Décompressé dans RAM pour être utilisé ; l’enregistrement reconstruit et remplace l’instantané de manière atomique. Le système de fichiers de persistance doit préserver les métadonnées Linux lors de l’enregistrement. |
+| `dynfilefs` | Un environnement d’exécution FUSE expose une image extensible contenant un système ext4, répartie entre des fichiers de support au format 600 | Compatible avec les systèmes de fichiers POSIX et les supports FAT32, NTFS ou exFAT. |
+| `dynblk` | Système de fichiers ext4 à allocation fine sur un périphérique bloc du noyau, reposant sur `volumeNNN.db` fichiers | Nécessite les capacités de l’espace utilisateur, du noyau et de l’initrd DynBlk. |
+| `vmdk` | Stockage fragmenté `volume.vmdk` / `volume-sNNN.vmdk` exposé comme périphérique bloc par le pilote DynBlk | Nécessite la capacité `vmdk-session-v1` DynBlk/initrd ; aucune compression du backend. |
+| `raw` | Fichier de taille fixe `changes.img` contenant ext4 | Compatible avec les systèmes de fichiers POSIX et les supports FAT32, NTFS ou exFAT. |
+| `squashfs` | Instantané compressé `changes.sb` | Décompressé dans RAM pour être utilisé ; l’enregistrement reconstruit l’instantané et le remplace de manière atomique. Le système de fichiers de persistance doit préserver les métadonnées Linux lors de l’enregistrement. |
 
-Les formats Raw, DynFileFS, DynBlk et VMDK peuvent comporter une couche LUKS2 facultative. Les métadonnées enregistrent séparément le backend de stockage et le chiffrement. À l’arrêt, ext4, le mappeur, toute boucle détenue et le backend sont libérés dans l’ordre des dépendances.
+Les formats Raw, DynFileFS, DynBlk et VMDK peuvent, en option, intégrer une couche LUKS2. Les métadonnées enregistrent séparément le backend de stockage et le chiffrement. À l’arrêt, ext4, le mappeur, toute boucle appartenant au système et le backend sont libérés dans l’ordre de leurs dépendances.
 
-La session active sélectionnée pour une reprise ultérieure et la couche inscriptible effectivement autorisée pour le démarrage actuel sont deux états liés, mais distincts. Modifier une sélection future ne remplace pas la couche inscriptible en cours d’utilisation.
+La session active sélectionnée pour une reprise ultérieure et la couche inscriptible autorisée pour le démarrage en cours sont deux états liés, mais distincts. Modifier une sélection future ne remplace pas la couche inscriptible utilisée par le système en cours d’exécution.
 
 Voir [Gestion des sessions](/using-minios/Sessions-and-Persistence) pour les commandes de création, de sélection, de dimensionnement, de chiffrement, de conversion, d’exportation et de récupération.
 

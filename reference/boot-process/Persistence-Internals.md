@@ -102,10 +102,10 @@ Container sizes use whole counts that are allocated in MiB:
 - A bare number, `M`, or `MB` means MiB.
 - `G` or `GB` multiplies the number by 1000 MiB.
 - `T` or `TB` multiplies the number by 1,000,000 MiB.
-- Raw containers are capped at 1,000,000 MiB and by available space after the reserve. DynFileFS has a separate RAM-aware limit and a 2,000,000 MiB hard ceiling. DynBlk obtains its native-format geometry limit from `dynblk limits --format dynblk`; MiniOS does not impose a separate 512-GiB ceiling.
+- Raw containers are capped at 1,000,000 MiB and by available space after the reserve. DynBlk obtains its native-format geometry limit from `dynblk limits --format dynblk`; MiniOS does not impose a separate 512-GiB ceiling.
 - Raw is a single backing file, so FAT32 limits it to 4000 MiB in MiniOS. The same limit applies when Raw is wrapped in LUKS2.
 - A new raw session defaults to 4000 MiB. Encryption does not create a separate LUKS size policy: an encrypted Raw, DynFileFS, DynBlk, or VMDK session keeps the size rules of its underlying backend.
-- A new initrd-created DynFileFS session without `perchsize` uses up to 16 GiB of logical capacity. If the backing store cannot ultimately hold that much after `perchreserve` and DynFileFS index overhead, the default is reduced to the available capacity. Its format-400 index costs about 2 MiB of RAM and about 2 MiB of backing storage per GiB of declared logical capacity, even while the payload is empty. MiniOS therefore also limits DynFileFS capacity from physical RAM and by a tested 2,000,000 MiB hard ceiling.
+- A new initrd-created DynFileFS session without `perchsize` uses up to 16 GiB of logical capacity. The initrd can reduce that default based on available space after `perchreserve` and a RAM budget for the cache and allocator metadata. For explicit creation or growth, the initrd checks RAM and backing space and caps the request at 2,000,000 MiB for the bundled i686 helper. These checks do not prevent opening an existing container without a growth request. Logical capacity is not a reservation of backing space.
 - A new DynBlk session without `perchsize` follows the same 16 GiB automatic ceiling and is reduced when less backing space remains after `perchreserve`. Explicit DynBlk size is a thin-capacity request checked against the installed backend limit. Metadata for declared parts is created initially, but payload space grows on demand. DynBlk owns a bounded metadata cache independent of payload fill.
 
 Container growth is best-effort and shrinking is not supported. `perchsize` does not size native or SquashFS sessions. MiniOS Session Manager defaults manually created raw and DynFileFS containers to 4000 MiB and DynBlk/VMDK containers to 16 GiB; encrypted variants use the same backend defaults. See [Session management](/using-minios/Sessions-and-Persistence).
@@ -117,7 +117,7 @@ All successful backends must supply the writable upper expected by the selected 
 | Backend | Persistent representation | Capacity model | Backing-storage requirements | MiniOS LUKS2 layer |
 |---|---|---|---|---|
 | `native` | Files and directories directly in the numbered session directory | Uses backing filesystem space directly; `perchsize` does not apply | Writable filesystem that passes the POSIX behavior probe | No |
-| `dynfilefs` | Format-400 `changes.dat` plus segment files exposing an ext4 `virtual.dat` | Thin payload with a dense capacity-sized index | Writable POSIX, FAT32, NTFS, or exFAT storage | Yes |
+| `dynfilefs` | Format 600: `changes.dat` and numbered parts expose `virtual.dat` | Thin payload, on-disk index pages, bounded in-memory index cache | Writable POSIX, FAT32, NTFS, or exFAT storage | Yes |
 | `dynblk` | Format-1 `volumeNNN.db` files exposing `/dev/dynblkN`, with ext4 on top | Thin virtual block device with disk-resident mappings and a bounded cache | Filesystem accepted by the DynBlk kernel backend and enough backend resources | Yes |
 | `vmdk` | `volume.vmdk` plus split sparse `volume-sNNN.vmdk` extents exposed by the DynBlk driver, with ext4 on top | Thin split-sparse virtual block device | Filesystem accepted by the DynBlk VMDK backend and the `vmdk-session-v1` capability | Yes |
 | `raw` | Single fixed-size `changes.img` file containing ext4 | File is created at the requested logical size; growth only | Writable filesystem able to hold the image; FAT32 is limited to 4000 MiB | Yes |
@@ -133,9 +133,11 @@ The MiniOS LUKS2 persistence layer does not wrap native mode because native has 
 
 ### DynFileFS
 
-DynFileFS is the FUSE-based format-400 container backend. It exposes one logical `virtual.dat` image while storing data in `changes.dat` plus numbered segment files. The helper must mount successfully and expose `virtual.dat`; otherwise activation fails rather than accidentally creating a RAM-only file with a persistent-looking name.
+DynFileFS uses a single FUSE 3 runtime with native storage format **600**. It exposes one logical `virtual.dat` image backed by `changes.dat` and numbered part files. The helper must mount successfully and expose `virtual.dat`; otherwise activation fails.
 
-Its mapping index is dense with respect to declared logical capacity: each 4 KiB logical block has one 8-byte offset. That is about 2 MiB of index RAM per GiB of virtual capacity, and approximately the same amount is stored in the backing segment indexes even before payload data is written. Payload allocation itself remains dynamic. Because the static initrd binary is i686, MiniOS also applies a RAM-aware logical-size limit and a 2,000,000 MiB hard ceiling below the tested address-space failure point.
+Payload and index pages are allocated on demand. The runtime reads index pages from disk into a bounded cache as needed; it does not map the entire logical index into memory. Allocator metadata, snapshots and filesystem cache also use resources, so the index cache bound is not a limit on total memory use.
+
+Formats **400** and **500** are accepted only for automatic in-place conversion to 600 on the first normal mount. The legacy split size must be an even number of MiB so the physical offsets are aligned. MiniOS's standard 4000 MiB split meets this requirement. An odd-MiB split is refused without modifying the original. Conversion rewrites metadata in place without moving the payload, including any LUKS2 ciphertext. There is no legacy runtime or separate upgrade command. Keep a detached backup before the first mount and make sure the boot initrd also has a current helper: older DynFileFS binaries cannot open the converted volume.
 
 The logical image contains ext4. Existing images are checked before writable mounting; filesystem-check results above the corrected-errors status reject the session instead of mounting it writable. Resize is growth-only, and the inner ext4 filesystem is expanded when possible. For user-facing diagnosis, see [Troubleshooting](/maintenance-and-recovery/Troubleshooting).
 
@@ -241,7 +243,7 @@ For related operational guidance, see [Boot modes](/using-minios/Boot-Modes), [B
 
 ## Session-aware space reclamation
 
-`minios-session reclaim ID` supports DynFileFS, DynBlk, and VMDK sessions. For a plaintext session it runs FITRIM on the actual inner ext4 filesystem, never on the combined AUFS/OverlayFS root, and then invokes the owning storage backend's reclaim operation. DynFileFS reclamation requires DynFileFS 4.6.0 or later.
+`minios-session reclaim ID` supports DynFileFS, DynBlk, and VMDK sessions. For a plaintext session it runs FITRIM on the actual inner ext4 filesystem, never on the combined AUFS/OverlayFS root, and then invokes the owning storage backend's reclaim operation. DynFileFS can reclaim only data no longer referenced by the working image or by snapshots; reclaim does not delete snapshots.
 
 For a running DynFileFS session, Session Manager enters a short-lived private mount namespace so it can reach `virtual.dat` beneath the live ext4 overmount without disturbing the system's active daemon, loop device, or union mounts. Running DynBlk/VMDK devices are validated against protected current-boot state. Inactive sessions are temporarily attached and mounted; a session already mounted by Session Manager reuses that existing attachment. A busy unmount stops teardown rather than disconnecting storage underneath a live filesystem.
 

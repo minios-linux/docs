@@ -215,18 +215,19 @@ Die grafischen Umgebungen nutzen die unten aufgeführte Xorg- und Rendering-Basi
 
 | Paket | Zweck oder Bedingung |
 |---|---|
-| `fluxbox-flux` | MiniOS Fluxbox-Fenstermanager-Konfiguration |
-| `xfce4-panel`, `xfce4-xkb-plugin` | Panel und Tastatur-Layout-Anzeige |
-| `xwallpaper`, `gpicview` / `feh` | Hintergrundbild- und Bildanzeige |
-| `compton` | X-Compositor |
+| `fluxbox-flux` | MiniOS Konfiguration des Fluxbox-Fenstermanagers |
+| `xfce4-panel`, `xfce4-xkb-plugin` | Panel- und Tastaturlayout-Anzeige |
+| `xwallpaper`, `gpicview` / `feh` | Hintergrundbild und Bildanzeige |
+| `picom-flux` | X-Compositor für den Flux-Desktop |
+| `pcmanfm-flux`, `libfm-modules-flux`, `gvfs` | Dateimanager, Desktop-Symbole und Dateisystemintegration |
 | `alsa-utils`, `volumeicon-alsa` | ALSA-Audiosteuerung |
-| `systrayicon`, `cbatticon` | Tray- und Batterieanzeige |
-| `xlunch`, `gtkask`, `flux-tools` | Starter und MiniOS Flux-Desktop-Helfer |
+| `systrayicon`, `cbatticon` | Tray- und Akkuanzeigen |
+| `xlunch`, `gtkask`, `flux-tools` | Starter und MiniOS Hilfsprogramme für den Flux-Desktop |
 | `scrot` | Screenshot-Tool |
-| `mousepad`, `pcmanfm` | Texteditor und Dateimanager |
-| `galculator`, `lxtask`, `xarchiver` | Rechner, Aufgabenmanager und Archivmanager |
-| `network-manager-gnome` | NetworkManager-Desktop-Applet |
-| `firefox` / `firefox-esr` | Browser je nach Suite, mit ausgewählten Lokalisierungspaketen |
+| `mousepad` | Texteditor |
+| `galculator`, `lxtask`, `xarchiver` | Taschenrechner, Task-Manager und Archivmanager |
+| `network-manager-gnome` | NetworkManager-Applet für den Desktop |
+| `firefox` / `firefox-esr` | Vom Softwarepaket ausgewählter Browser mit passenden Lokalisierungspaketen |
 
 ## Xfce-Desktop und MiniOS-Anwendungen
 

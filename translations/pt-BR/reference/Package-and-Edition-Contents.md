@@ -211,22 +211,23 @@ Os ambientes gráficos compartilham a base Xorg e de renderização abaixo. O Fl
 | `policykit-1-gnome` / `mate-polkit` / `xfce-polkit` | Condicional | Condicional | Condicional | Condicional | Agente gráfico do PolicyKit selecionado conforme disponibilidade |
 | `xrdp`, `xorgxrdp` | - | - | Sim | Sim | Login gráfico remoto por RDP |
 
-## Desktop Flux e aplicativos
+## Área de trabalho Flux e aplicativos
 
 | Pacote | Finalidade ou condição |
 |---|---|
-| `fluxbox-flux` | Configuração do gerenciador de janelas Fluxbox MiniOS |
-| `xfce4-panel`, `xfce4-xkb-plugin` | Painel e indicador de layout do teclado |
-| `xwallpaper`, `gpicview` / `feh` | Papel de parede e visualização de imagens |
-| `compton` | Compositor X |
+| `fluxbox-flux` | MiniOS configuração do gerenciador de janelas Fluxbox |
+| `xfce4-panel`, `xfce4-xkb-plugin` | Indicador do painel e do layout do teclado |
+| `xwallpaper`, `gpicview` / `feh` | Papel de parede e exibição de imagens |
+| `picom-flux` | Compositor X para a área de trabalho Flux |
+| `pcmanfm-flux`, `libfm-modules-flux`, `gvfs` | Gerenciador de arquivos, ícones da área de trabalho e integração com o sistema de arquivos |
 | `alsa-utils`, `volumeicon-alsa` | Controles de áudio ALSA |
 | `systrayicon`, `cbatticon` | Indicadores da bandeja e da bateria |
-| `xlunch`, `gtkask`, `flux-tools` | Inicializador e utilitários do desktop Flux MiniOS |
+| `xlunch`, `gtkask`, `flux-tools` | Lançador e utilitários do Flux desktop MiniOS |
 | `scrot` | Utilitário de captura de tela |
-| `mousepad`, `pcmanfm` | Editor de texto e gerenciador de arquivos |
+| `mousepad` | Editor de texto |
 | `galculator`, `lxtask`, `xarchiver` | Calculadora, gerenciador de tarefas e gerenciador de arquivos compactados |
-| `network-manager-gnome` | Applet de desktop do NetworkManager |
-| `firefox` / `firefox-esr` | Navegador selecionado pela suite, com pacotes de localização selecionados |
+| `network-manager-gnome` | Applet de área de trabalho do NetworkManager |
+| `firefox` / `firefox-esr` | Navegador escolhido pelo conjunto, com pacotes de localização correspondentes |
 
 ## Desktop Xfce e aplicativos MiniOS
 

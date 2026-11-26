@@ -98,9 +98,9 @@ nmcli connection show
 
 ## Problemas de persistencia
 
-Inicie **Iniciar sin guardar** antes de modificar un almacén de persistencia sospechoso. No repare ni elimine la única copia de una sesión mientras esté activa.
+Inicia el sistema **Iniciar sin guardar** antes de cambiar un almacén de persistencia sospechoso. No repares ni elimines la única copia de una sesión mientras esté activa.
 
-Inspeccione lo que MiniOS ve actualmente:
+Comprueba qué detecta actualmente MiniOS:
 
 ```bash
 sudo minios-session list
@@ -110,17 +110,19 @@ sudo minios-session status
 sudo minios-session info
 ```
 
-Verifique el modo de arranque seleccionado, el espacio disponible para escritura, la compatibilidad del sistema de archivos y la compatibilidad de la sesión. Las reglas detalladas de selección se encuentran en [Sesiones y persistencia](/using-minios/Sessions-and-Persistence) y [Internos de persistencia](/reference/boot-process/Persistence-Internals).
+Comprueba el modo de arranque seleccionado, el espacio disponible para escritura, la compatibilidad del sistema de archivos y la compatibilidad de la sesión. Las reglas detalladas de selección se encuentran en [Sesiones y persistencia](/using-minios/Sessions-and-Persistence) y [Detalles internos de la persistencia](/reference/boot-process/Persistence-Internals).
 
-Si una sesión importante que no está en ejecución `native`, `dynfilefs`, `dynblk`, `vmdk`, o `raw` sigue siendo legible, incluso en forma cifrada que pueda desbloquearse, expórtela **antes** de experimentar con el almacenamiento:
+Si una sesión importante que no está en ejecución de `native`, `dynfilefs`, `dynblk`, `vmdk`, o `raw` sesión sigue siendo legible, incluso si está cifrada pero se puede desbloquear, expórtala **antes** de experimentar con el almacenamiento:
 
 ```bash
 sudo minios-session export <id> /path/to/session.tar.zst
 ```
 
-Si Session Manager no puede leer ni exportar la sesión, deje de escribir en el origen y conserve una copia offline del almacenamiento afectado antes de continuar. Para una sesión DynBlk separada, `dynblk inspect /path/to/volume000.db --metadata-only` y `dynblk check /path/to/volume000.db` ofrecen diagnósticos de formato de solo lectura; no los ejecute sobre un volumen que siga conectado. MiniOS no define un procedimiento manual universal para reconstruir segmentos de DynFileFS, reconstruir partes de respaldo de DynBlk, reparar un sistema de archivos interno ni reconstruir metadatos de sesión. Esta recuperación depende del sistema de archivos o contenedor y solo debe intentarse sobre una copia si el valor de los datos lo justifica.
+Si Session Manager no puede leer ni exportar la sesión, deja de escribir en el origen y conserva una copia sin conexión del almacenamiento afectado antes de seguir trabajando. Para una sesión DynBlk separada, `dynblk inspect /path/to/volume000.db --metadata-only` y `dynblk check /path/to/volume000.db` proporcionan diagnósticos de formato de solo lectura; no los ejecutes en un volumen que siga conectado. MiniOS no define un procedimiento manual universal para reconstruir segmentos DynFileFS, reconstruir partes de respaldo de DynBlk, reparar un sistema de archivos interno ni reconstruir los metadatos de sesión. Estos métodos de recuperación dependen del sistema de archivos o del contenedor y solo deben intentarse en una copia cuando el valor de los datos lo justifique.
 
-Consulte [Copia de seguridad de MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS) para flujos de trabajo de copia de seguridad e importación de sesiones compatibles.
+Si se creó un volumen DynFileFS de formato 400 o 500 con una división de número impar de MiB, el entorno de ejecución actual se niega a montarlo y deja el origen sin cambios. Para recuperar los archivos, usa un entorno antiguo compatible con una copia separada del contenedor completo e importa los archivos exportados en un almacenamiento nuevo. Si un medio de arranque antiguo dejó de reconocer un volumen convertido, usa un initrd de arranque MiniOS que admita el formato 600 actual.
+
+Consulta [Copia de seguridad de MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS) para ver los flujos de trabajo compatibles de copia de seguridad e importación de sesiones.
 
 ### Ventoy Persistence Plugin
 
@@ -189,14 +191,14 @@ indica soporte nativo de bloques y no garantiza compatibilidad con arranque de s
 No cambies manualmente el modo de una sesión existente: utiliza una copia explícita o
 conversión al otro formato.
 
-### Liberar espacio en DynFileFS, DynBlk o sesiones VMDK
+### Liberar espacio en sesiones de DynFileFS, DynBlk o VMDK
 
-Utiliza el menú contextual del Administrador de Sesiones **Liberar espacio...**, o
-`minios-session reclaim ID --json`. Para sesiones en texto plano, esto recorta el
-sistema de archivos ext4 interno real y luego solicita al backend propietario que recupere el almacenamiento sin
-mover datos en uso. DynFileFS requiere la versión 4.6.0 o posterior para esta operación.
-En sistemas de archivos como exFAT, pueden quedar huecos internos asignados al archivo anfitrión
-pero reutilizables por el contenedor; `--compact` es una opción manual aparte que puede
-reubicar datos activos y escribir más en el dispositivo flash. Ninguna opción activa
-la compactación ni el descarte LUKS automáticamente. Una sesión cifrada solo puede recuperar
-el espacio que el backend subyacente ya reconoce mediante este comando.
+Usa la opción del menú contextual de Session Manager **Liberar espacio...**, o
+`minios-session reclaim ID --json`. En las sesiones de texto sin formato, esta opción recorta el
+ext4 interno real y, a continuación, solicita al backend propietario que recupere espacio de almacenamiento sin
+mover datos activos. Las instantáneas de DynFileFS pueden mantener asignados los bloques eliminados; la operación no elimina instantáneas.
+En sistemas de archivos como exFAT, los espacios intermedios pueden seguir asignados al archivo del host,
+pero el contenedor puede reutilizarlos; `--compact` es una opción manual independiente que puede
+reubicar datos activos y escribir más en el dispositivo flash. Ninguna opción activa automáticamente
+la compactación ni la instrucción de descarte de LUKS. Una sesión cifrada solo puede recuperar el
+espacio que el backend subyacente ya reconoce mediante este comando.

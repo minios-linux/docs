@@ -119,6 +119,8 @@ sudo minios-session export <id> /path/to/session.tar.zst
 
 If Session Manager cannot read or export the session, stop writing to the source and preserve an offline copy of the affected storage before further work. For a detached DynBlk session, `dynblk inspect /path/to/volume000.db --metadata-only` and `dynblk check /path/to/volume000.db` provide read-only format diagnostics; do not run them against a volume that is still attached. MiniOS does not define a universal manual procedure for rebuilding DynFileFS segments, reconstructing DynBlk backing parts, repairing an inner filesystem, or reconstructing session metadata. Such recovery is filesystem/container-specific and should be attempted only on a copy when the value of the data justifies it.
 
+If a format 400 or 500 DynFileFS volume was created with an odd-MiB split, the current runtime refuses to mount it and leaves the source unchanged. To recover the files, use a compatible older environment on a detached copy of the complete container, and import the exported files into new storage. If an older boot medium stopped recognizing a converted volume, use a MiniOS boot initrd that supports the current format 600.
+
 See [Backing up MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS) for supported backup and session-import workflows.
 
 ### Ventoy Persistence Plugin
@@ -193,7 +195,7 @@ conversion to the other format.
 Use Session Manager's context menu **Free Space...**, or
 `minios-session reclaim ID --json`. For plaintext sessions this trims the
 actual inner ext4 and then asks the owning backend to reclaim storage without
-moving live data. DynFileFS requires version 4.6.0 or later for this operation.
+moving live data. DynFileFS snapshots may keep deleted blocks allocated; the operation does not delete snapshots.
 On filesystems such as exFAT, interior gaps may remain allocated to the host file
 but reusable by the container; `--compact` is a separate manual choice that can
 relocate live data and writes more to the flash device. Nothing enables

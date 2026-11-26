@@ -100,7 +100,7 @@ nmcli connection show
 
 Boot **Mulai tanpa menyimpan** sebelum mengubah penyimpanan persistensi yang dicurigai bermasalah. Jangan memperbaiki atau menghapus satu-satunya salinan sesi saat sesi tersebut sedang aktif.
 
-Periksa apa yang saat ini dapat dilihat oleh MiniOS:
+Periksa apa yang saat ini terlihat oleh MiniOS:
 
 ```bash
 sudo minios-session list
@@ -110,17 +110,19 @@ sudo minios-session status
 sudo minios-session info
 ```
 
-Periksa mode boot yang dipilih, ruang tulis yang tersedia, kompatibilitas sistem file, dan kompatibilitas sesi. Aturan pemilihan terperinci tersedia di [Sesi dan persistensi](/using-minios/Sessions-and-Persistence) dan [Detail internal persistensi](/reference/boot-process/Persistence-Internals).
+Periksa mode boot yang dipilih, ruang tulis yang tersedia, kompatibilitas sistem file, dan kompatibilitas sesi. Aturan pemilihan selengkapnya ada di [Sesi dan persistensi](/using-minios/Sessions-and-Persistence) dan [Detail internal persistensi](/reference/boot-process/Persistence-Internals).
 
-Jika `native` penting yang tidak sedang berjalan`dynfilefs`, `dynblk`, `vmdk`, atau `raw` sesi masih dapat dibaca, termasuk bentuk terenkripsi yang dapat dibuka kuncinya, ekspor sesi tersebut **sebelum** mencoba mengutak-atik penyimpanan:
+Jika sesi `native`, `dynfilefs`, `dynblk`, `vmdk`, atau `raw` yang penting dan tidak sedang berjalan masih dapat dibaca, termasuk sesi terenkripsi yang dapat dibuka, ekspor sesi tersebut **sebelum** mencoba mengutak-atik penyimpanan:
 
 ```bash
 sudo minios-session export <id> /path/to/session.tar.zst
 ```
 
-Jika Session Manager tidak dapat membaca atau mengekspor sesi, hentikan penulisan ke sumber dan simpan salinan offline penyimpanan yang terdampak sebelum melakukan tindakan lebih lanjut. Untuk sesi DynBlk yang dilepas, `dynblk inspect /path/to/volume000.db --metadata-only` dan `dynblk check /path/to/volume000.db` menyediakan diagnostik format hanya-baca; jangan jalankan diagnostik tersebut pada volume yang masih terpasang. MiniOS tidak menetapkan prosedur manual universal untuk membangun ulang segmen DynFileFS, merekonstruksi bagian pendukung DynBlk, memperbaiki sistem file internal, atau merekonstruksi metadata sesi. Pemulihan semacam ini bergantung pada sistem file/kontainer dan sebaiknya hanya dilakukan pada salinan jika nilai data tersebut memang sepadan dengan upaya pemulihan.
+Jika Session Manager tidak dapat membaca atau mengekspor sesi, hentikan penulisan ke sumber dan simpan salinan offline dari penyimpanan yang terdampak sebelum melakukan langkah lain. Untuk sesi DynBlk yang dilepas, `dynblk inspect /path/to/volume000.db --metadata-only` dan `dynblk check /path/to/volume000.db` menyediakan diagnostik format hanya-baca; jangan jalankan alat tersebut pada volume yang masih terpasang. MiniOS tidak menetapkan prosedur manual universal untuk membangun ulang segmen DynFileFS, merekonstruksi bagian penyimpanan DynBlk, memperbaiki sistem file di dalamnya, atau merekonstruksi metadata sesi. Pemulihan semacam ini bergantung pada sistem file/kontainer dan sebaiknya hanya dicoba pada salinan jika nilai datanya sepadan.
 
-Lihat [Mencadangkan MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS) untuk mengetahui alur pencadangan dan impor sesi yang didukung.
+Jika volume DynFileFS format 400 atau 500 dibuat dengan pembagian dalam satuan MiB ganjil, runtime saat ini menolak untuk memasangnya dan membiarkan sumber tetap utuh. Untuk memulihkan file, gunakan lingkungan lama yang kompatibel pada salinan kontainer lengkap yang telah dilepas, lalu impor file yang diekspor ke penyimpanan baru. Jika media boot lama tidak lagi mengenali volume yang telah dikonversi, gunakan initrd boot MiniOS yang mendukung format 600 saat ini.
+
+Lihat [Mencadangkan MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS) untuk alur kerja pencadangan dan impor sesi yang didukung.
 
 ### Ventoy Plugin Persistensi
 
@@ -189,14 +191,14 @@ menunjukkan dukungan blok native dan tidak menjamin dukungan boot sesi VMDK.
 Jangan ubah mode sesi yang sudah ada secara manual: gunakan penyalinan eksplisit atau
 konversi ke format lain.
 
-### Mengosongkan ruang di DynFileFS, DynBlk, atau sesi VMDK
+### Mengosongkan ruang di sesi DynFileFS, DynBlk, atau VMDK
 
 Gunakan menu konteks Session Manager **Kosongkan Ruang...**, atau
-`minios-session reclaim ID --json`. Untuk sesi plaintext, tindakan ini memangkas
-ext4 internal yang sebenarnya, lalu meminta backend pemilik untuk mengklaim kembali penyimpanan tanpa
-memindahkan data aktif. DynFileFS memerlukan versi 4.6.0 atau yang lebih baru untuk operasi ini.
-Pada sistem file seperti exFAT, celah di bagian dalam mungkin tetap dialokasikan untuk file host
-tetapi dapat digunakan kembali oleh container; `--compact` adalah pilihan manual terpisah yang dapat
-memindahkan data aktif dan menambah penulisan ke perangkat flash. Tidak ada yang mengaktifkan
+`minios-session reclaim ID --json`. Untuk sesi teks biasa, tindakan ini memangkas
+ext4 internal yang sebenarnya, lalu meminta backend pemiliknya untuk mengklaim kembali ruang penyimpanan tanpa
+memindahkan data aktif. Snapshot DynFileFS dapat membuat blok yang dihapus tetap teralokasi; operasi ini tidak menghapus snapshot.
+Pada sistem file seperti exFAT, celah di bagian tengah mungkin tetap teralokasi pada file host,
+tetapi dapat digunakan kembali oleh kontainer; `--compact` adalah pilihan manual terpisah yang dapat
+memindahkan data aktif dan menulis lebih banyak data ke perangkat flash. Tidak ada yang mengaktifkan
 pemadatan atau discard LUKS secara otomatis. Sesi terenkripsi hanya dapat mengklaim kembali
-ruang yang sudah diketahui oleh backend yang mendasarinya melalui perintah ini.
+ruang yang sudah diketahui backend di bawahnya melalui perintah ini.

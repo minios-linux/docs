@@ -98,9 +98,9 @@ nmcli connection show
 
 ## Problemas de persistência
 
-Inicie o boot **Iniciar sem salvar** antes de alterar um armazenamento de persistência suspeito. Não repare nem exclua a única cópia de uma sessão enquanto ela estiver ativa.
+Inicialize **Iniciar sem salvar** antes de alterar um armazenamento de persistência suspeito. Não repare nem exclua a única cópia de uma sessão enquanto ela estiver ativa.
 
-Verifique o que o MiniOS está enxergando no momento:
+Inspecione o que MiniOS detecta no momento:
 
 ```bash
 sudo minios-session list
@@ -110,17 +110,19 @@ sudo minios-session status
 sudo minios-session info
 ```
 
-Verifique o modo de boot selecionado, o espaço disponível para gravação, a compatibilidade do sistema de arquivos e a compatibilidade da sessão. As regras detalhadas de seleção estão em [Sessões e persistência](/using-minios/Sessions-and-Persistence) e [Persistência interna](/reference/boot-process/Persistence-Internals).
+Verifique o modo de inicialização selecionado, o espaço gravável disponível, a compatibilidade do sistema de arquivos e a compatibilidade da sessão. As regras detalhadas de seleção estão em [Sessões e persistência](/using-minios/Sessions-and-Persistence) e [Detalhes internos da persistência](/reference/boot-process/Persistence-Internals).
 
-Se uma sessão importante não ativa `native`, `dynfilefs`, `dynblk`, `vmdk`, ou `raw` ainda estiver legível, inclusive em formato criptografado que possa ser desbloqueado, exporte-a **antes** de experimentar com o armazenamento:
+Se uma sessão importante, que não esteja em execução, em `native`, `dynfilefs`, `dynblk`, `vmdk` ou `raw` ainda puder ser lida, inclusive se estiver criptografada e puder ser desbloqueada, exporte-a **antes** de experimentar com o armazenamento:
 
 ```bash
 sudo minios-session export <id> /path/to/session.tar.zst
 ```
 
-Se o Session Manager não conseguir ler ou exportar a sessão, pare de gravar na origem e preserve uma cópia offline do armazenamento afetado antes de prosseguir. Para uma sessão DynBlk destacada, `dynblk inspect /path/to/volume000.db --metadata-only` e `dynblk check /path/to/volume000.db` fornecem diagnósticos de formato somente leitura; não execute em volumes ainda montados. MiniOS não define um procedimento manual universal para reconstruir segmentos DynFileFS, restaurar partes de base DynBlk, reparar um sistema de arquivos interno ou reconstruir metadados de sessão. Essa recuperação é específica do sistema de arquivos/container e só deve ser tentada em uma cópia, quando o valor dos dados justificar.
+Se o Session Manager não conseguir ler nem exportar a sessão, pare de gravar na origem e preserve uma cópia offline do armazenamento afetado antes de continuar. Para uma sessão DynBlk desconectada, `dynblk inspect /path/to/volume000.db --metadata-only` e `dynblk check /path/to/volume000.db` fornecem diagnósticos de formato somente leitura; não os execute em um volume que ainda esteja conectado. MiniOS não define um procedimento manual universal para recriar segmentos DynFileFS, reconstruir partes de armazenamento DynBlk, reparar um sistema de arquivos interno ou reconstruir metadados de sessão. Esse tipo de recuperação depende do sistema de arquivos ou contêiner e só deve ser tentado em uma cópia, quando o valor dos dados justificar o esforço.
 
-Veja [Backup de MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS) para fluxos de trabalho suportados de backup e importação de sessão.
+Se um volume DynFileFS do formato 400 ou 500 foi criado com uma divisão em MiB ímpar, o runtime atual se recusa a montá-lo e mantém a origem inalterada. Para recuperar os arquivos, use um ambiente antigo compatível em uma cópia desconectada do contêiner completo e importe os arquivos exportados para um novo armazenamento. Se uma mídia de inicialização antiga deixou de reconhecer um volume convertido, use um initrd de inicialização MiniOS compatível com o formato 600 atual.
+
+Consulte [Fazendo backup de MiniOS](/maintenance-and-recovery/Backing-Up-MiniOS) para ver os fluxos de trabalho compatíveis de backup e importação de sessões.
 
 ### Ventoy Plugin de persistência
 
@@ -189,14 +191,14 @@ indica suporte nativo a blocos e não garante suporte à inicialização de sess
 Não altere manualmente o modo de uma sessão existente: use uma cópia explícita ou
 conversão para o outro formato.
 
-### Liberando espaço em DynFileFS, DynBlk ou em sessões VMDK
+### Liberar espaço em sessões DynFileFS, DynBlk ou VMDK
 
-Use o menu de contexto do Session Manager **Liberar espaço...**, ou
-`minios-session reclaim ID --json`. Em sessões de texto simples, isso faz trim no
-ext4 interno propriamente dito e solicita ao backend responsável que recupere o armazenamento sem realizar a movimentação de
-dados ativos. DynFileFS requer a versão 4.6.0 ou posterior para essa operação.
-Em sistemas de arquivos como exFAT, lacunas internas podem continuar alocadas no arquivo do host
-mas reutilizáveis pelo contêiner; `--compact` é uma opção manual separada que permite
-realocar dados ativos e gravar mais no dispositivo flash.
-A compactação e o discard do LUKS não são ativados automaticamente. Uma sessão criptografada só pode recuperar
-espaço que já seja conhecido pelo backend subjacente por meio deste comando.
+Use a opção do menu de contexto do Session Manager **Liberar espaço...**, ou
+`minios-session reclaim ID --json`. Em sessões em texto simples, essa opção ajusta o
+ext4 interno real e, em seguida, solicita ao backend responsável que recupere espaço de armazenamento sem
+mover dados em uso. Os snapshots DynFileFS podem manter blocos excluídos alocados; a operação não exclui snapshots.
+Em sistemas de arquivos como exFAT, lacunas internas podem continuar alocadas no arquivo do host,
+mas podem ser reutilizadas pelo contêiner; `--compact` é uma opção manual separada que pode
+realocar dados em uso e grava mais vezes no dispositivo flash. Nenhuma opção ativa
+a compactação ou o descarte de LUKS automaticamente. Uma sessão criptografada só pode recuperar
+espaço que já seja reconhecido pelo backend subjacente por meio deste comando.

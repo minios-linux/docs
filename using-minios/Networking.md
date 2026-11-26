@@ -60,6 +60,20 @@ NetworkManager configures the running MiniOS system. Networking used by the init
 
 The `ip=` boot parameter, PXE downloads, and `from=http://...` therefore do not create NetworkManager profiles and should not be used as a way to configure the normal desktop network. See [Network boot](/reference/boot-process/Network-Boot).
 
+## Address fallback for MiniOS services
+
+On images with the MiniOS NetworkManager dispatcher, connection changes can trigger checks of the MiniOS website, package repository, Store, and GitHub release downloads. If a resource cannot be reached using normal DNS, the dispatcher can temporarily add a verified alternative address to its own block in the `/etc/hosts` file. It keeps HTTPS certificate validation enabled, leaves manual entries alone, and removes its overrides when the next check finds normal access working again.
+
+A successful evaluation downloads about 4 MiB of test data; retries may use more. The checks use direct connections and do not change NetworkManager profiles. They cannot fix a service outage or guarantee that a full ISO will download.
+
+To disable the checks, set `enabled` to `false` in `/etc/minios/network-fallback.json`, then clear existing overrides:
+
+```bash
+sudo /etc/NetworkManager/dispatcher.d/90-minios-network --clear
+```
+
+On systemd systems, view dispatcher diagnostics with `journalctl -t minios-network-fallback`.
+
 ## Troubleshooting
 
 For an ordinary connection problem, start with NetworkManager itself:
