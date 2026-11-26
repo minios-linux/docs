@@ -12,10 +12,10 @@ Ejecute `./minios-cmd --help`, `./minios-live --help` y revise el `build.conf` s
 
 ## Requisitos
 
-Compile en Debian o Ubuntu con suficiente espacio libre: `BUILD_DIR` y `/tmp`.
-Un sistema de escritorio típico necesita al menos 20 GiB. Las operaciones de compilación requieren permisos de root para debootstrap, chroots, montajes, dispositivos loop y creación de imágenes; mostrar la ayuda no los requiere.
+Compile en Debian o Ubuntu con suficiente espacio libre, al menos `BUILD_DIR` y `/tmp`.
+Un sistema de escritorio típico necesita al menos 20 GiB. Las operaciones de compilación requieren permisos de root para debootstrap, los chroots, los montajes, los dispositivos de bucle y la creación de imágenes; mostrar la ayuda no los requiere.
 
-La lista oficial de paquetes del sistema anfitrión está en `linux-live/prerequisites.list`. Para la copia de trabajo actual, se puede instalar con:
+La lista de paquetes del sistema anfitrión que debe tomarse como referencia es `linux-live/prerequisites.list`. Para la copia de trabajo actual, puede instalarse con:
 
 ```bash
 sudo apt-get update
@@ -24,16 +24,20 @@ sudo apt-get install \
   grub-common gpg curl jq openssl sbsigntool
 ```
 
-En una copia del código fuente, `minios-live` comprueba esta lista antes de compilar, salvo que `SKIP_SETUP_HOST=true`. En un sistema anfitrión normal, informa de los paquetes que faltan y se detiene; la instalación automática solo se usa en el proceso de compilación del contenedor.
+En una copia del código fuente, `minios-live` comprueba esta lista antes de compilar, a menos que `SKIP_SETUP_HOST=true`. En un sistema anfitrión normal, informa de los paquetes que faltan y se detiene; la instalación automática solo se utiliza en el proceso de compilación del contenedor.
 
-En el sistema anfitrión de compilación, instala `minios-dpkg-state` desde la suite genérica del repositorio APT de MiniOS. Las etapas `build-live`, `build-modules` y `build-boot` comprueban el índice del repositorio para la arquitectura del sistema anfitrión antes de continuar. El paquete instalado debe cumplir tanto el requisito mínimo del constructor como la versión publicada para esa arquitectura. El constructor no lo instala ni lo actualiza automáticamente; si la comprobación falla, sigue las instrucciones del paquete que muestra.
+En el sistema anfitrión de compilación, instale `minios-dpkg-state` desde la suite genérica del repositorio APT de MiniOS. Descargue el `.deb` correspondiente a la arquitectura de su sistema anfitrión desde el [directorio de paquetes de MiniOS en GitHub](https://github.com/minios-linux/deb/tree/master/debian/pool/main/m/minios-live-config).
 
-La configuración predeterminada comprueba la conectividad a Internet. La comprobación se puede desactivar con `CHECK_INTERNET_CONNECTION=false` y se omite si se ha preparado un repositorio de caché APT, pero todos los paquetes necesarios y los archivos de arranque deben seguir estando disponibles en los repositorios o cachés configurados.
+Los módulos MiniOS solo guardan sus propios cambios en la `dpkg` base de datos de estado de los paquetes, en lugar de incluir una copia completa en cada módulo. Antes de instalar paquetes para un módulo nuevo, el generador utiliza `minios-dpkg-state` para reconstruir la base de datos a partir del sistema base y de los módulos en los que se basa. Así, APT puede detectar qué paquetes ya están instalados al resolver las dependencias. Al empaquetar el nuevo módulo, la herramienta auxiliar guarda solo los cambios de ese módulo.
 
-Si `USE_APT_CACHER=true`, ya debe estar configurado un servicio apt-cacher-ng accesible en `APT_CACHER_ADDRESS`; de lo contrario, establece la opción en `false` antes de compilar.
+Las etapas `build-live`, `build-modules` y `build-boot` comprueban el índice del repositorio para la arquitectura del sistema anfitrión antes de continuar. El paquete instalado debe cumplir tanto el requisito mínimo del generador como la versión publicada para esa arquitectura. El generador no lo instala ni lo actualiza automáticamente. Si la comprobación falla, siga las instrucciones de instalación que se muestran; cuando está disponible, incluyen una URL directa de `.deb`.
 
-::: danger Confianza del arranque inicial
-La ruta actual de arranque inicial ejecuta debootstrap con `--no-check-gpg` y descarga la clave del archivo MiniOS mediante HTTP sin autenticación. No uses la imagen resultante como artefacto de lanzamiento de confianza hasta que estas rutas del código fuente garanticen la autenticación de la clave y la verificación del arranque inicial.
+La configuración predeterminada comprueba la conectividad a Internet. Esta comprobación se puede desactivar con `CHECK_INTERNET_CONNECTION=false` y se omite si se utiliza un repositorio de caché APT preparado, pero todos los paquetes y archivos de arranque necesarios deben estar disponibles en los repositorios o cachés configurados.
+
+Si `USE_APT_CACHER=true`, debe haber un servicio apt-cacher-ng accesible configurado en `APT_CACHER_ADDRESS`; de lo contrario, establezca la opción en `false` antes de compilar.
+
+::: danger Confianza en el arranque inicial
+La ruta actual de arranque inicial ejecuta debootstrap con `--no-check-gpg` y descarga la clave del archivo MiniOS mediante HTTP sin autenticación. No utilice la imagen resultante como artefacto de una versión de confianza hasta que estas rutas de origen apliquen la autenticación de la clave y la verificación del arranque inicial.
 :::
 
 ## Compilación rápida

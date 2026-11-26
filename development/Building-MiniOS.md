@@ -25,7 +25,11 @@ sudo apt-get install \
 
 In a source checkout, `minios-live` checks this list before building unless `SKIP_SETUP_HOST=true`. On a normal host it reports missing packages and stops; automatic installation is used only by the container build path.
 
-On the build host, install `minios-dpkg-state` from the generic suite of the MiniOS APT repository. The `build-live`, `build-modules`, and `build-boot` stages check the repository index for the host architecture before proceeding. The installed package must meet both the builder's minimum and the version published for that architecture. The builder does not install or upgrade it automatically; follow the package instructions it prints if the check fails.
+On the build host, install `minios-dpkg-state` from the generic suite of the MiniOS APT repository. Download the `.deb` for your host architecture from the [MiniOS package directory on GitHub](https://github.com/minios-linux/deb/tree/master/debian/pool/main/m/minios-live-config).
+
+MiniOS modules store only their changes to the `dpkg` package status database, rather than a full copy in every module. Before installing packages for a new module, the builder uses `minios-dpkg-state` to reconstruct the database from the base system and the modules it builds on. This lets APT see which packages are already installed when it resolves dependencies. When the new module is packed, the helper saves only that module's changes.
+
+The `build-live`, `build-modules`, and `build-boot` stages check the repository index for the host architecture before proceeding. The installed package must meet both the builder's minimum and the version published for that architecture. The builder does not install or upgrade it automatically. If the check fails, follow the printed installation instructions, which include a direct `.deb` URL when available.
 
 The default configuration checks Internet connectivity. The check can be disabled with `CHECK_INTERNET_CONNECTION=false` and is skipped for a prepared APT cache repository, but all required package and boot-file inputs must still be available from configured repositories or caches.
 

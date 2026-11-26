@@ -12,10 +12,10 @@ Jalankan `./minios-cmd --help`, `./minios-live --help`, dan periksa `build.conf`
 
 ## Persyaratan
 
-Bangun di Debian atau Ubuntu dengan ruang kosong yang cukup, minimal `BUILD_DIR` dan `/tmp`.
-Target desktop pada umumnya memerlukan setidaknya 20 GiB. Operasi build memerlukan akses root untuk debootstrap, chroot, mount, perangkat loop, dan pembuatan image; menampilkan bantuan tidak memerlukannya.
+Bangun di Debian atau Ubuntu dengan ruang kosong yang cukup, setidaknya `BUILD_DIR` dan `/tmp`.
+Target desktop pada umumnya memerlukan setidaknya 20 GiB. Proses build memerlukan akses root untuk debootstrap, chroot, mount, perangkat loop, dan pembuatan image; menampilkan bantuan tidak memerlukannya.
 
-Daftar paket host resmi ada di `linux-live/prerequisites.list`. Untuk checkout saat ini, paket dapat diinstal dengan:
+Daftar paket host yang menjadi acuan adalah `linux-live/prerequisites.list`. Untuk checkout saat ini, daftar tersebut dapat diinstal dengan:
 
 ```bash
 sudo apt-get update
@@ -24,16 +24,20 @@ sudo apt-get install \
   grub-common gpg curl jq openssl sbsigntool
 ```
 
-Dalam checkout sumber, `minios-live` memeriksa daftar ini sebelum build, kecuali jika `SKIP_SETUP_HOST=true`. Di host biasa, program ini melaporkan paket yang hilang lalu berhenti; instalasi otomatis hanya digunakan pada jalur build container.
+Di checkout sumber, `minios-live` memeriksa daftar ini sebelum melakukan build, kecuali `SKIP_SETUP_HOST=true`. Di host biasa, proses ini melaporkan paket yang belum tersedia lalu berhenti; instalasi otomatis hanya digunakan dalam alur build container.
 
-Di host build, instal `minios-dpkg-state` dari suite generik repositori APT MiniOS. Tahap `build-live`, `build-modules` dan `build-boot` memeriksa indeks repositori untuk arsitektur host sebelum melanjutkan. Paket yang diinstal harus memenuhi persyaratan minimum builder dan versi yang dipublikasikan untuk arsitektur tersebut. Builder tidak menginstal atau memperbarui paket ini secara otomatis; jika pemeriksaan gagal, ikuti petunjuk paket yang ditampilkan.
+Di host build, instal `minios-dpkg-state` dari suite generic repositori APT MiniOS. Unduh `.deb` untuk arsitektur host Anda dari [direktori paket MiniOS di GitHub](https://github.com/minios-linux/deb/tree/master/debian/pool/main/m/minios-live-config).
+
+Modul MiniOS hanya menyimpan perubahan pada `dpkg`basis data status paket, bukan salinan lengkapnya di setiap modul. Sebelum menginstal paket untuk modul baru, builder menggunakan `minios-dpkg-state` untuk merekonstruksi basis data dari sistem dasar dan modul-modul yang menjadi landasannya. Dengan demikian, APT dapat mengetahui paket yang sudah terinstal saat menyelesaikan dependensi. Saat modul baru dikemas, helper hanya menyimpan perubahan pada modul tersebut.
+
+Tahap `build-live`, `build-modules` dan `build-boot` memeriksa indeks repositori untuk arsitektur host sebelum melanjutkan. Paket yang terinstal harus memenuhi persyaratan minimum builder dan versi yang dipublikasikan untuk arsitektur tersebut. Builder tidak menginstal atau memperbarui paket ini secara otomatis. Jika pemeriksaan gagal, ikuti petunjuk instalasi yang ditampilkan, termasuk URL langsung `.deb` jika tersedia.
 
 Konfigurasi default memeriksa konektivitas Internet. Pemeriksaan ini dapat dinonaktifkan dengan `CHECK_INTERNET_CONNECTION=false` dan dilewati jika menggunakan repositori cache APT yang telah disiapkan. Namun, semua paket dan file boot yang diperlukan tetap harus tersedia dari repositori atau cache yang dikonfigurasi.
 
-Jika `USE_APT_CACHER=true`, layanan apt-cacher-ng yang dapat dijangkau harus sudah dikonfigurasi di `APT_CACHER_ADDRESS`; jika tidak, setel opsi ke `false` sebelum build.
+Jika `USE_APT_CACHER=true`, layanan apt-cacher-ng yang dapat dijangkau harus sudah dikonfigurasi di `APT_CACHER_ADDRESS`; jika tidak, atur opsi ke `false` sebelum melakukan build.
 
 ::: danger Kepercayaan bootstrap
-Jalur bootstrap saat ini memanggil debootstrap dengan `--no-check-gpg` dan mengambil kunci arsip MiniOS melalui HTTP yang tidak diautentikasi. Jangan gunakan image yang dihasilkan sebagai artefak rilis tepercaya sebelum jalur sumber ini menerapkan verifikasi kunci dan bootstrap yang terautentikasi.
+Jalur bootstrap saat ini memanggil debootstrap dengan `--no-check-gpg` dan mengunduh kunci arsip MiniOS melalui HTTP tanpa autentikasi. Jangan gunakan image yang dihasilkan sebagai artefak rilis tepercaya sebelum jalur sumber ini menerapkan autentikasi kunci dan verifikasi bootstrap.
 :::
 
 ## Build cepat

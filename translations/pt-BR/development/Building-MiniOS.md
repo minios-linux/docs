@@ -12,10 +12,10 @@ Execute `./minios-cmd --help`, `./minios-live --help` e confira o `build.conf` s
 
 ## Requisitos
 
-Compile no Debian ou Ubuntu com espaço livre suficiente: `BUILD_DIR` e `/tmp`.
+Compile no Debian ou Ubuntu com espaço livre suficiente abaixo de `BUILD_DIR` e `/tmp`.
 Um sistema desktop típico requer pelo menos 20 GiB. As operações de compilação exigem acesso root para debootstrap, chroots, montagens, dispositivos de loop e criação de imagens; a exibição da ajuda não exige.
 
-A lista oficial de pacotes do host está em `linux-live/prerequisites.list`. No checkout atual, ela pode ser instalada com:
+A lista oficial de pacotes do host está em `linux-live/prerequisites.list`. Para o checkout atual, ela pode ser instalada com:
 
 ```bash
 sudo apt-get update
@@ -24,16 +24,20 @@ sudo apt-get install \
   grub-common gpg curl jq openssl sbsigntool
 ```
 
-Em um checkout do código-fonte, `minios-live` verifica esta lista antes de compilar, a menos que `SKIP_SETUP_HOST=true`. Em um host comum, informa quais pacotes estão faltando e interrompe a execução; a instalação automática é usada somente no fluxo de compilação do contêiner.
+Em um checkout do código-fonte, `minios-live` verifica essa lista antes da compilação, a menos que `SKIP_SETUP_HOST=true`. Em um host comum, ele informa quais pacotes estão ausentes e interrompe a execução; a instalação automática é usada somente no processo de compilação do contêiner.
 
-No host de compilação, instale `minios-dpkg-state` da suíte genérica do repositório APT MiniOS. As etapas `build-live`, `build-modules` e `build-boot` verificam o índice do repositório para a arquitetura do host antes de prosseguir. O pacote instalado precisa atender tanto à versão mínima exigida pelo builder quanto à versão publicada para essa arquitetura. O builder não instala nem atualiza o pacote automaticamente; se a verificação falhar, siga as instruções de instalação exibidas.
+No host de compilação, instale `minios-dpkg-state` da suite genérica do repositório APT MiniOS. Baixe o `.deb` para a arquitetura do seu host no [diretório de pacotes MiniOS no GitHub](https://github.com/minios-linux/deb/tree/master/debian/pool/main/m/minios-live-config).
 
-A configuração padrão verifica a conectividade com a Internet. Essa verificação pode ser desativada com `CHECK_INTERNET_CONNECTION=false` e é ignorada quando há um repositório de cache APT preparado, mas todas as entradas necessárias de pacotes e arquivos de inicialização ainda precisam estar disponíveis nos repositórios ou caches configurados.
+Os módulos MiniOS armazenam apenas as alterações feitas no `dpkg`banco de dados de status dos pacotes, em vez de manter uma cópia completa em cada módulo. Antes de instalar pacotes para um novo módulo, o builder usa `minios-dpkg-state`para reconstruir o banco de dados a partir do sistema base e dos módulos dos quais ele depende. Assim, o APT consegue identificar quais pacotes já estão instalados ao resolver dependências. Quando o novo módulo é empacotado, o auxiliar salva apenas as alterações desse módulo.
 
-Se `USE_APT_CACHER=true`, um serviço apt-cacher-ng acessível já precisa estar configurado em `APT_CACHER_ADDRESS`; caso contrário, defina a opção como `false` antes de compilar.
+As etapas `build-live`, `build-modules` e `build-boot` verificam o índice do repositório para a arquitetura do host antes de prosseguir. O pacote instalado deve atender tanto à versão mínima exigida pelo builder quanto à versão publicada para essa arquitetura. O builder não instala nem atualiza o pacote automaticamente. Se a verificação falhar, siga as instruções de instalação exibidas, que incluem um URL direto de `.deb` quando disponível.
 
-::: danger Confiabilidade do bootstrap
-O fluxo atual de bootstrap chama debootstrap com `--no-check-gpg` e obtém a chave de arquivo MiniOS por HTTP sem autenticação. Não use a imagem resultante como artefato de lançamento confiável até que esses caminhos de origem implementem a verificação autenticada da chave e do bootstrap.
+A configuração padrão verifica a conectividade com a Internet. A verificação pode ser desativada com `CHECK_INTERNET_CONNECTION=false` e é ignorada quando há um repositório de cache APT preparado, mas todas as entradas necessárias de pacotes e arquivos de inicialização ainda devem estar disponíveis nos repositórios ou caches configurados.
+
+Se `USE_APT_CACHER=true`, um serviço apt-cacher-ng acessível já deve estar configurado em `APT_CACHER_ADDRESS`; caso contrário, defina a opção como `false` antes de compilar.
+
+::: danger Confiança no bootstrap
+O processo atual de bootstrap chama o debootstrap com `--no-check-gpg` e busca a chave do arquivo MiniOS por HTTP não autenticado. Não use a imagem resultante como artefato de lançamento confiável até que esses caminhos de origem implementem a verificação autenticada da chave e do bootstrap.
 :::
 
 ## Build rápido
